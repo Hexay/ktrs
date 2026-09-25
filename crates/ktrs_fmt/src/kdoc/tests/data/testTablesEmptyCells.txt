@@ -1,0 +1,29 @@
+=== case
+options: 72 72
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * | Function                         | Type                            | Notes                                 |
+| * | -------------------------------- | ------------------------------- | --------------------------------------|
+| * | TypedArray.getDrawable           | NlPropertyType.DRAWABLE         |                                       |
+| * | TypedArray.getColor              | NlPropertyType.COLOR            | Make sure this is not a color list !! |
+| * | TypedArray.getColorStateList     | NlPropertyType.COLOR_STATE_LIST |                                       |
+| * | TypedArray.getDimensionPixelSize | NlPropertyType.DIMENSION        |                                       |
+| * | TypedArray.getResourceId         | NlPropertyType.ID               |                                       |
+| * | TypedArray.getInt                | NlPropertyType.ENUM             | If attrs.xml defines this as an enum  |
+| * |                                  | NlPropertyType.INTEGER          | If this is not an enum                |
+| */
+expected:
+|/**
+| * |Function                        |Type                           |Notes                                |
+| * |--------------------------------|-------------------------------|-------------------------------------|
+| * |TypedArray.getDrawable          |NlPropertyType.DRAWABLE        |                                     |
+| * |TypedArray.getColor             |NlPropertyType.COLOR           |Make sure this is not a color list !!|
+| * |TypedArray.getColorStateList    |NlPropertyType.COLOR_STATE_LIST|                                     |
+| * |TypedArray.getDimensionPixelSize|NlPropertyType.DIMENSION       |                                     |
+| * |TypedArray.getResourceId        |NlPropertyType.ID              |                                     |
+| * |TypedArray.getInt               |NlPropertyType.ENUM            |If attrs.xml defines this as an enum |
+| * |                                |NlPropertyType.INTEGER         |If this is not an enum               |
+| */

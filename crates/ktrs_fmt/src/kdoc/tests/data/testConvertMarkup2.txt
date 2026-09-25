@@ -1,0 +1,21 @@
+=== case
+options: 72 72
+initialIndent: ""
+secondaryIndent: ""
+verify: true
+comment:
+|/**
+| * Fundamentally, this is your starting point for all
+| * Bluetooth actions. * </p>
+| * <p>This class is thread safe.</p>
+| *
+| * @hide
+| */
+expected:
+|/**
+| * Fundamentally, this is your starting point for all Bluetooth actions.
+| *
+| * This class is thread safe.
+| *
+| * @hide
+| */

@@ -1,0 +1,35 @@
+=== case
+options: 72 72
+initialIndent: "    "
+secondaryIndent: "    "
+orderedParameterNames: file,start,end
+verify: true
+comment:
+|/**
+| * Constructs a new location range for the given file, from start to
+| * end. If the length of the range is not known, end may be null.
+| *
+| * @return Something
+| * @sample Other
+| * @param file the associated file (but see the documentation for
+| * [Location.file] for more information on what the file
+| * represents)
+| *
+| * @param end the ending position, or null
+| * @param[ start ]   the starting position, or null
+| * @see More
+| */
+expected:
+|/**
+| * Constructs a new location range for the given file, from start to
+| * end. If the length of the range is not known, end may be null.
+| *
+| * @param file the associated file (but see the documentation for
+| *   [Location.file] for more information on what the file
+| *   represents)
+| * @param start the starting position, or null
+| * @param end the ending position, or null
+| * @return Something
+| * @sample Other
+| * @see More
+| */

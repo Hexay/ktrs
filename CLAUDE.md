@@ -10,6 +10,10 @@ Milestone 1: the parser's tree must be identical to the Kotlin compiler's PSI (`
 - `crates/ktrs_parser` — `PsiBuilder` semantics + port of `KotlinParsing`/`KotlinExpressionParsing`/`KDocParser`.
   Throughput: `cargo run -p ktrs_parser --release --example bench [dir] [reps]` (CPU-cycle based, robust
   to a busy machine; `corpus-diff`'s MB/s sums wall time across all cores and swings with load).
+- `crates/ktrs_psi` — typed PSI views with the compiler's accessor semantics (scope: what ktfmt calls).
+  Porting conventions and the full API list: `crates/ktrs_psi/src/lib.rs` docs.
+- `tools/psi-accessors/psi-accessors.sh` — JVM oracle for ktrs_psi (`one|hashes|dump <dir> [--fixture] [--script]`);
+  Rust mirror: `cargo run -p ktrs_psi --release --example psi_accessors -- one|hashes|compare|dump ...`.
 - `xtask` — `cargo xtask codegen` regenerates `ktrs_syntax/src/generated/kinds.rs` from `kinds.tsv`.
 - `tools/psi-dump/psi-dump.sh` — JVM oracle on the pinned compiler: `one <file>`, `tree <in> <out>`, `kinds`,
   `bench <dir> <warmup> <reps>` (warm single-thread baseline to compare with the ktrs `bench` example).
@@ -19,12 +23,20 @@ Milestone 1: the parser's tree must be identical to the Kotlin compiler's PSI (`
   Input convention: CRLF->LF and trailing newlines stripped (matches upstream's test framework).
 - `tools/fetch-corpus.sh` — real-world repos into `corpus/` (gitignored, commits in `corpus/REVISIONS`).
 
-## Parity gates (both must stay green)
+## Parity gates (all must stay green)
 
 - `cargo test -p ktrs_parser --release` — fixture ratchet `tests/passing.txt` (`UPDATE_PASSING=1` rewrites).
 - `cargo corpus-diff` (run from repo root) — our dump vs the compiler's for every corpus file; also
   prints MB/s and the slowest files. Oracle dumps are built once, in the background:
   `tools/psi-dump/psi-dump.sh tree corpus target/oracle/corpus`.
+- `cargo test -p ktrs_psi --release` — PSI accessor reports vs the JVM on the fixtures (hashes in
+  `crates/ktrs_psi/tests/data`; regeneration commands in `tests/fixtures.rs`). Corpus, in the background:
+  `psi-accessors.sh hashes corpus [--script] > target/psi-accessors/corpus[-script].jvm.hashes`, then
+  `psi_accessors compare corpus target/psi-accessors/corpus[-script].jvm.hashes [--script]`.
+- `cargo test -p ktrs_fmt --test golden` — ktfmt's own test cases in `testdata/ktfmt/<suite>/`, ratchet
+  `tests/golden-passing.txt`. Regenerate (JVM, background): `tools/ktfmt-oracle/extract-goldens.sh`.
+- `cargo fmt-diff [meta|google|kotlinlang]` (repo root) — byte diff vs real ktfmt on the corpus; oracle built
+  in the background by `tools/ktfmt-oracle/ktfmt-oracle.sh <style> corpus target/ktfmt-oracle/<style>`.
 
 ## Rules
 

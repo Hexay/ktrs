@@ -1,0 +1,1 @@
+ParseError: 2:6: error: ktfmt does not support code which contains one of {\u0003, \u0004, \u0005} character; escape it

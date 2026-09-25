@@ -1,0 +1,54 @@
+=== case
+options: 72 72
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * Paragraph
+| * * Top Bullet
+| *    * Sub-Bullet 1
+| *    * Sub-Bullet 2
+| *       * Sub-Sub-Bullet 1
+| * 1. Top level
+| *    1. First item
+| *    2. Second item
+| */
+expected:
+|/**
+| * Paragraph
+| * * Top Bullet
+| *    * Sub-Bullet 1
+| *    * Sub-Bullet 2
+| *       * Sub-Sub-Bullet 1
+| * 1. Top level
+| *    1. First item
+| *    2. Second item
+| */
+=== case
+options: 72 72 nestedListIndent=4
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * Paragraph
+| * * Top Bullet
+| *    * Sub-Bullet 1
+| *    * Sub-Bullet 2
+| *       * Sub-Sub-Bullet 1
+| * 1. Top level
+| *    1. First item
+| *    2. Second item
+| */
+expected:
+|/**
+| * Paragraph
+| * * Top Bullet
+| *     * Sub-Bullet 1
+| *     * Sub-Bullet 2
+| *         * Sub-Sub-Bullet 1
+| * 1. Top level
+| *     1. First item
+| *     2. Second item
+| */

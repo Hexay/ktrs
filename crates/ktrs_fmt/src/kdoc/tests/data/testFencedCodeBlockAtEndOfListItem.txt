@@ -1,0 +1,19 @@
+=== case
+options: 72 72
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * - Item with code at end:
+| *   ```
+| *   val x = 1
+| *   ```
+| */
+expected:
+|/**
+| * - Item with code at end:
+| *   ```
+| *   val x = 1
+| *   ```
+| */

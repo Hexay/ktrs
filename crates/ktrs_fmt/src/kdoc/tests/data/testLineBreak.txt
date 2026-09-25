@@ -1,0 +1,38 @@
+=== case
+options: 72 72
+initialIndent: "        "
+secondaryIndent: "        "
+verify: true
+comment:
+|/**
+| * Updates z order index for [SurfaceControlWrapper]. Note that the z order for a
+| * surface is relative to other surfaces that are siblings of this surface.
+| * Behavior of siblings with the same z order is undefined.
+| *
+| * Z orders can range from Integer.MIN_VALUE to Integer.MAX_VALUE. Default z order
+| * index is 0. [SurfaceControlWrapper] instances are positioned back-to-front. That is
+| * lower z order values are rendered below other [SurfaceControlWrapper] instances with
+| * higher z order values.
+| *
+| * @param surfaceControl surface control to set the z order of.
+| *
+| * @param zOrder desired layer z order to set the surfaceControl.
+| */
+expected:
+|/**
+| * Updates z order index for [SurfaceControlWrapper]. Note that
+| * the z order for a surface is relative to other surfaces that
+| * are siblings of this surface. Behavior of siblings with the
+| * same z order is undefined.
+| *
+| * Z orders can range from Integer.MIN_VALUE
+| * to Integer.MAX_VALUE. Default z order index
+| * is 0. [SurfaceControlWrapper] instances are positioned
+| * back-to-front. That is lower z order values are rendered
+| * below other [SurfaceControlWrapper] instances with higher z
+| * order values.
+| *
+| * @param surfaceControl surface control to set the z order of.
+| * @param zOrder desired layer z order to set the
+| *   surfaceControl.
+| */

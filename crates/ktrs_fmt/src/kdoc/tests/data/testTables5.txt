@@ -1,0 +1,48 @@
+=== case
+options: 72 72
+initialIndent: ""
+secondaryIndent: ""
+verify: true
+comment:
+|/**
+|| 1 | 2 | 3 | 4 | Necessity
+||---|---|---|---|----------
+||v_n|v_o|cur|new| [IRRELEVANT_PAST]
+||cur|new|v_n|v_o| [IRRELEVANT_FUTURE]
+||cur|v_n|v_o|new| [MANDATORY_CODEPENDENT] (must do the refactoring in the same action as the AGP version upgrade)
+||v_n|cur|v_o|new| [MANDATORY_INDEPENDENT] (must do the refactoring, but can do it before the AGP version upgrade)
+||cur|v_n|new|v_o| [OPTIONAL_CODEPENDENT] (need not do the refactoring, but if done must be with or after the AGP version upgrade)
+||v_n|cur|new|v_o| [OPTIONAL_INDEPENDENT] (need not do the refactoring, but if done can be at any point in the process)
+|
+|For the possibly-simpler case where we have a discontinuity in behaviour, v_o = v_n = vvv, and the three possible cases are:
+|
+|| 1 | 2 | 3 | Necessity
+||---|---|---|----------
+||vvv|cur|new| [IRRELEVANT_PAST]
+||cur|vvv|new| [MANDATORY_CODEPENDENT]
+||cur|new|vvv| [IRRELEVANT_FUTURE]
+|
+|(again in case of equality, vvv sorts before cur and new)
+|*/
+expected:
+|/**
+| * |1  |2  |3  |4  |Necessity                                                                                                      |
+| * |---|---|---|---|---------------------------------------------------------------------------------------------------------------|
+| * |v_n|v_o|cur|new|[IRRELEVANT_PAST]                                                                                              |
+| * |cur|new|v_n|v_o|[IRRELEVANT_FUTURE]                                                                                            |
+| * |cur|v_n|v_o|new|[MANDATORY_CODEPENDENT] (must do the refactoring in the same action as the AGP version upgrade)                |
+| * |v_n|cur|v_o|new|[MANDATORY_INDEPENDENT] (must do the refactoring, but can do it before the AGP version upgrade)                |
+| * |cur|v_n|new|v_o|[OPTIONAL_CODEPENDENT] (need not do the refactoring, but if done must be with or after the AGP version upgrade)|
+| * |v_n|cur|new|v_o|[OPTIONAL_INDEPENDENT] (need not do the refactoring, but if done can be at any point in the process)           |
+| *
+| * For the possibly-simpler case where we have a discontinuity in
+| * behaviour, v_o = v_n = vvv, and the three possible cases are:
+| *
+| * | 1   | 2   | 3   | Necessity               |
+| * |-----|-----|-----|-------------------------|
+| * | vvv | cur | new | [IRRELEVANT_PAST]       |
+| * | cur | vvv | new | [MANDATORY_CODEPENDENT] |
+| * | cur | new | vvv | [IRRELEVANT_FUTURE]     |
+| *
+| * (again in case of equality, vvv sorts before cur and new)
+| */

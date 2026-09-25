@@ -1,0 +1,33 @@
+=== case
+options: 72 72
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * We would like to know if we need to have a space after a this tag
+| *
+| * The space is required when:
+| *  - tag spans multiple lines, between every line we would need a space
+| *
+| *  We wouldn't like to render a space if:
+| *  - tag is followed by an end of comment
+| *  - after a tag there is another tag (eg. multiple @author tags)
+| *  - they end with an html tag like: <a href="...">Something</a> since then the space will be displayed in the following text
+| *  - next line starts with a <p> or <pre> token
+| */
+expected:
+|/**
+| * We would like to know if we need to have a space after a this tag
+| *
+| * The space is required when:
+| * - tag spans multiple lines, between every line we would need a
+| *   space
+| *
+| * We wouldn't like to render a space if:
+| * - tag is followed by an end of comment
+| * - after a tag there is another tag (eg. multiple @author tags)
+| * - they end with an html tag like: <a href="...">Something</a>
+| *   since then the space will be displayed in the following text
+| * - next line starts with a <p> or <pre> token
+| */

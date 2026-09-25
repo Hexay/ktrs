@@ -1,0 +1,31 @@
+=== case
+options: 72 72
+initialIndent: ""
+secondaryIndent: ""
+verify: true
+comment:
+|/**
+| * The Android abi.json schema.
+| *
+| * @property[abi] The ABI name of the described library. These names match the tag field for
+| * [com.android.build.gradle.internal.core.Abi].
+| * @property[api] The minimum OS version supported by the library. i.e. the
+| * library's `minSdkVersion`.
+| * @property[ndk] The major version of the NDK that this library was built with.
+| * @property[stl] The STL that this library was built with.
+| * @property[static] If true then the library is .a, if false then .so.
+| */
+expected:
+|/**
+| * The Android abi.json schema.
+| *
+| * @property[abi] The ABI name of the described library. These names
+| *   match the tag field for
+| *   [com.android.build.gradle.internal.core.Abi].
+| * @property[api] The minimum OS version supported by the library. i.e.
+| *   the library's `minSdkVersion`.
+| * @property[ndk] The major version of the NDK that this library was
+| *   built with.
+| * @property[stl] The STL that this library was built with.
+| * @property[static] If true then the library is .a, if false then .so.
+| */

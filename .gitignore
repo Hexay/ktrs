@@ -3,3 +3,5 @@
 /corpus/
 /tools/psi-dump/lib/
 /tools/psi-dump/build/
+/tools/ktfmt-oracle/lib/
+/tools/jdk/

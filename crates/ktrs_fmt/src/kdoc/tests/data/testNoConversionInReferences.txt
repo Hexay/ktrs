@@ -1,0 +1,15 @@
+=== case
+options: 72 72
+initialIndent: ""
+secondaryIndent: ""
+verify: true
+comment:
+|/**
+| * A thread safe in-memory cache of [Key&lt;T&gt;][Key] to `T` values whose lifetime is tied
+| * to a [CoroutineScope].
+| */
+expected:
+|/**
+| * A thread safe in-memory cache of [Key&lt;T&gt;][Key] to `T` values
+| * whose lifetime is tied to a [CoroutineScope].
+| */

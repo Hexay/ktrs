@@ -1,0 +1,17 @@
+=== case
+options: 40 40
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * @param client the client to
+| *     report errors to and to use to
+| *     read files
+| */
+expected:
+|/**
+| * @param client the client to
+| *   report errors to and to use to
+| *   read files
+| */

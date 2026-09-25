@@ -1,0 +1,17 @@
+=== case
+options: 72 72
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * The lint client requesting the lint check
+| *
+| * @return the client, never null
+| */
+expected:
+|/**
+| * The lint client requesting the lint check
+| *
+| * @return the client, never null
+| */

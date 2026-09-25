@@ -1,0 +1,23 @@
+=== case
+options: 40 40
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * Code sample:
+| * ```kotlin
+| * val s = "hello, and this is code so should not be line broken at all, it should stay on one line";
+| *
+| * println(s);
+| * ```
+| */
+expected:
+|/**
+| * Code sample:
+| * ```kotlin
+| * val s = "hello, and this is code so should not be line broken at all, it should stay on one line";
+| *
+| * println(s);
+| * ```
+| */

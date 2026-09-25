@@ -1,0 +1,21 @@
+=== case
+options: 72 72
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * 1. First step:
+| *    ```kotlin
+| *    val config = Config()
+| *    ```
+| * 2. Second step
+| */
+expected:
+|/**
+| * 1. First step:
+| *    ```kotlin
+| *    val config = Config()
+| *    ```
+| * 2. Second step
+| */

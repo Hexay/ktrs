@@ -120,7 +120,7 @@ fn first_difference(expected: &str, actual: &str) -> Outcome {
     unreachable!()
 }
 
-fn collect(dir: &Path, out: &mut Vec<PathBuf>) {
+pub(crate) fn collect(dir: &Path, out: &mut Vec<PathBuf>) {
     let Ok(entries) = fs::read_dir(dir) else { return };
     for entry in entries.flatten() {
         let path = entry.path();

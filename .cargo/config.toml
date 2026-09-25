@@ -1,3 +1,4 @@
 [alias]
 xtask = "run --package xtask --quiet --"
 corpus-diff = "run --package xtask --release --quiet -- corpus-diff"
+fmt-diff = "run --package xtask --profile release-unwind --quiet -- fmt-diff"

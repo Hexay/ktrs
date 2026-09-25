@@ -1,0 +1,167 @@
+=== case
+options: 100 100
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * This document contains a bunch of markup examples
+| * that I will use
+| * to verify that things are handled
+| * correctly via markdown.
+| *
+| * This is a header. Should appear alone.
+| * --------------------------------------
+| * This should not be on the same line as the header.
+| *
+| * This is a header. Should appear alone.
+| * -
+| * This should not be on the same line as the header.
+| *
+| * This is a header. Should appear alone.
+| * ======================================
+| * This should not be on the same line as the header.
+| *
+| * This is a header. Should appear alone.
+| * =
+| * This should not be on the same line as the header.
+| * Note that we don't treat this as a header
+| * because it's not on its own line. Instead
+| * it's considered a separating line.
+| * ---
+| * More text. Should not be on the previous line.
+| *
+| * --- This usage of --- where it's not on its own
+| * line should not be used as a header or separator line.
+| *
+| * List stuff:
+| * 1. First item
+| * 2. Second item
+| * 3. Third item
+| *
+| * # Text styles #
+| * **Bold**, *italics*. \*Not italics\*.
+| *
+| * ## More text styles
+| * ~~strikethrough~~, _underlined_.
+| *
+| * ### Blockquotes #
+| *
+| * More:
+| * > This whole paragraph should be treated as a block quote.
+| * This whole paragraph should be treated as a block quote.
+| * This whole paragraph should be treated as a block quote.
+| * This whole paragraph should be treated as a block quote.
+| *
+| * ### Lists
+| * Plus lists:
+| * + First
+| * + Second
+| * + Third
+| *
+| * Dash lists:
+| * - First
+| * - Second
+| * - Third
+| *
+| * List items with multiple paragraphs:
+| *
+| * * This is my list item. It has
+| *   text on many lines.
+| *
+| *   This is a continuation of the first bullet.
+| * * And this is the second.
+| *
+| * ### Code blocks in list items
+| *
+| * Escapes: I should look for cases where I place a number followed
+| * by a period (or asterisk) at the beginning of a line and if so,
+| * escape it:
+| *
+| * The meaning of life:
+| * 42\. This doesn't seem to work in IntelliJ's markdown formatter.
+| *
+| * ### Horizontal rules
+| * *********
+| * ---------
+| * ***
+| * * * *
+| * - - -
+| */
+expected:
+|/**
+| * This document contains a bunch of markup examples that I will use to verify that things are
+| * handled correctly via markdown.
+| *
+| * This is a header. Should appear alone.
+| * --------------------------------------
+| * This should not be on the same line as the header.
+| *
+| * This is a header. Should appear alone.
+| * -
+| * This should not be on the same line as the header.
+| *
+| * This is a header. Should appear alone.
+| * ======================================
+| * This should not be on the same line as the header.
+| *
+| * This is a header. Should appear alone.
+| * =
+| * This should not be on the same line as the header. Note that we don't treat this as a header
+| * because it's not on its own line. Instead it's considered a separating line.
+| * ---
+| * More text. Should not be on the previous line.
+| *
+| * --- This usage of --- where it's not on its own line should not be used as a header or
+| * separator line.
+| *
+| * List stuff:
+| * 1. First item
+| * 2. Second item
+| * 3. Third item
+| *
+| * # Text styles #
+| * **Bold**, *italics*. \*Not italics\*.
+| *
+| * ## More text styles
+| * ~~strikethrough~~, _underlined_.
+| *
+| * ### Blockquotes #
+| *
+| * More:
+| * > This whole paragraph should be treated as a block quote. This whole paragraph should be
+| * > treated as a block quote. This whole paragraph should be treated as a block quote. This whole
+| * > paragraph should be treated as a block quote.
+| *
+| * ### Lists
+| * Plus lists:
+| * + First
+| * + Second
+| * + Third
+| *
+| * Dash lists:
+| * - First
+| * - Second
+| * - Third
+| *
+| * List items with multiple paragraphs:
+| *
+| * * This is my list item. It has text on many lines.
+| *
+| *   This is a continuation of the first bullet.
+| * * And this is the second.
+| *
+| * ### Code blocks in list items
+| *
+| * Escapes: I should look for cases where I place a number followed by a period (or asterisk) at
+| * the beginning of a line and if so, escape it:
+| *
+| * The meaning of life: 42\. This doesn't seem to work in IntelliJ's markdown formatter.
+| *
+| * ### Horizontal rules
+| * *********
+| * ---------
+| * ***
+| * * * *
+| * - - -
+| */

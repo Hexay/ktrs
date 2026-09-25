@@ -1,0 +1,23 @@
+=== case
+options: 72 72
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * Marks the given warning as "ignored".
+| *
+|* @param context The scanning context
+|* @param issue the issue to be ignored
+|* @param location The location to ignore the warning at, if any
+|* @param message The message for the warning
+|*/
+expected:
+|/**
+| * Marks the given warning as "ignored".
+| *
+| * @param context The scanning context
+| * @param issue the issue to be ignored
+| * @param location The location to ignore the warning at, if any
+| * @param message The message for the warning
+| */

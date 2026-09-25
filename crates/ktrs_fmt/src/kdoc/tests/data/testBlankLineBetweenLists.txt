@@ -1,0 +1,21 @@
+=== case
+options: 72 72
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * - list item 1
+| * - list item 2
+| *
+| * - second list item A
+| * - second list item B
+| */
+expected:
+|/**
+| * - list item 1
+| * - list item 2
+| *
+| * - second list item A
+| * - second list item B
+| */

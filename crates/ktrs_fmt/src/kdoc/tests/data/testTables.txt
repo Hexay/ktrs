@@ -1,0 +1,19 @@
+=== case
+options: 40 40
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * ### Tables
+| * column 1 | column 2
+| * ---------|---------
+| * value\| 1  | value 2
+| */
+expected:
+|/**
+| * ### Tables
+| * | column 1  | column 2 |
+| * |-----------|----------|
+| * | value\| 1 | value 2  |
+| */

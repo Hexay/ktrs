@@ -1,0 +1,22 @@
+=== case
+options: 72 72
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * Sets the scope to use; lint checks which require a wider scope set
+| * will be ignored
+| *
+| * @param scope the scope
+| *
+| * @return this, for constructor chaining
+| */
+expected:
+|/**
+| * Sets the scope to use; lint checks which require a wider scope
+| * set will be ignored
+| *
+| * @param scope the scope
+| * @return this, for constructor chaining
+| */

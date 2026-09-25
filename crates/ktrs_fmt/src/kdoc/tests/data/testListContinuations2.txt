@@ -1,0 +1,24 @@
+=== case
+options: 100 100
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * List items with multiple paragraphs:
+| *
+| * * This is my list item. It has
+| *   text on many lines.
+| *
+| *   This is a continuation of the first bullet.
+| * * And this is the second.
+| */
+expected:
+|/**
+| * List items with multiple paragraphs:
+| *
+| * * This is my list item. It has text on many lines.
+| *
+| *   This is a continuation of the first bullet.
+| * * And this is the second.
+| */

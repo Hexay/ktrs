@@ -1,0 +1,19 @@
+=== case
+options: 72 72 optimal=false
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * This is a long line that will break a little early to breaking at TODO:
+| *
+| * This is a long line that wont break a little early to breaking at DODO:
+| */
+expected:
+|/**
+| * This is a long line that will break a little early to breaking
+| * at TODO:
+| *
+| * This is a long line that wont break a little early to breaking at
+| * DODO:
+| */

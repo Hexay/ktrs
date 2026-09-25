@@ -1,0 +1,24 @@
+=== case
+options: 72 72
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * Some summary
+| *
+| * <pre>
+| * ```
+| *     code
+| * ```
+| * </pre>
+| */
+expected:
+|/**
+| * Some summary
+| * <pre>
+| * ```
+| *     code
+| * ```
+| * </pre>
+| */

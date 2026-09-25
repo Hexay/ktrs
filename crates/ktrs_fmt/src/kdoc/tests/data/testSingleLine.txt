@@ -1,0 +1,24 @@
+=== case
+options: 72 72
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * This could all fit on one line
+| */
+expected:
+|/** This could all fit on one line */
+=== case
+options: 72 72 collapseSingleLine=false addPunctuation=true
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * This could all fit on one line
+| */
+expected:
+|/**
+| * This could all fit on one line.
+| */

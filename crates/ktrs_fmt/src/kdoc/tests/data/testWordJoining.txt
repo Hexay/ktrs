@@ -1,0 +1,30 @@
+=== case
+options: 65 65
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * which you can render with something like this:
+| * `dot -Tpng -o/tmp/graph.png toString.dot`
+| */
+expected:
+|/**
+| * which you can render with something like this: `dot -Tpng
+| * -o/tmp/graph.png toString.dot`
+| */
+=== case
+options: 65 65
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * ABCDE which you can render with something like this:
+| * `dot - Tpng -o/tmp/graph.png toString.dot`
+| */
+expected:
+|/**
+| * ABCDE which you can render with something like this:
+| * `dot - Tpng -o/tmp/graph.png toString.dot`
+| */

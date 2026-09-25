@@ -1,0 +1,14 @@
+=== case
+options: 20 20
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * aa aa aa aa aa @aa
+| */
+expected:
+|/**
+| * aa aa aa aa
+| * aa @aa
+| */

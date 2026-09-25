@@ -1,0 +1,46 @@
+=== case
+options: 72 72 orderDocTags=false
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * This supports bullets
+| * - one
+| * - two
+| *
+| * @param thisDoesNot
+| * Here's some parameter text.
+| * - a
+| * - b
+| * Here's some more text
+| *
+| * And here's even more parameter doc text.
+| *
+| * @param another paragraph
+| * * With some bulleted items
+| *   * Even nested ones
+| * ```
+| * and some preformatted text
+| * ```
+| */
+expected:
+|/**
+| * This supports bullets
+| * - one
+| * - two
+| *
+| * @param thisDoesNot Here's some parameter text.
+| * - a
+| * - b Here's some more text
+| *
+| * And here's even more parameter doc text.
+| *
+| * @param another paragraph
+| * * With some bulleted items
+| *    * Even nested ones
+| *
+| * ```
+| * and some preformatted text
+| * ```
+| */

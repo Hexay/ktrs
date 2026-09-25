@@ -1,0 +1,24 @@
+=== case
+options: 72 72
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * If non-null, this issue can **only** be suppressed with one of the
+| * given annotations: not with @Suppress, not with @SuppressLint, not
+| * with lint.xml, not with lintOptions{} and not with baselines.
+| *
+| * Test @IntRange and @FloatRange support annotation applied to
+| * arrays and vargs.
+| */
+expected:
+|/**
+| * If non-null, this issue can **only** be suppressed with
+| * one of the given annotations: not with @Suppress, not
+| * with @SuppressLint, not with lint.xml, not with lintOptions{} and
+| * not with baselines.
+| *
+| * Test @IntRange and @FloatRange support annotation applied to
+| * arrays and vargs.
+| */

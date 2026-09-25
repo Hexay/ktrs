@@ -1,0 +1,27 @@
+=== case
+options: 40 40
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * This is <b>bold</b>, this is <i>italics</i>, but nothing
+| * should be converted in `<b>code</b>` or in
+| * ```
+| * <i>preformatted text</i>
+| * ```
+| * And this \` is <b>not code and should be converted</b>.
+| */
+expected:
+|/**
+| * This is **bold**, this is
+| * *italics*, but nothing should be
+| * converted in `<b>code</b>` or in
+| *
+| * ```
+| * <i>preformatted text</i>
+| * ```
+| *
+| * And this \` is **not code and
+| * should be converted**.
+| */

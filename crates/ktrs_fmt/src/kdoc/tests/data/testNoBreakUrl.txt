@@ -1,0 +1,17 @@
+=== case
+options: 100 100
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| *  # Design
+| *  The splash screen icon uses the same specifications as
+| *  [Adaptive Icons](https://developer.android.com/guide/practices/ui_guidelines/icon_design_adaptive)
+| */
+expected:
+|/**
+| * # Design
+| * The splash screen icon uses the same specifications as
+| * [Adaptive Icons](https://developer.android.com/guide/practices/ui_guidelines/icon_design_adaptive)
+| */

@@ -1,0 +1,59 @@
+=== case
+options: 72 72
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * Simple helper class useful for creating a message bundle for your module.
+| *
+| * It creates a soft reference to an underlying text bundle, which means that it can
+| * be garbage collected if needed (although it will be reallocated again if you request
+| * a new message from it).
+| *
+| * You might use it like so:
+| *
+| * ```
+| * # In module 'custom'...
+| *
+| * # resources/messages/CustomBundle.properties:
+| * sample.text.key=This is a sample text value.
+| *
+| * # src/messages/CustomBundle.kt:
+| * private const val BUNDLE_NAME = "messages.CustomBundle"
+| * object CustomBundle {
+| *   private val bundleRef = MessageBundleReference(BUNDLE_NAME)
+| *   fun message(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: Any) = bundleRef.message(key, *params)
+| * }
+| * ```
+| *
+| * That's it! Now you can call `CustomBundle.message("sample.text.key")` to fetch the text value.
+| */
+expected:
+|/**
+| * Simple helper class useful for creating a message bundle for your
+| * module.
+| *
+| * It creates a soft reference to an underlying text bundle, which
+| * means that it can be garbage collected if needed (although it
+| * will be reallocated again if you request a new message from it).
+| *
+| * You might use it like so:
+| * ```
+| * # In module 'custom'...
+| *
+| * # resources/messages/CustomBundle.properties:
+| * sample.text.key=This is a sample text value.
+| *
+| * # src/messages/CustomBundle.kt:
+| * private const val BUNDLE_NAME = "messages.CustomBundle"
+| * object CustomBundle {
+| *   private val bundleRef = MessageBundleReference(BUNDLE_NAME)
+| *   fun message(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: Any) = bundleRef.message(key, *params)
+| * }
+| * ```
+| *
+| * That's it! Now you can call
+| * `CustomBundle.message("sample.text.key")`
+| * to fetch the text value.
+| */

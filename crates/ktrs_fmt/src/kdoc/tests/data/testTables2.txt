@@ -1,0 +1,38 @@
+=== case
+options: 40 40
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * | Level | Color |
+| * | ----- | ----- |
+| * | ERROR | RED |
+| * | WARN | YELLOW |
+| */
+expected:
+|/**
+| * | Level | Color  |
+| * |-------|--------|
+| * | ERROR | RED    |
+| * | WARN  | YELLOW |
+| */
+=== case
+options: 40 40 alignTableColumns=false
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * | Level | Color |
+| * | ----- | ----- |
+| * | ERROR | RED |
+| * | WARN | YELLOW |
+| */
+expected:
+|/**
+| * | Level | Color |
+| * | ----- | ----- |
+| * | ERROR | RED |
+| * | WARN | YELLOW |
+| */

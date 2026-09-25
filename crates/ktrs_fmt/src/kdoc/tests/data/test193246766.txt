@@ -1,0 +1,35 @@
+=== case
+options: 72 72
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * * Do do occaecat sunt in culpa:
+| *   * Id id reprehenderit cillum non `adipiscing` enim enim ad occaecat
+| *   * Cupidatat non officia anim adipiscing enim non reprehenderit in officia est:
+| *     * Do non officia anim voluptate esse non mollit mollit id tempor, enim u consequat. irure
+| *     in occaecat
+| *     * Cupidatat, in qui officia anim voluptate esse eu fugiat fugiat in mollit, anim anim id
+| *     occaecat
+| * * In h anim id laborum:
+| *   * Do non sunt voluptate esse non culpa mollit id tempor, enim u consequat. irure in occaecat
+| *   * Cupidatat, in qui anim voluptate esse non culpa mollit est do tempor, enim enim ad occaecat
+| */
+expected:
+|/**
+| * * Do do occaecat sunt in culpa:
+| *    * Id id reprehenderit cillum non `adipiscing` enim enim ad
+| *      occaecat
+| *    * Cupidatat non officia anim adipiscing enim non reprehenderit
+| *      in officia est:
+| *       * Do non officia anim voluptate esse non mollit mollit id
+| *         tempor, enim u consequat. irure in occaecat
+| *       * Cupidatat, in qui officia anim voluptate esse eu fugiat
+| *         fugiat in mollit, anim anim id occaecat
+| * * In h anim id laborum:
+| *    * Do non sunt voluptate esse non culpa mollit id tempor, enim
+| *      u consequat. irure in occaecat
+| *    * Cupidatat, in qui anim voluptate esse non culpa mollit est
+| *      do tempor, enim enim ad occaecat
+| */

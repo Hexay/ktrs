@@ -1,0 +1,28 @@
+=== case
+options: 100 30
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+|* More:
+|* > This whole paragraph should be treated as a block quote.
+|* This whole paragraph should be treated as a block quote.
+|* This whole paragraph should be treated as a block quote.
+|* This whole paragraph should be treated as a block quote.
+|* @sample Sample
+|     */
+expected:
+|/**
+| * More:
+| * > This whole paragraph should
+| * > be treated as a block quote.
+| * > This whole paragraph should
+| * > be treated as a block quote.
+| * > This whole paragraph should
+| * > be treated as a block quote.
+| * > This whole paragraph should
+| * > be treated as a block quote.
+| *
+| * @sample Sample
+| */

@@ -1,0 +1,44 @@
+=== case
+options: 100 30
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| *       Base <------------ Middle DF <------------- DF <--------- Android Test DF
+| *      /    \              /       \                |               /        \   \
+| *     v      v            v         v               v              v          \   \
+| *  appLib  sharedLib   midLib   sharedMidLib    featureLib    testFeatureLib   \   \
+| *              ^                      ^_______________________________________/   /
+| *              |________________________________________________________________/
+| *
+| *  DF has a feature-on-feature dep on Middle DF, both depend on Base, Android Test DF is an
+| *  android test variant for DF.
+| *
+| *  Base depends on appLib and sharedLib.
+| *  Middle DF depends on midLib and sharedMidLib.
+| *  DF depends on featureLib.
+| *  DF also has an android test dependency on testFeatureLib, shared and sharedMidLib.
+| */
+expected:
+|/**
+| *       Base <------------ Middle DF <------------- DF <--------- Android Test DF
+| *      /    \              /       \                |               /        \   \
+| *     v      v            v         v               v              v          \   \
+| *  appLib  sharedLib   midLib   sharedMidLib    featureLib    testFeatureLib   \   \
+| *              ^                      ^_______________________________________/   /
+| *              |________________________________________________________________/
+| *
+| * DF has a feature-on-feature
+| * dep on Middle DF, both depend
+| * on Base, Android Test DF is an
+| * android test variant for DF.
+| *
+| * Base depends on appLib and
+| * sharedLib. Middle DF depends
+| * on midLib and sharedMidLib. DF
+| * depends on featureLib. DF also
+| * has an android test dependency
+| * on testFeatureLib, shared and
+| * sharedMidLib.
+| */

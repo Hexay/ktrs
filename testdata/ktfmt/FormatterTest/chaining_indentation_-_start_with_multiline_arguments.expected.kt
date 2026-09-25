@@ -1,0 +1,4 @@
+getRainbow(
+    infrared,
+    ultraviolet,
+)

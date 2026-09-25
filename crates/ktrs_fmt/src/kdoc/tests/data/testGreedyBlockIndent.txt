@@ -1,0 +1,25 @@
+=== case
+options: 100 72 hangingIndent=6
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * Returns the project resources, if available
+| *
+| * @param includeModuleDependencies if true, include merged view of
+| *     all module dependencies
+| * @param includeLibraries if true, include merged view of all
+| *     library dependencies (this also requires all module dependencies)
+| * @return the project resources, or null if not available
+| */
+expected:
+|/**
+| * Returns the project resources, if available
+| *
+| * @param includeModuleDependencies if true, include merged view of all
+| *       module dependencies
+| * @param includeLibraries if true, include merged view of all library
+| *       dependencies (this also requires all module dependencies)
+| * @return the project resources, or null if not available
+| */

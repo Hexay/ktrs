@@ -1,0 +1,63 @@
+=== case
+options: 72 72
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * Adds the given dependency graph (the output of the Gradle dependency task)
+| * to be constructed when mocking a Gradle model for this project.
+| * <p>
+| * To generate this, run for example
+| * <pre>
+| *     ./gradlew :app:dependencies
+| * </pre>
+| * and then look at the debugCompileClasspath (or other graph that you want
+| * to model).
+| * TODO: Adds the given dependency graph (the output of the Gradle dependency task)
+| * to be constructed when mocking a Gradle model for this project.
+| * TODO: More stuff to do here
+| * @param dependencyGraph the graph description
+| * @return this for constructor chaining
+| * TODO: Consider looking at the localization="suggested" attribute in
+| * the platform attrs.xml to catch future recommended attributes.
+| * TODO: Also adds the given dependency graph (the output of the Gradle dependency task)
+| * to be constructed when mocking a Gradle model for this project.
+| * TODO(b/144576310): Cover multi-module search.
+| *  Searching in the search bar should show an option to change module if there are resources in it.
+| * TODO(myldap): Cover filter usage. Eg: Look for a framework resource by enabling its filter.
+| */
+expected:
+|/**
+| * Adds the given dependency graph (the output of the Gradle
+| * dependency task) to be constructed when mocking a Gradle model
+| * for this project.
+| *
+| * To generate this, run for example
+| *
+| * ```
+| *     ./gradlew :app:dependencies
+| * ```
+| *
+| * and then look at the debugCompileClasspath (or other graph that
+| * you want to model).
+| *
+| * @param dependencyGraph the graph description
+| * @return this for constructor chaining
+| *
+| * TODO: Adds the given dependency graph (the output of the Gradle
+| *   dependency task) to be constructed when mocking a Gradle model
+| *   for this project.
+| * TODO: More stuff to do here
+| * TODO: Consider looking at the localization="suggested" attribute
+| *   in the platform attrs.xml to catch future recommended
+| *   attributes.
+| * TODO: Also adds the given dependency graph (the output of the
+| *   Gradle dependency task) to be constructed when mocking a Gradle
+| *   model for this project.
+| * TODO(b/144576310): Cover multi-module search. Searching in the
+| *   search bar should show an option to change module if there are
+| *   resources in it.
+| * TODO(myldap): Cover filter usage. Eg: Look for a framework
+| *   resource by enabling its filter.
+| */
