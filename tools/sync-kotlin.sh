@@ -15,8 +15,8 @@ fi
 git -C "$src" config core.longpaths true
 git -C "$src" sparse-checkout set --no-cone \
   '/compiler/psi/parser/' \
-  '/compiler/psi/psi-api/src/org/jetbrains/kotlin/KtNodeTypes*' \
-  '/compiler/psi/psi-api/src/org/jetbrains/kotlin/lexer/' \
+  '/compiler/psi/psi-api/src/' \
+  '/compiler/psi/psi-impl/src/' \
   '/compiler/psi/psi-impl/testData/psi/' \
   '/compiler/psi/psi-impl/testData/lexer/' \
   '/compiler/psi/psi-impl/testFixtures/'

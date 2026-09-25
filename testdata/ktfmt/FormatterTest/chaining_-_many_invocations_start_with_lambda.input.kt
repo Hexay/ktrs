@@ -1,0 +1,3 @@
+z { it }
+    .shine()
+    .bright()

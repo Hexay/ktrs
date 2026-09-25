@@ -1,0 +1,23 @@
+=== case
+options: 100 100 optimal=false
+initialIndent: ""
+secondaryIndent: ""
+verify: true
+comment:
+|/**
+| * Tokenizer traverses a Kotlin parse tree (which blessedly contains whitespaces and comments,
+| * unlike Javac) and constructs a list of 'Tok's.
+| *
+| * <p>The google-java-format infra expects newline Toks to be separate from maximal-whitespace Toks,
+| * but Kotlin emits them together. So, we split them using Java's \R regex matcher. We don't use
+| * 'split' et al. because we want Toks for the newlines themselves.
+| */
+expected:
+|/**
+| * Tokenizer traverses a Kotlin parse tree (which blessedly contains whitespaces and comments,
+| * unlike Javac) and constructs a list of 'Tok's.
+| *
+| * The google-java-format infra expects newline Toks to be separate from maximal-whitespace Toks,
+| * but Kotlin emits them together. So, we split them using Java's \R regex matcher. We don't use
+| * 'split' et al. because we want Toks for the newlines themselves.
+| */

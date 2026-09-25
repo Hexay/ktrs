@@ -1,0 +1,14 @@
+=== case
+options: 100 100
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * This is a long comment that should not be wrapped at 72 characters. It should wrap at 100 characters instead.
+| */
+expected:
+|/**
+| * This is a long comment that should not be wrapped at 72 characters. It should wrap at 100
+| * characters instead.
+| */

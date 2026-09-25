@@ -1,0 +1,18 @@
+=== case
+options: 72 72
+initialIndent: ""
+secondaryIndent: ""
+verify: true
+comment:
+|/**
+| * Represents a component that handles scroll events, so that other components in the hierarchy
+| * can adjust their behaviour.
+| * @See [provideScrollContainerInfo] and [consumeScrollContainerInfo]
+| */
+expected:
+|/**
+| * Represents a component that handles scroll events, so that other
+| * components in the hierarchy can adjust their behaviour.
+| *
+| * @see [provideScrollContainerInfo] and [consumeScrollContainerInfo]
+| */

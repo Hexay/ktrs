@@ -1,0 +1,42 @@
+=== case
+options: 40 40
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * Lists within a block quote:
+| * > Here's my quoted text.
+| * > 1. First item
+| * > 2. Second item
+| * > 3. Third item
+| */
+expected:
+|/**
+| * Lists within a block quote:
+| * > Here's my quoted text.
+| * > 1. First item
+| * > 2. Second item
+| * > 3. Third item
+| */
+=== case
+options: 100 60
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * Here's some text.
+| * > Here's some more text that
+| * > is indented. More text.
+| * > > And here's some even
+| * > > more indented text
+| * > Back to the top level
+| */
+expected:
+|/**
+| * Here's some text.
+| * > Here's some more text that is indented. More text.
+| * > > And here's some even more indented text
+| * > Back to the top level
+| */

@@ -1,0 +1,54 @@
+=== case
+options: 72 72
+initialIndent: "        "
+secondaryIndent: "        "
+verify: true
+comment:
+|/**
+| * Checks if any of the GL calls since the last time this method was called set an error
+| * condition. Call this method immediately after calling a GL method. Pass the name of the GL
+| * operation. For example:
+| *
+| * <pre>
+| * mColorHandle = GLES20.glGetUniformLocation(mProgram, "uColor");
+| * MyGLRenderer.checkGlError("glGetUniformLocation");</pre>
+| *
+| * If the operation is not successful, the check throws an exception.
+| *
+| * <pre>public performItemClick(T item) {
+| *   ...
+| *   sendEventForVirtualView(item.id, AccessibilityEvent.TYPE_VIEW_CLICKED)
+| * }
+| * </pre>
+| * *Note* This is quite slow so it's best to use it sparingly in production builds.
+| * Injector to load associated file. It will create code like:
+| * <pre>file = FileUtil.loadLabels(extractor.getAssociatedFile(fileName))</pre>
+| */
+expected:
+|/**
+| * Checks if any of the GL calls since the last time this
+| * method was called set an error condition. Call this method
+| * immediately after calling a GL method. Pass the name of the
+| * GL operation. For example:
+| * ```
+| * mColorHandle = GLES20.glGetUniformLocation(mProgram, "uColor");
+| * MyGLRenderer.checkGlError("glGetUniformLocation");
+| * ```
+| *
+| * If the operation is not successful, the check throws an
+| * exception.
+| *
+| * ```
+| * public performItemClick(T item) {
+| *   ...
+| *   sendEventForVirtualView(item.id, AccessibilityEvent.TYPE_VIEW_CLICKED)
+| * }
+| * ```
+| *
+| * *Note* This is quite slow so it's best to use it sparingly in
+| * production builds. Injector to load associated file. It will
+| * create code like:
+| * ```
+| * file = FileUtil.loadLabels(extractor.getAssociatedFile(fileName))
+| * ```
+| */

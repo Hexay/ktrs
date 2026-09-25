@@ -1,0 +1,18 @@
+=== case
+options: 72 72
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * Summary
+| * @param [ param1  ] some value
+| * @param[param2] another value
+| */
+expected:
+|/**
+| * Summary
+| *
+| * @param param1 some value
+| * @param param2 another value
+| */

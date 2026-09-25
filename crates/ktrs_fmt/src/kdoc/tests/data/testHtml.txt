@@ -1,0 +1,7 @@
+=== case
+options: 120 120
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment: @testHtml.0.comment.txt
+expected: @testHtml.0.expected.txt

@@ -1,0 +1,54 @@
+=== case
+options: 72 72
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * eiusmod.com
+| * - - -
+| * PARIATUR_MOLLIT
+| * - - -
+| * Laborum: 1.4
+| * - - -
+| * Pariatur:
+| * https://officia.officia.com
+| * https://id.laborum.laborum.com
+| * https://sit.eiusmod.com
+| * https://non-in.officia.com
+| * https://anim.laborum.com
+| * https://exercitation.ullamco.com
+| * - - -
+| * Adipiscing do tempor:
+| * - NON: IN/IN
+| * - in 2IN officia? EST
+| * - do EIUSMOD eiusmod? NON
+| * - Mollit est do incididunt Nostrud non? IN
+| * - Mollit pariatur pariatur culpa? QUI
+| * - - -
+| * Lorem eiusmod magna/adipiscing:
+| * - Do eiusmod magna/adipiscing
+| */
+expected:
+|/**
+| * eiusmod.com
+| * - - -
+| * PARIATUR_MOLLIT
+| * - - -
+| * Laborum: 1.4
+| * - - -
+| * Pariatur: https://officia.officia.com
+| * https://id.laborum.laborum.com https://sit.eiusmod.com
+| * https://non-in.officia.com https://anim.laborum.com
+| * https://exercitation.ullamco.com
+| * - - -
+| * Adipiscing do tempor:
+| * - NON: IN/IN
+| * - in 2IN officia? EST
+| * - do EIUSMOD eiusmod? NON
+| * - Mollit est do incididunt Nostrud non? IN
+| * - Mollit pariatur pariatur culpa? QUI
+| * - - -
+| * Lorem eiusmod magna/adipiscing:
+| * - Do eiusmod magna/adipiscing
+| */

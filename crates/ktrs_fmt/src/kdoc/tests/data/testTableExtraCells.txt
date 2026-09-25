@@ -1,0 +1,21 @@
+=== case
+options: 100 100
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| | Tables        | Are           | Cool  |
+| | ------------- |:-------------:| -----:|
+| | col 3 is      | right-aligned |  1600 |
+| | col 2 is      | centered      |    12 | extra
+| | zebra stripes | are neat      |     1 |
+|*/
+expected:
+|/**
+| * | Tables        | Are           | Cool |
+| * |---------------|:-------------:|-----:|
+| * | col 3 is      | right-aligned | 1600 |
+| * | col 2 is      |   centered    |   12 | extra |
+| * | zebra stripes |   are neat    |    1 |
+| */

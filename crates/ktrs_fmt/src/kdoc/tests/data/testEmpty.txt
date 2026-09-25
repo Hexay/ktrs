@@ -1,0 +1,19 @@
+=== case
+options: 72 72
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/** */
+expected:
+|/**  */
+=== case
+options: 72 72 collapseSingleLine=false
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/** */
+expected:
+|/**
+| */

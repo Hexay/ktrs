@@ -1,0 +1,56 @@
+=== case
+options: 72 72
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * {@link SourceCodeScanner} exposes the UAST API to lint checks.
+| * The {@link SourceCodeScanner} interface reflects this fact.
+| *
+| * {@linkplain SourceCodeScanner} exposes the UAST API to lint checks.
+| * The {@linkplain SourceCodeScanner} interface reflects this fact.
+| *
+| * It will throw an error if you register element types in
+| * {@link #getApplicableUastTypes()} that you don't override.
+| *
+| * First read the javadoc on how to convert from the older {@link
+| * JavaScanner} interface over to {@link JavaPsiScanner}.
+| *
+| * 1. A file header, which is the exact contents of {@link FILE_HEADER} encoded
+| *     as ASCII characters.
+| *
+| * Given an error message produced by this lint detector for the
+| * given issue type, determines whether this corresponds to the
+| * warning (produced by {@link #reportBaselineIssues(LintDriver,
+| * Project)} above) that one or more issues have been
+| * fixed (present in baseline but not in project.)
+| *
+| * {@link #getQualifiedName(PsiClass)} method.
+| */
+expected:
+|/**
+| * [SourceCodeScanner] exposes the UAST API to lint checks. The
+| * [SourceCodeScanner] interface reflects this fact.
+| *
+| * {@linkplain SourceCodeScanner} exposes the UAST API to lint
+| * checks. The {@linkplain SourceCodeScanner} interface reflects
+| * this fact.
+| *
+| * It will throw an error if you register element types in
+| * [getApplicableUastTypes] that you don't override.
+| *
+| * First read the javadoc on how to convert from the older
+| * [JavaScanner] interface over to [JavaPsiScanner].
+| *
+| * 1. A file header, which is the exact contents of [FILE_HEADER]
+| *    encoded as ASCII characters.
+| *
+| * Given an error message produced by this lint detector for the
+| * given issue type, determines whether this corresponds to the
+| * warning (produced by [reportBaselineIssues] above) that one or
+| * more issues have been fixed (present in baseline but not in
+| * project.)
+| *
+| * [getQualifiedName] method.
+| */

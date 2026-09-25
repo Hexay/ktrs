@@ -1,0 +1,22 @@
+=== case
+options: 100 72
+initialIndent: ""
+secondaryIndent: ""
+verify: true
+comment:
+|/**
+| * Handles both the START_ALLOC_TRACKING and STOP_ALLOC_TRACKING commands in tests. This is responsible for generating a status event.
+| * For the start tracking command,  if |trackStatus| is set to be |SUCCESS|, this generates a start event with timestamp matching what is
+| * specified in |trackStatus|. For the end tracking command, an event (start timestamp + 1) is only added if a start event already
+| * exists in the input event list.
+| */
+expected:
+|/**
+| * Handles both the START_ALLOC_TRACKING and STOP_ALLOC_TRACKING commands
+| * in tests. This is responsible for generating a status event. For the
+| * start tracking command, if |trackStatus| is set to be |SUCCESS|, this
+| * generates a start event with timestamp matching what is specified
+| * in |trackStatus|. For the end tracking command, an event (start
+| * timestamp + 1) is only added if a start event already exists in the
+| * input event list.
+| */

@@ -1,0 +1,18 @@
+=== case
+options: 72 72
+initialIndent: "    "
+secondaryIndent: "    "
+orderedParameterNames: foo,bar,baz
+verify: true
+comment:
+|/**
+| * @param bar lorem ipsum
+| * @property baz dolor sit
+| * @property foo amet, consetetur
+| */
+expected:
+|/**
+| * @property foo amet, consetetur
+| * @param bar lorem ipsum
+| * @property baz dolor sit
+| */

@@ -1,0 +1,44 @@
+=== case
+options: 72 72
+initialIndent: "    "
+secondaryIndent: "    "
+orderedParameterNames: file,start,end
+verify: true
+comment:
+|/**
+| * Constructs a new location range for the given file, from start to
+| * end. If the length of the range is not known, end may be null.
+| *
+| * @sample abc
+| *
+| * You might want to see another sample.
+| *
+| * @sample xyz
+| *
+| * Makes sense?
+| * @return Something
+| * @see more
+| * @sample foo
+| *
+| * Note that samples after another tag don't get special treatment.
+| */
+expected:
+|/**
+| * Constructs a new location range for the given file, from start to
+| * end. If the length of the range is not known, end may be null.
+| *
+| * @sample abc
+| *
+| * You might want to see another sample.
+| *
+| * @sample xyz
+| *
+| * Makes sense?
+| *
+| * @return Something
+| * @sample foo
+| *
+| * Note that samples after another tag don't get special treatment.
+| *
+| * @see more
+| */

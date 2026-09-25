@@ -1,0 +1,21 @@
+=== case
+options: 100 72
+initialIndent: "  "
+secondaryIndent: "  "
+verify: true
+comment:
+|/**
+| * Eg:
+| * > anydpi-v26 &emsp; | &emsp; Adaptive icon - ic_launcher.xml
+| *
+| *
+| * > hdpi &emsp;&emsp;&emsp;&emsp;&nbsp; | &emsp; Mip Map File - ic_launcher.png
+| */
+expected:
+|/**
+| * Eg:
+| * > anydpi-v26 &emsp; | &emsp; Adaptive icon - ic_launcher.xml
+| *
+| * > hdpi &emsp;&emsp;&emsp;&emsp;&nbsp; | &emsp; Mip Map File -
+| * > ic_launcher.png
+| */

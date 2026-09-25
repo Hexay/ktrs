@@ -1,0 +1,23 @@
+=== case
+options: 40 40
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * Here's paragraph 1.
+| *
+| * And here's paragraph 2.
+| * <p>And here's paragraph 3.
+| * <P/>And here's paragraph 4.
+| */
+expected:
+|/**
+| * Here's paragraph 1.
+| *
+| * And here's paragraph 2.
+| *
+| * And here's paragraph 3.
+| *
+| * And here's paragraph 4.
+| */

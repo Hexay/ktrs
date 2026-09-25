@@ -1,0 +1,41 @@
+=== case
+options: 72 72
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * Test paragraph
+| *
+| * Test paragraph 2
+| *
+| * - list item 1
+| * - list item 2
+| *
+| * - second list item A
+| * - second list item B
+| *
+| * ```json
+| * {"code": "block"}
+| * ```
+| *
+| * > test block quote
+| */
+expected:
+|/**
+| * Test paragraph
+| *
+| * Test paragraph 2
+| *
+| * - list item 1
+| * - list item 2
+| *
+| * - second list item A
+| * - second list item B
+| *
+| * ```json
+| * {"code": "block"}
+| * ```
+| *
+| * > test block quote
+| */

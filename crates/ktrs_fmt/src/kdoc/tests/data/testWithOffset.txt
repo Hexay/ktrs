@@ -1,0 +1,13 @@
+=== case
+options: 72 72
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/** Returns whether lint should check all warnings,
+| * including those off by default */
+expected:
+|/**
+| * Returns whether lint should check all warnings, including those
+| * off by default
+| */

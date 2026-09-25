@@ -1,0 +1,22 @@
+=== case
+options: 40 40
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * * This is my list item. It has
+| *   text on many lines.
+| *
+| *   This is a continuation of the first bullet.
+| * * And this is the second.
+| */
+expected:
+|/**
+| * * This is my list item. It has
+| *   text on many lines.
+| *
+| *   This is a continuation of the
+| *   first bullet.
+| * * And this is the second.
+| */

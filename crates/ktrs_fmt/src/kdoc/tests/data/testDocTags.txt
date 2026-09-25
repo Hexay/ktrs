@@ -1,0 +1,19 @@
+=== case
+options: 40 40
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * @param configuration the configuration to look up which issues are
+| * enabled etc from
+| * @param platforms the platforms applying to this analysis
+| */
+expected:
+|/**
+| * @param configuration the
+| *   configuration to look up which
+| *   issues are enabled etc from
+| * @param platforms the platforms
+| *   applying to this analysis
+| */

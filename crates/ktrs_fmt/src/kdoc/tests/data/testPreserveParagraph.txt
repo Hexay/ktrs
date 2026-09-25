@@ -1,0 +1,21 @@
+=== case
+options: 120 120
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+|* <ul>
+|* <li>test</li>
+|* </ul>
+|* <p>
+|* After.
+|*/
+expected:
+|/**
+| * <ul>
+| * <li>test</li>
+| * </ul>
+| *
+| * After.
+| */

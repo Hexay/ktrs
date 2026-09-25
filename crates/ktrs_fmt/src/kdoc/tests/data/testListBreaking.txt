@@ -1,0 +1,20 @@
+=== case
+options: 100 72
+initialIndent: ""
+secondaryIndent: ""
+verify: true
+comment:
+|/**
+| * In other words, completes the parameters so that either of these declarations can be achieved:
+| * - spec:width=...,height=...,dpi=...,isRound=...,chinSize=...,orientation=...
+| * - spec:parent=...,orientation=...
+| * > spec:width=...,height=...,dpi=...,isRound=...,chinSize=...,orientation=...
+| */
+expected:
+|/**
+| * In other words, completes the parameters so that either of these
+| * declarations can be achieved:
+| * - spec:width=...,height=...,dpi=...,isRound=...,chinSize=...,orientation=...
+| * - spec:parent=...,orientation=...
+| * > spec:width=...,height=...,dpi=...,isRound=...,chinSize=...,orientation=...
+| */

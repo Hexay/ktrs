@@ -1,0 +1,9 @@
+=== case
+options: 20 20 optimal=false
+initialIndent: ""
+secondaryIndent: ""
+verify: true
+comment:
+|/** aa aa aa aa a */
+expected:
+|/** aa aa aa aa a */

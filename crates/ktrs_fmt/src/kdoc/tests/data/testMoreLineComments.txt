@@ -1,0 +1,10 @@
+=== case
+options: 70 70
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|// Do not clean
+|// this
+expected:
+|// Do not clean this

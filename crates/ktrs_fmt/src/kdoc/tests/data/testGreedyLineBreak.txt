@@ -1,0 +1,37 @@
+=== case
+options: 100 100 optimal=false
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * Handles a chain of qualified expressions, i.e. `a[5].b!!.c()[4].f()`
+| *
+| * This is by far the most complicated part of this formatter. We start by breaking the expression
+| * to the steps it is executed in (which are in the opposite order of how the syntax tree is
+| * built).
+| *
+| * We then calculate information to know which parts need to be groups, and finally go part by
+| * part, emitting it to the [builder] while closing and opening groups.
+| *
+| * @param brokeBeforeBrace used for tracking if a break was taken right before the lambda
+| * expression. Useful for scoping functions where we want good looking indentation. For example,
+| * here we have correct indentation before `bar()` and `car()` because we can detect the break
+| * after the equals:
+| */
+expected:
+|/**
+| * Handles a chain of qualified expressions, i.e. `a[5].b!!.c()[4].f()`
+| *
+| * This is by far the most complicated part of this formatter. We start by breaking the
+| * expression to the steps it is executed in (which are in the opposite order of how the syntax
+| * tree is built).
+| *
+| * We then calculate information to know which parts need to be groups, and finally go part by
+| * part, emitting it to the [builder] while closing and opening groups.
+| *
+| * @param brokeBeforeBrace used for tracking if a break was taken right before the lambda
+| *   expression. Useful for scoping functions where we want good looking indentation. For
+| *   example, here we have correct indentation before `bar()` and `car()` because we can detect
+| *   the break after the equals:
+| */

@@ -1,0 +1,22 @@
+=== case
+options: 72 72
+initialIndent: ""
+secondaryIndent: ""
+verify: true
+comment:
+|/**
+| * Broadcast Action: Indicates the Bluetooth scan mode of the local Adapter
+| * has changed.
+| * <p>Always contains the extra fields {@link #EXTRA_SCAN_MODE} and {@link
+| * #EXTRA_PREVIOUS_SCAN_MODE} containing the new and old scan modes
+| * respectively.
+| */
+expected:
+|/**
+| * Broadcast Action: Indicates the Bluetooth scan mode of the local
+| * Adapter has changed.
+| *
+| * Always contains the extra fields [EXTRA_SCAN_MODE] and
+| * [EXTRA_PREVIOUS_SCAN_MODE] containing the new and old scan modes
+| * respectively.
+| */

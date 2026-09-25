@@ -1,0 +1,30 @@
+=== case
+options: 40 40
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+|* Basic usage:
+|*   1. Create a configuration via [UastEnvironment.Configuration.create] and mutate it as needed.
+|*   2. Create a project environment via [UastEnvironment.create].
+|*      You can create multiple environments in the same process (one for each "module").
+|*   3. Call [analyzeFiles] to initialize PSI machinery and precompute resolve information.
+|*/
+expected:
+|/**
+| * Basic usage:
+| * 1. Create a configuration via
+| *    [UastEnvironment.Configuration.create]
+| *    and mutate it as needed.
+| * 2. Create a project environment
+| *    via [UastEnvironment.create].
+| *    You can create multiple
+| *    environments in the same
+| *    process (one for each
+| *    "module").
+| * 3. Call [analyzeFiles] to
+| *    initialize PSI machinery and
+| *    precompute resolve
+| *    information.
+| */

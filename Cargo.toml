@@ -13,6 +13,8 @@ rust-version = "1.90"
 ktrs_syntax = { path = "crates/ktrs_syntax" }
 ktrs_lexer = { path = "crates/ktrs_lexer" }
 ktrs_parser = { path = "crates/ktrs_parser" }
+ktrs_psi = { path = "crates/ktrs_psi" }
+ktrs_fmt = { path = "crates/ktrs_fmt" }
 rowan = "0.16"
 expect-test = "1.5"
 mimalloc = { version = "0.1", default-features = false }
@@ -21,3 +23,8 @@ mimalloc = { version = "0.1", default-features = false }
 lto = "fat"
 codegen-units = 1
 panic = "abort"
+
+# fmt-diff catches formatter panics per file.
+[profile.release-unwind]
+inherits = "release"
+panic = "unwind"

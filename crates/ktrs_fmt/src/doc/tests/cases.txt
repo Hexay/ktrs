@@ -1,0 +1,173 @@
+=== unified_fits
+40 t2 o 4 b U _ 0 t2 b U sp 0 t2 b U sp 0 t c t
+foo(aaa, bbb, ccc)
+
+=== unified_breaks
+10 t2 o 4 b U _ 0 t2 b U sp 0 t2 b U sp 0 t c t
+foo(aaa, bbb, ccc)
+
+=== independent_fill
+20 t2 o 4 b I _ 0 t2 b I sp 0 t2 b I sp 0 t2 b I sp 0 t2 b I sp 0 t2 b I sp 0 t c t
+listOf(a1, a2, a3, a4, a5, a6)
+
+=== forced_break
+100 t2 o 4 b F _ 0 t2 b U sp 0 t c t
+foo(aaa, bbb)
+
+=== nested_wide
+40 t s t o 4 b U sp 0 t2 o 4 b U _ 0 t2 o 4 b U _ 0 t2 b U sp 0 t c t t b U sp 0 t c t c
+a = f(g(bbbbbbbb, cccccccc), dddddddd)
+
+=== nested_medium
+25 t s t o 4 b U sp 0 t2 o 4 b U _ 0 t2 o 4 b U _ 0 t2 b U sp 0 t c t t b U sp 0 t c t c
+a = f(g(bbbbbbbb, cccccccc), dddddddd)
+
+=== nested_narrow
+15 t s t o 4 b U sp 0 t2 o 4 b U _ 0 t2 o 4 b U _ 0 t2 b U sp 0 t c t t b U sp 0 t c t c
+a = f(g(bbbbbbbb, cccccccc), dddddddd)
+
+=== negative_break_indent
+10 t o 2 b U _ -4 t2 c t2
+aaaaaaaa.bbbbbbbb.cccccccc
+
+=== nonascii_fits_utf16
+25 t2 o 4 b U _ 0 t2 b U sp 0 t2 b U sp 0 t c t
+f("ééééé", "日本語", "😀😀")
+
+=== nonascii_breaks_utf16
+24 t2 o 4 b U _ 0 t2 b U sp 0 t2 b U sp 0 t c t
+f("ééééé", "日本語", "😀😀")
+
+=== comments_wide
+100 t2 o 4 b U _ 0 t2 b U sp 0 t c t
+foo(/* x = */ 1, // trailing
+    2)
+
+=== comments_narrow
+10 t2 o 4 b U _ 0 t2 b U sp 0 t c t
+foo(/* x = */ 1, // trailing
+    2)
+
+=== param_comment_fits
+100 t2 o 4 b U _ 0 t c t
+f(/*name=*/ x)
+
+=== param_comment_breaks
+8 t2 o 4 b U _ 0 t c t
+f(/*name=*/ x)
+
+=== javadoc
+100 t s t t t s t t
+/** doc */
+fun f() {}
+
+=== line_comment_missing_space
+100 t s t s t s t
+//x
+val a = 1
+//y
+
+=== blank_lines
+100 bl no t s t s t s t b F _ 0 bl preserve t s t s t s t b F _ 0 bl yes t s t s t s t
+val a = 1
+
+
+val b = 2
+val c = 3
+
+=== blank_lines_suppressed
+100 bl no t s t s t s t b F _ 0 bl no t s t s t s t b F _ 0 bl preserve t s t s t s t
+val a = 1
+
+
+val b = 2
+
+val c = 3
+
+=== tags_fit
+30 t s t o 0 bt U sp 4 T1 t2 oif T1 4 0 b U _ 0 t c t c b F _ 0 bl T1 t s t s t
+x = foo(aaaaaaaaaa)
+y = 1
+
+=== tags_broken
+12 t s t o 0 bt U sp 4 T1 t2 oif T1 4 0 b U _ 0 t c t c b F _ 0 bl T1 t s t s t
+x = foo(aaaaaaaaaa)
+y = 1
+
+=== real_token_mismatch
+100 t sync 4 r nope
+val a = 1
+
+=== missing_token
+100 t sync 9
+val a = 1
+
+=== guess_token
+100 t s t s g ; t s t
+val a = 1
+
+=== append_level_after_close
+12 t o 4 b U _ 0 t2 c t2
+aaaaaaaa.bbbbbbbb.cccccccc
+
+=== append_level_after_close_break
+12 t o 4 b U _ 0 t2 c b U _ 0 t2
+aaaaaaaa.bbbbbbbb.cccccccc
+
+=== multiline_string
+100 t s t s t s t
+val s = """
+  a ⎵
+  b
+"""
+
+=== block_comment_multiline
+100 t s t s t s t b F _ 0 t s t s t s t
+val a = 1 /* one
+   two */
+val b = 2
+
+=== trailing_comment_break_indent
+100 tt 4 s t s t
+foo /* c */ + bar
+
+=== comment_hoisted
+100 t b F _ 0 o 4 t c
+a
+// c
+b
+
+=== comment_fenced
+100 t b F _ 0 o 4 fence t c
+a
+// c
+b
+
+=== comment_before_indent
+100 t o 4 b F _ 0 tc 2 c
+a
+    // c
+    b
+
+=== multiline_token_forces_break
+40 t2 o 4 b U _ 0 t c t
+f("""
+x
+""")
+
+=== block_comment_first_line_fits
+14 t2 o 4 b U _ 0 t2 b U sp 0 t c t
+f(a, /* one
+two */ b)
+
+=== block_comment_first_line_breaks
+13 t2 o 4 b U _ 0 t2 b U sp 0 t c t
+f(a, /* one
+two */ b)
+
+=== tabs_and_crlf_free
+100 t s t s t s t
+val	a =   1
+=== no_trailing_newline
+100 t s t s t s t
+val a = 1

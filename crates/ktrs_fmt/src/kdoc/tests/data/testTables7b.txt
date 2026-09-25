@@ -1,0 +1,29 @@
+=== case
+options: 72 72 alignTableColumns=false orderDocTags=false
+initialIndent: ""
+secondaryIndent: ""
+verify: true
+comment:
+|/**
+| * This is my code
+| * @author Me
+| * Plain text.
+|*
+| * my | table
+| * ---|---
+| * item 1|item 2
+| * item 3|
+| * item 4|item 5
+| */
+expected:
+|/**
+| * This is my code
+| *
+| * @author Me Plain text.
+| *
+| * my | table
+| * ---|---
+| * item 1|item 2
+| * item 3|
+| * item 4|item 5
+| */

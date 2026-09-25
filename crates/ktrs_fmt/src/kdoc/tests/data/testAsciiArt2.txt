@@ -1,0 +1,21 @@
+=== case
+options: 100 30
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| *                 +-> lib1
+| *                 |
+| *     feature1 ---+-> javalib1
+| *                 |
+| *                 +-> baseModule
+| */
+expected:
+|/**
+| *                 +-> lib1
+| *                 |
+| *     feature1 ---+-> javalib1
+| *                 |
+| *                 +-> baseModule
+| */

@@ -1,0 +1,23 @@
+=== case
+options: 20 20
+initialIndent: ""
+secondaryIndent: ""
+verify: true
+comment:
+|/**
+| * Weird break
+| *
+| * alink aaaaaaa
+| *
+| * @param a aaaaaa
+| * @link aaaaaaa
+| */
+expected:
+|/**
+| * Weird break
+| *
+| * alink aaaaaaa
+| *
+| * @param a aaaaaa
+| * @link aaaaaaa
+| */

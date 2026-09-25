@@ -1,0 +1,32 @@
+=== case
+options: 40 40
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| *  * pre.errorlines: General > Text > Default Text
+| *  * .prefix: XML > Namespace Prefix
+| *  * .attribute: XML > Attribute name
+| *  * .value: XML > Attribute value
+| *  * .tag: XML > Tag name
+| *  * .lineno: For color, General > Code > Line number, Foreground, and for background-color,
+| *  Editor > Gutter background
+| *  * .error: General > Errors and Warnings > Error
+| */
+expected:
+|/**
+| * * pre.errorlines: General >
+| *   Text > Default Text
+| * * .prefix: XML > Namespace Prefix
+| * * .attribute: XML > Attribute
+| *   name
+| * * .value: XML > Attribute value
+| * * .tag: XML > Tag name
+| * * .lineno: For color, General >
+| *   Code > Line number, Foreground,
+| *   and for background-color,
+| *   Editor > Gutter background
+| * * .error: General > Errors and
+| *   Warnings > Error
+| */

@@ -47,6 +47,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e5274423e17b7c9fc20b6e7e208532f9b19825d82dfd615708b70edd83df41f1"
 
 [[package]]
+name = "ktrs_fmt"
+version = "0.0.1"
+dependencies = [
+ "expect-test",
+ "ktrs_lexer",
+ "ktrs_parser",
+ "ktrs_psi",
+ "ktrs_syntax",
+]
+
+[[package]]
 name = "ktrs_lexer"
 version = "0.0.1"
 dependencies = [
@@ -62,6 +73,16 @@ dependencies = [
  "ktrs_lexer",
  "ktrs_syntax",
  "mimalloc",
+ "rowan",
+]
+
+[[package]]
+name = "ktrs_psi"
+version = "0.0.1"
+dependencies = [
+ "expect-test",
+ "ktrs_parser",
+ "ktrs_syntax",
  "rowan",
 ]
 
@@ -130,6 +151,7 @@ checksum = "f18aa187839b2bdb1ad2fa35ead8c4c2976b64e4363c386d45ac0f7ee85c9233"
 name = "xtask"
 version = "0.0.1"
 dependencies = [
+ "ktrs_fmt",
  "ktrs_parser",
  "ktrs_syntax",
  "mimalloc",

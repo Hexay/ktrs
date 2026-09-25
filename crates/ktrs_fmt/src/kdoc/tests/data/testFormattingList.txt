@@ -1,0 +1,37 @@
+=== case
+options: 40 40
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * 1. This is a numbered list.
+| * 2. This is another item. We should be wrapping extra text under the same item.
+| * 3. This is the third item.
+| *
+| * Unordered list:
+| * * First
+| * * Second
+| * * Third
+| *
+| * Other alternatives:
+| * - First
+| * - Second
+| */
+expected:
+|/**
+| * 1. This is a numbered list.
+| * 2. This is another item. We
+| *    should be wrapping extra text
+| *    under the same item.
+| * 3. This is the third item.
+| *
+| * Unordered list:
+| * * First
+| * * Second
+| * * Third
+| *
+| * Other alternatives:
+| * - First
+| * - Second
+| */

@@ -1,0 +1,22 @@
+=== case
+options: 100 60
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * <ul>
+| *   <li>Incremental merge will never clean the output.
+| *   <li>The inputs must be able to tell which changes to relative files have been made.
+| *   <li>Intermediate state must be saved between merges.
+| * </ul>
+| */
+expected:
+|/**
+| * <ul>
+| * <li>Incremental merge will never clean the output.
+| * <li>The inputs must be able to tell which changes to
+| *   relative files have been made.
+| * <li>Intermediate state must be saved between merges.
+| * </ul>
+| */

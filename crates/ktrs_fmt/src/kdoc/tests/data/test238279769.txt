@@ -1,0 +1,30 @@
+=== case
+options: 72 72
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * @property dataItemOrderRandomizer sit tempor enim pariatur non culpa id [Pariatur]z in qui anim.
+| *  Anim id-lorem sit magna [Consectetur] pariatur.
+| * @property randomBytesProvider non mollit anim pariatur non culpa qui qui `mollit` lorem amet
+| *   consectetur [Pariatur]z in IssuerSignedItem culpa.
+| * @property preserveMapOrder officia id pariatur non culpa id lorem pariatur culpa culpa id o est
+| *    amet consectetur sed sed do ENIM minim.
+| * @property reprehenderit p esse cillum officia est do enim enim nostrud nisi d non sunt mollit id
+| *     est tempor enim.
+| */
+expected:
+|/**
+| * @property dataItemOrderRandomizer sit tempor enim pariatur non
+| *   culpa id [Pariatur]z in qui anim. Anim id-lorem sit magna
+| *   [Consectetur] pariatur.
+| * @property randomBytesProvider non mollit anim pariatur non culpa
+| *   qui qui `mollit` lorem amet consectetur [Pariatur]z in
+| *   IssuerSignedItem culpa.
+| * @property preserveMapOrder officia id pariatur non culpa id lorem
+| *   pariatur culpa culpa id o est amet consectetur sed sed do ENIM
+| *   minim.
+| * @property reprehenderit p esse cillum officia est do enim enim
+| *   nostrud nisi d non sunt mollit id est tempor enim.
+| */

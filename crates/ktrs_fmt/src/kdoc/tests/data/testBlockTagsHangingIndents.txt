@@ -1,0 +1,37 @@
+=== case
+options: 40 40 hangingIndent=6
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * Creates a list of class entries from the given class path and specific set of files within
+| * it.
+| *
+| * @param client the client to report errors to and to use to read files
+| * @param classFiles the specific set of class files to look for
+| * @param classFolders the list of class folders to look in (to determine the package root)
+| * @param sort if true, sort the results
+| * @return the list of class entries, never null.
+| */
+expected:
+|/**
+| * Creates a list of class entries
+| * from the given class path and
+| * specific set of files within it.
+| *
+| * @param client the client to
+| *       report errors to and to use
+| *       to read files
+| * @param classFiles the specific
+| *       set of class files to look
+| *       for
+| * @param classFolders the list of
+| *       class folders to look in
+| *       (to determine the package
+| *       root)
+| * @param sort if true, sort the
+| *       results
+| * @return the list of class
+| *       entries, never null.
+| */

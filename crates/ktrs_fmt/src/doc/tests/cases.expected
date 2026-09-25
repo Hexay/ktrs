@@ -1,0 +1,172 @@
+=== unified_fits
+foo(aaa, bbb, ccc)
+
+=== unified_breaks
+foo(
+    aaa,
+    bbb,
+    ccc)
+
+=== independent_fill
+listOf(a1, a2, a3,
+    a4, a5, a6)
+
+=== forced_break
+foo(
+    aaa,
+    bbb)
+
+=== nested_wide
+a = f(g(bbbbbbbb, cccccccc), dddddddd)
+
+=== nested_medium
+a =
+    f(
+        g(
+            bbbbbbbb,
+            cccccccc),
+        dddddddd)
+
+=== nested_narrow
+a =
+    f(
+        g(
+            bbbbbbbb,
+            cccccccc),
+        dddddddd)
+
+=== negative_break_indent
+aaaaaaaa
+.bbbbbbbb.cccccccc
+
+=== nonascii_fits_utf16
+f("ééééé", "日本語", "😀😀")
+
+=== nonascii_breaks_utf16
+f(
+    "ééééé",
+    "日本語",
+    "😀😀")
+
+=== comments_wide
+foo(
+    /* x = */ 1, // trailing
+    2)
+
+=== comments_narrow
+foo(
+    /* x = */ 1, // trailing
+    2)
+
+=== param_comment_fits
+f(/* name= */ x)
+
+=== param_comment_breaks
+f(
+    /*name=*/ x)
+
+=== javadoc
+/** doc */
+fun f() {}
+
+=== line_comment_missing_space
+//x
+val a = 1//y
+
+=== blank_lines
+val a = 1
+
+val b = 2
+
+val c = 3
+
+=== blank_lines_suppressed
+val a = 1
+val b = 2
+
+val c = 3
+
+=== tags_fit
+x = foo(aaaaaaaaaa)
+y = 1
+
+=== tags_broken
+x =
+    foo(
+    aaaaaaaaaa)
+
+y = 1
+
+=== real_token_mismatch
+ERROR: 1:5: error: expected token: 'a'; generated nope instead
+
+=== missing_token
+ERROR: 1:10: error: did not generate token "a"
+
+=== guess_token
+val a = 1
+
+=== append_level_after_close
+aaaaaaaa
+    .bbbbbbbb.cccccccc
+
+=== append_level_after_close_break
+aaaaaaaa
+    .bbbbbbbb
+.cccccccc
+
+=== multiline_string
+val s = """
+  a  
+  b
+"""
+
+=== block_comment_multiline
+val a = 1 /* one
+   two */
+val b = 2
+
+=== trailing_comment_break_indent
+foo
+    /* c */
++ bar
+
+=== comment_hoisted
+a
+// c
+b
+
+=== comment_fenced
+a
+    // c
+    b
+
+=== comment_before_indent
+a
+      // c
+    b
+
+=== multiline_token_forces_break
+f(
+    """
+x
+""")
+
+=== block_comment_first_line_fits
+f(
+    a, /* one
+two */
+    b)
+
+=== block_comment_first_line_breaks
+f(
+    a, /* one
+two */
+    b)
+
+=== tabs_and_crlf_free
+val a = 1
+
+=== no_trailing_newline
+val a = 1
+

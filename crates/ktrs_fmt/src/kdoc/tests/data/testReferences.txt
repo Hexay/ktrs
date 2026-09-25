@@ -1,0 +1,27 @@
+=== case
+options: 72 72
+initialIndent: ""
+secondaryIndent: ""
+verify: true
+comment:
+|/**
+| * Construct a rectangle from its left and top edges as well as its width and height.
+| * @param offset Offset to represent the top and left parameters of the Rect
+| * @param size Size to determine the width and height of this [Rect].
+| * @return Rect with [Rect.left] and [Rect.top] configured to [Offset.x] and [Offset.y] as
+| * [Rect.right] and [Rect.bottom] to [Offset.x] + [Size.width] and [Offset.y] + [Size.height]
+| * respectively
+| */
+expected:
+|/**
+| * Construct a rectangle from its left and top edges as well as its
+| * width and height.
+| *
+| * @param offset Offset to represent the top and left parameters of the
+| *   Rect
+| * @param size Size to determine the width and height of this [Rect].
+| * @return Rect with [Rect.left] and [Rect.top] configured to [Offset.x]
+| *   and [Offset.y] as [Rect.right] and [Rect.bottom] to
+| *   [Offset.x] + [Size.width] and [Offset.y] + [Size.height]
+| *   respectively
+| */

@@ -1,0 +1,9 @@
+=== case
+options: 72 72 addPunctuation=true
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/** Default implementation of [MyInterface] */
+expected:
+|/** Default implementation of [MyInterface]. */

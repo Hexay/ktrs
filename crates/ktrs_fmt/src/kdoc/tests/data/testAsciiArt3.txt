@@ -1,0 +1,46 @@
+=== case
+options: 100 30
+initialIndent: ""
+secondaryIndent: ""
+verify: true
+comment:
+|/**
+| * This test creates a layout of this shape:
+| *
+| *  ---------------
+| *  | t      |    |
+| *  |        |    |
+| *  |  |-------|  |
+| *  |  | t     |  |
+| *  |  |       |  |
+| *  |  |       |  |
+| *  |--|  |-------|
+| *  |  |  | t     |
+| *  |  |  |       |
+| *  |  |  |       |
+| *  |  |--|       |
+| *  |     |       |
+| *  ---------------
+| *
+| * There are 3 staggered children and 3 pointers, the first is on child 1, the second is on
+| * child 2 in a space that overlaps child 1, and the third is in a space in child 3 that
+| * overlaps child 2.
+| */
+expected:
+|/**
+| * This test creates a layout of
+| * this shape:
+| * ---------------
+| * | t | | | | | | |-------| | |
+| * | t | | | | | | | | | | |--|
+| * |-------| | | | t | | | | | |
+| * | | | | |--| | | | |
+| * ---------------
+| * There are 3 staggered children
+| * and 3 pointers, the first is
+| * on child 1, the second is
+| * on child 2 in a space that
+| * overlaps child 1, and the
+| * third is in a space in child
+| * 3 that overlaps child 2.
+| */

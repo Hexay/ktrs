@@ -1,0 +1,24 @@
+=== case
+options: 72 72
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * TODO: Work.
+| * ```
+| * Preformatted.
+| *
+| * More preformatted.
+| * ```
+| */
+expected:
+|/**
+| * TODO: Work.
+| *
+| * ```
+| * Preformatted.
+| *
+| * More preformatted.
+| * ```
+| */

@@ -1,0 +1,36 @@
+=== case
+options: 72 72
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * Single line is converted {@link foo}
+| *
+| * Multi line is converted {@link
+| * foo}
+| *
+| * Single line with hash is converted {@link #foo}
+| *
+| * Multi line with has is converted {@link
+| * #foo}
+| *
+| * Don't interpret {@code
+| * # This is not a header
+| * * this is
+| *   * not a nested list
+| * }
+| */
+expected:
+|/**
+| * Single line is converted [foo]
+| *
+| * Multi line is converted [foo]
+| *
+| * Single line with hash is converted [foo]
+| *
+| * Multi line with has is converted [foo]
+| *
+| * Don't interpret {@code # This is not a header * this is * not a
+| * nested list }
+| */

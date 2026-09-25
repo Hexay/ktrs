@@ -1,0 +1,17 @@
+=== case
+options: 72 72
+initialIndent: ""
+secondaryIndent: ""
+verify: true
+comment:
+|/**
+|             * @param count this is how many you
+|             *   can fit in a [Bag]
+|             * @param weight how heavy this would
+|             *     be in [Grams]
+|             */
+expected:
+|/**
+| * @param count this is how many you can fit in a [Bag]
+| * @param weight how heavy this would be in [Grams]
+| */

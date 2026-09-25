@@ -1,0 +1,52 @@
+=== case
+options: 40 40
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * Line Before
+| * # test
+| * |column 1 | column 2 | column3
+| * |---|---|---
+| * value 1  | value 3
+| * this is missing
+| * this is more
+| */
+expected:
+|/**
+| * Line Before
+| *
+| * # test
+| * | column 1 | column 2 | column3 |
+| * |----------|----------|---------|
+| * | value 1  | value 3  |         |
+| *
+| * this is missing this is more
+| */
+=== case
+options: 40 40 alignTableColumns=false
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * Line Before
+| * # test
+| * |column 1 | column 2 | column3
+| * |---|---|---
+| * value 1  | value 3
+| * this is missing
+| * this is more
+| */
+expected:
+|/**
+| * Line Before
+| *
+| * # test
+| * |column 1 | column 2 | column3
+| * |---|---|---
+| * value 1  | value 3
+| *
+| * this is missing this is more
+| */

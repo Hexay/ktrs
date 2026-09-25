@@ -1,0 +1,22 @@
+=== case
+options: 72 72
+initialIndent: ""
+secondaryIndent: ""
+verify: true
+comment:
+|/**
+| * This is a line that has the length such that this [link gets
+| * broken across lines]() which is not valid.
+| *
+| * Input is a float in range
+| * [0, 1) where 0 is fully settled and 1 is dismissed. Will be continue to be called after the user's finger has lifted. Will not be called for if not dismissible.
+| */
+expected:
+|/**
+| * This is a line that has the length such that this
+| * [link gets broken across lines]() which is not valid.
+| *
+| * Input is a float in range [0, 1) where 0 is fully settled and 1 is
+| * dismissed. Will be continue to be called after the user's finger has
+| * lifted. Will not be called for if not dismissible.
+| */

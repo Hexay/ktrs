@@ -1,0 +1,35 @@
+=== case
+options: 40 40
+initialIndent: "    "
+secondaryIndent: "    "
+verify: true
+comment:
+|/**
+| * For example,
+| *
+| *     val s = "hello, and   this is code so should not be line broken at all, it should stay on one line";
+| *     println(s);
+| * And here's another example:
+| *     This is not preformatted text.
+| *
+| * And a third example,
+| *
+| * ```
+| * Preformatted.
+| * ```
+| */
+expected:
+|/**
+| * For example,
+| *
+| *     val s = "hello, and   this is code so should not be line broken at all, it should stay on one line";
+| *     println(s);
+| *
+| * And here's another example: This
+| * is not preformatted text.
+| *
+| * And a third example,
+| * ```
+| * Preformatted.
+| * ```
+| */
