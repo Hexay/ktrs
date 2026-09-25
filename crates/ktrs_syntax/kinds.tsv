@@ -1,0 +1,294 @@
+owner	field	debug_name	class	shape	keyword	soft
+KtTokens	EOF	EOF	KtToken	token		
+KtTokens	RESERVED	RESERVED	KtToken	token		
+KtTokens	BLOCK_COMMENT	BLOCK_COMMENT	KtToken	token		
+KtTokens	EOL_COMMENT	EOL_COMMENT	KtToken	token		
+KtTokens	SHEBANG_COMMENT	SHEBANG_COMMENT	KtToken	token		
+KtTokens	DOC_COMMENT	KDoc		lazy		
+KtTokens	WHITE_SPACE	WHITE_SPACE	WhiteSpaceTokenType	token		
+KtTokens	INTEGER_LITERAL	INTEGER_LITERAL	KtToken	token		
+KtTokens	FLOAT_LITERAL	FLOAT_CONSTANT	KtToken	token		
+KtTokens	CHARACTER_LITERAL	CHARACTER_LITERAL	KtToken	token		
+KtTokens	INTERPOLATION_PREFIX	INTERPOLATION_PREFIX	KtToken	token		
+KtTokens	CLOSING_QUOTE	CLOSING_QUOTE	KtToken	token		
+KtTokens	OPEN_QUOTE	OPEN_QUOTE	KtToken	token		
+KtTokens	REGULAR_STRING_PART	REGULAR_STRING_PART	KtToken	token		
+KtTokens	ESCAPE_SEQUENCE	ESCAPE_SEQUENCE	KtToken	token		
+KtTokens	SHORT_TEMPLATE_ENTRY_START	SHORT_TEMPLATE_ENTRY_START	KtToken	token		
+KtTokens	LONG_TEMPLATE_ENTRY_START	LONG_TEMPLATE_ENTRY_START	KtToken	token		
+KtTokens	LONG_TEMPLATE_ENTRY_END	LONG_TEMPLATE_ENTRY_END	KtToken	token		
+KtTokens	DANGLING_NEWLINE	DANGLING_NEWLINE	KtToken	token		
+KtTokens	PACKAGE_KEYWORD	package	KtKeywordToken	token	package	false
+KtTokens	AS_KEYWORD	as	KtKeywordToken	token	as	false
+KtTokens	TYPE_ALIAS_KEYWORD	typealias	KtKeywordToken	token	typealias	false
+KtTokens	CLASS_KEYWORD	class	KtKeywordToken	token	class	false
+KtTokens	THIS_KEYWORD	this	KtKeywordToken	token	this	false
+KtTokens	SUPER_KEYWORD	super	KtKeywordToken	token	super	false
+KtTokens	VAL_KEYWORD	val	KtKeywordToken	token	val	false
+KtTokens	VAR_KEYWORD	var	KtKeywordToken	token	var	false
+KtTokens	FUN_KEYWORD	fun	KtModifierKeywordToken	token	fun	false
+KtTokens	FOR_KEYWORD	for	KtKeywordToken	token	for	false
+KtTokens	NULL_KEYWORD	null	KtKeywordToken	token	null	false
+KtTokens	TRUE_KEYWORD	true	KtKeywordToken	token	true	false
+KtTokens	FALSE_KEYWORD	false	KtKeywordToken	token	false	false
+KtTokens	IS_KEYWORD	is	KtKeywordToken	token	is	false
+KtTokens	IN_KEYWORD	in	KtModifierKeywordToken	token	in	false
+KtTokens	THROW_KEYWORD	throw	KtKeywordToken	token	throw	false
+KtTokens	RETURN_KEYWORD	return	KtKeywordToken	token	return	false
+KtTokens	BREAK_KEYWORD	break	KtKeywordToken	token	break	false
+KtTokens	CONTINUE_KEYWORD	continue	KtKeywordToken	token	continue	false
+KtTokens	OBJECT_KEYWORD	object	KtKeywordToken	token	object	false
+KtTokens	IF_KEYWORD	if	KtKeywordToken	token	if	false
+KtTokens	TRY_KEYWORD	try	KtKeywordToken	token	try	false
+KtTokens	ELSE_KEYWORD	else	KtKeywordToken	token	else	false
+KtTokens	WHILE_KEYWORD	while	KtKeywordToken	token	while	false
+KtTokens	DO_KEYWORD	do	KtKeywordToken	token	do	false
+KtTokens	WHEN_KEYWORD	when	KtKeywordToken	token	when	false
+KtTokens	INTERFACE_KEYWORD	interface	KtKeywordToken	token	interface	false
+KtTokens	TYPEOF_KEYWORD	typeof	KtKeywordToken	token	typeof	false
+KtTokens	AS_SAFE	AS_SAFE	KtKeywordToken	token	as?	false
+KtTokens	IDENTIFIER	IDENTIFIER	KtToken	token		
+KtTokens	FIELD_IDENTIFIER	FIELD_IDENTIFIER	KtToken	token		
+KtTokens	LBRACKET	LBRACKET	KtSingleValueToken	token		
+KtTokens	RBRACKET	RBRACKET	KtSingleValueToken	token		
+KtTokens	LBRACE	LBRACE	KtSingleValueToken	token		
+KtTokens	RBRACE	RBRACE	KtSingleValueToken	token		
+KtTokens	LPAR	LPAR	KtSingleValueToken	token		
+KtTokens	RPAR	RPAR	KtSingleValueToken	token		
+KtTokens	DOT	DOT	KtSingleValueToken	token		
+KtTokens	PLUSPLUS	PLUSPLUS	KtSingleValueToken	token		
+KtTokens	MINUSMINUS	MINUSMINUS	KtSingleValueToken	token		
+KtTokens	MUL	MUL	KtSingleValueToken	token		
+KtTokens	PLUS	PLUS	KtSingleValueToken	token		
+KtTokens	MINUS	MINUS	KtSingleValueToken	token		
+KtTokens	EXCL	EXCL	KtSingleValueToken	token		
+KtTokens	DIV	DIV	KtSingleValueToken	token		
+KtTokens	PERC	PERC	KtSingleValueToken	token		
+KtTokens	LT	LT	KtSingleValueToken	token		
+KtTokens	GT	GT	KtSingleValueToken	token		
+KtTokens	LTEQ	LTEQ	KtSingleValueToken	token		
+KtTokens	GTEQ	GTEQ	KtSingleValueToken	token		
+KtTokens	EQEQEQ	EQEQEQ	KtSingleValueToken	token		
+KtTokens	ARROW	ARROW	KtSingleValueToken	token		
+KtTokens	DOUBLE_ARROW	DOUBLE_ARROW	KtSingleValueToken	token		
+KtTokens	EXCLEQEQEQ	EXCLEQEQEQ	KtSingleValueToken	token		
+KtTokens	EQEQ	EQEQ	KtSingleValueToken	token		
+KtTokens	EXCLEQ	EXCLEQ	KtSingleValueToken	token		
+KtTokens	EXCLEXCL	EXCLEXCL	KtSingleValueToken	token		
+KtTokens	ANDAND	ANDAND	KtSingleValueToken	token		
+KtTokens	AND	AND	KtSingleValueToken	token		
+KtTokens	OROR	OROR	KtSingleValueToken	token		
+KtTokens	SAFE_ACCESS	SAFE_ACCESS	KtSingleValueToken	token		
+KtTokens	ELVIS	ELVIS	KtSingleValueToken	token		
+KtTokens	QUEST	QUEST	KtSingleValueToken	token		
+KtTokens	COLONCOLON	COLONCOLON	KtSingleValueToken	token		
+KtTokens	COLON	COLON	KtSingleValueToken	token		
+KtTokens	SEMICOLON	SEMICOLON	KtSingleValueToken	token		
+KtTokens	DOUBLE_SEMICOLON	DOUBLE_SEMICOLON	KtSingleValueToken	token		
+KtTokens	RANGE	RANGE	KtSingleValueToken	token		
+KtTokens	RANGE_UNTIL	RANGE_UNTIL	KtSingleValueToken	token		
+KtTokens	EQ	EQ	KtSingleValueToken	token		
+KtTokens	MULTEQ	MULTEQ	KtSingleValueToken	token		
+KtTokens	DIVEQ	DIVEQ	KtSingleValueToken	token		
+KtTokens	PERCEQ	PERCEQ	KtSingleValueToken	token		
+KtTokens	PLUSEQ	PLUSEQ	KtSingleValueToken	token		
+KtTokens	MINUSEQ	MINUSEQ	KtSingleValueToken	token		
+KtTokens	NOT_IN	NOT_IN	KtKeywordToken	token	!in	false
+KtTokens	NOT_IS	NOT_IS	KtKeywordToken	token	!is	false
+KtTokens	HASH	HASH	KtSingleValueToken	token		
+KtTokens	AT	AT	KtSingleValueToken	token		
+KtTokens	COMMA	COMMA	KtSingleValueToken	token		
+KtTokens	EOL_OR_SEMICOLON	EOL_OR_SEMICOLON	KtToken	token		
+KtTokens	ALL_KEYWORD	all	KtKeywordToken	token	all	true
+KtTokens	FILE_KEYWORD	file	KtKeywordToken	token	file	true
+KtTokens	FIELD_KEYWORD	field	KtKeywordToken	token	field	true
+KtTokens	PROPERTY_KEYWORD	property	KtKeywordToken	token	property	true
+KtTokens	RECEIVER_KEYWORD	receiver	KtKeywordToken	token	receiver	true
+KtTokens	PARAM_KEYWORD	param	KtKeywordToken	token	param	true
+KtTokens	SETPARAM_KEYWORD	setparam	KtKeywordToken	token	setparam	true
+KtTokens	DELEGATE_KEYWORD	delegate	KtKeywordToken	token	delegate	true
+KtTokens	IMPORT_KEYWORD	import	KtKeywordToken	token	import	true
+KtTokens	WHERE_KEYWORD	where	KtKeywordToken	token	where	true
+KtTokens	BY_KEYWORD	by	KtKeywordToken	token	by	true
+KtTokens	GET_KEYWORD	get	KtKeywordToken	token	get	true
+KtTokens	SET_KEYWORD	set	KtKeywordToken	token	set	true
+KtTokens	CONSTRUCTOR_KEYWORD	constructor	KtKeywordToken	token	constructor	true
+KtTokens	INIT_KEYWORD	init	KtKeywordToken	token	init	true
+KtTokens	CONTEXT_KEYWORD	context	KtKeywordToken	token	context	true
+KtTokens	ABSTRACT_KEYWORD	abstract	KtModifierKeywordToken	token	abstract	true
+KtTokens	ENUM_KEYWORD	enum	KtModifierKeywordToken	token	enum	true
+KtTokens	CONTRACT_KEYWORD	contract	KtModifierKeywordToken	token	contract	true
+KtTokens	OPEN_KEYWORD	open	KtModifierKeywordToken	token	open	true
+KtTokens	INNER_KEYWORD	inner	KtModifierKeywordToken	token	inner	true
+KtTokens	OVERRIDE_KEYWORD	override	KtModifierKeywordToken	token	override	true
+KtTokens	PRIVATE_KEYWORD	private	KtModifierKeywordToken	token	private	true
+KtTokens	PUBLIC_KEYWORD	public	KtModifierKeywordToken	token	public	true
+KtTokens	INTERNAL_KEYWORD	internal	KtModifierKeywordToken	token	internal	true
+KtTokens	PROTECTED_KEYWORD	protected	KtModifierKeywordToken	token	protected	true
+KtTokens	CATCH_KEYWORD	catch	KtKeywordToken	token	catch	true
+KtTokens	OUT_KEYWORD	out	KtModifierKeywordToken	token	out	true
+KtTokens	VARARG_KEYWORD	vararg	KtModifierKeywordToken	token	vararg	true
+KtTokens	REIFIED_KEYWORD	reified	KtModifierKeywordToken	token	reified	true
+KtTokens	DYNAMIC_KEYWORD	dynamic	KtKeywordToken	token	dynamic	true
+KtTokens	COMPANION_KEYWORD	companion	KtModifierKeywordToken	token	companion	true
+KtTokens	SEALED_KEYWORD	sealed	KtModifierKeywordToken	token	sealed	true
+KtTokens	FINALLY_KEYWORD	finally	KtKeywordToken	token	finally	true
+KtTokens	FINAL_KEYWORD	final	KtModifierKeywordToken	token	final	true
+KtTokens	LATEINIT_KEYWORD	lateinit	KtModifierKeywordToken	token	lateinit	true
+KtTokens	DATA_KEYWORD	data	KtModifierKeywordToken	token	data	true
+KtTokens	VALUE_KEYWORD	value	KtModifierKeywordToken	token	value	true
+KtTokens	INLINE_KEYWORD	inline	KtModifierKeywordToken	token	inline	true
+KtTokens	NOINLINE_KEYWORD	noinline	KtModifierKeywordToken	token	noinline	true
+KtTokens	TAILREC_KEYWORD	tailrec	KtModifierKeywordToken	token	tailrec	true
+KtTokens	EXTERNAL_KEYWORD	external	KtModifierKeywordToken	token	external	true
+KtTokens	ANNOTATION_KEYWORD	annotation	KtModifierKeywordToken	token	annotation	true
+KtTokens	CROSSINLINE_KEYWORD	crossinline	KtModifierKeywordToken	token	crossinline	true
+KtTokens	OPERATOR_KEYWORD	operator	KtModifierKeywordToken	token	operator	true
+KtTokens	INFIX_KEYWORD	infix	KtModifierKeywordToken	token	infix	true
+KtTokens	CONST_KEYWORD	const	KtModifierKeywordToken	token	const	true
+KtTokens	SUSPEND_KEYWORD	suspend	KtModifierKeywordToken	token	suspend	true
+KtTokens	EXPECT_KEYWORD	expect	KtModifierKeywordToken	token	expect	true
+KtTokens	ACTUAL_KEYWORD	actual	KtModifierKeywordToken	token	actual	true
+KtNodeTypes	FILE	kotlin.FILE	KtFileElementType	lazy		
+KtNodeTypes	KT_FILE	FILE	IFileElementType	lazy		
+KtNodeTypes	CLASS	CLASS	KtClassElementType	node		
+KtNodeTypes	FUN	FUN	KtFunctionElementType	node		
+KtNodeTypes	PROPERTY	PROPERTY	KtPropertyElementType	node		
+KtNodeTypes	DESTRUCTURING_DECLARATION	DESTRUCTURING_DECLARATION	KtDestructuringDeclarationElementType	node		
+KtNodeTypes	DESTRUCTURING_DECLARATION_ENTRY	DESTRUCTURING_DECLARATION_ENTRY	KtNodeType	node		
+KtNodeTypes	OBJECT_DECLARATION	OBJECT_DECLARATION	KtObjectElementType	node		
+KtNodeTypes	TYPEALIAS	TYPEALIAS	KtTypeAliasElementType	node		
+KtNodeTypes	COMPANION_BLOCK	COMPANION_BLOCK	KtPlaceHolderStubElementType	node		
+KtNodeTypes	ENUM_ENTRY	ENUM_ENTRY	KtEnumEntryElementType	node		
+KtNodeTypes	CLASS_INITIALIZER	CLASS_INITIALIZER	KtPlaceHolderStubElementType	node		
+KtNodeTypes	SCRIPT_INITIALIZER	SCRIPT_INITIALIZER	KtScriptInitializerElementType	node		
+KtNodeTypes	SECONDARY_CONSTRUCTOR	SECONDARY_CONSTRUCTOR	KtSecondaryConstructorElementType	node		
+KtNodeTypes	PRIMARY_CONSTRUCTOR	PRIMARY_CONSTRUCTOR	KtPrimaryConstructorElementType	node		
+KtNodeTypes	CONTEXT_RECEIVER	CONTEXT_RECEIVER	KtContextReceiverElementType	node		
+KtNodeTypes	CONTEXT_PARAMETER_LIST	CONTEXT_PARAMETER_LIST	KtPlaceHolderStubElementType	node		
+KtNodeTypes	TYPE_PARAMETER_LIST	TYPE_PARAMETER_LIST	KtPlaceHolderStubElementType	node		
+KtNodeTypes	TYPE_PARAMETER	TYPE_PARAMETER	KtTypeParameterElementType	node		
+KtNodeTypes	SUPER_TYPE_LIST	SUPER_TYPE_LIST	KtPlaceHolderStubElementType	node		
+KtNodeTypes	DELEGATED_SUPER_TYPE_ENTRY	DELEGATED_SUPER_TYPE_ENTRY	KtPlaceHolderStubElementType	node		
+KtNodeTypes	SUPER_TYPE_CALL_ENTRY	SUPER_TYPE_CALL_ENTRY	KtPlaceHolderStubElementType	node		
+KtNodeTypes	SUPER_TYPE_ENTRY	SUPER_TYPE_ENTRY	KtPlaceHolderStubElementType	node		
+KtNodeTypes	PROPERTY_DELEGATE	PROPERTY_DELEGATE	KtNodeType	node		
+KtNodeTypes	CONSTRUCTOR_CALLEE	CONSTRUCTOR_CALLEE	KtPlaceHolderStubElementType	node		
+KtNodeTypes	VALUE_PARAMETER_LIST	VALUE_PARAMETER_LIST	KtPlaceHolderStubElementType	node		
+KtNodeTypes	VALUE_PARAMETER	VALUE_PARAMETER	KtParameterElementType	node		
+KtNodeTypes	CLASS_BODY	CLASS_BODY	KtPlaceHolderStubElementType	node		
+KtNodeTypes	IMPORT_LIST	IMPORT_LIST	KtPlaceHolderStubElementType	node		
+KtNodeTypes	FILE_ANNOTATION_LIST	FILE_ANNOTATION_LIST	KtPlaceHolderStubElementType	node		
+KtNodeTypes	IMPORT_DIRECTIVE	IMPORT_DIRECTIVE	KtImportDirectiveElementType	node		
+KtNodeTypes	IMPORT_ALIAS	IMPORT_ALIAS	KtImportAliasElementType	node		
+KtNodeTypes	MODIFIER_LIST	MODIFIER_LIST	KtModifierListElementType	node		
+KtNodeTypes	ANNOTATION	ANNOTATION	KtPlaceHolderStubElementType	node		
+KtNodeTypes	ANNOTATION_ENTRY	ANNOTATION_ENTRY	KtAnnotationEntryElementType	node		
+KtNodeTypes	ANNOTATION_TARGET	ANNOTATION_TARGET	KtAnnotationUseSiteTargetElementType	node		
+KtNodeTypes	TYPE_ARGUMENT_LIST	TYPE_ARGUMENT_LIST	KtPlaceHolderStubElementType	node		
+KtNodeTypes	VALUE_ARGUMENT_LIST	VALUE_ARGUMENT_LIST	KtPlaceHolderStubElementType	node		
+KtNodeTypes	VALUE_ARGUMENT	VALUE_ARGUMENT	KtValueArgumentElementType	node		
+KtNodeTypes	CONTRACT_EFFECT_LIST	CONTRACT_EFFECT_LIST	KtContractEffectListElementType	node		
+KtNodeTypes	CONTRACT_EFFECT	CONTRACT_EFFECT	KtContractEffectElementType	node		
+KtNodeTypes	LAMBDA_ARGUMENT	LAMBDA_ARGUMENT	KtValueArgumentElementType	node		
+KtNodeTypes	VALUE_ARGUMENT_NAME	VALUE_ARGUMENT_NAME	KtPlaceHolderStubElementType	node		
+KtNodeTypes	TYPE_REFERENCE	TYPE_REFERENCE	KtPlaceHolderStubElementType	node		
+KtNodeTypes	USER_TYPE	USER_TYPE	KtUserTypeElementType	node		
+KtNodeTypes	DYNAMIC_TYPE	DYNAMIC_TYPE	KtPlaceHolderStubElementType	node		
+KtNodeTypes	FUNCTION_TYPE	FUNCTION_TYPE	KtFunctionTypeElementType	node		
+KtNodeTypes	FUNCTION_TYPE_RECEIVER	FUNCTION_TYPE_RECEIVER	KtPlaceHolderStubElementType	node		
+KtNodeTypes	NULLABLE_TYPE	NULLABLE_TYPE	KtPlaceHolderStubElementType	node		
+KtNodeTypes	INTERSECTION_TYPE	INTERSECTION_TYPE	KtPlaceHolderStubElementType	node		
+KtNodeTypes	TYPE_PROJECTION	TYPE_PROJECTION	KtTypeProjectionElementType	node		
+KtNodeTypes	PROPERTY_ACCESSOR	PROPERTY_ACCESSOR	KtPropertyAccessorElementType	node		
+KtNodeTypes	BACKING_FIELD	BACKING_FIELD	KtBackingFieldElementType	node		
+KtNodeTypes	INITIALIZER_LIST	INITIALIZER_LIST	KtPlaceHolderStubElementType	node		
+KtNodeTypes	TYPE_CONSTRAINT_LIST	TYPE_CONSTRAINT_LIST	KtPlaceHolderStubElementType	node		
+KtNodeTypes	TYPE_CONSTRAINT	TYPE_CONSTRAINT	KtPlaceHolderStubElementType	node		
+KtNodeTypes	CONSTRUCTOR_DELEGATION_CALL	CONSTRUCTOR_DELEGATION_CALL	KtLeftBoundNodeType	node		
+KtNodeTypes	CONSTRUCTOR_DELEGATION_REFERENCE	CONSTRUCTOR_DELEGATION_REFERENCE	KtLeftBoundNodeType	node		
+KtNodeTypes	NULL	NULL	KtConstantExpressionElementType	node		
+KtNodeTypes	BOOLEAN_CONSTANT	BOOLEAN_CONSTANT	KtConstantExpressionElementType	node		
+KtNodeTypes	FLOAT_CONSTANT	FLOAT_CONSTANT	KtConstantExpressionElementType	node		
+KtNodeTypes	CHARACTER_CONSTANT	CHARACTER_CONSTANT	KtConstantExpressionElementType	node		
+KtNodeTypes	INTEGER_CONSTANT	INTEGER_CONSTANT	KtConstantExpressionElementType	node		
+KtNodeTypes	STRING_TEMPLATE	STRING_TEMPLATE	KtStringTemplateExpressionElementType	node		
+KtNodeTypes	LONG_STRING_TEMPLATE_ENTRY	LONG_STRING_TEMPLATE_ENTRY	KtBlockStringTemplateEntryElementType	node		
+KtNodeTypes	SHORT_STRING_TEMPLATE_ENTRY	SHORT_STRING_TEMPLATE_ENTRY	KtPlaceHolderWithTextStubElementType	node		
+KtNodeTypes	LITERAL_STRING_TEMPLATE_ENTRY	LITERAL_STRING_TEMPLATE_ENTRY	KtPlaceHolderWithTextStubElementType	node		
+KtNodeTypes	ESCAPE_STRING_TEMPLATE_ENTRY	ESCAPE_STRING_TEMPLATE_ENTRY	KtPlaceHolderWithTextStubElementType	node		
+KtNodeTypes	STRING_INTERPOLATION_PREFIX	STRING_INTERPOLATION_PREFIX	KtStringInterpolationPrefixElementType	node		
+KtNodeTypes	PARENTHESIZED	PARENTHESIZED	KtNodeType	node		
+KtNodeTypes	RETURN	RETURN	KtNodeType	node		
+KtNodeTypes	THROW	THROW	KtNodeType	node		
+KtNodeTypes	CONTINUE	CONTINUE	KtNodeType	node		
+KtNodeTypes	BREAK	BREAK	KtNodeType	node		
+KtNodeTypes	IF	IF	KtNodeType	node		
+KtNodeTypes	CONDITION	CONDITION	KtNodeType	node		
+KtNodeTypes	THEN	THEN	KtNodeType	node		
+KtNodeTypes	ELSE	ELSE	KtNodeType	node		
+KtNodeTypes	TRY	TRY	KtNodeType	node		
+KtNodeTypes	CATCH	CATCH	KtNodeType	node		
+KtNodeTypes	FINALLY	FINALLY	KtNodeType	node		
+KtNodeTypes	FOR	FOR	KtNodeType	node		
+KtNodeTypes	WHILE	WHILE	KtNodeType	node		
+KtNodeTypes	DO_WHILE	DO_WHILE	KtNodeType	node		
+KtNodeTypes	LOOP_RANGE	LOOP_RANGE	KtNodeType	node		
+KtNodeTypes	BODY	BODY	KtNodeType	node		
+KtNodeTypes	BLOCK	BLOCK	BlockExpressionElementType	lazy		
+KtNodeTypes	LAMBDA_EXPRESSION	LAMBDA_EXPRESSION	LambdaExpressionElementType	lazy		
+KtNodeTypes	FUNCTION_LITERAL	FUNCTION_LITERAL	KtNodeType	node		
+KtNodeTypes	ANNOTATED_EXPRESSION	ANNOTATED_EXPRESSION	KtNodeType	node		
+KtNodeTypes	REFERENCE_EXPRESSION	REFERENCE_EXPRESSION	KtNameReferenceExpressionElementType	node		
+KtNodeTypes	ENUM_ENTRY_SUPERCLASS_REFERENCE_EXPRESSION	ENUM_ENTRY_SUPERCLASS_REFERENCE_EXPRESSION	KtEnumEntrySuperClassReferenceExpressionElementType	node		
+KtNodeTypes	OPERATION_REFERENCE	OPERATION_REFERENCE	KtNodeType	node		
+KtNodeTypes	LABEL	LABEL	KtNodeType	node		
+KtNodeTypes	LABEL_QUALIFIER	LABEL_QUALIFIER	KtNodeType	node		
+KtNodeTypes	THIS_EXPRESSION	THIS_EXPRESSION	KtNodeType	node		
+KtNodeTypes	SUPER_EXPRESSION	SUPER_EXPRESSION	KtNodeType	node		
+KtNodeTypes	BINARY_EXPRESSION	BINARY_EXPRESSION	KtNodeType	node		
+KtNodeTypes	BINARY_WITH_TYPE	BINARY_WITH_TYPE	KtNodeType	node		
+KtNodeTypes	IS_EXPRESSION	IS_EXPRESSION	KtNodeType	node		
+KtNodeTypes	PREFIX_EXPRESSION	PREFIX_EXPRESSION	KtNodeType	node		
+KtNodeTypes	POSTFIX_EXPRESSION	POSTFIX_EXPRESSION	KtNodeType	node		
+KtNodeTypes	LABELED_EXPRESSION	LABELED_EXPRESSION	KtNodeType	node		
+KtNodeTypes	CALL_EXPRESSION	CALL_EXPRESSION	KtCallExpressionElementType	node		
+KtNodeTypes	ARRAY_ACCESS_EXPRESSION	ARRAY_ACCESS_EXPRESSION	KtNodeType	node		
+KtNodeTypes	INDICES	INDICES	KtNodeType	node		
+KtNodeTypes	DOT_QUALIFIED_EXPRESSION	DOT_QUALIFIED_EXPRESSION	KtDotQualifiedExpressionElementType	node		
+KtNodeTypes	CALLABLE_REFERENCE_EXPRESSION	CALLABLE_REFERENCE_EXPRESSION	KtNodeType	node		
+KtNodeTypes	CLASS_LITERAL_EXPRESSION	CLASS_LITERAL_EXPRESSION	KtClassLiteralExpressionElementType	node		
+KtNodeTypes	SAFE_ACCESS_EXPRESSION	SAFE_ACCESS_EXPRESSION	KtNodeType	node		
+KtNodeTypes	OBJECT_LITERAL	OBJECT_LITERAL	KtNodeType	node		
+KtNodeTypes	WHEN	WHEN	KtNodeType	node		
+KtNodeTypes	WHEN_ENTRY	WHEN_ENTRY	KtNodeType	node		
+KtNodeTypes	WHEN_ENTRY_GUARD	WHEN_ENTRY_GUARD	KtNodeType	node		
+KtNodeTypes	WHEN_CONDITION_IN_RANGE	WHEN_CONDITION_IN_RANGE	KtNodeType	node		
+KtNodeTypes	WHEN_CONDITION_IS_PATTERN	WHEN_CONDITION_IS_PATTERN	KtNodeType	node		
+KtNodeTypes	WHEN_CONDITION_EXPRESSION	WHEN_CONDITION_WITH_EXPRESSION	KtNodeType	node		
+KtNodeTypes	COLLECTION_LITERAL_EXPRESSION	COLLECTION_LITERAL_EXPRESSION	KtCollectionLiteralExpressionElementType	node		
+KtNodeTypes	PACKAGE_DIRECTIVE	PACKAGE_DIRECTIVE	KtPlaceHolderStubElementType	node		
+KtNodeTypes	SCRIPT	SCRIPT	KtScriptElementType	node		
+KtNodeTypes	TYPE_CODE_FRAGMENT	kotlin.TYPE_CODE_FRAGMENT	KtTypeCodeFragmentType	lazy		
+KtNodeTypes	EXPRESSION_CODE_FRAGMENT	kotlin.EXPRESSION_CODE_FRAGMENT	KtExpressionCodeFragmentType	lazy		
+KtNodeTypes	BLOCK_CODE_FRAGMENT	kotlin.BLOCK_CODE_FRAGMENT	KtBlockCodeFragmentType	lazy		
+KDocTokens	START	KDOC_START	KDocToken	token		
+KDocTokens	END	KDOC_END	KDocToken	token		
+KDocTokens	LEADING_ASTERISK	KDOC_LEADING_ASTERISK	KDocToken	token		
+KDocTokens	TEXT	KDOC_TEXT	KDocToken	token		
+KDocTokens	CODE_BLOCK_TEXT	KDOC_CODE_BLOCK_TEXT	KDocToken	token		
+KDocTokens	CODE_SPAN_TEXT	KDOC_CODE_SPAN_TEXT	KDocToken	token		
+KDocTokens	TAG_NAME	KDOC_TAG_NAME	KDocToken	token		
+KDocTokens	MARKDOWN_LINK	KDOC_MARKDOWN_LINK		lazy		
+KDocTokens	KDOC_LPAR	KDOC_LPAR	KDocToken	token		
+KDocTokens	KDOC_RPAR	KDOC_RPAR	KDocToken	token		
+KDocTokens	MARKDOWN_ESCAPED_CHAR	KDOC_MARKDOWN_ESCAPED_CHAR	KDocToken	token		
+KDocTokens	MARKDOWN_INLINE_LINK	KDOC_MARKDOWN_INLINE_LINK	KDocToken	token		
+KDocElementTypes	KDOC_SECTION	KDOC_SECTION	KDocElementType	node		
+KDocElementTypes	KDOC_TAG	KDOC_TAG	KDocElementType	node		
+KDocElementTypes	KDOC_NAME	KDOC_NAME	KDocElementType	node		
+TokenType	BAD_CHARACTER	BAD_CHARACTER	IElementType	token		
+TokenType	NEW_LINE_INDENT	NEW_LINE_INDENT	IElementType	token		
+TokenType	ERROR_ELEMENT	ERROR_ELEMENT		node		
+TokenType	CODE_FRAGMENT	CODE_FRAGMENT	IFileElementType	lazy		
+TokenType	DUMMY_HOLDER	DUMMY_HOLDER	IFileElementType	lazy		

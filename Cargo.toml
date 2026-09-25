@@ -1,0 +1,23 @@
+[workspace]
+resolver = "3"
+members = ["crates/*", "xtask"]
+
+[workspace.package]
+version = "0.0.1"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/ktrs/ktrs"
+rust-version = "1.90"
+
+[workspace.dependencies]
+ktrs_syntax = { path = "crates/ktrs_syntax" }
+ktrs_lexer = { path = "crates/ktrs_lexer" }
+ktrs_parser = { path = "crates/ktrs_parser" }
+rowan = "0.16"
+expect-test = "1.5"
+mimalloc = { version = "0.1", default-features = false }
+
+[profile.release]
+lto = "fat"
+codegen-units = 1
+panic = "abort"
