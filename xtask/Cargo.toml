@@ -1,0 +1,11 @@
+[package]
+name = "xtask"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+ktrs_parser.workspace = true
+ktrs_syntax.workspace = true
+mimalloc.workspace = true

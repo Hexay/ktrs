@@ -1,0 +1,10 @@
+ktrs
+Copyright 2026 ktrs contributors
+
+This product contains code ported from, and test data copied from, the Kotlin
+compiler (https://github.com/JetBrains/kotlin), Copyright 2010-2026 JetBrains s.r.o.
+and Kotlin Programming Language contributors, licensed under the Apache License 2.0.
+
+This product contains code ported from IntelliJ Platform (PsiBuilder semantics)
+(https://github.com/JetBrains/intellij-community), Copyright 2000-2026 JetBrains s.r.o.,
+licensed under the Apache License 2.0.

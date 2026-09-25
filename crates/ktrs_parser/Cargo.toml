@@ -1,0 +1,17 @@
+[package]
+name = "ktrs_parser"
+description = "Kotlin parser producing PSI-identical lossless trees, ported from the Kotlin compiler"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+ktrs_syntax.workspace = true
+ktrs_lexer.workspace = true
+rowan.workspace = true
+
+[dev-dependencies]
+expect-test.workspace = true
+mimalloc.workspace = true

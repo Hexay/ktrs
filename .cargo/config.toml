@@ -1,0 +1,3 @@
+[alias]
+xtask = "run --package xtask --quiet --"
+corpus-diff = "run --package xtask --release --quiet -- corpus-diff"

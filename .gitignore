@@ -1,0 +1,5 @@
+/target
+/third_party/
+/corpus/
+/tools/psi-dump/lib/
+/tools/psi-dump/build/
