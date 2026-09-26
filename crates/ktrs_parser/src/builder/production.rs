@@ -80,13 +80,19 @@ pub(crate) struct Production {
     pub(crate) markers: Vec<MarkerData>,
     pub(crate) list: Vec<i32>,
     messages: Vec<String>,
+    /// Error items ever allocated (dropped or rolled back ones included).
+    error_items: u32,
 }
 
 impl Production {
     /// Over (empty, possibly recycled) vectors; see `pool.rs`.
     pub(crate) fn from_vecs(markers: Vec<MarkerData>, list: Vec<i32>) -> Production {
         debug_assert!(markers.is_empty() && list.is_empty());
-        Production { markers, list, messages: Vec::new() }
+        Production { markers, list, messages: Vec::new(), error_items: 0 }
+    }
+
+    pub(crate) fn has_error_items(&self) -> bool {
+        self.error_items > 0
     }
 
     pub(crate) fn take_vecs(&mut self) -> (Vec<MarkerData>, Vec<i32>) {
@@ -103,6 +109,7 @@ impl Production {
     }
 
     pub(crate) fn allocate(&mut self, is_error_item: bool, lexeme: i32) -> i32 {
+        self.error_items += u32::from(is_error_item);
         self.markers.push(MarkerData::new(is_error_item, lexeme));
         self.markers.len() as i32
     }

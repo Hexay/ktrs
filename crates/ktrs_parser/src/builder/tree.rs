@@ -52,6 +52,8 @@ impl PsiBuilder {
 
     fn balance_white_spaces(&mut self) {
         let mut last_index: i32 = 0;
+        // `getLexemeIndexAt(i - 1)`, carried along: item i - 1's index as this loop left it.
+        let mut prev_index = self.production.get_lexeme_index_at(0);
         let size = self.production.size().saturating_sub(1);
         for i in 1..size {
             let id = self.production.list[i];
@@ -62,7 +64,7 @@ impl PsiBuilder {
             let binder = if item.is_error_item { EdgeBinder::DefaultRight } else { item.get_binder(done) };
             let mut lexeme_index = item.get_lexeme_index(done);
 
-            let prev_production_lex_index = self.production.get_lexeme_index_at(i - 1);
+            let prev_production_lex_index = prev_index;
             let mut ws_start_index = lexeme_index.max(last_index);
             while ws_start_index > prev_production_lex_index
                 && self.is_whitespace_or_comment(self.lex_types[ws_start_index as usize - 1])
@@ -86,12 +88,17 @@ impl PsiBuilder {
             }
 
             last_index = lexeme_index;
+            prev_index = lexeme_index;
         }
     }
 
     /// `prepareLightTree` keeps only the first (deepest) error item per lexeme, in production order.
     fn duplicate_error_items(&self, skipped: &mut Vec<bool>) {
         skipped.clear();
+        // `bind` only reads the flags of error items.
+        if !self.production.has_error_items() {
+            return;
+        }
         skipped.resize(self.production.size(), false);
         let mut last_error_index = -1;
         for (i, &id) in self.production.list.iter().enumerate().skip(1) {
