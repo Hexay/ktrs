@@ -34,6 +34,8 @@
 //! `get_stub_or_psi_children_set`, `siblings`, `get_{prev,next}_sibling_ignoring_whitespace[_and_comments]`,
 //! `starts_with_comment`, `prev_leaf`, `next_leaf`, `get_parent_of_type`, `get_child_of_type`,
 //! `get_children_of_type`, `collect_descendants_of_type`, `has_error_elements`, `deepest_{first,last}`.
+//! Not upstream, for speed (`element_text.rs`, `element.rs`): `text_all`, `try_for_each_text_chunk`
+//! (text checks without building it), `has_children`; `KtVisitorVoid::ignores_leaves`; `KtFile` caches its text.
 //! Free: [`get_next_sibling_of_type`], [`get_prev_sibling_of_type`],
 //! [`get_trailing_comma_by_closing_element`], [`get_trailing_comma_by_elements_list`],
 //! [`try_flatten_string_concatenation_descendants`], [`unquote_identifier`], [`psi_class_name`].
@@ -129,6 +131,7 @@
 mod cast;
 mod classes;
 mod element;
+mod element_text;
 mod kt;
 mod tokens;
 mod tree_util;

@@ -6,13 +6,14 @@ use ktrs_syntax::SyntaxKind::{self, *};
 use crate::cast::psi_types;
 use crate::classes::*;
 use crate::element::PsiElement;
+pub use crate::kt::KtFile;
 
 fn node_of(e: &PsiElement, kinds: &[SyntaxKind]) -> bool {
-    !e.is_leaf() && !e.is_file() && kinds.contains(&e.kind())
+    kinds.contains(&e.kind()) && !e.is_leaf() && !e.is_file()
 }
 
 fn node_where(e: &PsiElement, test: fn(SyntaxKind) -> bool) -> bool {
-    !e.is_leaf() && !e.is_file() && test(e.kind())
+    test(e.kind()) && !e.is_leaf() && !e.is_file()
 }
 
 psi_types! {
@@ -62,8 +63,7 @@ psi_types! {
     KDoc(e) => node_of(e, &[DOC_COMMENT]);
     KDocTag(e) => node_of(e, &[KDOC_SECTION, KDOC_TAG]);
 
-    // ---- concrete classes ----
-    KtFile(e) => e.is_file();
+    // ---- concrete classes (`KtFile` is in `kt/file.rs`) ----
     KtScript(e) => node_of(e, &[SCRIPT]);
     KtPackageDirective(e) => node_of(e, &[PACKAGE_DIRECTIVE]);
     KtImportList(e) => node_of(e, &[IMPORT_LIST]);

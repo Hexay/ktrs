@@ -1,6 +1,7 @@
 //! Port of ktfmt's `KotlinInput.kt`: what `JavaInput` is for Java, with the Kotlin parse tree as
 //! the lexer.
 
+use std::cell::OnceCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
@@ -22,13 +23,15 @@ pub struct KotlinInput {
     text: String,
     /// The Tokens for this input.
     tokens: Vec<Rc<dyn Token>>,
-    /// Map Tok position to column.
-    position_to_column_map: HashMap<i32, i32>,
+    toks: Vec<Rc<KotlinTok>>,
+    /// Map Tok position to column. Built on first use: ktfmt never reads it.
+    position_to_column_map: OnceCell<HashMap<i32, i32>>,
     /// Map position to Token.
     position_token_map: RangeMap<Rc<dyn Token>>,
     /// The number of numbered toks (tokens or comments), excluding the EOF.
     k_n: i32,
-    k_to_token: Vec<Option<Rc<dyn Token>>>,
+    /// Indices into `tokens`.
+    k_to_token: Vec<Option<u32>>,
 }
 
 impl KotlinInput {
@@ -36,13 +39,12 @@ impl KotlinInput {
         let mut io = InputOutput::default();
         io.set_lines(newlines::line_iterator(text).map(str::to_string).collect());
         let (toks, k_n) = Self::build_toks(&mut io, file, text)?;
-        let position_to_column_map = Self::make_position_to_column_map(&toks);
         let tokens = Self::build_tokens(&toks);
         let position_token_map = Self::build_token_positions_map(&tokens);
 
         // adjust kN for EOF
-        let mut k_to_token: Vec<Option<Rc<dyn Token>>> = vec![None; k_n as usize + 1];
-        for token in &tokens {
+        let mut k_to_token: Vec<Option<u32>> = vec![None; k_n as usize + 1];
+        for (i, token) in tokens.iter().enumerate() {
             let numbered = token
                 .get_toks_before()
                 .iter()
@@ -50,7 +52,7 @@ impl KotlinInput {
                 .chain(token.get_toks_after());
             for tok in numbered {
                 if tok.get_index() >= 0 {
-                    k_to_token[tok.get_index() as usize] = Some(token.clone());
+                    k_to_token[tok.get_index() as usize] = Some(i as u32);
                 }
             }
         }
@@ -58,7 +60,8 @@ impl KotlinInput {
             io,
             text: text.to_string(),
             tokens,
-            position_to_column_map,
+            toks,
+            position_to_column_map: OnceCell::new(),
             position_token_map,
             k_n,
             k_to_token,
@@ -96,10 +99,12 @@ impl KotlinInput {
             0 => 1, // 0 stands for "format the line under the cursor"
             _ => length,
         };
-        let enclosed = self
+        let mut enclosed = self
             .position_token_map
             .sub_range_values_closed_open(offset, offset + expanded_length);
-        match (enclosed.first(), enclosed.last()) {
+        let first = enclosed.next();
+        let last = enclosed.next_back().or(first);
+        match (first, last) {
             (Some(first), Some(last)) => Ok(Range::closed_open(
                 first.get_tok().get_index(),
                 last.get_tok().get_index() + 1,
@@ -138,7 +143,7 @@ impl KotlinInput {
 
     fn build_tokens(toks: &[Rc<KotlinTok>]) -> Vec<Rc<dyn Token>> {
         let as_dyn = |tok: &Rc<KotlinTok>| -> Rc<dyn Tok> { tok.clone() };
-        let mut tokens: Vec<Rc<dyn Token>> = Vec::new();
+        let mut tokens: Vec<Rc<dyn Token>> = Vec::with_capacity(toks.len() / 2);
         let mut k = 0;
         let k_n = toks.len();
 
@@ -260,7 +265,7 @@ impl Input for KotlinInput {
     }
 
     fn get_position_to_column_map(&self) -> &HashMap<i32, i32> {
-        &self.position_to_column_map
+        self.position_to_column_map.get_or_init(|| Self::make_position_to_column_map(&self.toks))
     }
 
     fn get_text(&self) -> &str {
@@ -272,7 +277,8 @@ impl Input for KotlinInput {
     }
 
     fn get_token(&self, k: i32) -> Option<&Rc<dyn Token>> {
-        self.k_to_token.get(k as usize)?.as_ref()
+        let i = (*self.k_to_token.get(usize::try_from(k).ok()?)?)?;
+        Some(&self.tokens[i as usize])
     }
 
     /// Past the end of the text IntelliJ returns null (an NPE upstream); clamp instead.

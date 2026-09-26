@@ -1,6 +1,5 @@
 //! Port of `InputOutput.java`: the line/range bookkeeping shared by inputs and outputs.
 
-use std::collections::HashMap;
 use std::rc::Rc;
 
 use super::input::Tok;
@@ -56,14 +55,19 @@ impl InputOutput {
         }
     }
 
-    pub fn make_k_to_ij(put: &InputOutput) -> HashMap<i32, Range> {
-        let mut map: HashMap<i32, Range> = HashMap::new();
+    /// Indexed by k (toks are densely numbered) instead of upstream's `Map<Integer, Range>`.
+    pub fn make_k_to_ij(put: &InputOutput) -> Vec<Option<Range>> {
+        let mut map: Vec<Option<Range>> = Vec::new();
         let ij_n = put.get_line_count();
         for ij in 0..=ij_n {
             let range = put.get_ranges(ij);
             for k in range.lower_endpoint()..range.upper_endpoint() {
-                let lower = map.get(&k).map_or(ij, |r| r.lower_endpoint());
-                map.insert(k, Range::closed_open(lower, ij + 1));
+                let k = k as usize;
+                if map.len() <= k {
+                    map.resize(k + 1, None);
+                }
+                let lower = map[k].map_or(ij, |r| r.lower_endpoint());
+                map[k] = Some(Range::closed_open(lower, ij + 1));
             }
         }
         map

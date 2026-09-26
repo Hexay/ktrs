@@ -2,25 +2,18 @@
 //!
 //! Java keeps `appendLevel` as a reference that can outlive the level's `close()` (docs added
 //! after a close, before the next break, still land in the closed level). Levels therefore live in
-//! an arena here and are assembled into the `Doc` tree by `build`.
+//! an arena here: `close` leaves a placeholder in the parent, and `build` moves each level into its
+//! placeholder, children first.
 
 use super::doc::{Doc, DocKind};
 use super::indent::Indent;
 use super::level::Level;
 use super::op::Op;
 
-enum Item {
-    Doc(Doc),
-    Level(usize),
-}
-
-struct LevelBuf {
-    plus_indent: Indent,
-    items: Vec<Item>,
-}
-
 pub struct DocBuilder {
-    levels: Vec<LevelBuf>,
+    levels: Vec<Level>,
+    /// Where each closed level goes: its parent and the index of its placeholder there.
+    slots: Vec<Option<(usize, usize)>>,
     stack: Vec<usize>,
     append_level: usize,
 }
@@ -36,16 +29,17 @@ impl DocBuilder {
 
     pub fn new() -> DocBuilder {
         DocBuilder {
-            levels: vec![LevelBuf {
-                plus_indent: Indent::ZERO,
-                items: Vec::new(),
-            }],
+            levels: vec![Level::make(Indent::ZERO)],
+            slots: vec![None],
             stack: vec![Self::BASE],
             append_level: Self::BASE,
         }
     }
 
     pub fn with_ops(mut self, ops: Vec<Op>) -> DocBuilder {
+        let opens = ops.iter().filter(|op| matches!(op, Op::Open(_))).count();
+        self.levels.reserve(opens);
+        self.slots.reserve(opens);
         for op in ops {
             op.add(&mut self); // These operations call the operations below to build the doc.
         }
@@ -53,44 +47,36 @@ impl DocBuilder {
     }
 
     pub(crate) fn open(&mut self, plus_indent: Indent) {
-        self.levels.push(LevelBuf {
-            plus_indent,
-            items: Vec::new(),
-        });
+        self.levels.push(Level::make(plus_indent));
+        self.slots.push(None);
         self.stack.push(self.levels.len() - 1);
     }
 
     pub(crate) fn close(&mut self) {
         let top = self.stack.pop().expect("close without open");
         let parent = *self.stack.last().expect("close of the base level");
-        self.levels[parent].items.push(Item::Level(top));
+        self.slots[top] = Some((parent, self.levels[parent].docs.len()));
+        self.levels[parent].add(Doc::new(DocKind::Space));
     }
 
     pub(crate) fn add(&mut self, doc: Doc) {
-        self.levels[self.append_level].items.push(Item::Doc(doc));
+        self.levels[self.append_level].add(doc);
     }
 
     pub(crate) fn break_doc(&mut self, break_doc: Doc) {
         self.append_level = *self.stack.last().unwrap();
-        self.levels[self.append_level]
-            .items
-            .push(Item::Doc(break_doc));
+        self.levels[self.append_level].add(break_doc);
     }
 
     pub fn build(self) -> Doc {
-        let mut levels: Vec<Option<LevelBuf>> = self.levels.into_iter().map(Some).collect();
-        Self::assemble(&mut levels, Self::BASE)
-    }
-
-    fn assemble(levels: &mut [Option<LevelBuf>], i: usize) -> Doc {
-        let buf = levels[i].take().expect("level attached twice");
-        let mut level = Level::make(buf.plus_indent);
-        for item in buf.items {
-            match item {
-                Item::Doc(doc) => level.add(doc),
-                Item::Level(child) => level.add(Self::assemble(levels, child)),
-            }
+        let mut levels: Vec<Option<Level>> = self.levels.into_iter().map(Some).collect();
+        // A level's children were opened after it, so they have higher indices.
+        for i in (Self::BASE + 1..levels.len()).rev() {
+            let Some((parent, index)) = self.slots[i] else { continue };
+            let level = levels[i].take().expect("level attached twice");
+            levels[parent].as_mut().expect("parent attached before child").docs[index] =
+                Doc::new(DocKind::Level(Box::new(level)));
         }
-        Doc::new(DocKind::Level(level))
+        Doc::new(DocKind::Level(Box::new(levels[Self::BASE].take().unwrap())))
     }
 }

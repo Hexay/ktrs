@@ -57,13 +57,6 @@ impl PsiElement {
         T::can_cast(self)
     }
 
-    pub fn text(&self) -> String {
-        match &self.0 {
-            SyntaxElement::Node(n) => n.text().to_string(),
-            SyntaxElement::Token(t) => t.text().to_owned(),
-        }
-    }
-
     /// Offsets are UTF-8 byte offsets into the file text (IntelliJ uses UTF-16 units).
     pub fn text_range(&self) -> TextRange {
         self.0.text_range()
@@ -86,13 +79,6 @@ impl PsiElement {
     /// `PsiElement.getTextOffset()` for elements that don't override it (ktfmt only reads it for arguments).
     pub fn text_offset(&self) -> usize {
         self.start_offset()
-    }
-
-    pub fn text_contains(&self, c: char) -> bool {
-        match &self.0 {
-            SyntaxElement::Node(n) => n.text().contains_char(c),
-            SyntaxElement::Token(t) => t.text().contains(c),
-        }
     }
 
     pub fn parent(&self) -> Option<PsiElement> {
@@ -133,6 +119,15 @@ impl PsiElement {
         self.all_children().filter(|c| !c.is_leaf()).collect()
     }
 
+    /// `getChildren().length > 0` without collecting (or materializing skipped leaves).
+    pub fn has_children(&self) -> bool {
+        let Some(node) = self.as_node() else { return false };
+        if self.is_file() || classes::children_include_leaves(self.kind()) {
+            return node.first_child_or_token().is_some();
+        }
+        node.first_child().is_some()
+    }
+
     pub fn node(&self) -> AstNode {
         AstNode(self.clone())
     }
@@ -141,17 +136,29 @@ impl PsiElement {
 
     /// `findChildByType(IElementType)`: first direct child of `kind`.
     pub fn find_child_by_type<T: PsiType>(&self, kind: SyntaxKind) -> Option<T> {
-        self.all_children().find(|c| c.kind() == kind).map(T::cast_unchecked)
+        self.first_child_by_kind(|k| k == kind).map(T::cast_unchecked)
     }
 
     /// `findChildByType(TokenSet)`.
     pub fn find_child_by_type_set<T: PsiType>(&self, kinds: TokenSet) -> Option<T> {
-        self.all_children().find(|c| kinds.contains(c.kind())).map(T::cast_unchecked)
+        self.first_child_by_kind(|k| kinds.contains(k)).map(T::cast_unchecked)
     }
 
     /// `findChildrenByType(IElementType)`.
     pub fn find_children_by_type<T: PsiType>(&self, kind: SyntaxKind) -> Vec<T> {
-        self.all_children().filter(|c| c.kind() == kind).map(T::cast_unchecked).collect()
+        self.children_by_kind(|k| k == kind).map(T::cast_unchecked).collect()
+    }
+
+    /// The first child (leaves included) whose kind matches. Scans the green children, so unlike
+    /// `all_children().find(..)` it materializes no cursor for the children it skips.
+    fn first_child_by_kind(&self, matches: impl Fn(SyntaxKind) -> bool) -> Option<PsiElement> {
+        self.as_node()?.first_child_or_token_by_kind(&matches).map(PsiElement)
+    }
+
+    /// The children (leaves included) whose kind matches; see [`Self::first_child_by_kind`].
+    fn children_by_kind(&self, matches: impl Fn(SyntaxKind) -> bool) -> impl Iterator<Item = PsiElement> {
+        let children = self.as_node().map(|n| n.children_with_tokens().by_kind(matches));
+        children.into_iter().flatten().map(PsiElement)
     }
 
     /// `findLastChildByType(IElementType)`.
@@ -181,7 +188,7 @@ impl PsiElement {
 
     /// `getStubOrPsiChildren(TokenSet)` on the AST path.
     pub fn get_stub_or_psi_children_set<T: PsiType>(&self, kinds: TokenSet) -> Vec<T> {
-        self.all_children().filter(|c| kinds.contains(c.kind())).map(T::cast_unchecked).collect()
+        self.children_by_kind(|k| kinds.contains(k)).map(T::cast_unchecked).collect()
     }
 }
 
@@ -247,16 +254,16 @@ impl AstNode {
 
     /// `ASTNode.findChildByType(IElementType)`.
     pub fn find_child_by_type(&self, kind: SyntaxKind) -> Option<AstNode> {
-        self.children().find(|c| c.element_type() == kind)
+        self.0.first_child_by_kind(|k| k == kind).map(AstNode)
     }
 
     /// `ASTNode.findChildByType(TokenSet)`.
     pub fn find_child_by_type_set(&self, kinds: TokenSet) -> Option<AstNode> {
-        self.children().find(|c| kinds.contains(c.element_type()))
+        self.0.first_child_by_kind(|k| kinds.contains(k)).map(AstNode)
     }
 
     /// `ASTNode.getChildren(TokenSet)`.
     pub fn get_children(&self, kinds: TokenSet) -> Vec<AstNode> {
-        self.children().filter(|c| kinds.contains(c.element_type())).collect()
+        self.0.children_by_kind(|k| kinds.contains(k)).map(AstNode).collect()
     }
 }

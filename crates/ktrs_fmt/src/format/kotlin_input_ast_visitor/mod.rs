@@ -60,6 +60,10 @@ impl<'b, 'a> KotlinInputAstVisitor<'b, 'a> {
 macro_rules! forward {
     ($($name:ident($t:ty);)*) => {
         impl KtVisitorVoid for KotlinInputAstVisitor<'_, '_> {
+            /// A leaf reaches only `visit_element`, which for a leaf pushes and pops `in_expression`.
+            fn ignores_leaves(&self) -> bool {
+                true
+            }
             $(fn $name(&mut self, e: &$t) { KotlinInputAstVisitor::$name(self, e) })*
         }
     };

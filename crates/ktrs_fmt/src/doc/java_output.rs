@@ -2,8 +2,6 @@
 //!
 //! Throughout, `i` indexes input lines, `j` output lines, `ij` either, and `k` toks.
 
-use std::collections::HashMap;
-
 use super::blank_line_wanted::BlankLineWanted;
 use super::comments_helper::CommentsHelper;
 use super::input::{Input, Tok, Token};
@@ -19,7 +17,8 @@ pub struct JavaOutput<'a> {
     pub(super) java_input: &'a dyn Input,
     /// Used to re-flow comments.
     comments_helper: Box<dyn CommentsHelper + 'a>,
-    blank_lines: HashMap<i32, BlankLineWanted>,
+    /// Indexed by k, in place of upstream's `Map<Integer, BlankLineWanted>`.
+    blank_lines: Vec<Option<BlankLineWanted>>,
     pub(super) partial_format_ranges: RangeSet,
     mutable_lines: Vec<String>,
     /// The number of tokens or comments in the input, excluding the EOF.
@@ -44,7 +43,7 @@ impl<'a> JavaOutput<'a> {
             line_separator: line_separator.to_string(),
             java_input,
             comments_helper,
-            blank_lines: HashMap::new(),
+            blank_lines: Vec::new(),
             partial_format_ranges: RangeSet::create(),
             mutable_lines: Vec::new(),
             k_n: java_input.get_kn(),
@@ -72,7 +71,7 @@ impl<'a> JavaOutput<'a> {
             self.io.ranges.push(EMPTY_RANGE);
         }
         self.io.ranges.push(eof_range);
-        self.io.set_lines(self.mutable_lines.clone());
+        self.io.set_lines(std::mem::take(&mut self.mutable_lines));
     }
 
     /// The earliest position of any Tok in the Token, including leading whitespace.
@@ -133,11 +132,15 @@ impl<'a> JavaOutput<'a> {
 
 impl Output for JavaOutput<'_> {
     fn blank_line(&mut self, k: i32, wanted: BlankLineWanted) {
-        let merged = match self.blank_lines.remove(&k) {
+        let k = usize::try_from(k).expect("blank line at a negative tok index");
+        if self.blank_lines.len() <= k {
+            self.blank_lines.resize(k + 1, None);
+        }
+        let merged = match self.blank_lines[k].take() {
             Some(existing) => existing.merge(wanted),
             None => wanted,
         };
-        self.blank_lines.insert(k, merged);
+        self.blank_lines[k] = Some(merged);
     }
 
     fn mark_for_partial_format(&mut self, start: &dyn Token, end: &dyn Token) {
@@ -164,9 +167,9 @@ impl Output for JavaOutput<'_> {
             }
             // Output blank line if we've called OpsBuilder.blankLine(true) here, or if there's a
             // blank line here and it's a comment.
-            let wanted = self
-                .blank_lines
-                .get(&self.last_k)
+            let wanted = usize::try_from(self.last_k)
+                .ok()
+                .and_then(|k| self.blank_lines.get(k)?.as_ref())
                 .map_or(Some(false), BlankLineWanted::wanted);
             if (saw_newlines && Self::is_comment(text)) || wanted.unwrap_or(saw_newlines) {
                 self.newlines_pending += 1;

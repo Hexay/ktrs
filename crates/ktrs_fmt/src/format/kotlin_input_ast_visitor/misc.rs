@@ -4,7 +4,7 @@
 use ktrs_psi::*;
 
 use crate::doc::{BlankLineWanted, FillMode, Indent};
-use crate::format::kotlin_text::is_blank;
+use crate::format::kotlin_text::is_kotlin_whitespace;
 
 use super::KotlinInputAstVisitor;
 use super::comma_separated::{EachCommaSeparated, psi_list};
@@ -172,11 +172,11 @@ impl KotlinInputAstVisitor<'_, '_> {
 
     pub(super) fn visit_kt_file(&mut self, file: &KtFile) {
         self.mark_for_partial_format();
-        let import_list_empty = file.import_list().is_none_or(|l| is_blank(&l.text()));
+        let import_list_empty = file.import_list().is_none_or(|l| l.text_all(is_kotlin_whitespace));
 
         let mut is_first = true;
         for child in file.children() {
-            if is_blank(&child.text()) {
+            if child.text_all(is_kotlin_whitespace) {
                 continue;
             }
 
@@ -204,7 +204,7 @@ impl KotlinInputAstVisitor<'_, '_> {
         let mut first = true;
         let Some(block_expression) = script.block_expression() else { return self.fail() };
         for child in block_expression.children() {
-            if is_blank(&child.text()) {
+            if child.text_all(is_kotlin_whitespace) {
                 continue;
             }
             self.builder.forced_break();

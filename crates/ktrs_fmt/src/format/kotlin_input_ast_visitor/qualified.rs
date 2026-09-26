@@ -1,6 +1,7 @@
 //! `KotlinInputAstVisitor.kt` lines 475-764: qualified expression chains and `visitCallExpression`.
 
 use std::collections::VecDeque;
+use std::ops::ControlFlow::{Break, Continue};
 
 use ktrs_psi::*;
 
@@ -16,9 +17,23 @@ struct GroupingInfo {
     should_close_group: bool,
 }
 
-/// Kotlin `Char.isUpperCase()` on the first UTF-16 unit of `text` (a lone surrogate is not uppercase).
-fn first_unit_is_upper_case(text: &str) -> bool {
-    text.chars().next().is_some_and(|c| (c as u32) <= 0xFFFF && c.is_uppercase())
+/// Kotlin `Char.isUpperCase()` on the first UTF-16 unit of `element.text` (a lone surrogate is not
+/// uppercase). Reads only the first char: the element can be a long call chain or lambda.
+fn first_unit_is_upper_case(element: &PsiElement) -> bool {
+    let first = element.try_for_each_text_chunk(|chunk| chunk.chars().next().map_or(Continue(()), Break));
+    first.break_value().is_some_and(|c| (c as u32) <= 0xFFFF && c.is_uppercase())
+}
+
+/// `element.text.length < limit`, reading no further than `limit` UTF-16 units.
+fn text_shorter_than(element: &PsiElement, limit: i32) -> bool {
+    let mut length = 0;
+    limit > 0
+        && element
+        .try_for_each_text_chunk(|chunk| {
+            length += utf16_len(chunk);
+            if length >= limit { Break(()) } else { Continue(()) }
+        })
+        .is_continue()
 }
 
 impl KotlinInputAstVisitor<'_, '_> {
@@ -204,7 +219,7 @@ impl KotlinInputAstVisitor<'_, '_> {
         current: &KtExpression,
     ) -> bool {
         // this is the second, and the first is short, avoid `.` "hanging in air"
-        if index == 1 && utf16_len(&previous.text()) < self.options.continuation_indent {
+        if index == 1 && text_shorter_than(previous, self.options.continuation_indent) {
             return true;
         }
         // the previous part is `this` or `super`
@@ -219,14 +234,14 @@ impl KotlinInputAstVisitor<'_, '_> {
             return true;
         }
         // this is `Foo` in `com.facebook.Foo`, so everything before it is a package name
-        if first_unit_is_upper_case(&current.text())
+        if first_unit_is_upper_case(current)
             && current.is::<KtSimpleNameExpression>()
             && part.is::<KtDotQualifiedExpression>()
         {
             return true;
         }
         // this is the `foo()` in `com.facebook.Foo.foo()` or in `Foo.foo()`
-        if current.is::<KtCallExpression>() && !previous.is::<KtCallExpression>() && first_unit_is_upper_case(&previous.text()) {
+        if current.is::<KtCallExpression>() && !previous.is::<KtCallExpression>() && first_unit_is_upper_case(previous) {
             return true;
         }
         // an invocation as the last item after a non-call, i.e. `a.b.c()`: keep `b.c` together

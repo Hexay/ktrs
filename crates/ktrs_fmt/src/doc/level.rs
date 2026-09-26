@@ -1,5 +1,7 @@
-//! `Doc.Level` from `Doc.java`. `splits`/`breaks` hold indices into `docs` instead of aliasing
-//! references.
+//! `Doc.Level` from `Doc.java`. Upstream's `splits`/`breaks` lists become break indices into
+//! `docs`: a split is the index range between two breaks, so nothing is stored per level.
+
+use std::ops::Range as IndexRange;
 
 use super::comments_helper::CommentsHelper;
 use super::doc::{Doc, DocKind, FillMode, MAX_LINE_WIDTH, State};
@@ -15,10 +17,6 @@ pub struct Level {
     pub(super) docs: Vec<Doc>,
     /// True if the entire level fits on one line.
     pub(super) one_line: bool,
-    /// Groups of child indices separated by breaks.
-    splits: Vec<Vec<usize>>,
-    /// Indices of the breaks between the splits.
-    breaks: Vec<usize>,
 }
 
 impl Level {
@@ -27,8 +25,6 @@ impl Level {
             plus_indent,
             docs: Vec::new(),
             one_line: false,
-            splits: Vec::new(),
-            breaks: Vec::new(),
         }
     }
 
@@ -64,18 +60,9 @@ impl Level {
         state.with_column(broken.column)
     }
 
-    fn split_by_breaks(docs: &[Doc], splits: &mut Vec<Vec<usize>>, breaks: &mut Vec<usize>) {
-        splits.clear();
-        breaks.clear();
-        splits.push(Vec::new());
-        for (i, doc) in docs.iter().enumerate() {
-            if matches!(doc.kind(), DocKind::Break(_)) {
-                breaks.push(i);
-                splits.push(Vec::new());
-            } else {
-                splits.last_mut().unwrap().push(i);
-            }
-        }
+    /// The indices of the breaks; split `i` is the range between break `i - 1` and break `i`.
+    fn split_by_breaks(docs: &[Doc]) -> Vec<usize> {
+        (0..docs.len()).filter(|&i| matches!(docs[i].kind(), DocKind::Break(_))).collect()
     }
 
     /// Compute breaks for a `Level` that spans multiple lines.
@@ -85,31 +72,15 @@ impl Level {
         max_width: i32,
         mut state: State,
     ) -> State {
-        let Level {
-            docs,
-            splits,
-            breaks,
-            ..
-        } = self;
-        Self::split_by_breaks(docs, splits, breaks);
+        let docs = &mut self.docs;
+        let breaks = Self::split_by_breaks(docs);
+        let docs_n = docs.len();
+        let split_end = |i: usize| breaks.get(i).copied().unwrap_or(docs_n);
 
-        state = Self::compute_break_and_split(
-            comments_helper,
-            max_width,
-            state,
-            docs,
-            None,
-            &splits[0],
-        );
+        state = Self::compute_break_and_split(comments_helper, max_width, state, docs, None, 0..split_end(0));
         for i in 0..breaks.len() {
-            state = Self::compute_break_and_split(
-                comments_helper,
-                max_width,
-                state,
-                docs,
-                Some(breaks[i]),
-                &splits[i + 1],
-            );
+            let split = breaks[i] + 1..split_end(i + 1);
+            state = Self::compute_break_and_split(comments_helper, max_width, state, docs, Some(breaks[i]), split);
         }
         state
     }
@@ -121,10 +92,10 @@ impl Level {
         mut state: State,
         docs: &mut [Doc],
         opt_break_doc: Option<usize>,
-        split: &[usize],
+        split: IndexRange<usize>,
     ) -> State {
         let break_width = opt_break_doc.map_or(0, |b| docs[b].get_width());
-        let split_width = Self::get_width_of(split.iter().map(|&i| &docs[i]));
+        let split_width = Self::get_width_of(docs[split.clone()].iter());
         let should_break = opt_break_doc
             .is_some_and(|b| Self::as_break(&mut docs[b]).fill_mode() == FillMode::Unified)
             || state.must_break
@@ -139,8 +110,7 @@ impl Level {
         state = Self::compute_split(
             comments_helper,
             max_width,
-            docs,
-            split,
+            &mut docs[split],
             state.with_must_break(false),
         );
         if !enough_room {
@@ -152,25 +122,19 @@ impl Level {
     fn compute_split(
         comments_helper: &dyn CommentsHelper,
         max_width: i32,
-        docs: &mut [Doc],
-        split: &[usize],
+        split: &mut [Doc],
         mut state: State,
     ) -> State {
-        for &i in split {
-            state = docs[i].compute_breaks(comments_helper, max_width, state);
+        for doc in split {
+            state = doc.compute_breaks(comments_helper, max_width, state);
         }
         state
     }
 
+    /// The splits and the breaks between them, interleaved, are just `docs` in order.
     pub(super) fn write_filled(&self, output: &mut dyn Output) {
-        for &i in &self.splits[0] {
-            self.docs[i].write(output);
-        }
-        for (b, split) in self.breaks.iter().zip(&self.splits[1..]) {
-            self.docs[*b].write(output);
-            for &i in split {
-                self.docs[i].write(output);
-            }
+        for doc in &self.docs {
+            doc.write(output);
         }
     }
 

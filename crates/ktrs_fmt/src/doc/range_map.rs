@@ -30,11 +30,10 @@ impl<V> RangeMap<V> {
     }
 
     /// `subRangeMap(Range.closedOpen(lower, upper)).asMapOfRanges().values()`.
-    pub fn sub_range_values_closed_open(&self, lower: i32, upper: i32) -> Vec<&V> {
-        self.entries
-            .iter()
-            .filter(|e| e.0 < upper && lower <= e.1)
-            .map(|e| &e.2)
-            .collect()
+    pub fn sub_range_values_closed_open(&self, lower: i32, upper: i32) -> impl DoubleEndedIterator<Item = &V> {
+        // Entries are sorted and disjoint, so both bounds are monotone in the index.
+        let start = self.entries.partition_point(|e| e.1 < lower);
+        let end = self.entries.partition_point(|e| e.0 < upper).max(start);
+        self.entries[start..end].iter().map(|e| &e.2)
     }
 }

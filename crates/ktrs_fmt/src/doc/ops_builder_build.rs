@@ -21,7 +21,7 @@ impl OpsBuilder<'_> {
         let ops = std::mem::take(&mut self.ops);
         let ops_n = ops.len();
         // Rewrite the ops to insert comments.
-        let mut tok_ops: Vec<Vec<Op>> = (0..=ops_n).map(|_| Vec::new()).collect();
+        let mut tok_ops = TokOps::default();
         for i in 0..ops_n {
             let Op::Token(token_op) = &ops[i] else {
                 continue;
@@ -48,7 +48,7 @@ impl OpsBuilder<'_> {
                     if tok_before.is_newline() {
                         newlines += 1;
                     } else if tok_before.is_comment() {
-                        tok_ops[j].push(Op::Break(DocBreak::make(
+                        tok_ops.push(j,Op::Break(DocBreak::make(
                             if tok_before.is_slash_slash_comment() {
                                 FillMode::Forced
                             } else {
@@ -57,12 +57,12 @@ impl OpsBuilder<'_> {
                             "",
                             token_op.get_plus_indent_comments_before().clone(),
                         )));
-                        tok_ops[j].extend(Self::make_comment(tok_before));
+                        tok_ops.extend(j,Self::make_comment(tok_before));
                         space = tok_before.is_slash_star_comment();
                         newlines = 0;
                         last_was_comment = true;
                         if tok_before.is_javadoc_comment() {
-                            tok_ops[j].push(Op::Break(DocBreak::make_forced()));
+                            tok_ops.push(j,Op::Break(DocBreak::make_forced()));
                         }
                         allow_blank_after_last_comment = tok_before.is_slash_slash_comment()
                             || (tok_before.is_slash_star_comment()
@@ -75,9 +75,9 @@ impl OpsBuilder<'_> {
                         .blank_line(token.get_tok().get_index(), BlankLineWanted::YES);
                 }
                 if last_was_comment && newlines > 0 {
-                    tok_ops[j].push(Op::Break(DocBreak::make_forced()));
+                    tok_ops.push(j,Op::Break(DocBreak::make_forced()));
                 } else if space {
-                    tok_ops[j].push(Op::Space);
+                    tok_ops.push(j,Op::Space);
                 }
                 // Now we've seen the Token; output the toksAfter.
                 for tok_after in token.get_toks_after() {
@@ -87,17 +87,17 @@ impl OpsBuilder<'_> {
                             || (tok_after.is_slash_star_comment() && trailing_indent.is_some());
                         if break_after {
                             let indent = trailing_indent.cloned().unwrap_or(Indent::ZERO);
-                            tok_ops[k + 1].push(Op::Break(DocBreak::make(
+                            tok_ops.push(k + 1,Op::Break(DocBreak::make(
                                 FillMode::Forced,
                                 "",
                                 indent,
                             )));
                         } else {
-                            tok_ops[k + 1].push(Op::Space);
+                            tok_ops.push(k + 1,Op::Space);
                         }
-                        tok_ops[k + 1].extend(Self::make_comment(tok_after));
+                        tok_ops.extend(k + 1,Self::make_comment(tok_after));
                         if break_after {
-                            tok_ops[k + 1].push(Op::Break(DocBreak::make(
+                            tok_ops.push(k + 1,Op::Break(DocBreak::make(
                                 FillMode::Forced,
                                 "",
                                 Indent::ZERO,
@@ -119,22 +119,22 @@ impl OpsBuilder<'_> {
                         last_was_comment = tok_before.is_comment();
                     }
                     if last_was_comment && newlines > 0 {
-                        tok_ops[j].push(Op::Break(DocBreak::make_forced()));
+                        tok_ops.push(j,Op::Break(DocBreak::make_forced()));
                     }
-                    tok_ops[j].push(Op::Tok(DocTok::make(tok_before.clone())));
+                    tok_ops.push(j,Op::Tok(DocTok::make(tok_before.clone())));
                 }
                 for tok_after in token.get_toks_after() {
-                    tok_ops[k + 1].push(Op::Tok(DocTok::make(tok_after.clone())));
+                    tok_ops.push(k + 1,Op::Tok(DocTok::make(tok_after.clone())));
                 }
             }
         }
         // Construct new list of ops, splicing in the comments. If a comment is inserted
         // immediately before a space, suppress the space.
-        let mut new_ops = Vec::with_capacity(ops_n);
+        let mut new_ops = Vec::with_capacity(ops_n + tok_ops.0.len());
         let mut after_forced_break = false; // Was the last Op a forced break? If so, suppress spaces.
-        let mut tok_ops = tok_ops.into_iter();
-        for op in ops {
-            for tok_op in tok_ops.next().unwrap() {
+        let mut tok_ops = tok_ops.into_sorted().peekable();
+        for (i, op) in ops.into_iter().enumerate() {
+            while let Some((_, tok_op)) = tok_ops.next_if(|(at, _)| *at == i) {
                 if !(after_forced_break && matches!(tok_op, Op::Space)) {
                     after_forced_break = tok_op.is_forced_break();
                     new_ops.push(tok_op);
@@ -151,7 +151,7 @@ impl OpsBuilder<'_> {
             }
             new_ops.push(op);
         }
-        for tok_op in tok_ops.next().unwrap() {
+        for (_, tok_op) in tok_ops {
             if !(after_forced_break && matches!(tok_op, Op::Space)) {
                 after_forced_break = tok_op.is_forced_break();
                 new_ops.push(tok_op);
@@ -169,5 +169,25 @@ impl OpsBuilder<'_> {
                 Op::Break(DocBreak::make_forced()),
             ]
         }
+    }
+}
+
+/// Upstream's `tokOps` multimap (ops to insert before op `i`), kept sparse: most ops get none.
+#[derive(Default)]
+struct TokOps(Vec<(usize, Op)>);
+
+impl TokOps {
+    fn push(&mut self, i: usize, op: Op) {
+        self.0.push((i, op));
+    }
+
+    fn extend(&mut self, i: usize, ops: Vec<Op>) {
+        self.0.extend(ops.into_iter().map(|op| (i, op)));
+    }
+
+    /// Stable, so ops inserted at the same index keep their order.
+    fn into_sorted(mut self) -> std::vec::IntoIter<(usize, Op)> {
+        self.0.sort_by_key(|(i, _)| *i);
+        self.0.into_iter()
     }
 }

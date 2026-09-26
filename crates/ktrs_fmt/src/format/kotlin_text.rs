@@ -47,6 +47,40 @@ pub fn lines(s: &str) -> Vec<&str> {
     out
 }
 
+/// `lines(s)` plus each line's start, answering `lines(&s[..offset])` queries without re-splitting.
+pub struct LineIndex<'s> {
+    text: &'s str,
+    pub lines: Vec<&'s str>,
+    starts: Vec<usize>,
+}
+
+impl<'s> LineIndex<'s> {
+    pub fn new(text: &'s str) -> LineIndex<'s> {
+        let lines = lines(text);
+        let starts = lines.iter().map(|l| l.as_ptr() as usize - text.as_ptr() as usize).collect();
+        LineIndex { text, lines, starts }
+    }
+
+    /// `lines(&s[..offset]).len() - 1`.
+    pub fn line_of(&self, offset: usize) -> usize {
+        self.starts.partition_point(|&start| start <= offset) - 1 + usize::from(self.splits_crlf(offset))
+    }
+
+    /// `lines(&s[..offset]).last()`.
+    pub fn line_prefix(&self, offset: usize) -> &'s str {
+        if self.splits_crlf(offset) {
+            return "";
+        }
+        &self.text[self.starts[self.line_of(offset)]..offset]
+    }
+
+    /// A prefix ending between `\r` and `\n` ends with a terminator the whole text doesn't have there.
+    fn splits_crlf(&self, offset: usize) -> bool {
+        let bytes = self.text.as_bytes();
+        offset > 0 && bytes[offset - 1] == b'\r' && bytes.get(offset) == Some(&b'\n')
+    }
+}
+
 /// `String.compareTo`: lexicographic over UTF-16 units.
 pub fn compare_utf16(a: &str, b: &str) -> Ordering {
     a.encode_utf16().cmp(b.encode_utf16())
