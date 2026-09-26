@@ -13,9 +13,9 @@ tests="$root/third_party/ktfmt/core/src/test/java/com/facebook/ktfmt/format"
 suites=(FormatterTest GoogleStyleFormatterKtTest)
 maven=https://repo1.maven.org/maven2
 
-jar=$(ls "$lib"/ktfmt-*-with-dependencies.jar 2>/dev/null | head -1)
+jar=$(ls "$lib"/ktfmt-*-with-dependencies.jar 2>/dev/null | head -1 || true)
 [[ -n $jar ]] || { echo "no oracle jar; run tools/sync-ktfmt.sh" >&2; exit 1; }
-bin=$(ls -d "$root"/tools/jdk/*/bin 2>/dev/null | head -1)
+bin=$(ls -d "$root"/tools/jdk/*/bin 2>/dev/null | head -1 || true)
 java=${bin:+$bin/}java javac=${bin:+$bin/}javac
 
 sep=: ; to_host() { echo "$1"; }

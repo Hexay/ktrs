@@ -9,11 +9,11 @@
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
 root="$here/../../.."
-jar=$(ls "$here"/../lib/ktfmt-*-with-dependencies.jar 2>/dev/null | head -1)
+jar=$(ls "$here"/../lib/ktfmt-*-with-dependencies.jar 2>/dev/null | head -1 || true)
 [[ -n $jar ]] || { echo "no oracle jar; run tools/sync-ktfmt.sh" >&2; exit 1; }
-bin=$(ls -d "$here"/../../jdk/*/bin 2>/dev/null | head -1)
+bin=$(ls -d "$here"/../../jdk/*/bin 2>/dev/null | head -1 || true)
 java=java javac=javac
-[[ -n $bin ]] && { java="$bin/java"; javac="$bin/javac"; }
+if [[ -n $bin ]]; then java="$bin/java"; javac="$bin/javac"; fi
 classes="$root/target/engine-oracle-classes"
 sep=:
 if command -v cygpath >/dev/null; then
