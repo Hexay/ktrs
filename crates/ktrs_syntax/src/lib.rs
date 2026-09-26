@@ -7,6 +7,8 @@ mod generated {
 }
 pub mod tree;
 
+use std::rc::Rc;
+
 pub use dump::{psi_dump, psi_dump_green};
 pub use generated::kinds::SyntaxKind;
 pub use rowan::{GreenNode, TextRange, TextSize};
@@ -53,7 +55,7 @@ impl SyntaxKind {
 #[derive(Debug, Clone)]
 pub struct Parse {
     pub green: GreenNode,
-    pub tree: Tree,
+    pub tree: Rc<Tree>,
     pub error_messages: Vec<String>,
 }
 

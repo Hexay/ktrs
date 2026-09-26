@@ -51,7 +51,7 @@ impl TreeSink {
     pub fn finish(mut self) -> Parse {
         assert!(self.parents.is_empty() && self.children.len() == 1, "unbalanced tree sink");
         let green = self.children.pop().and_then(NodeOrToken::into_node).expect("root is a node");
-        let tree = std::mem::take(&mut self.tree).finish();
+        let tree = std::mem::take(&mut self.tree).finish().into();
         Parse { green, tree, error_messages: std::mem::take(&mut self.errors) }
     }
 

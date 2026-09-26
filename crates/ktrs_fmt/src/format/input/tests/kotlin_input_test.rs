@@ -13,7 +13,7 @@ fn comments_are_toks_not_tokens() {
     let code = "/** foo */ class F {}";
     let input = KotlinInput::new(
         code,
-        &ktrs_parser::parse_file(code, FileKind::Script).syntax(),
+        &ktrs_psi::PsiElement::root(ktrs_parser::parse_file(code, FileKind::Script).tree),
     )
     .unwrap();
     let tokens: Vec<&str> = input

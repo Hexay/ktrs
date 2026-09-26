@@ -4,13 +4,13 @@
 //! gjf wants newline toks separate from maximal-space toks, but Kotlin emits whitespace as one
 //! leaf, so it is split with `\R|( )+` (other whitespace, e.g. tabs, produces no tok).
 //!
-//! The walk is over the green tree: a `SyntaxNode` cursor walk allocates per element, and the
-//! tokenizer only needs kinds, offsets and the two enclosing kinds of each comment.
+//! The walk is over tree indices: the tokenizer only needs kinds, offsets and the two enclosing
+//! kinds of each comment.
 
 use std::rc::Rc;
 
-use ktrs_syntax::{SyntaxKind, SyntaxNode};
-use rowan::{GreenNodeData, NodeOrToken};
+use ktrs_psi::PsiElement;
+use ktrs_syntax::{ElementId, SyntaxKind, Tree};
 
 use super::kotlin_tok::KotlinTok;
 use super::parse_error::ParseError;
@@ -48,44 +48,34 @@ impl<'a> Tokenizer<'a> {
     }
 
     /// `file.accept(tokenizer)`.
-    pub fn visit_file(&mut self, file: &SyntaxNode) -> Result<(), ParseError> {
-        let start = usize::from(file.text_range().start());
+    pub fn visit_file(&mut self, file: &PsiElement) -> Result<(), ParseError> {
         let parent = file.parent().map(|p| Parent {
             kind: p.kind(),
             grandparent_kind: p.parent().map(|g| g.kind()),
             has_node_children: true,
         });
-        self.visit_element(&file.green(), start, file.kind(), parent)
+        self.visit_element(file.tree(), file.id(), parent)
     }
 
     /// `visitElement` for a composite, then (as `super.visitElement`) its children.
-    fn visit_element(
-        &mut self,
-        node: &GreenNodeData,
-        start: usize,
-        kind: SyntaxKind,
-        parent: Option<Parent>,
-    ) -> Result<(), ParseError> {
-        let end = start + usize::from(node.text_len());
-        if !self.visit_element_self(kind, start, end, parent, false)? {
+    fn visit_element(&mut self, tree: &Tree, e: ElementId, parent: Option<Parent>) -> Result<(), ParseError> {
+        let kind = tree.kind(e);
+        let range = tree.text_range(e);
+        if !self.visit_element_self(kind, range.start().into(), range.end().into(), parent, false)? {
             return Ok(());
         }
         let this = Parent {
             kind,
             grandparent_kind: parent.map(|p| p.kind),
-            has_node_children: node.children().any(|c| c.as_node().is_some()),
+            has_node_children: tree.children(e).any(|c| !tree.is_token(c)),
         };
-        let mut offset = start;
-        for child in node.children() {
-            let child_kind = SyntaxKind::from_raw(child.kind().0);
-            let child_end = offset + usize::from(child.text_len());
-            match child {
-                NodeOrToken::Node(n) => self.visit_element(n, offset, child_kind, Some(this))?,
-                NodeOrToken::Token(_) => {
-                    self.visit_element_self(child_kind, offset, child_end, Some(this), true)?;
-                }
+        for child in tree.children(e) {
+            if tree.is_token(child) {
+                let range = tree.text_range(child);
+                self.visit_element_self(tree.kind(child), range.start().into(), range.end().into(), Some(this), true)?;
+            } else {
+                self.visit_element(tree, child, Some(this))?;
             }
-            offset = child_end;
         }
         Ok(())
     }

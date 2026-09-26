@@ -14,7 +14,7 @@ fn tokenize(code: &str) -> Result<Vec<KotlinTok>, ParseError> {
         parse.error_messages
     );
     let mut tokenizer = Tokenizer::new(code);
-    tokenizer.visit_file(&parse.syntax())?;
+    tokenizer.visit_file(&ktrs_psi::PsiElement::root(parse.tree.clone()))?;
     Ok(tokenizer.toks)
 }
 

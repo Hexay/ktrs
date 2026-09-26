@@ -126,7 +126,7 @@ pub(super) fn run(code: &str, width: i32, script: &str) -> String {
         "parse errors: {:?}",
         parse.error_messages
     );
-    let input = KotlinInput::new(code, &parse.syntax()).unwrap();
+    let input = KotlinInput::new(code, &ktrs_psi::PsiElement::root(parse.tree.clone())).unwrap();
     let mut output = JavaOutput::new("\n", &input, Box::new(IdentityCommentsHelper));
     let mut builder = OpsBuilder::new(&input, &mut output);
     builder.mark_for_partial_format();
