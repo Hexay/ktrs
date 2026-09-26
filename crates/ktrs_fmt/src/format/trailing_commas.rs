@@ -46,6 +46,16 @@ impl Suggestor {
         &self.suggestion_elements
     }
 
+    /// The only elements [`Self::take_element`] can record a suggestion for.
+    pub fn may_be_list(element: &PsiElement) -> bool {
+        element.is::<KtValueArgumentList>()
+            || element.is::<KtParameterList>()
+            || element.is::<KtTypeArgumentList>()
+            || element.is::<KtTypeParameterList>()
+            || element.is::<KtCollectionLiteralExpression>()
+            || element.is::<KtClassBody>()
+    }
+
     /// Records the item after which a trailing comma should be inserted: only in multi-line lists of
     /// more than one element that have none yet.
     pub fn take_element(&mut self, element: &KtElement) {
@@ -67,13 +77,7 @@ impl Suggestor {
         }
 
         // The line-break test goes before building the list (all checks here are pure): most lists are one line.
-        let may_be_list = element.is::<KtValueArgumentList>()
-            || element.is::<KtParameterList>()
-            || element.is::<KtTypeArgumentList>()
-            || element.is::<KtTypeParameterList>()
-            || element.is::<KtCollectionLiteralExpression>()
-            || element.is::<KtClassBody>();
-        if !may_be_list || !element.text_contains('\n') {
+        if !Self::may_be_list(element) || !element.text_contains('\n') {
             return; // Only suggest trailing commas where there is already a line break
         }
         let Some(list) = extract_managed_list(element) else { return };

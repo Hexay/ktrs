@@ -95,36 +95,31 @@ pub fn drop_redundant_elements(file: &KtFile, options: &FormattingOptions) -> Re
     Ok(result)
 }
 
-struct AddVisitor {
-    trailing_comma_suggestor: trailing_commas::Suggestor,
-}
-
-impl KtVisitorVoid for AddVisitor {
-    fn ignores_leaves(&self) -> bool {
-        true
-    }
-
-    fn visit_element(&mut self, element: &PsiElement) {
-        kt_tree_visitor_void::visit_element(self, element);
-    }
-
-    fn visit_kt_element(&mut self, element: &KtElement) {
-        self.trailing_comma_suggestor.take_element(element);
-        kt_tree_visitor_void::visit_element(self, element);
-    }
-}
-
 pub fn add_redundant_elements(file: &KtFile, options: &FormattingOptions) -> Result<String, FormatError> {
     if !options.manage_trailing_commas() {
         return Ok(file.text());
     }
 
     let code = file.text();
-    let mut visitor = AddVisitor { trailing_comma_suggestor: trailing_commas::Suggestor::default() };
+    let mut suggestor = trailing_commas::Suggestor::default();
 
-    file.accept(&mut visitor);
+    // Upstream visits every KtElement (a `KtTreeVisitorVoid`) and offers each to the suggestor, which
+    // acts only on list-like ones: a preorder scan for those visits the same elements in the same order
+    // without dispatching at every node.
+    let tree = file.tree();
+    for id in file.id()..tree.subtree_end(file.id()) {
+        if tree.is_token(id) {
+            continue;
+        }
+        let element = file.at(id);
+        if trailing_commas::Suggestor::may_be_list(&element)
+            && let Some(kt_element) = element.cast::<KtElement>()
+        {
+            suggestor.take_element(&kt_element);
+        }
+    }
 
-    let mut suggestion_elements = visitor.trailing_comma_suggestor.get_trailing_comma_suggestions().to_vec();
+    let mut suggestion_elements = suggestor.get_trailing_comma_suggestions().to_vec();
     if suggestion_elements.is_empty() {
         return Ok(code);
     }

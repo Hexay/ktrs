@@ -17,6 +17,14 @@ large `Op`s — untouched pages, cheap). Allocation + free ≈ 12-15% of format 
 | 1.8% | `Tokenizer::split_whitespace_newlines` | |
 | 1.3% | `FqName` + `String` box clones (import detector) | |
 
+## Follow-up (after the flat-tree migration and commit 7cd5fdf)
+
+Allocations on okhttp dropped from 13.4M to about 7M. Replacing the per-tok and per-token `Rc`s with
+list+index handles (`TokRef`/`TokenRef` derefing to `dyn Tok`) removed another ~20% of the
+allocations but did not change time (format/parse ratio 6.33 vs 6.32, three A/B rounds): mimalloc
+makes small allocations cheap, and the handle's extra indirection ate the rest. Reverted. From here
+allocation count is not the bottleneck; CPU work is.
+
 ## Verdict
 
 Rowan accounts for ~45% of the formatter's allocations and ~30% of parse time; everything else
