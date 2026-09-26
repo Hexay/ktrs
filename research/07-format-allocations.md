@@ -25,6 +25,25 @@ allocations but did not change time (format/parse ratio 6.33 vs 6.32, three A/B 
 makes small allocations cheap, and the handle's extra indirection ate the rest. Reverted. From here
 allocation count is not the bottleneck; CPU work is.
 
+## CPU work after the tree migration (commits 8d34a2a..b87d29a)
+
+What paid, measured by the bench's format/parse ratio (stable under load), three A/B rounds each:
+
+| Change | Ratio |
+|---|---|
+| Trailing-comma suggestions from a preorder scan (8d34a2a) | 6.31 -> 6.10 |
+| Redundant-element removal from a preorder scan (f64def9) | 6.18 -> 6.09 |
+| Tree building: skip the error-dedup pass when no error items (e606323) | parser-side, corpus-diff clean |
+| JavaOutput whitespace-free fast path + lazy whitespace split (b87d29a) | 6.10 -> 5.95 |
+
+What did not pay (reverted): list+index `Tok`/`Token` handles (see above); preloading the source
+into `TreeBuilder` to skip per-token text copies (no change: it still copies the source once);
+computing `Doc` widths eagerly instead of memoizing (slightly slower, ~1%: it computes widths the
+lazy path never reads).
+
+Result at b87d29a on the testbox: format 5.3 MB/s single-thread on a quiet machine (4.9 best-of-3
+under load average ~3), parser 30.8 MB/s, 12 threads 19.8 MB/s wall for the 30.8 MB corpus.
+
 ## Verdict
 
 Rowan accounts for ~45% of the formatter's allocations and ~30% of parse time; everything else
