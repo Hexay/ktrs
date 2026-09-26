@@ -8,4 +8,4 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-rowan.workspace = true
+text-size.workspace = true

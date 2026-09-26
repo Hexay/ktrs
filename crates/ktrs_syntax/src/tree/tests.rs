@@ -45,6 +45,31 @@ fn navigation() {
 }
 
 #[test]
+fn extract_then_push_tree_round_trips() {
+    let t = sample();
+    let call = t.first_child(Tree::ROOT).unwrap();
+
+    // Rebuild `sample` with the call copied out of a builder and spliced back in as a block.
+    let mut source = TreeBuilder::new();
+    source.start_node(BLOCK);
+    source.token(WHITE_SPACE, "  ");
+    let root = source.len();
+    source.push_subtree(&t, call);
+    let call_tree = source.extract(root);
+    assert_eq!(call_tree.text(), "f()");
+    assert_eq!(call_tree.parent(Tree::ROOT), None);
+
+    let mut b = TreeBuilder::new();
+    b.start_node(BLOCK);
+    b.push_tree(&call_tree);
+    b.token(WHITE_SPACE, " ");
+    b.start_node(VALUE_ARGUMENT_LIST);
+    b.finish_node();
+    b.finish_node();
+    assert_eq!(b.finish(), t);
+}
+
+#[test]
 fn tokens_and_empty_nodes() {
     let t = sample();
     let empty = t.last_child(Tree::ROOT).unwrap();

@@ -1,5 +1,5 @@
 //! `PsiBuilderImpl.getTreeBuilt`: `prepareLightTree` (+ `balanceWhiteSpaces`) and `bind`,
-//! producing a rowan green tree plus preorder error messages.
+//! producing a [`ktrs_syntax::Tree`] plus preorder error messages.
 //!
 //! Leaves whose type is lazy-parseable (collapsed `BLOCK`/`LAMBDA_EXPRESSION`, `DOC_COMMENT`, ...)
 //! are handed to the `lazy` callback, which reparses their text with a fresh builder exactly as

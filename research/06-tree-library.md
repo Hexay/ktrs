@@ -196,6 +196,18 @@ Incremental path, with gates green at every step:
   - cstree: optimistically **1.05-1.08x**, possibly negative given 3 parses/format where many nodes
     are visited only a few times.
 
+## Outcome (2026-09-26): migrated, rowan removed
+
+Done in commits ead2b0d (tree beside green), e83dfd4 (PsiElement over the tree), and the rowan
+removal after it. Measured on the testbox, two A/B rounds per step:
+
+| | Before migration | After |
+|---|---|---|
+| Parser alone (parser `bench`) | 23.6 MB/s (with both trees built) | 31.2 MB/s |
+| Format (fmt `bench`) | 3.81 MB/s | 4.49 MB/s (1.18x) |
+
+The prototype below was deleted with rowan (`tree_bench` needed it); `git show 8a8fefc` has it.
+
 ## Prototype result (2026-09-26, commit a6d85d6): GO for the flat tree
 
 `cargo run -p ktrs_parser --release --example tree_bench corpus 3 3` on the testbox: each file's parse is

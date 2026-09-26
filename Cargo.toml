@@ -15,7 +15,7 @@ ktrs_lexer = { path = "crates/ktrs_lexer" }
 ktrs_parser = { path = "crates/ktrs_parser" }
 ktrs_psi = { path = "crates/ktrs_psi" }
 ktrs_fmt = { path = "crates/ktrs_fmt" }
-rowan = "0.16"
+text-size = "1.1"
 expect-test = "1.5"
 mimalloc = { version = "0.1", default-features = false }
 

@@ -5,7 +5,8 @@ Milestone 1: the parser's tree must be identical to the Kotlin compiler's PSI (`
 
 ## Layout
 
-- `crates/ktrs_syntax` — `SyntaxKind` (generated), rowan tree types, `psi_dump` printer.
+- `crates/ktrs_syntax` — `SyntaxKind` (generated), the flat preorder `Tree` (element = index; see
+  research/06-tree-library.md for why not rowan), `psi_dump` printer.
 - `crates/ktrs_lexer` — ports of `Kotlin.flex` / `KDoc.flex`.
 - `crates/ktrs_parser` — `PsiBuilder` semantics + port of `KotlinParsing`/`KotlinExpressionParsing`/`KDocParser`.
   Throughput: `cargo run -p ktrs_parser --release --example bench [dir] [reps]` (CPU-cycle based, robust

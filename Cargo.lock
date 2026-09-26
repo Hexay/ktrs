@@ -13,12 +13,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "countme"
-version = "3.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7704b5fdd17b18ae31c4c1da5a2e0305a2bf17b5249300a9ee9ed7b72114c636"
-
-[[package]]
 name = "dissimilar"
 version = "1.0.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -41,12 +35,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "aedcfb3409746eddb02b9e19ebda1c3394f759a152e48ee875a0844d1b955484"
 
 [[package]]
-name = "hashbrown"
-version = "0.14.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e5274423e17b7c9fc20b6e7e208532f9b19825d82dfd615708b70edd83df41f1"
-
-[[package]]
 name = "ktrs_fmt"
 version = "0.0.1"
 dependencies = [
@@ -56,7 +44,6 @@ dependencies = [
  "ktrs_psi",
  "ktrs_syntax",
  "mimalloc",
- "rowan",
 ]
 
 [[package]]
@@ -75,7 +62,6 @@ dependencies = [
  "ktrs_lexer",
  "ktrs_syntax",
  "mimalloc",
- "rowan",
 ]
 
 [[package]]
@@ -85,14 +71,13 @@ dependencies = [
  "expect-test",
  "ktrs_parser",
  "ktrs_syntax",
- "rowan",
 ]
 
 [[package]]
 name = "ktrs_syntax"
 version = "0.0.1"
 dependencies = [
- "rowan",
+ "text-size",
 ]
 
 [[package]]
@@ -118,24 +103,6 @@ name = "once_cell"
 version = "1.21.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
-
-[[package]]
-name = "rowan"
-version = "0.16.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "417a3a9f582e349834051b8a10c8d71ca88da4211e4093528e36b9845f6b5f21"
-dependencies = [
- "countme",
- "hashbrown",
- "rustc-hash",
- "text-size",
-]
-
-[[package]]
-name = "rustc-hash"
-version = "1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "08d43f7aa6b08d49f382cde6a7982047c3426db949b1424bc4b7ec9ae12c6ce2"
 
 [[package]]
 name = "shlex"
