@@ -15,7 +15,7 @@ impl KotlinInputAstVisitor<'_, '_> {
     pub(super) fn visit_destructuring_declaration(&mut self, destructuring_declaration: &KtDestructuringDeclaration) {
         self.sync(destructuring_declaration);
         if let Some(val_or_var_keyword) = destructuring_declaration.val_or_var_keyword() {
-            self.token(&val_or_var_keyword.text());
+            self.token(val_or_var_keyword.text_slice());
             self.builder.space();
         }
         let has_trailing_comma = destructuring_declaration.trailing_comma().is_some();

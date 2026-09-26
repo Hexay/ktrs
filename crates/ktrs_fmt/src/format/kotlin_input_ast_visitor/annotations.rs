@@ -28,7 +28,7 @@ impl KotlinInputAstVisitor<'_, '_> {
 
             if is_modifier_keyword_token(child.element_type()) {
                 only_annotations_so_far = false;
-                self.token(&child.text());
+                self.token(child.text_slice());
             } else {
                 self.visit(Some(&psi));
             }

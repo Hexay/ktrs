@@ -14,7 +14,7 @@ impl KotlinInputAstVisitor<'_, '_> {
     pub(super) fn is_lambda_or_scoping_function(&self, expression: Option<&KtExpression>) -> bool {
         let Some(expression) = expression else { return false };
         let prev = expression.get_prev_sibling_ignoring_whitespace(false);
-        if prev.is_some_and(|p| p.is::<PsiComment>() && p.text().starts_with("//")) {
+        if prev.is_some_and(|p| p.is::<PsiComment>() && p.text_slice().starts_with("//")) {
             return false; // Leading line comments cause weird indentation; block comments are ok.
         }
 

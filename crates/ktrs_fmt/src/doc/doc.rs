@@ -66,13 +66,15 @@ pub struct Doc {
 
 #[derive(Debug)]
 pub enum DocKind {
-    /// Boxed: a `Level` is larger than the leaves, and every `Doc` is moved a few times while building.
-    Level(Box<Level>),
+    Level(Level),
     Token(DocToken),
     Space,
     Break(DocBreak),
     Tok(DocTok),
 }
+
+// `Level` is stored inline (boxing it cost one allocation per level); it must not grow `DocKind`.
+const _: () = assert!(std::mem::size_of::<Level>() <= std::mem::size_of::<DocBreak>());
 
 impl Doc {
     pub(crate) fn new(kind: DocKind) -> Doc {

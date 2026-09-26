@@ -42,7 +42,7 @@ impl EnumEntryList {
             .last_child()
             .and_then(|c| c.get_prev_sibling_ignoring_whitespace_and_comments(true))
             .expect("enum entry has a non-comment child");
-        match last_token.text().as_str() {
+        match last_token.text_slice() {
             "," => comma = Some(last_token),
             ";" => {
                 let prev_sibling = last_token.get_prev_sibling_ignoring_whitespace_and_comments(false);

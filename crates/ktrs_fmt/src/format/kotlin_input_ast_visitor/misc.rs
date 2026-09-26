@@ -125,7 +125,7 @@ impl KotlinInputAstVisitor<'_, '_> {
         self.block(Indent::ZERO, |v| {
             v.visit(enum_entry.modifier_list().as_ref());
             let Some(name) = enum_entry.name_identifier() else { return v.fail() };
-            v.token(&name.text());
+            v.token(name.text_slice());
             for initializer in enum_entry.initializer_list().map(|l| l.initializers()).unwrap_or_default() {
                 v.visit(Some(&initializer));
             }
@@ -144,7 +144,7 @@ impl KotlinInputAstVisitor<'_, '_> {
             v.token("typealias");
             v.builder.space();
             let Some(name) = type_alias.name_identifier() else { return v.fail() };
-            v.token(&name.text());
+            v.token(name.text_slice());
             v.visit(type_alias.type_parameter_list().as_ref());
 
             v.builder.space();

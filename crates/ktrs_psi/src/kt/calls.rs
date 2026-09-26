@@ -221,7 +221,7 @@ macro_rules! simple_name_expression {
                 let name = class.name_identifier().map(|i| unquote_identifier(&i.text()));
                 return unquote_identifier_or_field_reference(name.as_deref().unwrap_or("<no name provided>"));
             }
-            self.referenced_name_element().map(|e| unquote_identifier_or_field_reference(&e.text())).unwrap_or_default()
+            self.referenced_name_element().map(|e| unquote_identifier_or_field_reference(e.text_slice())).unwrap_or_default()
         }
 
         pub fn referenced_name_element_type(&self) -> Option<ktrs_syntax::SyntaxKind> {

@@ -37,7 +37,7 @@ pub struct KotlinInput {
 impl KotlinInput {
     pub fn new(text: &str, file: &PsiElement) -> Result<KotlinInput, ParseError> {
         let mut io = InputOutput::default();
-        io.set_lines(newlines::line_iterator(text).map(str::to_string).collect());
+        io.set_line_count(newlines::line_iterator(text).count());
         let (toks, k_n) = Self::build_toks(&mut io, file, text)?;
         let tokens = Self::build_tokens(&toks);
         let position_token_map = Self::build_token_positions_map(&tokens);

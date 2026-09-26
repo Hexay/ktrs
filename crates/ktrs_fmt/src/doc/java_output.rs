@@ -121,8 +121,8 @@ impl<'a> JavaOutput<'a> {
         while self.newlines_pending > 0 {
             // drop leading blank lines
             if !self.mutable_lines.is_empty() || !self.line_builder.is_empty() {
-                self.mutable_lines
-                    .push(std::mem::take(&mut self.line_builder));
+                // An exact-size copy: `line_builder` keeps its capacity instead of regrowing per line.
+                self.mutable_lines.push(self.line_builder.clone());
             }
             self.line_builder.clear();
             self.newlines_pending -= 1;
