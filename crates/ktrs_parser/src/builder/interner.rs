@@ -39,7 +39,7 @@ impl Interner {
 }
 
 /// FxHash-style multiply-rotate over 8-byte words.
-fn hash(kind: rowan::SyntaxKind, bytes: &[u8]) -> usize {
+pub(super) fn hash(kind: rowan::SyntaxKind, bytes: &[u8]) -> usize {
     let mut h = kind.0 as u64;
     let mut mix = |word: u64| h = (h.rotate_left(5) ^ word).wrapping_mul(0x517c_c1b7_2722_0a95);
     let (words, rest) = bytes.as_chunks::<8>();

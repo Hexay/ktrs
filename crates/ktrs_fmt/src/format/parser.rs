@@ -1,14 +1,15 @@
 //! Port of `Parser.kt` (lines 34-80). ktfmt parses every input as a script (`temp.kts`), whatever
 //! the file's extension, and rejects any tree with an error element.
 
-use ktrs_parser::FileKind;
+use ktrs_parser::{ChameleonCache, FileKind};
 use ktrs_psi::{KtFile, PsiErrorElement};
 use ktrs_syntax::SyntaxKind;
 
 use super::input::ParseError;
 
-pub fn parse(code: &str) -> Result<KtFile, ParseError> {
-    let parse = ktrs_parser::parse_file(code, FileKind::Script);
+/// `cache` carries expanded blocks and lambdas between the parses of one `format` call.
+pub fn parse(code: &str, cache: &mut ChameleonCache) -> Result<KtFile, ParseError> {
+    let parse = ktrs_parser::parse_file_cached(code, FileKind::Script, cache);
     let kt_file = KtFile::with_text(&parse, code);
     // A cheap pre-check: the cursor walk of `collectDescendantsOfType` allocates per node.
     if !has_descendant_of_kind(&parse.green, SyntaxKind::ERROR_ELEMENT) {
