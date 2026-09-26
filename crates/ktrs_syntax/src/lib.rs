@@ -5,10 +5,12 @@ mod dump;
 mod generated {
     pub(crate) mod kinds;
 }
+pub mod tree;
 
-pub use dump::psi_dump;
+pub use dump::{psi_dump, psi_dump_green};
 pub use generated::kinds::SyntaxKind;
 pub use rowan::{GreenNode, TextRange, TextSize};
+pub use tree::{ElementId, Tree, TreeBuilder};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum KotlinLanguage {}
@@ -46,10 +48,12 @@ impl SyntaxKind {
     }
 }
 
-/// A parsed file: the green tree plus one message per `ERROR_ELEMENT`, in tree preorder.
+/// A parsed file: the tree plus one message per `ERROR_ELEMENT`, in tree preorder.
+/// `green` is the same tree in rowan form while consumers migrate to `tree`.
 #[derive(Debug, Clone)]
 pub struct Parse {
     pub green: GreenNode,
+    pub tree: Tree,
     pub error_messages: Vec<String>,
 }
 
