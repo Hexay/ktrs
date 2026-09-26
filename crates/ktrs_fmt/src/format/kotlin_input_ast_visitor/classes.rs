@@ -25,11 +25,11 @@ impl KotlinInputAstVisitor<'_, '_> {
                 v.visit_modifier_list(modifier_list);
             }
             if let Some(declaration_keyword) = class_or_object.declaration_keyword() {
-                v.token(&declaration_keyword.text());
+                v.token(declaration_keyword.text_slice());
             }
             if let Some(name) = class_or_object.name_identifier() {
                 v.builder.space();
-                v.token(&name.text());
+                v.token(name.text_slice());
                 v.visit(class_or_object.type_parameter_list().as_ref());
             }
             v.visit(class_or_object.primary_constructor().as_ref());
@@ -134,7 +134,7 @@ impl KotlinInputAstVisitor<'_, '_> {
 
     pub(super) fn visit_constant_expression(&mut self, expression: &KtConstantExpression) {
         self.sync(expression);
-        self.token(&expression.text());
+        self.token(expression.text_slice());
     }
 
     /// Example `(1 + 1)`
@@ -196,7 +196,7 @@ impl KotlinInputAstVisitor<'_, '_> {
             self.builder.space();
             self.token("as");
             self.builder.space();
-            self.token(&alias.text());
+            self.token(alias.text_slice());
         }
 
         // Force a newline afterwards.

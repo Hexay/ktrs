@@ -124,7 +124,7 @@ impl KtVisitorVoid for Collector<'_> {
         if !receiver.is::<KtStringTemplateExpression>() {
             return;
         }
-        let is_dollar_string = receiver.text().starts_with("$$");
+        let is_dollar_string = receiver.text_slice().starts_with("$$");
         let selector_text = expression.selector_expression().map(|s| s.text()).unwrap_or_default();
         let selector_expression = selector_text.trim();
         let is_trim_margin = selector_expression.starts_with("trimMargin()");

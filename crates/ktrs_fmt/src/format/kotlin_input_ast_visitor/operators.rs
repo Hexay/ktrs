@@ -21,7 +21,7 @@ impl KotlinInputAstVisitor<'_, '_> {
             let Some(operation_reference) = expression.operation_reference() else { return self.fail() };
             self.visit(expression.left().as_ref());
             self.builder.space();
-            self.token(&operation_reference.text());
+            self.token(operation_reference.text_slice());
             self.visit_lambda_or_scoping_function(expression.right().as_deref(), true);
             return;
         }
@@ -47,14 +47,14 @@ impl KotlinInputAstVisitor<'_, '_> {
                     if is_first {
                         self.builder.open(self.expression_break_indent());
                     }
-                    self.token(&operation_reference.text());
+                    self.token(operation_reference.text_slice());
                 }
                 Some(SyntaxKind::ELVIS) => {
                     if is_first {
                         self.builder.open(self.expression_break_indent());
                     }
                     self.builder.break_op(FillMode::Unified, " ", Indent::ZERO);
-                    self.token(&operation_reference.text());
+                    self.token(operation_reference.text_slice());
                     self.builder.space();
                 }
                 _ => {
@@ -62,7 +62,7 @@ impl KotlinInputAstVisitor<'_, '_> {
                     if is_first {
                         self.builder.open(self.expression_break_indent());
                     }
-                    self.token(&operation_reference.text());
+                    self.token(operation_reference.text_slice());
                     let fill_mode = if self.has_line_breaking_comment_before(&operation_reference) {
                         FillMode::Independent
                     } else {
@@ -86,12 +86,12 @@ impl KotlinInputAstVisitor<'_, '_> {
         let Some(prev) = prev.filter(|p| p.is::<PsiComment>()) else { return false };
 
         // Line comments always force a line break
-        if prev.text().starts_with("//") {
+        if prev.text_slice().starts_with("//") {
             return true;
         }
 
         // Block comments force a break only if on their own line
-        prev.prev_sibling().is_some_and(|before_comment| before_comment.is::<PsiWhiteSpace>() && before_comment.text().contains('\n'))
+        prev.prev_sibling().is_some_and(|before_comment| before_comment.is::<PsiWhiteSpace>() && before_comment.text_slice().contains('\n'))
     }
 
     pub(super) fn visit_postfix_expression(&mut self, expression: &KtPostfixExpression) {
@@ -106,7 +106,7 @@ impl KotlinInputAstVisitor<'_, '_> {
                 .as_ref()
                 .and_then(|b| b.cast::<KtPostfixExpression>())
                 .and_then(|b| b.operation_reference())
-                .is_some_and(|r| r.text().chars().last() == operator.chars().next())
+                .is_some_and(|r| r.text_slice().chars().last() == operator.chars().next())
             {
                 v.builder.space();
             }
@@ -126,7 +126,7 @@ impl KotlinInputAstVisitor<'_, '_> {
                 .as_ref()
                 .and_then(|b| b.cast::<KtPrefixExpression>())
                 .and_then(|b| b.operation_reference())
-                .is_some_and(|r| operator.chars().last() == r.text().chars().next())
+                .is_some_and(|r| operator.chars().last() == r.text_slice().chars().next())
             {
                 v.builder.space();
             }

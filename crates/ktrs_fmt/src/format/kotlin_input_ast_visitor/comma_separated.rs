@@ -165,7 +165,7 @@ impl KotlinInputAstVisitor<'_, '_> {
 
     pub(super) fn visit_reference_expression(&mut self, expression: &KtReferenceExpression) {
         self.sync(expression);
-        self.token(&expression.text());
+        self.token(expression.text_slice());
     }
 
     pub(super) fn visit_return_expression(&mut self, expression: &KtReturnExpression) {

@@ -9,16 +9,23 @@ use super::range::{EMPTY_RANGE, Range};
 #[derive(Clone, Debug, Default)]
 pub struct InputOutput {
     lines: Vec<String>,
+    line_count: usize,
     pub(crate) ranges: Vec<Range>,
 }
 
 impl InputOutput {
     pub fn set_lines(&mut self, lines: Vec<String>) {
+        self.line_count = lines.len();
         self.lines = lines;
     }
 
+    /// For an input, whose line texts are never read back: only the count is kept.
+    pub fn set_line_count(&mut self, line_count: usize) {
+        self.line_count = line_count;
+    }
+
     pub fn get_line_count(&self) -> i32 {
-        self.lines.len() as i32
+        self.line_count as i32
     }
 
     pub fn get_line(&self, line_i: i32) -> &str {

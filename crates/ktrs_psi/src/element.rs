@@ -232,6 +232,10 @@ impl AstNode {
         self.0.text()
     }
 
+    pub fn text_slice(&self) -> &str {
+        self.0.text_slice()
+    }
+
     pub fn text_range(&self) -> TextRange {
         self.0.text_range()
     }

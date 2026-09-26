@@ -176,7 +176,7 @@ impl KotlinInputAstVisitor<'_, '_> {
                 .node()
                 .children()
                 .map(|c| c.psi())
-                .filter(|c| c.is::<PsiComment>() && c.text().starts_with("/*"))
+                .filter(|c| c.is::<PsiComment>() && c.text_slice().starts_with("/*"))
                 .collect();
             self.builder.break_op(FillMode::Unified, "", brace_plus_block_indent.clone());
             self.block(brace_plus_block_indent, |v| {
@@ -189,7 +189,7 @@ impl KotlinInputAstVisitor<'_, '_> {
                         if i > 0 {
                             v.builder.forced_break();
                         }
-                        v.token(&comment.text());
+                        v.token(comment.text_slice());
                     }
                 }
                 v.builder.break_op(FillMode::Unified, " ", brace_plus_zero_indent.clone());
@@ -218,17 +218,17 @@ impl KotlinInputAstVisitor<'_, '_> {
         self.sync(expression);
         if let Some(label) = expression.cast::<KtLabelReferenceExpression>() {
             let Some(identifier) = label.identifier() else { return self.fail() };
-            if expression.text().starts_with('@') {
+            if expression.text_slice().starts_with('@') {
                 self.token("@");
-                self.token(&identifier.text());
+                self.token(identifier.text_slice());
             } else {
-                self.token(&identifier.text());
+                self.token(identifier.text_slice());
                 self.token("@");
             }
         } else {
-            let text = expression.text();
+            let text = expression.text_slice();
             if !text.is_empty() {
-                self.token(&text);
+                self.token(text);
             }
         }
     }

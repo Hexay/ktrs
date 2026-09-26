@@ -21,9 +21,13 @@ pub struct Level {
 
 impl Level {
     pub(crate) fn make(plus_indent: Indent) -> Level {
+        Level::with_capacity(plus_indent, 0)
+    }
+
+    pub(crate) fn with_capacity(plus_indent: Indent, docs: usize) -> Level {
         Level {
             plus_indent,
-            docs: Vec::new(),
+            docs: Vec::with_capacity(docs),
             one_line: false,
         }
     }

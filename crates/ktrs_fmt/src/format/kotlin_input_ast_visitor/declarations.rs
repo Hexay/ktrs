@@ -179,7 +179,7 @@ impl KotlinInputAstVisitor<'_, '_> {
     pub(super) fn emit_backing_field(&mut self, backing_field: &KtBackingField) {
         self.sync(backing_field);
         self.block(Indent::ZERO, |v| {
-            v.block(Indent::ZERO, |v| v.token(&backing_field.name_placeholder().text()));
+            v.block(Indent::ZERO, |v| v.token(backing_field.name_placeholder().text_slice()));
 
             if let Some(type_) = backing_field.return_type_reference() {
                 v.block(v.expression_break_indent(), |v| {

@@ -68,7 +68,7 @@ impl RedundantSemicolonDetector {
 
         let prev_leaf = element.prev_leaf(false);
         if prev_concrete_sibling.as_ref().is_some_and(|p| p.is::<KtIfExpression>() || p.is::<KtWhileExpression>())
-            && prev_leaf.as_ref().is_some_and(|l| l.is::<KtContainerNodeForControlStructureBody>() && l.text().is_empty())
+            && prev_leaf.as_ref().is_some_and(|l| l.is::<KtContainerNodeForControlStructureBody>() && l.text_slice().is_empty())
         {
             return false;
         }

@@ -138,7 +138,7 @@ impl KotlinInputAstVisitor<'_, '_> {
                     v.builder.close();
                 } else if let Some(postfix) = kt_expression.cast::<KtPostfixExpression>() {
                     let Some(operation_reference) = postfix.operation_reference() else { return v.fail() };
-                    v.token(&operation_reference.text());
+                    v.token(operation_reference.text_slice());
                     v.builder.close();
                 } else {
                     if index != 0 {
