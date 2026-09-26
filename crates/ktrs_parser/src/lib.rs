@@ -10,6 +10,8 @@ pub mod token_set;
 
 use ktrs_syntax::Parse;
 
+pub use builder::ChameleonCache;
+
 pub use parsing::kotlin_parser::{
     parse_block_code_fragment, parse_block_expression, parse_expression_code_fragment, parse_lambda_expression,
     parse_type_code_fragment,
@@ -36,4 +38,10 @@ impl FileKind {
 /// Parses a whole file. `text` must already have CRLF normalized to LF.
 pub fn parse_file(text: &str, kind: FileKind) -> Parse {
     parsing::kotlin_parser::parse(text, kind)
+}
+
+/// [`parse_file`] for callers re-parsing similar text: the result is identical, but lazy blocks,
+/// lambdas and KDoc whose text was already seen with `cache` are reused instead of re-parsed.
+pub fn parse_file_cached(text: &str, kind: FileKind, cache: &mut ChameleonCache) -> Parse {
+    parsing::kotlin_parser::parse_cached(text, kind, cache)
 }

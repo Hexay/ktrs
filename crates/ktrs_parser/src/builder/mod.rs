@@ -23,10 +23,12 @@
 //!
 //! Performance (none of it observable): builders take their vectors from a per-thread pool
 //! (`pool.rs`), green tokens are interned per thread (`interner.rs`), and chameleons reuse the
-//! outer builder's lexemes instead of re-lexing (`LazyLeaf`). Measure with
+//! outer builder's lexemes instead of re-lexing (`LazyLeaf`), and a caller re-parsing similar text
+//! can reuse expanded chameleons (`ChameleonCache`). Measure with
 //! `cargo run -p ktrs_parser --release --example bench`.
 
 mod binders;
+mod chameleon_cache;
 mod interner;
 mod layers;
 mod marker;
@@ -41,6 +43,7 @@ mod tree;
 mod tests;
 
 pub use binders::{EdgeBinder, GREEDY_LEFT_BINDER, GREEDY_RIGHT_BINDER};
+pub use chameleon_cache::ChameleonCache;
 pub use marker::{Marker, MarkerHost};
 pub use psi_builder::PsiBuilder;
 pub use layers::Layer;
