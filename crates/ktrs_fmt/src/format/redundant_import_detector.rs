@@ -1,5 +1,5 @@
 //! Port of `RedundantImportDetector.kt` (lines 31-193). The `takeX(directive) { super.visitX() }`
-//! callbacks receive the visitor that owns the detector (reached through `AsMut`).
+//! callbacks become `enter_x` / `leave_x` around the caller's walk of the directive's subtree.
 
 use std::collections::{HashMap, HashSet};
 
@@ -95,34 +95,26 @@ impl RedundantImportDetector {
         }
     }
 
-    pub fn take_package_directive<V: AsMut<RedundantImportDetector>>(
-        visitor: &mut V,
-        directive: &KtPackageDirective,
-        super_block: impl FnOnce(&mut V),
-    ) {
-        let this = visitor.as_mut();
-        if !this.enabled {
-            return super_block(visitor);
+    /// `takePackageDirective(directive) { super.visitPackageDirective() }` as a pair: call this before
+    /// visiting the directive's subtree and [`Self::leave_package_directive`] after it.
+    pub fn enter_package_directive(&mut self, directive: &KtPackageDirective) {
+        if !self.enabled {
+            return;
         }
-
-        this.this_package = Some(directive.fq_name());
-
-        this.is_package_element = true;
-        super_block(visitor);
-        visitor.as_mut().is_package_element = false;
+        self.this_package = Some(directive.fq_name());
+        self.is_package_element = true;
     }
 
-    pub fn take_import_list<V: AsMut<RedundantImportDetector>>(
-        visitor: &mut V,
-        import_list: &KtImportList,
-        super_block: impl FnOnce(&mut V),
-    ) {
-        let this = visitor.as_mut();
-        if !this.enabled {
-            return super_block(visitor);
-        }
+    pub fn leave_package_directive(&mut self) {
+        self.is_package_element = false;
+    }
 
-        this.import_clean_up_candidates = import_list
+    /// `takeImportList(importList) { super.visitImportList() }`; see [`Self::enter_package_directive`].
+    pub fn enter_import_list(&mut self, import_list: &KtImportList) {
+        if !self.enabled {
+            return;
+        }
+        self.import_clean_up_candidates = import_list
             .imports()
             .into_iter()
             .filter(|import| {
@@ -132,10 +124,11 @@ impl RedundantImportDetector {
                     && !matches_component_operator(&identifier)
             })
             .collect();
+        self.is_import_element = true;
+    }
 
-        this.is_import_element = true;
-        super_block(visitor);
-        visitor.as_mut().is_import_element = false;
+    pub fn leave_import_list(&mut self) {
+        self.is_import_element = false;
     }
 
     pub fn take_kdoc(&mut self, kdoc: &KDocImpl) {
