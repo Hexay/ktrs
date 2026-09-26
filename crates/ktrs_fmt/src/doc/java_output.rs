@@ -182,6 +182,22 @@ impl Output for JavaOutput<'_> {
                 self.newlines_pending += 1;
             }
             self.spaces_pending.clear();
+        } else if !text.is_empty() && !text.bytes().any(|b| matches!(b, b' ' | b'\t' | b'\r' | b'\n')) {
+            // The loop below, for text with no whitespace (most tokens): its first char flushes the
+            // pending newlines and spaces and sets the range; the rest are plain pushes.
+            self.emit_pending_newlines();
+            if !self.spaces_pending.is_empty() {
+                self.line_builder.push_str(&self.spaces_pending);
+                self.spaces_pending.clear();
+            }
+            self.line_builder.push_str(text);
+            if !range.is_empty() {
+                let j = self.mutable_lines.len();
+                while self.io.ranges.len() <= j {
+                    self.io.ranges.push(EMPTY_RANGE);
+                }
+                self.io.ranges[j] = Self::union(self.io.ranges[j], range);
+            }
         } else {
             let mut ranges_set = false;
             let mut chars = text.chars().peekable();

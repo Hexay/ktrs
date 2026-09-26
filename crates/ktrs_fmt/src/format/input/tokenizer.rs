@@ -151,27 +151,29 @@ fn is_psi_comment(kind: SyntaxKind) -> bool {
 }
 
 /// Matches of Java's `\R|( )+`, as `(byte offset, text)`.
-fn split_whitespace_newlines(text: &str) -> Vec<(usize, &str)> {
-    let mut result = Vec::new();
+fn split_whitespace_newlines(text: &str) -> impl Iterator<Item = (usize, &str)> {
     let bytes = text.as_bytes();
     let mut i = 0;
-    while i < text.len() {
-        let c = text[i..].chars().next().unwrap();
-        let len = if text[i..].starts_with("\r\n") {
-            2
-        } else if matches!(
-            c,
-            '\n' | '\u{0b}' | '\u{0c}' | '\r' | '\u{85}' | '\u{2028}' | '\u{2029}'
-        ) {
-            c.len_utf8()
-        } else if c == ' ' {
-            bytes[i..].iter().take_while(|&&b| b == b' ').count()
-        } else {
-            i += c.len_utf8();
-            continue;
-        };
-        result.push((i, &text[i..i + len]));
-        i += len;
-    }
-    result
+    std::iter::from_fn(move || {
+        while i < text.len() {
+            let c = text[i..].chars().next().unwrap();
+            let len = if text[i..].starts_with("\r\n") {
+                2
+            } else if matches!(
+                c,
+                '\n' | '\u{0b}' | '\u{0c}' | '\r' | '\u{85}' | '\u{2028}' | '\u{2029}'
+            ) {
+                c.len_utf8()
+            } else if c == ' ' {
+                bytes[i..].iter().take_while(|&&b| b == b' ').count()
+            } else {
+                i += c.len_utf8();
+                continue;
+            };
+            let start = i;
+            i += len;
+            return Some((start, &text[start..i]));
+        }
+        None
+    })
 }

@@ -52,11 +52,12 @@ impl TreeBuilder {
         let r = root as usize;
         assert_eq!(self.ends[r], self.len(), "extract of an open or non-final subtree");
         let base = self.starts[r];
-        let rebase = |ids: &[u32]| ids.iter().map(|&x| if x == NONE { NONE } else { x - root }).collect();
-        let mut parents: Vec<u32> = rebase(&self.parents[r..]);
-        let mut prev_sibs: Vec<u32> = rebase(&self.prev_sibs[r..]);
-        parents[0] = NONE;
-        prev_sibs[0] = NONE;
+        // The root's own parent and previous sibling lie before it: it becomes a standalone root.
+        let rebase = |ids: &[u32]| {
+            std::iter::once(NONE).chain(ids[1..].iter().map(|&x| if x == NONE { NONE } else { x - root })).collect()
+        };
+        let parents: Vec<u32> = rebase(&self.parents[r..]);
+        let prev_sibs: Vec<u32> = rebase(&self.prev_sibs[r..]);
         Tree {
             text: self.text[base as usize..].into(),
             kinds: self.kinds[r..].to_vec(),
