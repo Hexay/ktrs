@@ -16,7 +16,7 @@ use super::input::whitespace_tombstones::{
 use super::input::{KotlinInput, ParseError};
 use super::kotlin_input_ast_visitor::KotlinInputAstVisitor;
 use super::kotlin_text::{compare_utf16, convert_line_separators, convert_line_separators_to};
-use super::multiline_string_formatter::MultilineStringFormatter;
+use super::multiline_string_formatter::{MultilineStringFormatter, may_have_trimmed_strings};
 use super::redundant_element_manager::{add_redundant_elements, drop_redundant_elements};
 
 pub const META_FORMAT: FormattingOptions = FormattingOptions {
@@ -51,14 +51,18 @@ pub fn format(options: &FormattingOptions, code: &str) -> Result<String, FormatE
     };
     check_escape_sequences(kotlin_code)?;
 
-    let code = FormatterContext::new(convert_line_separators(kotlin_code))
+    let context = FormatterContext::new(convert_line_separators(kotlin_code))
         .transform(sorted_and_distinct_imports)?
         .transform(|it| drop_redundant_elements(it, options))?
         .transform(|it| add_redundant_elements(it, options))?
         .transform(|it| pretty_print(it, options, "\n"))?
-        .transform(|it| add_redundant_elements(it, options))?
-        .transform(|it| Ok(MultilineStringFormatter::new(options.continuation_indent).format(it)))?
-        .code;
+        .transform(|it| add_redundant_elements(it, options))?;
+    // Skips the re-parse the last pass would otherwise need after add_redundant_elements changed the code.
+    let code = if may_have_trimmed_strings(&context.code) {
+        context.transform(|it| Ok(MultilineStringFormatter::new(options.continuation_indent).format(it)))?.code
+    } else {
+        context.code
+    };
     let code = convert_line_separators_to(&code, newlines::guess_line_separator(kotlin_code));
     Ok(if shebang.is_empty() { code } else { format!("{shebang}\n{code}") })
 }

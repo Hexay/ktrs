@@ -89,14 +89,19 @@ impl MultilineStringFormatter {
 
     pub fn get_multiline_trimmed_string_list(&self, file: &KtFile) -> Vec<MultilineTrimmedString> {
         let code = file.text();
-        // Only a selector text starting with one of these is collected.
-        if !code.contains("trimIndent()") && !code.contains("trimMargin()") {
+        if !may_have_trimmed_strings(&code) {
             return Vec::new();
         }
         let mut collector = Collector { line_index: LineIndex::new(&code), strings: Vec::new() };
         file.accept(&mut collector);
         collector.strings
     }
+}
+
+/// False when [MultilineStringFormatter::format] would return `code` unchanged: only a selector text
+/// starting with one of these is collected.
+pub fn may_have_trimmed_strings(code: &str) -> bool {
+    code.contains("trimIndent()") || code.contains("trimMargin()")
 }
 
 struct Collector<'c> {
