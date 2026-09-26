@@ -138,9 +138,8 @@ impl PsiElement {
     /// `acceptChildren(visitor)`: every child, leaves included.
     pub fn accept_children<V: KtVisitorVoid + ?Sized>(&self, v: &mut V) {
         if v.ignores_leaves() {
-            let Some(node) = self.as_node() else { return };
-            for child in node.children() {
-                PsiElement::new(child.into()).accept(v);
+            for child in self.tree().children(self.id()).filter(|&c| !self.tree().is_token(c)) {
+                self.at(child).accept(v);
             }
             return;
         }

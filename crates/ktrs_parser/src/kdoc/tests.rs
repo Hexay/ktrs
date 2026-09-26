@@ -95,6 +95,6 @@ fn dump_kdoc(text: &str) -> String {
     }
     tree.finish_node();
     tree.finish_node();
-    let dump = psi_dump(&Parse { green: file, tree: tree.finish(), error_messages: parse.error_messages }, "");
+    let dump = psi_dump(&Parse { green: file, tree: tree.finish().into(), error_messages: parse.error_messages }, "");
     dump.lines().skip(1).map(|l| &l[2..]).collect::<Vec<_>>().join("\n")
 }

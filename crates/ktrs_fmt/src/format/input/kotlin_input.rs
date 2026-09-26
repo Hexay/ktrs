@@ -5,7 +5,7 @@ use std::cell::OnceCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use ktrs_syntax::SyntaxNode;
+use ktrs_psi::PsiElement;
 
 use crate::doc::{
     EMPTY_RANGE, FormatterException, Input, InputOutput, JavaOutput, Range, RangeMap, RangeSet,
@@ -35,7 +35,7 @@ pub struct KotlinInput {
 }
 
 impl KotlinInput {
-    pub fn new(text: &str, file: &SyntaxNode) -> Result<KotlinInput, ParseError> {
+    pub fn new(text: &str, file: &PsiElement) -> Result<KotlinInput, ParseError> {
         let mut io = InputOutput::default();
         io.set_lines(newlines::line_iterator(text).map(str::to_string).collect());
         let (toks, k_n) = Self::build_toks(&mut io, file, text)?;
@@ -122,7 +122,7 @@ impl KotlinInput {
     /// Returns the toks and `kN`; also computes the input's line ranges.
     fn build_toks(
         io: &mut InputOutput,
-        file: &SyntaxNode,
+        file: &PsiElement,
         file_text: &str,
     ) -> Result<(Vec<Rc<KotlinTok>>, i32), ParseError> {
         let mut tokenizer = Tokenizer::new(file_text);

@@ -70,7 +70,7 @@ pub fn format(options: &FormattingOptions, code: &str) -> Result<String, FormatE
 /// prettyPrint reflows 'code' using google-java-format's engine.
 fn pretty_print(file: &KtFile, options: &FormattingOptions, line_separator: &str) -> Result<String, FormatError> {
     let code = file.text();
-    let kotlin_input = KotlinInput::new(&code, file.as_node().expect("KtFile is a node"))?;
+    let kotlin_input = KotlinInput::new(&code, file)?;
     let comments_helper = KDocCommentsHelperAdapter(KDocCommentsHelper::new(line_separator, options.max_width));
     let mut java_output = JavaOutput::new(line_separator, &kotlin_input, Box::new(comments_helper));
     let ops = {

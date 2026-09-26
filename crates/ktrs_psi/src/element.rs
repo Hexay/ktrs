@@ -1,16 +1,36 @@
-//! `PsiElement` / `ASTNode` over the rowan tree. IntelliJ semantics from intellij-community
+//! `PsiElement` / `ASTNode` over the flat [`Tree`]. IntelliJ semantics from intellij-community
 //! idea/251.27812.49 (`ASTDelegatePsiElement`, `CompositePsiElement`, `LazyParseablePsiElement`,
 //! `PsiFileImpl`, `LeafPsiElement`, `CompositeElement`).
 
+use std::rc::Rc;
+
 use ktrs_parser::token_set::TokenSet;
-use ktrs_syntax::{SyntaxElement, SyntaxKind, SyntaxNode, TextRange};
+use ktrs_syntax::{ElementId, SyntaxKind, TextRange, Tree};
 
 use crate::cast::PsiType;
 use crate::classes;
 
 /// One PSI element: a composite node or a leaf token. Equality is tree identity.
-#[derive(Clone, PartialEq, Eq, Hash)]
-pub struct PsiElement(SyntaxElement);
+#[derive(Clone)]
+pub struct PsiElement {
+    tree: Rc<Tree>,
+    id: ElementId,
+}
+
+impl PartialEq for PsiElement {
+    fn eq(&self, other: &PsiElement) -> bool {
+        self.id == other.id && Rc::ptr_eq(&self.tree, &other.tree)
+    }
+}
+
+impl Eq for PsiElement {}
+
+impl std::hash::Hash for PsiElement {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        Rc::as_ptr(&self.tree).hash(state);
+        self.id.hash(state);
+    }
+}
 
 impl std::fmt::Debug for PsiElement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -19,34 +39,40 @@ impl std::fmt::Debug for PsiElement {
 }
 
 impl PsiElement {
-    pub fn new(element: SyntaxElement) -> PsiElement {
-        PsiElement(element)
+    /// The file element of `tree`.
+    pub fn root(tree: Rc<Tree>) -> PsiElement {
+        PsiElement { tree, id: Tree::ROOT }
     }
 
-    pub fn syntax(&self) -> &SyntaxElement {
-        &self.0
+    pub fn tree(&self) -> &Tree {
+        &self.tree
     }
 
-    pub fn as_node(&self) -> Option<&SyntaxNode> {
-        self.0.as_node()
+    pub fn id(&self) -> ElementId {
+        self.id
+    }
+
+    /// Another element of the same tree.
+    pub fn at(&self, id: ElementId) -> PsiElement {
+        PsiElement { tree: self.tree.clone(), id }
     }
 
     pub fn is_leaf(&self) -> bool {
-        self.0.as_token().is_some()
+        self.tree.is_token(self.id)
     }
 
     /// `getNode().getElementType()`.
     pub fn element_type(&self) -> SyntaxKind {
-        self.0.kind()
+        self.kind()
     }
 
     pub fn kind(&self) -> SyntaxKind {
-        self.0.kind()
+        self.tree.kind(self.id)
     }
 
     /// The `PsiFile` (root) has no PSI parent.
     pub fn is_file(&self) -> bool {
-        self.as_node().is_some_and(|n| n.parent().is_none())
+        self.id == Tree::ROOT
     }
 
     pub fn cast<T: PsiType>(&self) -> Option<T> {
@@ -59,7 +85,7 @@ impl PsiElement {
 
     /// Offsets are UTF-8 byte offsets into the file text (IntelliJ uses UTF-16 units).
     pub fn text_range(&self) -> TextRange {
-        self.0.text_range()
+        self.tree.text_range(self.id)
     }
 
     /// psiUtil `startOffset`.
@@ -82,23 +108,23 @@ impl PsiElement {
     }
 
     pub fn parent(&self) -> Option<PsiElement> {
-        self.0.parent().map(|p| PsiElement(p.into()))
+        self.tree.parent(self.id).map(|p| self.at(p))
     }
 
     pub fn first_child(&self) -> Option<PsiElement> {
-        self.as_node()?.first_child_or_token().map(PsiElement)
+        self.tree.first_child(self.id).map(|c| self.at(c))
     }
 
     pub fn last_child(&self) -> Option<PsiElement> {
-        self.as_node()?.last_child_or_token().map(PsiElement)
+        self.tree.last_child(self.id).map(|c| self.at(c))
     }
 
     pub fn next_sibling(&self) -> Option<PsiElement> {
-        self.0.next_sibling_or_token().map(PsiElement)
+        self.tree.next_sibling(self.id).map(|s| self.at(s))
     }
 
     pub fn prev_sibling(&self) -> Option<PsiElement> {
-        self.0.prev_sibling_or_token().map(PsiElement)
+        self.tree.prev_sibling(self.id).map(|s| self.at(s))
     }
 
     /// Every child including leaves, in order (the `getFirstChild`/`getNextSibling` walk).
@@ -121,11 +147,10 @@ impl PsiElement {
 
     /// `getChildren().length > 0` without collecting (or materializing skipped leaves).
     pub fn has_children(&self) -> bool {
-        let Some(node) = self.as_node() else { return false };
         if self.is_file() || classes::children_include_leaves(self.kind()) {
-            return node.first_child_or_token().is_some();
+            return self.tree.first_child(self.id).is_some();
         }
-        node.first_child().is_some()
+        self.tree.children(self.id).any(|c| !self.tree.is_token(c))
     }
 
     pub fn node(&self) -> AstNode {
@@ -149,16 +174,14 @@ impl PsiElement {
         self.children_by_kind(|k| k == kind).map(T::cast_unchecked).collect()
     }
 
-    /// The first child (leaves included) whose kind matches. Scans the green children, so unlike
-    /// `all_children().find(..)` it materializes no cursor for the children it skips.
+    /// The first child (leaves included) whose kind matches.
     fn first_child_by_kind(&self, matches: impl Fn(SyntaxKind) -> bool) -> Option<PsiElement> {
-        self.as_node()?.first_child_or_token_by_kind(&matches).map(PsiElement)
+        self.tree.children(self.id).find(|&c| matches(self.tree.kind(c))).map(|c| self.at(c))
     }
 
-    /// The children (leaves included) whose kind matches; see [`Self::first_child_by_kind`].
+    /// The children (leaves included) whose kind matches.
     fn children_by_kind(&self, matches: impl Fn(SyntaxKind) -> bool) -> impl Iterator<Item = PsiElement> {
-        let children = self.as_node().map(|n| n.children_with_tokens().by_kind(matches));
-        children.into_iter().flatten().map(PsiElement)
+        self.all_children().filter(move |c| matches(c.kind()))
     }
 
     /// `findLastChildByType(IElementType)`.

@@ -34,7 +34,7 @@ pub(super) fn dump(code: &str) -> String {
     if parse.has_errors() {
         return "ERROR ParseError".to_string();
     }
-    let input = match KotlinInput::new(code, &parse.syntax()) {
+    let input = match KotlinInput::new(code, &ktrs_psi::PsiElement::root(parse.tree.clone())) {
         Ok(input) => input,
         Err(e) => return format!("ERROR ParseError {e}\n"),
     };

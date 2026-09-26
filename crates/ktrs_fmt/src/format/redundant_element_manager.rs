@@ -9,7 +9,6 @@ use ktrs_psi::{
 use ktrs_syntax::SyntaxKind;
 
 use super::FormatError;
-use super::parser::has_descendant_of_kind;
 use super::formatting_options::FormattingOptions;
 use super::redundant_import_detector::RedundantImportDetector;
 use super::redundant_semicolon_detector::RedundantSemicolonDetector;
@@ -73,7 +72,7 @@ pub fn drop_redundant_elements(file: &KtFile, options: &FormattingOptions) -> Re
         redundant_semicolon_detector: RedundantSemicolonDetector::default(),
         trailing_comma_detector: trailing_commas::Detector::default(),
         visits_leaves: options.trailing_comma_management_strategy.remove_redundant_trailing_commas()
-            || file.as_node().is_some_and(|n| has_descendant_of_kind(&n.green(), SyntaxKind::SEMICOLON)),
+            || file.tree().has_descendant_of_kind(file.id(), SyntaxKind::SEMICOLON),
     };
 
     file.accept(&mut visitor);

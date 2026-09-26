@@ -62,7 +62,7 @@ impl From<KtFile> for PsiElement {
 
 impl KtFile {
     pub fn new(parse: &Parse) -> KtFile {
-        PsiElement::new(parse.syntax().into()).upcast()
+        PsiElement::root(parse.tree.clone()).upcast()
     }
 
     /// [`KtFile::new`] for a parse of `text`, which becomes the cached text.
@@ -89,9 +89,9 @@ impl KtFile {
 impl PsiErrorElement {
     /// `getErrorDescription()`. The message lives in `parse` (one per error element, in tree preorder).
     pub fn error_description<'p>(&self, parse: &'p Parse) -> &'p str {
-        let root = parse.syntax();
-        let index = root.descendants().filter(|n| n.kind() == ERROR_ELEMENT).position(|n| Some(&n) == self.as_node());
-        index.and_then(|i| parse.error_messages.get(i)).map_or("", String::as_str)
+        let tree = self.tree();
+        let index = (0..self.id()).filter(|&e| tree.kind(e) == ERROR_ELEMENT && !tree.is_token(e)).count();
+        parse.error_messages.get(index).map_or("", String::as_str)
     }
 }
 

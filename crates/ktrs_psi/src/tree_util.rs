@@ -2,7 +2,6 @@
 //! (`psiUtils.kt`, `ktPsiUtil.kt`), as methods on [`PsiElement`].
 
 use ktrs_syntax::SyntaxKind;
-use rowan::WalkEvent;
 
 use crate::cast::PsiType;
 use crate::element::PsiElement;
@@ -98,20 +97,20 @@ impl PsiElement {
     /// psiUtil `collectDescendantsOfType<T>()`: `PsiRecursiveElementVisitor` order, i.e. children before
     /// the element itself, `self` included.
     pub fn collect_descendants_of_type<T: PsiType>(&self) -> Vec<T> {
-        let Some(node) = self.as_node() else {
-            return self.cast::<T>().into_iter().collect();
-        };
-        node.preorder_with_tokens()
-            .filter_map(|event| match event {
-                WalkEvent::Leave(e) => PsiElement::new(e).cast::<T>(),
-                WalkEvent::Enter(_) => None,
-            })
-            .collect()
+        fn collect<T: PsiType>(e: &PsiElement, out: &mut Vec<T>) {
+            for child in e.all_children() {
+                collect(&child, out);
+            }
+            out.extend(e.cast::<T>());
+        }
+        let mut out = Vec::new();
+        collect(self, &mut out);
+        out
     }
 
     /// `PsiTreeUtil.hasErrorElements(element)` (`element` itself included).
     pub fn has_error_elements(&self) -> bool {
-        self.as_node().is_some_and(|n| n.descendants().any(|d| PsiElement::new(d.into()).is::<PsiErrorElement>()))
+        self.is::<PsiErrorElement>() || self.tree().has_descendant_of_kind(self.id(), SyntaxKind::ERROR_ELEMENT)
     }
 
     /// `PsiTreeUtil.getDeepestLast` / `lastChild`.
