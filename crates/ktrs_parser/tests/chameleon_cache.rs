@@ -21,7 +21,7 @@ fn cached_parse_equals_uncached() {
         let expected = parse_file(&text, kind);
         for pass in ["cold", "warm"] {
             let actual = parse_file_cached(&text, kind, &mut cache);
-            assert_eq!(actual.green, expected.green, "{pass} tree differs: {}", file.display());
+            assert_eq!(actual.tree, expected.tree, "{pass} tree differs: {}", file.display());
             assert_eq!(actual.error_messages, expected.error_messages, "{pass} errors differ: {}", file.display());
         }
     }

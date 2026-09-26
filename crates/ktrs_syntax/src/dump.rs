@@ -1,19 +1,12 @@
 use std::fmt::Write;
 
-use crate::{ElementId, Parse, SyntaxElement, SyntaxKind, SyntaxNode, Tree};
+use crate::{ElementId, Parse, SyntaxKind, Tree};
 
 /// Renders `parse` exactly like IntelliJ's `DebugUtil.psiToString(file, true, false)`,
 /// the format of the compiler's parser fixtures and of `tools/psi-dump`.
 pub fn psi_dump(parse: &Parse, file_name: &str) -> String {
     let mut printer = Printer::new(parse, file_name);
     printer.children(&parse.tree, Tree::ROOT, 1);
-    printer.finish()
-}
-
-/// [`psi_dump`] of the rowan copy of the tree; kept until every consumer has left rowan.
-pub fn psi_dump_green(parse: &Parse, file_name: &str) -> String {
-    let mut printer = Printer::new(parse, file_name);
-    printer.green_children(&parse.syntax(), 1);
     printer.finish()
 }
 
@@ -43,23 +36,6 @@ impl<'a> Printer<'a> {
             } else {
                 self.node(tree.kind(child), depth);
                 self.children(tree, child, depth + 1);
-            }
-        }
-        if !any {
-            self.line(depth, format_args!("<empty list>"));
-        }
-    }
-
-    fn green_children(&mut self, node: &SyntaxNode, depth: usize) {
-        let mut any = false;
-        for child in node.children_with_tokens() {
-            any = true;
-            match child {
-                SyntaxElement::Token(token) => self.token(token.kind(), token.text(), depth),
-                SyntaxElement::Node(node) => {
-                    self.node(node.kind(), depth);
-                    self.green_children(&node, depth + 1);
-                }
             }
         }
         if !any {

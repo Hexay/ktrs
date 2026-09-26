@@ -4,7 +4,6 @@
 //! research/06-tree-library.md for the measurements).
 
 mod builder;
-mod green;
 
 pub use builder::TreeBuilder;
 

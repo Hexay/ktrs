@@ -37,6 +37,56 @@ impl TreeBuilder {
         self.ends[e as usize] = self.kinds.len() as u32;
     }
 
+    /// Elements pushed so far; the id the next element gets.
+    pub fn len(&self) -> ElementId {
+        self.kinds.len() as ElementId
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.kinds.is_empty()
+    }
+
+    /// A standalone copy of the finished subtree rooted at `root` (a node pushed at the current
+    /// nesting level, with nothing pushed after its end).
+    pub fn extract(&self, root: ElementId) -> Tree {
+        let r = root as usize;
+        assert_eq!(self.ends[r], self.len(), "extract of an open or non-final subtree");
+        let base = self.starts[r];
+        let rebase = |ids: &[u32]| ids.iter().map(|&x| if x == NONE { NONE } else { x - root }).collect();
+        let mut parents: Vec<u32> = rebase(&self.parents[r..]);
+        let mut prev_sibs: Vec<u32> = rebase(&self.prev_sibs[r..]);
+        parents[0] = NONE;
+        prev_sibs[0] = NONE;
+        Tree {
+            text: self.text[base as usize..].into(),
+            kinds: self.kinds[r..].to_vec(),
+            starts: self.starts[r..].iter().map(|s| s - base).collect(),
+            ends: self.ends[r..].iter().map(|e| e - root).collect(),
+            parents,
+            prev_sibs,
+        }
+    }
+
+    /// Appends all of `tree` as the next child of the open node: [`Self::push_subtree`] of its
+    /// root, as block copies.
+    pub fn push_tree(&mut self, tree: &Tree) {
+        let root = self.len();
+        let text_base = self.text.len() as u32;
+        let (parent, prev) = match self.open.last_mut() {
+            Some((parent, last_child)) => (*parent, std::mem::replace(last_child, root)),
+            None => (NONE, NONE),
+        };
+        let shift = |x: u32| if x == NONE { NONE } else { x + root };
+        self.kinds.extend_from_slice(&tree.kinds);
+        self.starts.extend(tree.starts.iter().map(|s| s + text_base));
+        self.ends.extend(tree.ends.iter().map(|&e| e + root));
+        self.parents.push(parent);
+        self.parents.extend(tree.parents[1..].iter().map(|&p| shift(p)));
+        self.prev_sibs.push(prev);
+        self.prev_sibs.extend(tree.prev_sibs[1..].iter().map(|&p| shift(p)));
+        self.text.push_str(&tree.text);
+    }
+
     /// Appends a copy of `e`'s subtree from another tree.
     pub fn push_subtree(&mut self, tree: &Tree, e: ElementId) {
         if tree.is_token(e) {
