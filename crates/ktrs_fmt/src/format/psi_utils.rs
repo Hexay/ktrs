@@ -1,0 +1,28 @@
+//! Port of `PsiUtils.kt` (lines 25-49). `KtParameterList.hasEmptyParens` is the visitor's
+//! `ParameterList::has_empty_parens` (it also serves the accessor's fake list).
+
+use ktrs_psi::{KtCallExpression, KtExpression, KtQualifiedExpression, KtValueArgumentList, PsiElement};
+
+/// Returns true if the expression represents an invocation that is also a lambda.
+pub fn is_lambda(expression: &KtExpression) -> bool {
+    call_expression(expression).is_some_and(|c| !c.lambda_arguments().is_empty())
+}
+
+/// Does this list have parens with only whitespace between them?
+pub fn value_argument_list_has_empty_parens(list: &KtValueArgumentList) -> bool {
+    parens_have_only_whitespace_between(list.left_parenthesis(), list.right_parenthesis())
+}
+
+/// The shared body of both `hasEmptyParens` extensions.
+pub fn parens_have_only_whitespace_between(left: Option<PsiElement>, right: Option<PsiElement>) -> bool {
+    let (Some(left), Some(right)) = (left, right) else { return false };
+    left.get_next_sibling_ignoring_whitespace(false) == Some(right)
+}
+
+/// Call expressions standing alone or as the selector of a qualified expression.
+fn call_expression(expression: &KtExpression) -> Option<KtCallExpression> {
+    match expression.cast::<KtQualifiedExpression>() {
+        Some(qualified) => qualified.selector_expression()?.cast(),
+        None => expression.cast(),
+    }
+}

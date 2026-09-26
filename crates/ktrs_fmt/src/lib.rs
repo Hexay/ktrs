@@ -9,4 +9,6 @@ pub mod doc;
 pub mod format;
 pub mod kdoc;
 
-pub use format::{FormatError, FormattingOptions, format};
+pub use format::{
+    FormatError, FormattingOptions, GOOGLE_FORMAT, KOTLINLANG_FORMAT, META_FORMAT, TrailingCommaManagementStrategy, format,
+};
