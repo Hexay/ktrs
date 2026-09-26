@@ -4,7 +4,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use ktrs_syntax::{GreenNode, Parse, SyntaxKind, psi_dump};
+use ktrs_syntax::{GreenNode, Parse, SyntaxKind, Tree, TreeBuilder, psi_dump};
 
 use super::parse_kdoc;
 
@@ -87,6 +87,14 @@ fn dump_kdoc(text: &str) -> String {
     let parse = parse_kdoc(text);
     let kdoc = GreenNode::new(rowan::SyntaxKind(SyntaxKind::DOC_COMMENT as u16), parse.green.children().map(|c| c.to_owned()));
     let file = GreenNode::new(rowan::SyntaxKind(SyntaxKind::DOC_COMMENT as u16), [kdoc.into()]);
-    let dump = psi_dump(&Parse { green: file, error_messages: parse.error_messages }, "");
+    let mut tree = TreeBuilder::new();
+    tree.start_node(SyntaxKind::DOC_COMMENT);
+    tree.start_node(SyntaxKind::DOC_COMMENT);
+    for child in parse.tree.children(Tree::ROOT) {
+        tree.push_subtree(&parse.tree, child);
+    }
+    tree.finish_node();
+    tree.finish_node();
+    let dump = psi_dump(&Parse { green: file, tree: tree.finish(), error_messages: parse.error_messages }, "");
     dump.lines().skip(1).map(|l| &l[2..]).collect::<Vec<_>>().join("\n")
 }

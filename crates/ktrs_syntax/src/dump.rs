@@ -1,15 +1,20 @@
 use std::fmt::Write;
 
-use crate::{Parse, SyntaxElement, SyntaxKind, SyntaxNode};
+use crate::{ElementId, Parse, SyntaxElement, SyntaxKind, SyntaxNode, Tree};
 
 /// Renders `parse` exactly like IntelliJ's `DebugUtil.psiToString(file, true, false)`,
 /// the format of the compiler's parser fixtures and of `tools/psi-dump`.
 pub fn psi_dump(parse: &Parse, file_name: &str) -> String {
-    let mut printer = Printer { out: String::new(), errors: parse.error_messages.iter() };
-    writeln!(printer.out, "KtFile: {file_name}").unwrap();
-    printer.children(&parse.syntax(), 1);
-    printer.out.truncate(printer.out.trim_end().len());
-    printer.out
+    let mut printer = Printer::new(parse, file_name);
+    printer.children(&parse.tree, Tree::ROOT, 1);
+    printer.finish()
+}
+
+/// [`psi_dump`] of the rowan copy of the tree; kept until every consumer has left rowan.
+pub fn psi_dump_green(parse: &Parse, file_name: &str) -> String {
+    let mut printer = Printer::new(parse, file_name);
+    printer.green_children(&parse.syntax(), 1);
+    printer.finish()
 }
 
 struct Printer<'a> {
@@ -17,40 +22,68 @@ struct Printer<'a> {
     errors: std::slice::Iter<'a, String>,
 }
 
-impl Printer<'_> {
-    fn children(&mut self, node: &SyntaxNode, depth: usize) {
+impl<'a> Printer<'a> {
+    fn new(parse: &'a Parse, file_name: &str) -> Printer<'a> {
+        let mut out = String::new();
+        writeln!(out, "KtFile: {file_name}").unwrap();
+        Printer { out, errors: parse.error_messages.iter() }
+    }
+
+    fn finish(mut self) -> String {
+        self.out.truncate(self.out.trim_end().len());
+        self.out
+    }
+
+    fn children(&mut self, tree: &Tree, e: ElementId, depth: usize) {
         let mut any = false;
-        for child in node.children_with_tokens() {
+        for child in tree.children(e) {
             any = true;
-            self.element(&child, depth);
+            if tree.is_token(child) {
+                self.token(tree.kind(child), tree.text_of(child), depth);
+            } else {
+                self.node(tree.kind(child), depth);
+                self.children(tree, child, depth + 1);
+            }
         }
         if !any {
             self.line(depth, format_args!("<empty list>"));
         }
     }
 
-    fn element(&mut self, element: &SyntaxElement, depth: usize) {
-        match element {
-            SyntaxElement::Token(token) => {
-                let text = escape(token.text());
-                let kind = token.kind();
-                match kind {
-                    SyntaxKind::WHITE_SPACE => self.line(depth, format_args!("PsiWhiteSpace('{text}')")),
-                    SyntaxKind::EOL_COMMENT | SyntaxKind::BLOCK_COMMENT | SyntaxKind::SHEBANG_COMMENT => {
-                        self.line(depth, format_args!("PsiComment({})('{text}')", kind.debug_name()))
-                    }
-                    _ => self.line(depth, format_args!("PsiElement({})('{text}')", kind.debug_name())),
+    fn green_children(&mut self, node: &SyntaxNode, depth: usize) {
+        let mut any = false;
+        for child in node.children_with_tokens() {
+            any = true;
+            match child {
+                SyntaxElement::Token(token) => self.token(token.kind(), token.text(), depth),
+                SyntaxElement::Node(node) => {
+                    self.node(node.kind(), depth);
+                    self.green_children(&node, depth + 1);
                 }
             }
-            SyntaxElement::Node(node) => {
-                if node.kind() == SyntaxKind::ERROR_ELEMENT {
-                    let message = self.errors.next().map_or("", String::as_str);
-                    self.line(depth, format_args!("PsiErrorElement:{message}"));
-                } else {
-                    self.line(depth, format_args!("{}", node.kind().debug_name()));
-                }
-                self.children(node, depth + 1);
+        }
+        if !any {
+            self.line(depth, format_args!("<empty list>"));
+        }
+    }
+
+    fn token(&mut self, kind: SyntaxKind, text: &str, depth: usize) {
+        let text = escape(text);
+        match kind {
+            SyntaxKind::WHITE_SPACE => self.line(depth, format_args!("PsiWhiteSpace('{text}')")),
+            SyntaxKind::EOL_COMMENT | SyntaxKind::BLOCK_COMMENT | SyntaxKind::SHEBANG_COMMENT => {
+                self.line(depth, format_args!("PsiComment({})('{text}')", kind.debug_name()))
             }
+            _ => self.line(depth, format_args!("PsiElement({})('{text}')", kind.debug_name())),
+        }
+    }
+
+    fn node(&mut self, kind: SyntaxKind, depth: usize) {
+        if kind == SyntaxKind::ERROR_ELEMENT {
+            let message = self.errors.next().map_or("", String::as_str);
+            self.line(depth, format_args!("PsiErrorElement:{message}"));
+        } else {
+            self.line(depth, format_args!("{}", kind.debug_name()));
         }
     }
 

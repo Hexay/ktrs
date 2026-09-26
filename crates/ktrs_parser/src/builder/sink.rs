@@ -1,7 +1,8 @@
-//! [`TreeSink`]: the green-tree builder `tree.rs` binds into, shared by a file and all of its
+//! [`TreeSink`]: the tree builder `tree.rs` binds into, shared by a file and all of its
 //! chameleons so each lazy node is built in place instead of being copied out of a sub-tree.
+//! Builds the flat [`ktrs_syntax::Tree`] and, while consumers migrate, the same tree in rowan form.
 
-use ktrs_syntax::{GreenNode, Parse, SyntaxKind};
+use ktrs_syntax::{GreenNode, Parse, SyntaxKind, TreeBuilder};
 use rowan::{GreenToken, NodeOrToken};
 
 use super::chameleon_cache::ChameleonCache;
@@ -10,6 +11,7 @@ use super::interner::{Interner, raw};
 type GreenElement = NodeOrToken<GreenNode, GreenToken>;
 
 pub struct TreeSink {
+    tree: TreeBuilder,
     children: Vec<GreenElement>,
     parents: Vec<(SyntaxKind, usize)>,
     /// `None` only once handed back in `drop`.
@@ -27,6 +29,7 @@ impl Default for TreeSink {
 impl TreeSink {
     pub fn new() -> TreeSink {
         TreeSink {
+            tree: TreeBuilder::new(),
             children: Vec::new(),
             parents: Vec::new(),
             interner: Some(Interner::take()),
@@ -48,7 +51,8 @@ impl TreeSink {
     pub fn finish(mut self) -> Parse {
         assert!(self.parents.is_empty() && self.children.len() == 1, "unbalanced tree sink");
         let green = self.children.pop().and_then(NodeOrToken::into_node).expect("root is a node");
-        Parse { green, error_messages: std::mem::take(&mut self.errors) }
+        let tree = std::mem::take(&mut self.tree).finish();
+        Parse { green, tree, error_messages: std::mem::take(&mut self.errors) }
     }
 
     /// Emits the expanded chameleon `kind` over `text`: the cached node if there is one, else
@@ -56,6 +60,7 @@ impl TreeSink {
     pub fn chameleon(&mut self, kind: SyntaxKind, text: &str, build: impl FnOnce(&mut TreeSink)) {
         let Some(cache) = &self.cache else { return build(self) };
         if let Some(node) = cache.get(kind, text) {
+            self.tree.push_green(&node);
             self.children.push(node.into());
             return;
         }
@@ -70,15 +75,18 @@ impl TreeSink {
     }
 
     pub(super) fn token(&mut self, kind: SyntaxKind, text: &str) {
+        self.tree.token(kind, text);
         let token = self.interner.as_mut().expect("live sink").token(raw(kind), text);
         self.children.push(token.into());
     }
 
     pub(super) fn start_node(&mut self, kind: SyntaxKind) {
+        self.tree.start_node(kind);
         self.parents.push((kind, self.children.len()));
     }
 
     pub(super) fn finish_node(&mut self) {
+        self.tree.finish_node();
         let (kind, first_child) = self.parents.pop().expect("finish_node without start_node");
         let node = GreenNode::new(raw(kind), self.children.drain(first_child..));
         self.children.push(node.into());

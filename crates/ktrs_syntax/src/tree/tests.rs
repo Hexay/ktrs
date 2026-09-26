@@ -1,0 +1,59 @@
+use super::{Tree, TreeBuilder};
+use crate::SyntaxKind::{self, *};
+
+/// `CALL_EXPRESSION(REFERENCE_EXPRESSION(IDENTIFIER "f") VALUE_ARGUMENT_LIST(LPAR "(" RPAR ")")) WHITE_SPACE " "`
+/// under a `BLOCK`, plus an empty `VALUE_ARGUMENT_LIST` node at the end.
+fn sample() -> Tree {
+    let mut b = TreeBuilder::new();
+    b.start_node(BLOCK);
+    b.start_node(CALL_EXPRESSION);
+    b.start_node(REFERENCE_EXPRESSION);
+    b.token(IDENTIFIER, "f");
+    b.finish_node();
+    b.start_node(VALUE_ARGUMENT_LIST);
+    b.token(LPAR, "(");
+    b.token(RPAR, ")");
+    b.finish_node();
+    b.finish_node();
+    b.token(WHITE_SPACE, " ");
+    b.start_node(VALUE_ARGUMENT_LIST);
+    b.finish_node();
+    b.finish_node();
+    b.finish()
+}
+
+fn kinds(tree: &Tree, ids: impl Iterator<Item = u32>) -> Vec<SyntaxKind> {
+    ids.map(|e| tree.kind(e)).collect()
+}
+
+#[test]
+fn navigation() {
+    let t = sample();
+    assert_eq!(t.text(), "f() ");
+    assert_eq!(kinds(&t, t.children(Tree::ROOT)), [CALL_EXPRESSION, WHITE_SPACE, VALUE_ARGUMENT_LIST]);
+    let call = t.first_child(Tree::ROOT).unwrap();
+    assert_eq!(kinds(&t, t.children(call)), [REFERENCE_EXPRESSION, VALUE_ARGUMENT_LIST]);
+    assert_eq!(t.last_child(call).map(|e| t.kind(e)), Some(VALUE_ARGUMENT_LIST));
+    assert_eq!(t.last_child(Tree::ROOT).map(|e| t.kind(e)), Some(VALUE_ARGUMENT_LIST));
+    let args = t.last_child(call).unwrap();
+    assert_eq!(t.prev_sibling(args).map(|e| t.kind(e)), Some(REFERENCE_EXPRESSION));
+    assert_eq!(t.prev_sibling(call), None);
+    assert_eq!(t.next_sibling(args), None);
+    assert_eq!(t.parent(args), Some(call));
+    assert_eq!(t.text_of(args), "()");
+    assert_eq!(t.text_of(call), "f()");
+}
+
+#[test]
+fn tokens_and_empty_nodes() {
+    let t = sample();
+    let empty = t.last_child(Tree::ROOT).unwrap();
+    assert!(!t.is_token(empty));
+    assert_eq!(t.first_child(empty), None);
+    assert_eq!(t.text_of(empty), "");
+    let space = t.prev_sibling(empty).unwrap();
+    assert!(t.is_token(space));
+    assert_eq!(t.text_of(space), " ");
+    assert!(t.has_descendant_of_kind(Tree::ROOT, RPAR));
+    assert!(!t.has_descendant_of_kind(empty, RPAR));
+}
