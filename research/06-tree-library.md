@@ -196,7 +196,25 @@ Incremental path, with gates green at every step:
   - cstree: optimistically **1.05-1.08x**, possibly negative given 3 parses/format where many nodes
     are visited only a few times.
 
-## Prototype first (about half a day, no production edits)
+## Prototype result (2026-09-26, commit a6d85d6): GO for the flat tree
+
+`cargo run -p ktrs_parser --release --example tree_bench corpus 3 3` on the testbox: each file's parse is
+replayed into rowan (built exactly like `TreeSink` + interner) and into a flat preorder tree.
+Walks are visitor-style: child/sibling steps with cloned `Rc<Tree>` handles, token text reads, and one
+child-by-kind lookup per node. The walk checksums match on all 6123 files.
+
+| | build | 3 walks | drop |
+|---|---|---|---|
+| rowan | 0.224 s, 4.66M allocs | 0.668 s, 35.6M allocs | 0.088 s |
+| flat | 0.059 s, 53K allocs | 0.311 s, 0 allocs | 0.001 s |
+
+- **Build + drop is 5.2x faster** (the bar was 4x). Rowan's build + drop is 0.31 s of the parser's
+  ~1.15 s on this corpus, so parse should gain about 1.3x, as estimated.
+- **Walks are 2.2x faster, with zero allocations** (the bar was 2x).
+- cstree was not benchmarked. Its green model is rowan's (one `ThinArc` per node, recursive atomic
+  drop), so its build and drop cost matches rowan's by construction.
+
+## Prototype plan (as run above, minus cstree)
 
 1. In `ktrs_syntax/examples/tree_bench.rs` (or a scratch crate), take `Parse.green` from
    `parse_file` over `corpus/`.
