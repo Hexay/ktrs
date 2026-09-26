@@ -55,6 +55,8 @@ dependencies = [
  "ktrs_parser",
  "ktrs_psi",
  "ktrs_syntax",
+ "mimalloc",
+ "rowan",
 ]
 
 [[package]]

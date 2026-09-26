@@ -1,6 +1,7 @@
 //! The leaf classes of `Doc.java`: `Doc.Token` ([`DocToken`]), `Doc.Space` ([`Op::Space`]),
 //! `Doc.Break` ([`DocBreak`]) and `Doc.Tok` ([`DocTok`]).
 
+use std::borrow::Cow;
 use std::rc::Rc;
 
 use super::comments_helper::{CommentsHelper, reformat_parameter_comment};
@@ -81,8 +82,8 @@ impl DocToken {
         }
     }
 
-    pub(crate) fn compute_flat(&self) -> String {
-        self.tok().get_original_text().to_string()
+    pub(crate) fn compute_flat(&self, out: &mut String) {
+        out.push_str(self.tok().get_original_text());
     }
 
     pub(crate) fn compute_range(&self) -> Range {
@@ -102,7 +103,7 @@ impl DocToken {
 #[derive(Debug)]
 pub struct DocBreak {
     fill_mode: FillMode,
-    flat: String,
+    flat: Cow<'static, str>,
     plus_indent: Indent,
     opt_tag: Option<BreakTag>,
     /// Was this break taken?
@@ -124,7 +125,12 @@ impl DocBreak {
     ) -> DocBreak {
         DocBreak {
             fill_mode,
-            flat: flat.to_string(),
+            // Visitors only ever pass "" or " "; don't allocate for those.
+            flat: match flat {
+                "" => Cow::Borrowed(""),
+                " " => Cow::Borrowed(" "),
+                _ => Cow::Owned(flat.to_owned()),
+            },
             plus_indent,
             opt_tag,
             broken: false,
@@ -160,8 +166,8 @@ impl DocBreak {
         }
     }
 
-    pub(crate) fn compute_flat(&self) -> String {
-        self.flat.clone()
+    pub(crate) fn compute_flat(&self, out: &mut String) {
+        out.push_str(&self.flat);
     }
 
     /// `computeBreaks(State, int lastIndent, boolean broken)`.
@@ -234,13 +240,18 @@ impl DocTok {
         }
     }
 
-    pub(crate) fn compute_flat(&self) -> String {
+    pub(crate) fn compute_flat(&self, out: &mut String) {
         let tok = &*self.tok;
         let original = tok.get_original_text();
         if tok.is_slash_slash_comment() && !original.starts_with("// ") {
-            return format!("// {}", &original["//".len()..]);
+            out.push_str("// ");
+            out.push_str(&original["//".len()..]);
+            return;
         }
-        reformat_parameter_comment(tok).unwrap_or_else(|| original.to_string())
+        match reformat_parameter_comment(tok) {
+            Some(reformatted) => out.push_str(&reformatted),
+            None => out.push_str(original),
+        }
     }
 
     pub(crate) fn compute_range(&self) -> Range {

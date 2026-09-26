@@ -170,8 +170,12 @@ impl RedundantImportDetector {
             return;
         }
 
-        if !self.is_package_element && !self.is_import_element && expression.children().is_empty() {
-            self.used_references.insert(expression.text().trim_matches('`').to_owned());
+        if !self.is_package_element && !self.is_import_element && !expression.has_children() {
+            let text = expression.text();
+            let name = text.trim_matches('`');
+            if !self.used_references.contains(name) {
+                self.used_references.insert(name.to_owned());
+            }
         }
     }
 

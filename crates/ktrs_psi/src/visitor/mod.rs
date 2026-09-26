@@ -21,6 +21,11 @@ macro_rules! visitor {
         pub trait KtVisitorVoid {
             /// `PsiElementVisitor.visitElement`: does nothing (see `kt_tree_visitor_void` for recursion).
             fn visit_element(&mut self, _element: &PsiElement) {}
+            /// Not upstream: a visitor whose leaf visits are all no-ops can return true, and
+            /// [`PsiElement::accept_children`] then skips leaves without materializing them.
+            fn ignores_leaves(&self) -> bool {
+                false
+            }
             $(fn $name(&mut self, e: &$t) { kt_visitor_void::$name(self, e) })*
             $(fn $cname(&mut self, e: &$ct) { kt_visitor_void::$cname(self, e) })*
         }

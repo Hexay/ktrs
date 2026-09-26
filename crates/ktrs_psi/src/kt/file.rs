@@ -1,15 +1,83 @@
 //! `KtFile`, `KtScript`, package and import directives, plus the `FqName`/`ImportPath` values they return.
 
+use std::cell::OnceCell;
+use std::hash::{Hash, Hasher};
+use std::ops::Deref;
+use std::rc::Rc;
+
 use ktrs_syntax::Parse;
 use ktrs_syntax::SyntaxKind::*;
 
+use crate::cast::PsiType;
 use crate::element::PsiElement;
 use crate::tokens::INSIDE_DIRECTIVE_EXPRESSIONS;
 use crate::types::*;
 
+/// `KtFile`. Unlike the other views it caches its text: `file.text` is O(1) upstream and ktfmt's
+/// passes read it repeatedly, while rebuilding it walks the whole tree.
+#[derive(Clone, Debug)]
+pub struct KtFile(PsiElement, OnceCell<Rc<str>>);
+
+impl PartialEq for KtFile {
+    fn eq(&self, other: &Self) -> bool {
+        self.0 == other.0
+    }
+}
+
+impl Eq for KtFile {}
+
+impl Hash for KtFile {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.0.hash(state);
+    }
+}
+
+impl PsiType for KtFile {
+    fn can_cast(e: &PsiElement) -> bool {
+        e.is_file()
+    }
+
+    fn cast_unchecked(e: PsiElement) -> Self {
+        KtFile(e, OnceCell::new())
+    }
+
+    fn psi(&self) -> &PsiElement {
+        &self.0
+    }
+}
+
+impl Deref for KtFile {
+    type Target = PsiElement;
+
+    fn deref(&self) -> &PsiElement {
+        &self.0
+    }
+}
+
+impl From<KtFile> for PsiElement {
+    fn from(value: KtFile) -> PsiElement {
+        value.0
+    }
+}
+
 impl KtFile {
     pub fn new(parse: &Parse) -> KtFile {
         PsiElement::new(parse.syntax().into()).upcast()
+    }
+
+    /// [`KtFile::new`] for a parse of `text`, which becomes the cached text.
+    pub fn with_text(parse: &Parse, text: &str) -> KtFile {
+        let file = KtFile::new(parse);
+        debug_assert_eq!(file.text_length(), text.len(), "not the parsed text");
+        if file.text_length() == text.len() {
+            let _ = file.1.set(text.into());
+        }
+        file
+    }
+
+    /// `getText()`, computed once per `KtFile` value.
+    pub fn text(&self) -> String {
+        self.1.get_or_init(|| self.0.text().into()).to_string()
     }
 
     /// `getImportList()`: the first import list child.

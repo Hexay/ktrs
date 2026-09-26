@@ -3,7 +3,7 @@
 
 use ktrs_psi::{KtFile, KtQualifiedExpression, KtStringTemplateExpression, KtVisitorVoid, PsiComment, PsiElement, kt_tree_visitor_void, kt_visitor_void};
 
-use super::kotlin_text::{is_blank, lines, trim_start};
+use super::kotlin_text::{LineIndex, is_blank, trim_start};
 
 const TQ: &str = "\"\"\"";
 
@@ -89,18 +89,26 @@ impl MultilineStringFormatter {
 
     pub fn get_multiline_trimmed_string_list(&self, file: &KtFile) -> Vec<MultilineTrimmedString> {
         let code = file.text();
-        let mut collector = Collector { code: &code, strings: Vec::new() };
+        // Only a selector text starting with one of these is collected.
+        if !code.contains("trimIndent()") && !code.contains("trimMargin()") {
+            return Vec::new();
+        }
+        let mut collector = Collector { line_index: LineIndex::new(&code), strings: Vec::new() };
         file.accept(&mut collector);
         collector.strings
     }
 }
 
 struct Collector<'c> {
-    code: &'c str,
+    line_index: LineIndex<'c>,
     strings: Vec<MultilineTrimmedString>,
 }
 
 impl KtVisitorVoid for Collector<'_> {
+    fn ignores_leaves(&self) -> bool {
+        true
+    }
+
     fn visit_element(&mut self, element: &PsiElement) {
         kt_tree_visitor_void::visit_element(self, element);
     }
@@ -111,7 +119,6 @@ impl KtVisitorVoid for Collector<'_> {
         if !receiver.is::<KtStringTemplateExpression>() {
             return;
         }
-        let code = self.code;
         let is_dollar_string = receiver.text().starts_with("$$");
         let selector_text = expression.selector_expression().map(|s| s.text()).unwrap_or_default();
         let selector_expression = selector_text.trim();
@@ -121,9 +128,9 @@ impl KtVisitorVoid for Collector<'_> {
             // -1 here to account for the space after the dot
             let trim_offset = expression.selector_expression().expect("selector").start_offset() - 1;
             let string_offset = receiver.start_offset();
-            let line_start = lines(&code[..string_offset]).len() - 1;
-            let line_end = lines(&code[..trim_offset]).len() - 1;
-            let before_string = *lines(&code[..string_offset]).last().unwrap();
+            let line_start = self.line_index.line_of(string_offset);
+            let line_end = self.line_index.line_of(trim_offset);
+            let before_string = self.line_index.line_prefix(string_offset);
             let before_tq = before_string.split_once(TQ).map_or(before_string, |(before, _)| before);
             let indent_count = before_tq.chars().count() - trim_start(before_tq).chars().count();
             // Collect comments between the closing """ and the .trimX() call
@@ -143,7 +150,7 @@ impl KtVisitorVoid for Collector<'_> {
                 is_trim_margin,
                 is_dollar_string,
                 indent_count,
-                lines(code)[line_start..=line_end].iter().map(|s| s.to_string()).collect(),
+                self.line_index.lines[line_start..=line_end].iter().map(|s| s.to_string()).collect(),
                 line_start,
                 line_end,
                 string_offset,

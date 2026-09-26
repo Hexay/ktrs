@@ -50,14 +50,15 @@ impl JavaOutput<'_> {
                 replace_from -= previous.len_utf8();
             }
 
-            let mut i = k_to_j[&start_tok.get_index()].lower_endpoint();
+            let k_range = |k: i32| k_to_j[k as usize].expect("no output range for tok");
+            let mut i = k_range(start_tok.get_index()).lower_endpoint();
             // Include leading blank lines from the formatted output, unless the formatted range
             // starts at the beginning of the file.
             while i > 0 && self.io.get_line(i - 1).is_empty() {
                 i -= 1;
             }
             // Write out the formatted range.
-            while i < k_to_j[&end_tok.get_index()].upper_endpoint() {
+            while i < k_range(end_tok.get_index()).upper_endpoint() {
                 // It's possible to run out of output lines (e.g. if the input ended with multiple
                 // trailing newlines).
                 if i < self.io.get_line_count() {

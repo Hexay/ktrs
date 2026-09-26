@@ -12,6 +12,8 @@ Milestone 1: the parser's tree must be identical to the Kotlin compiler's PSI (`
   to a busy machine; `corpus-diff`'s MB/s sums wall time across all cores and swings with load).
 - `crates/ktrs_psi` — typed PSI views with the compiler's accessor semantics (scope: what ktfmt calls).
   Porting conventions and the full API list: `crates/ktrs_psi/src/lib.rs` docs.
+- `crates/ktrs_fmt` — ktfmt port. Throughput: `cargo run -p ktrs_fmt --release --example bench [dir] [reps] [filter]
+  [threads]`; compare runs by its "format = N parses" line (stable under machine load), not MB/s.
 - `tools/psi-accessors/psi-accessors.sh` — JVM oracle for ktrs_psi (`one|hashes|dump <dir> [--fixture] [--script]`);
   Rust mirror: `cargo run -p ktrs_psi --release --example psi_accessors -- one|hashes|compare|dump ...`.
 - `xtask` — `cargo xtask codegen` regenerates `ktrs_syntax/src/generated/kinds.rs` from `kinds.tsv`.

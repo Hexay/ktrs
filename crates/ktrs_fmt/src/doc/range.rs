@@ -126,31 +126,32 @@ impl RangeSet {
         if range.lower == range.upper {
             return;
         }
-        self.ranges.retain(|&r| {
-            if r.is_connected(range) {
-                range = BoundedRange {
-                    lower: r.lower.min(range.lower),
-                    upper: r.upper.max(range.upper),
-                };
-                false
-            } else {
-                true
-            }
-        });
-        let at = self.ranges.partition_point(|r| r.lower < range.lower);
-        self.ranges.insert(at, range);
+        // The stored ranges are sorted and pairwise unconnected, so the ones connected to `range`
+        // are a contiguous run: log-time search, as in Guava's TreeRangeSet.
+        let start = self.ranges.partition_point(|r| r.upper < range.lower);
+        let end = self.ranges.partition_point(|r| r.lower <= range.upper).max(start);
+        if start < end {
+            range = BoundedRange {
+                lower: self.ranges[start].lower.min(range.lower),
+                upper: self.ranges[end - 1].upper.max(range.upper),
+            };
+        }
+        self.ranges.splice(start..end, [range]);
     }
 
     pub fn contains(&self, k: i32) -> bool {
-        self.ranges.iter().any(|r| r.contains(k))
+        self.range_index_containing(k).is_some()
     }
 
     /// `rangeContaining(k)` as `(lowerEndpoint, upperEndpoint)`.
     pub fn range_containing(&self, k: i32) -> Option<(i32, i32)> {
-        self.ranges
-            .iter()
-            .find(|r| r.contains(k))
-            .map(|r| (r.lower_endpoint(), r.upper_endpoint()))
+        self.range_index_containing(k)
+            .map(|i| (self.ranges[i].lower_endpoint(), self.ranges[i].upper_endpoint()))
+    }
+
+    fn range_index_containing(&self, k: i32) -> Option<usize> {
+        let i = self.ranges.partition_point(|r| r.upper <= (k, false));
+        self.ranges.get(i).is_some_and(|r| r.contains(k)).then_some(i)
     }
 
     /// `subRangeSet(Range.closed(lower, upper))`.

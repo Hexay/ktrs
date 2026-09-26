@@ -15,5 +15,5 @@ mod type_refs;
 
 pub use annotations::AnnotationUseSiteTarget;
 pub use calls::{unquote_identifier, unquote_identifier_or_field_reference};
-pub use file::{FqName, ImportPath};
+pub use file::{FqName, ImportPath, KtFile};
 pub use type_refs::KtProjectionKind;

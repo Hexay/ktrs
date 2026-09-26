@@ -50,7 +50,8 @@ impl<'a> OpsBuilder<'a> {
     pub fn new(input: &'a dyn Input, output: &'a mut dyn Output) -> OpsBuilder<'a> {
         OpsBuilder {
             input,
-            ops: Vec::new(),
+            // Typically a few ops per token; reserving avoids regrowing a large Vec of large ops.
+            ops: Vec::with_capacity(input.get_tokens().len() * 4),
             output,
             token_i: 0,
             input_position: i32::MIN,

@@ -6,7 +6,10 @@ use ktrs_psi::{
     PsiWhiteSpace, kt_tree_visitor_void, kt_visitor_void,
 };
 
+use ktrs_syntax::SyntaxKind;
+
 use super::FormatError;
+use super::parser::has_descendant_of_kind;
 use super::formatting_options::FormattingOptions;
 use super::redundant_import_detector::RedundantImportDetector;
 use super::redundant_semicolon_detector::RedundantSemicolonDetector;
@@ -17,6 +20,8 @@ struct DropVisitor<'o> {
     redundant_import_detector: RedundantImportDetector,
     redundant_semicolon_detector: RedundantSemicolonDetector,
     trailing_comma_detector: trailing_commas::Detector,
+    /// Only `;` and `,` leaves can be redundant; without either candidate, leaves are skipped.
+    visits_leaves: bool,
 }
 
 impl AsMut<RedundantImportDetector> for DropVisitor<'_> {
@@ -26,6 +31,10 @@ impl AsMut<RedundantImportDetector> for DropVisitor<'_> {
 }
 
 impl KtVisitorVoid for DropVisitor<'_> {
+    fn ignores_leaves(&self) -> bool {
+        !self.visits_leaves
+    }
+
     fn visit_element(&mut self, element: &PsiElement) {
         if let Some(kdoc) = element.cast::<KDocImpl>() {
             self.redundant_import_detector.take_kdoc(&kdoc);
@@ -63,6 +72,8 @@ pub fn drop_redundant_elements(file: &KtFile, options: &FormattingOptions) -> Re
         redundant_import_detector: RedundantImportDetector::new(options.remove_unused_imports),
         redundant_semicolon_detector: RedundantSemicolonDetector::default(),
         trailing_comma_detector: trailing_commas::Detector::default(),
+        visits_leaves: options.trailing_comma_management_strategy.remove_redundant_trailing_commas()
+            || file.as_node().is_some_and(|n| has_descendant_of_kind(&n.green(), SyntaxKind::SEMICOLON)),
     };
 
     file.accept(&mut visitor);
@@ -90,6 +101,10 @@ struct AddVisitor {
 }
 
 impl KtVisitorVoid for AddVisitor {
+    fn ignores_leaves(&self) -> bool {
+        true
+    }
+
     fn visit_element(&mut self, element: &PsiElement) {
         kt_tree_visitor_void::visit_element(self, element);
     }

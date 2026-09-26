@@ -61,14 +61,13 @@ impl State {
 pub struct Doc {
     kind: DocKind,
     width: OnceCell<i32>,
-    // Not defined (and never computed) if the doc contains forced breaks.
-    flat: OnceCell<String>,
     range: OnceCell<Range>,
 }
 
 #[derive(Debug)]
 pub enum DocKind {
-    Level(Level),
+    /// Boxed: a `Level` is larger than the leaves, and every `Doc` is moved a few times while building.
+    Level(Box<Level>),
     Token(DocToken),
     Space,
     Break(DocBreak),
@@ -80,7 +79,6 @@ impl Doc {
         Doc {
             kind,
             width: OnceCell::new(),
-            flat: OnceCell::new(),
             range: OnceCell::new(),
         }
     }
@@ -97,8 +95,12 @@ impl Doc {
         *self.width.get_or_init(|| self.compute_width())
     }
 
-    pub fn get_flat(&self) -> &str {
-        self.flat.get_or_init(|| self.compute_flat())
+    /// Not memoized (unlike upstream): only `write` reads it, once per one-line level, so building it
+    /// into one buffer keeps nested one-line levels from copying their text at every depth.
+    pub fn get_flat(&self) -> String {
+        let mut flat = String::new();
+        self.compute_flat(&mut flat);
+        flat
     }
 
     pub fn range(&self) -> Range {
@@ -115,13 +117,13 @@ impl Doc {
         }
     }
 
-    fn compute_flat(&self) -> String {
+    fn compute_flat(&self, out: &mut String) {
         match &self.kind {
-            DocKind::Level(level) => level.docs.iter().map(Doc::get_flat).collect(),
-            DocKind::Token(token) => token.compute_flat(),
-            DocKind::Space => " ".to_string(),
-            DocKind::Break(b) => b.compute_flat(),
-            DocKind::Tok(tok) => tok.compute_flat(),
+            DocKind::Level(level) => level.docs.iter().for_each(|doc| doc.compute_flat(out)),
+            DocKind::Token(token) => token.compute_flat(out),
+            DocKind::Space => out.push(' '),
+            DocKind::Break(b) => b.compute_flat(out),
+            DocKind::Tok(tok) => tok.compute_flat(out),
         }
     }
 
@@ -166,7 +168,7 @@ impl Doc {
             DocKind::Level(level) => {
                 if level.one_line {
                     // Defined because the width is finite.
-                    output.append(self.get_flat(), self.range());
+                    output.append(&self.get_flat(), self.range());
                 } else {
                     level.write_filled(output);
                 }
