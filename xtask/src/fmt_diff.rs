@@ -13,7 +13,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use ktrs_fmt::{FormattingOptions, format};
+use ktrs_fmt::{FormattingOptions, GOOGLE_FORMAT, KOTLINLANG_FORMAT, META_FORMAT, format};
 
 use crate::corpus_diff::collect;
 
@@ -107,18 +107,14 @@ pub(crate) fn run(root: &Path, args: &[String]) -> Result<(), String> {
     Ok(())
 }
 
-// TODO: switch to FormattingOptions::{google,kotlinlang} once ktrs_fmt ports those presets.
+/// The CLI's `--meta-style` / `--google-style` / `--kotlinlang-style` presets.
 fn style_options(style: &str) -> Result<FormattingOptions, String> {
-    let (block, continuation) = match style {
-        "meta" => (2, 4),
-        "google" => (2, 2),
-        "kotlinlang" => (4, 4),
-        _ => return Err(format!("unknown style {style}; expected meta|google|kotlinlang")),
-    };
-    let mut options = panic::catch_unwind(FormattingOptions::meta).map_err(|_| "FormattingOptions::meta() is not ported yet")?;
-    options.block_indent = block;
-    options.continuation_indent = continuation;
-    Ok(options)
+    match style {
+        "meta" => Ok(META_FORMAT),
+        "google" => Ok(GOOGLE_FORMAT),
+        "kotlinlang" => Ok(KOTLINLANG_FORMAT),
+        _ => Err(format!("unknown style {style}; expected meta|google|kotlinlang")),
+    }
 }
 
 /// Relative paths (with `/`) of the files ktfmt rejected: `.failed`, plus the `<path>:L:C: error:` lines
@@ -147,7 +143,12 @@ fn check(dir: &Path, oracle: &Path, rejected: &HashSet<String>, options: &Format
     let oracle_rejected = rejected.contains(&result.rel);
 
     let start = Instant::now();
-    let formatted = panic::catch_unwind(AssertUnwindSafe(|| format(&text, options)));
+    // The CLI strips a UTF-8 BOM before formatting.
+    let code = text.strip_prefix('\u{feff}').unwrap_or(&text);
+    // An already-formatted file is not rewritten, so its BOM survives.
+    let formatted = panic::catch_unwind(AssertUnwindSafe(|| {
+        format(code, options).map(|out| if out == code { text.clone() } else { out })
+    }));
     result.time = start.elapsed();
     result.outcome = match (formatted, oracle_rejected) {
         (Err(payload), _) => Outcome::Panic(
@@ -159,7 +160,7 @@ fn check(dir: &Path, oracle: &Path, rejected: &HashSet<String>, options: &Format
         ),
         (Ok(Err(_)), true) => Outcome::BothRejected,
         (Ok(Ok(_)), true) => Outcome::RejectionMismatch("ktfmt rejects this file, we formatted it".to_owned()),
-        (Ok(Err(e)), false) => Outcome::RejectionMismatch(format!("we rejected {}:{}: {}", e.line, e.column, e.message)),
+        (Ok(Err(e)), false) => Outcome::RejectionMismatch(format!("we rejected: {e}")),
         (Ok(Ok(actual)), false) if actual == expected => Outcome::Same,
         (Ok(Ok(actual)), false) => Outcome::Differs(first_difference(&expected, &actual)),
     };

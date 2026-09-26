@@ -10,7 +10,7 @@ use std::panic::{self, AssertUnwindSafe};
 use std::path::{Path, PathBuf};
 use std::{env, fs};
 
-use ktrs_fmt::{FormattingOptions, format};
+use ktrs_fmt::{FormattingOptions, META_FORMAT, TrailingCommaManagementStrategy, format};
 
 const SHOWN_FAILURES: usize = 5;
 
@@ -117,11 +117,9 @@ fn run_case(base: &Path) -> Outcome {
     match (expected, result) {
         (Some(expected), Ok(actual)) => first_difference(&expected, &actual),
         (None, Err(_)) => Outcome::Pass,
-        (Some(_), Err(e)) => Outcome::Fail {
-            line: e.line,
-            expected: "<formatted output>".to_owned(),
-            actual: format!("error {}:{}: {}", e.line, e.column, e.message),
-        },
+        (Some(_), Err(e)) => {
+            Outcome::Fail { line: 0, expected: "<formatted output>".to_owned(), actual: format!("error {e}") }
+        }
         (None, Ok(_)) => Outcome::Fail {
             line: 0,
             expected: fs::read_to_string(sibling(base, ".error")).unwrap_or_default().trim_end().to_owned(),
@@ -132,21 +130,22 @@ fn run_case(base: &Path) -> Outcome {
 
 /// Maps the `key=value` lines written by the extractor (ktfmt's `FormattingOptions` property names).
 fn parse_options(text: &str) -> FormattingOptions {
-    let mut options = FormattingOptions::meta();
+    let mut options = META_FORMAT;
     for (key, value) in text.lines().filter_map(|l| l.split_once('=')) {
         let (key, value) = (key.trim(), value.trim());
-        let number = || value.parse::<usize>().unwrap_or_else(|_| panic!("bad {key}={value}"));
+        let number = || value.parse::<i32>().unwrap_or_else(|_| panic!("bad {key}={value}"));
         let flag = || value == "true";
         match key {
             "maxWidth" => options.max_width = number(),
             "blockIndent" => options.block_indent = number(),
             "continuationIndent" => options.continuation_indent = number(),
-            // TODO: map NONE/ONLY_ADD/COMPLETE once FormattingOptions has the strategy enum.
-            "trailingCommaManagementStrategy" => options.manage_trailing_commas = value != "NONE",
+            "trailingCommaManagementStrategy" => {
+                options.trailing_comma_management_strategy =
+                    TrailingCommaManagementStrategy::value_of(value).unwrap_or_else(|| panic!("bad {key}={value}"))
+            }
             "removeUnusedImports" => options.remove_unused_imports = flag(),
-            // TODO: set once FormattingOptions has preserve_lambda_breaks.
-            "preserveLambdaBreaks" => {}
-            "debuggingPrintOpsAfterFormatting" => {}
+            "preserveLambdaBreaks" => options.preserve_lambda_breaks = flag(),
+            "debuggingPrintOpsAfterFormatting" => options.debugging_print_ops_after_formatting = flag(),
             _ => panic!("unknown option {key}"),
         }
     }
