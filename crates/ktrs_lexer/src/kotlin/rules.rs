@@ -9,7 +9,7 @@ use super::scan::{
     white_space,
 };
 use super::{KotlinLexer, LexState};
-use crate::chars::{is_kotlin_identifier_part, is_kotlin_letter};
+use crate::chars::is_kotlin_identifier_part;
 
 /// First entry whose text prefixes the input wins, so longer operators come first.
 fn operator(text: &str, start: usize, table: &[(&str, SyntaxKind)]) -> (SyntaxKind, usize) {
@@ -193,11 +193,11 @@ impl KotlinLexer<'_> {
 
     fn lex_identifier_or_bad_character(&self, start: usize) -> (SyntaxKind, usize) {
         let text = self.text;
-        let c = char_at(text, start).unwrap_or('\0');
-        if !is_kotlin_letter(c) {
+        // Never at a backtick (see `lex_default`), so `identifier` matches iff `c` is a letter.
+        let Some(end) = identifier(text, start) else {
+            let c = char_at(text, start).unwrap_or('\0');
             return (BAD_CHARACTER, start + c.len_utf8());
-        }
-        let end = identifier(text, start).unwrap_or(start + c.len_utf8());
+        };
         let word = &text[start..end];
         if word == "as" && self.byte(end) == b'?' {
             return (AS_SAFE, end + 1);
