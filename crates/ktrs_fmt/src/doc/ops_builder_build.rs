@@ -57,7 +57,7 @@ impl OpsBuilder<'_> {
                             "",
                             token_op.get_plus_indent_comments_before().clone(),
                         )));
-                        tok_ops.extend(j,Self::make_comment(tok_before));
+                        Self::make_comment(&mut tok_ops, j, tok_before);
                         space = tok_before.is_slash_star_comment();
                         newlines = 0;
                         last_was_comment = true;
@@ -95,7 +95,7 @@ impl OpsBuilder<'_> {
                         } else {
                             tok_ops.push(k + 1,Op::Space);
                         }
-                        tok_ops.extend(k + 1,Self::make_comment(tok_after));
+                        Self::make_comment(&mut tok_ops, k + 1, tok_after);
                         if break_after {
                             tok_ops.push(k + 1,Op::Break(DocBreak::make(
                                 FillMode::Forced,
@@ -132,9 +132,10 @@ impl OpsBuilder<'_> {
         // immediately before a space, suppress the space.
         let mut new_ops = Vec::with_capacity(ops_n + tok_ops.0.len());
         let mut after_forced_break = false; // Was the last Op a forced break? If so, suppress spaces.
-        let mut tok_ops = tok_ops.into_sorted().peekable();
+        let mut tok_ops = tok_ops.into_sorted();
         for (i, op) in ops.into_iter().enumerate() {
-            while let Some((_, tok_op)) = tok_ops.next_if(|(at, _)| *at == i) {
+            while tok_ops.as_slice().first().is_some_and(|(at, _)| *at == i) {
+                let (_, tok_op) = tok_ops.next().unwrap();
                 if !(after_forced_break && matches!(tok_op, Op::Space)) {
                     after_forced_break = tok_op.is_forced_break();
                     new_ops.push(tok_op);
@@ -160,14 +161,11 @@ impl OpsBuilder<'_> {
         Ok(new_ops)
     }
 
-    fn make_comment(comment: &Rc<dyn Tok>) -> Vec<Op> {
-        if comment.is_slash_star_comment() {
-            vec![Op::Tok(DocTok::make(comment.clone()))]
-        } else {
-            vec![
-                Op::Tok(DocTok::make(comment.clone())),
-                Op::Break(DocBreak::make_forced()),
-            ]
+    /// `makeComment(comment)`, its ops pushed to `tok_ops` at `i` instead of returned as a list.
+    fn make_comment(tok_ops: &mut TokOps, i: usize, comment: &Rc<dyn Tok>) {
+        tok_ops.push(i, Op::Tok(DocTok::make(comment.clone())));
+        if !comment.is_slash_star_comment() {
+            tok_ops.push(i, Op::Break(DocBreak::make_forced()));
         }
     }
 }
@@ -179,10 +177,6 @@ struct TokOps(Vec<(usize, Op)>);
 impl TokOps {
     fn push(&mut self, i: usize, op: Op) {
         self.0.push((i, op));
-    }
-
-    fn extend(&mut self, i: usize, ops: Vec<Op>) {
-        self.0.extend(ops.into_iter().map(|op| (i, op)));
     }
 
     /// Stable, so ops inserted at the same index keep their order.
