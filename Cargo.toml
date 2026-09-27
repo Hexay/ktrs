@@ -15,22 +15,47 @@ ktrs_lexer = { path = "crates/ktrs_lexer" }
 ktrs_parser = { path = "crates/ktrs_parser" }
 ktrs_psi = { path = "crates/ktrs_psi" }
 ktrs_fmt = { path = "crates/ktrs_fmt" }
+ktrs_cli = { path = "crates/ktrs_cli" }
 text-size = "1.1"
 expect-test = "1.5"
 mimalloc = { version = "0.1", default-features = false }
 
+# The root package only owns the binaries, so `cargo install --path .` (and pre-commit's rust
+# hooks, which run exactly that) work; the code is in crates/ktrs_cli.
+[package]
+name = "ktrs"
+description = "Fast Kotlin tooling: a ktfmt-identical formatter (`ktrs fmt`, drop-in `ktfmt`)"
+readme = "README.md"
+keywords = ["kotlin", "formatter", "ktfmt"]
+categories = ["command-line-utilities", "development-tools"]
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+autobins = false
+include = ["/crates/ktrs_cli/src/bin", "/README.md", "/LICENSE-*", "/NOTICE"]
+
+[[bin]]
+name = "ktrs"
+path = "crates/ktrs_cli/src/bin/ktrs.rs"
+
+[[bin]]
+name = "ktfmt"
+path = "crates/ktrs_cli/src/bin/ktfmt.rs"
+
+[dependencies]
+ktrs_cli.workspace = true
+mimalloc.workspace = true
+
 [profile.release]
 lto = "fat"
 codegen-units = 1
-panic = "abort"
-
-# fmt-diff catches formatter panics per file.
-[profile.release-unwind]
-inherits = "release"
+# Unwinding lets the CLI (and fmt-diff) fail only the file whose formatting panicked, as ktfmt
+# does on an exception.
 panic = "unwind"
 
-# Shipped binaries: the CLI isolates a formatter panic to its file, like ktfmt with an exception.
+# Shipped binaries.
 [profile.dist]
 inherits = "release"
-panic = "unwind"
 strip = true

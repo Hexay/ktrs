@@ -54,7 +54,7 @@ Things 0.64 does **not** have:
 | Parallelism | `files.parallelStream()` (ForkJoin, one thread per core). Stderr line order is nondeterministic, so byte-exact stderr ordering is not a requirement. |
 | I/O | Reads UTF-8, strips a leading BOM, writes UTF-8. Writes **only if the content changed** (preserves mtime). Line separators follow the input (`guessLineSeparator`); ktrs already ports this. |
 | Per-file messages (stderr) | `Done formatting <path>` (unless `--quiet`).<br>IO error: `Error formatting <path>: <msg>; skipping.`<br>ParseError: `<path>:<line>:<col>: error: <desc>`.<br>FormattingError: `<path>:<diagnostic>` per diagnostic plus a JVM stack trace (we can omit the trace). |
-| Error isolation | One bad file does not stop the others (`all files in args are processed, even if one of them has an error`). **Gotcha:** our release profile uses `panic = "abort"`. The CLI needs `catch_unwind` per file (the `release-unwind` profile) or a guarantee that the formatter never panics. |
+| Error isolation | One bad file does not stop the others (`all files in args are processed, even if one of them has an error`). Done: the CLI `catch_unwind`s per file and the release profile unwinds. |
 | Exit codes | Only **0** and **1**. 1 means an argument error, any per-file exception, or a change with `--set-exit-if-changed`. |
 | stdin | Always writes the formatted code to stdout, changed or not. A parse error on stdin goes to stderr and exits 1. |
 | `.kt` vs `.kts` | Irrelevant to formatting: `Parser.kt` always parses as `temp.kts`. So a path-less stdin pipe loses nothing except `.editorconfig`. |
