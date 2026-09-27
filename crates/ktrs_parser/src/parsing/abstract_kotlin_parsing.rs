@@ -142,9 +142,23 @@ impl Parser {
         false
     }
 
+    #[inline]
     pub(crate) fn at(&mut self, expectation: SyntaxKind) -> bool {
-        // `_at(expectation)`, keeping its `tt()` for the second lookup (which can't differ).
         let token = self.tt();
+        if token == Some(expectation) {
+            return true;
+        }
+        // Inlined so a constant `expectation` folds this away; the rest can only match in these cases.
+        if expectation != EOL_OR_SEMICOLON && expectation != IDENTIFIER && !kt_tokens::is_soft_keyword(expectation) {
+            return false;
+        }
+        self.at_rest(token, expectation)
+    }
+
+    /// The body of upstream's `at` after its `tt()`.
+    #[inline(never)]
+    fn at_rest(&mut self, token: Option<SyntaxKind>, expectation: SyntaxKind) -> bool {
+        // `_at(expectation)`, keeping its `tt()` for the second lookup (which can't differ).
         if self.token_matches(token, expectation) {
             return true;
         }
@@ -186,9 +200,23 @@ impl Parser {
         false
     }
 
+    #[inline]
     pub(crate) fn at_set(&mut self, set: TokenSet) -> bool {
-        // `_at_set(set)`, keeping its `tt()` for the second lookup (which can't differ).
         let token = self.tt();
+        if set.contains(token) {
+            return true;
+        }
+        // As in `at`: folds away for a constant `set`.
+        if !set.contains(EOL_OR_SEMICOLON) && !set.contains(IDENTIFIER) && !set.intersects(kt_tokens::SOFT_KEYWORDS) {
+            return false;
+        }
+        self.at_set_rest(token, set)
+    }
+
+    /// The body of upstream's `atSet` after its `tt()`.
+    #[inline(never)]
+    fn at_set_rest(&mut self, token: Option<SyntaxKind>, set: TokenSet) -> bool {
+        // `_at_set(set)`, keeping its `tt()` for the second lookup (which can't differ).
         if self.token_matches_set(token, set) {
             return true;
         }

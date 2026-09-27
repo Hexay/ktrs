@@ -141,6 +141,7 @@ impl SemanticWhitespaceAwarePsiBuilder {
     }
 
     /// The Impl's `getTokenType` (no truncation).
+    #[inline]
     pub(super) fn impl_get_token_type(&mut self) -> Option<SyntaxKind> {
         let raw = self.psi.get_token_type();
         if !self.join_complex_tokens() {
@@ -149,6 +150,7 @@ impl SemanticWhitespaceAwarePsiBuilder {
         self.get_joined_token_type(raw, 1)
     }
 
+    #[inline]
     fn get_joined_token_type(&self, raw_token_type: Option<SyntaxKind>, raw_lookup_steps: i32) -> Option<SyntaxKind> {
         match raw_token_type {
             Some(QUEST) => match self.psi.raw_lookup(raw_lookup_steps) {
