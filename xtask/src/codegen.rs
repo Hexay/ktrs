@@ -78,10 +78,12 @@ fn render(kinds: &[Kind]) -> String {
     ] {
         writeln!(s, "    /// {doc}").unwrap();
         writeln!(s, "    pub fn {fn_name}(text: &str) -> Option<SyntaxKind> {{").unwrap();
-        s.push_str("        Some(match text {\n");
+        // Byte-slice patterns compile to a length/byte decision tree; `&str` arms are compared one by one.
+        s.push_str("        Some(match text.as_bytes() {\n");
         for k in kinds.iter().filter(|k| matches!(&k.keyword, Some((_, is_soft)) if *is_soft == soft)) {
             let (text, _) = k.keyword.as_ref().unwrap();
-            writeln!(s, "            {text:?} => {},", k.name).unwrap();
+            let bytes: Vec<String> = text.bytes().map(|b| format!("{:?}", b as char).replacen('\'', "b'", 1)).collect();
+            writeln!(s, "            [{}] => {}, // {text}", bytes.join(", "), k.name).unwrap();
         }
         s.push_str("            _ => return None,\n        })\n    }\n\n");
     }
