@@ -66,7 +66,7 @@ impl SemanticWhitespaceAwarePsiBuilder {
     }
 
     pub fn get_token_type(&mut self) -> Option<SyntaxKind> {
-        if self.top_truncated_eof_position().is_some() && self.eof() {
+        if !self.layers.is_empty() && self.top_truncated_eof_position().is_some() && self.eof() {
             return None;
         }
         self.impl_get_token_type()
