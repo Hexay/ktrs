@@ -48,12 +48,21 @@ impl Suggestor {
 
     /// The only elements [`Self::take_element`] can record a suggestion for.
     pub fn may_be_list(element: &PsiElement) -> bool {
-        element.is::<KtValueArgumentList>()
-            || element.is::<KtParameterList>()
-            || element.is::<KtTypeArgumentList>()
-            || element.is::<KtTypeParameterList>()
-            || element.is::<KtCollectionLiteralExpression>()
-            || element.is::<KtClassBody>()
+        !element.is_leaf() && !element.is_file() && Self::may_be_list_kind(element.kind())
+    }
+
+    /// The node kinds of [`Self::may_be_list`]'s classes (`KtValueArgumentList`, `KtParameterList`,
+    /// `KtTypeArgumentList`, `KtTypeParameterList`, `KtCollectionLiteralExpression`, `KtClassBody`).
+    pub fn may_be_list_kind(kind: SyntaxKind) -> bool {
+        matches!(
+            kind,
+            SyntaxKind::VALUE_ARGUMENT_LIST
+                | SyntaxKind::VALUE_PARAMETER_LIST
+                | SyntaxKind::TYPE_ARGUMENT_LIST
+                | SyntaxKind::TYPE_PARAMETER_LIST
+                | SyntaxKind::COLLECTION_LITERAL_EXPRESSION
+                | SyntaxKind::CLASS_BODY
+        )
     }
 
     /// Records the item after which a trailing comma should be inserted: only in multi-line lists of
