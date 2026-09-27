@@ -82,27 +82,21 @@ impl SemanticWhitespaceAwarePsiBuilder {
             return true;
         }
 
-        // Upstream bounds `i` by the char offset; the loop always breaks long before that.
-        let mut i = 1;
-        while i <= self.psi.get_current_offset() {
-            let previous_token = self.psi.raw_lookup(-i);
-
-            if matches!(previous_token, Some(BLOCK_COMMENT | DOC_COMMENT | EOL_COMMENT | SHEBANG_COMMENT)) {
-                i += 1;
-                continue;
+        // Upstream walks back `i` lexemes while `i <= offset`; trivia is never empty, so only the
+        // start of the input can stop it first. `prev` is the lexeme `i` back.
+        let psi = &self.psi;
+        let mut prev = psi.current_lexeme;
+        while prev > 0 {
+            prev -= 1;
+            match psi.lex_types[prev] {
+                BLOCK_COMMENT | DOC_COMMENT | EOL_COMMENT | SHEBANG_COMMENT => continue,
+                WHITE_SPACE => {
+                    if psi.token_text(prev).as_bytes().contains(&b'\n') {
+                        return true;
+                    }
+                }
+                _ => break,
             }
-
-            if previous_token != Some(WHITE_SPACE) {
-                break;
-            }
-
-            let previous_token_start = self.psi.raw_token_type_start(-i) as usize;
-            let previous_token_end = self.psi.raw_token_type_start(-i + 1) as usize;
-
-            if self.psi.text.as_bytes()[previous_token_start..previous_token_end].contains(&b'\n') {
-                return true;
-            }
-            i += 1;
         }
 
         false
