@@ -29,10 +29,18 @@ pub const fn ascii<const N: usize>(s: &str) -> [u16; N] {
 }
 
 pub fn ks(s: &str) -> KString {
-    s.encode_utf16().collect()
+    if s.is_ascii() {
+        return s.bytes().map(u16::from).collect();
+    }
+    let mut k = KString::with_capacity(s.len());
+    k.extend(s.encode_utf16());
+    k
 }
 
 pub fn to_string(s: &[u16]) -> String {
+    if s.iter().all(|&c| c < 0x80) {
+        return String::from_utf8(s.iter().map(|&c| c as u8).collect()).expect("ASCII");
+    }
     String::from_utf16_lossy(s)
 }
 
