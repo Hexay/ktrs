@@ -2,9 +2,10 @@
 //! leaf docs (`Token`, `Space`, `Break`, `Tok`) in `doc_leaves`.
 //!
 //! Java's `Doc` subclasses become [`DocKind`] variants inside [`Doc`], which owns the memoized
-//! width/flat/range suppliers.
+//! width supplier. Flat text and range are not memoized: `write` reads each doc's at most once
+//! (a one-line level reads its subtree's, and then never writes that subtree).
 
-use std::cell::OnceCell;
+use std::cell::Cell;
 
 use super::comments_helper::CommentsHelper;
 use super::doc_leaves::{DocBreak, DocTok, DocToken};
@@ -60,8 +61,8 @@ impl State {
 #[derive(Debug)]
 pub struct Doc {
     kind: DocKind,
-    width: OnceCell<i32>,
-    range: OnceCell<Range>,
+    /// Memoized `getWidth()`; `-1` until computed (widths are never negative).
+    width: Cell<i32>,
 }
 
 #[derive(Debug)]
@@ -80,8 +81,7 @@ impl Doc {
     pub(crate) fn new(kind: DocKind) -> Doc {
         Doc {
             kind,
-            width: OnceCell::new(),
-            range: OnceCell::new(),
+            width: Cell::new(-1),
         }
     }
 
@@ -94,11 +94,15 @@ impl Doc {
     }
 
     pub fn get_width(&self) -> i32 {
-        *self.width.get_or_init(|| self.compute_width())
+        let width = self.width.get();
+        if width >= 0 {
+            return width;
+        }
+        let width = self.compute_width();
+        self.width.set(width);
+        width
     }
 
-    /// Not memoized (unlike upstream): only `write` reads it, once per one-line level, so building it
-    /// into one buffer keeps nested one-line levels from copying their text at every depth.
     pub fn get_flat(&self) -> String {
         let mut flat = String::new();
         self.compute_flat(&mut flat);
@@ -106,7 +110,7 @@ impl Doc {
     }
 
     pub fn range(&self) -> Range {
-        *self.range.get_or_init(|| self.compute_range())
+        self.compute_range()
     }
 
     fn compute_width(&self) -> i32 {
@@ -119,13 +123,29 @@ impl Doc {
         }
     }
 
-    fn compute_flat(&self, out: &mut String) {
+    /// Appends the flat text to `out` and returns `range()`, walking the subtree once for both.
+    fn compute_flat(&self, out: &mut String) -> Range {
         match &self.kind {
-            DocKind::Level(level) => level.docs.iter().for_each(|doc| doc.compute_flat(out)),
-            DocKind::Token(token) => token.compute_flat(out),
-            DocKind::Space => out.push(' '),
-            DocKind::Break(b) => b.compute_flat(out),
-            DocKind::Tok(tok) => tok.compute_flat(out),
+            DocKind::Level(level) => level
+                .docs
+                .iter()
+                .fold(EMPTY_RANGE, |acc, doc| Level::union(acc, doc.compute_flat(out))),
+            DocKind::Token(token) => {
+                token.compute_flat(out);
+                token.compute_range()
+            }
+            DocKind::Space => {
+                out.push(' ');
+                EMPTY_RANGE
+            }
+            DocKind::Break(b) => {
+                b.compute_flat(out);
+                EMPTY_RANGE
+            }
+            DocKind::Tok(tok) => {
+                tok.compute_flat(out);
+                tok.compute_range()
+            }
         }
     }
 
@@ -134,7 +154,7 @@ impl Doc {
             DocKind::Level(level) => level
                 .docs
                 .iter()
-                .fold(EMPTY_RANGE, |acc, doc| Level::union(acc, doc.range())),
+                .fold(EMPTY_RANGE, |acc, doc| Level::union(acc, doc.compute_range())),
             DocKind::Token(token) => token.compute_range(),
             DocKind::Space | DocKind::Break(_) => EMPTY_RANGE,
             DocKind::Tok(tok) => tok.compute_range(),
@@ -148,7 +168,7 @@ impl Doc {
         max_width: i32,
         state: State,
     ) -> State {
-        let this_width = if matches!(self.kind, DocKind::Level(_)) {
+        let this_width = if matches!(self.kind, DocKind::Level(_) | DocKind::Token(_)) {
             self.get_width()
         } else {
             0
@@ -157,7 +177,8 @@ impl Doc {
             DocKind::Level(level) => {
                 level.compute_breaks(comments_helper, max_width, state, this_width)
             }
-            DocKind::Token(token) => token.compute_breaks(state),
+            // Token.computeBreaks: its computeWidth() is the memoized width.
+            DocKind::Token(_) => state.with_column(state.column + this_width),
             DocKind::Space => state.with_column(state.column + 1),
             DocKind::Break(_) => panic!("Did you mean computeBreaks(State, int, boolean)?"),
             DocKind::Tok(tok) => tok.compute_breaks(comments_helper, max_width, state),
@@ -166,19 +187,26 @@ impl Doc {
 
     /// Write a `Doc` to an `Output`, after breaking decisions have been made.
     pub fn write(&self, output: &mut dyn Output) {
+        self.write_with(output, &mut String::new());
+    }
+
+    /// `write`, building one-line levels' flat text in the reused buffer `flat`.
+    pub(super) fn write_with(&self, output: &mut dyn Output, flat: &mut String) {
         match &self.kind {
             DocKind::Level(level) => {
                 if level.one_line {
                     // Defined because the width is finite.
-                    output.append(&self.get_flat(), self.range());
+                    flat.clear();
+                    let range = self.compute_flat(flat);
+                    output.append(flat, range);
                 } else {
-                    level.write_filled(output);
+                    level.write_filled(output, flat);
                 }
             }
-            DocKind::Token(token) => token.write(output, self.range()),
-            DocKind::Space => output.append(" ", self.range()),
-            DocKind::Break(b) => b.write(output, self.range()),
-            DocKind::Tok(tok) => tok.write(output, self.range()),
+            DocKind::Token(token) => token.write(output, token.compute_range()),
+            DocKind::Space => output.append(" ", EMPTY_RANGE),
+            DocKind::Break(b) => b.write(output, EMPTY_RANGE),
+            DocKind::Tok(tok) => tok.write(output, tok.compute_range()),
         }
     }
 }
