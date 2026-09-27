@@ -19,11 +19,10 @@ pub fn drop_redundant_elements(file: &KtFile, options: &FormattingOptions) -> Re
     let mut trailing_comma_detector = trailing_commas::Detector::default();
     let removes_trailing_commas = options.trailing_comma_management_strategy.remove_redundant_trailing_commas();
     let tree = file.tree();
-    // Only `;` and `,` leaves can be redundant; without either candidate, leaves are skipped.
-    let visits_leaves = removes_trailing_commas || tree.has_descendant_of_kind(file.id(), SyntaxKind::SEMICOLON);
 
     // Upstream's `KtTreeVisitorVoid`, as a preorder scan: the same elements in the same order,
     // with each override's work done where the visitor would do it (see `visitor/dispatch.rs`).
+    // Only kinds some override or detector acts on become `PsiElement`s.
     let (mut package_end, mut import_list_end) = (None, None);
     let mut id = file.id();
     let end = tree.subtree_end(id);
@@ -36,44 +35,43 @@ pub fn drop_redundant_elements(file: &KtFile, options: &FormattingOptions) -> Re
             import_detector.leave_import_list();
             import_list_end = None;
         }
-        let is_leaf = tree.is_token(id);
-        if is_leaf && !visits_leaves {
+        let kind = tree.kind(id);
+        if tree.is_token(id) {
+            // The detectors only act on `;` and `,` leaves.
+            match kind {
+                SyntaxKind::SEMICOLON => semicolon_detector.take_element(&file.at(id)),
+                SyntaxKind::COMMA if removes_trailing_commas => trailing_comma_detector.take_element(&file.at(id)),
+                _ => {}
+            }
             id += 1;
             continue;
         }
-        let element = file.at(id);
-        if !is_leaf {
-            match tree.kind(id) {
-                SyntaxKind::PACKAGE_DIRECTIVE => {
-                    import_detector.enter_package_directive(&element.cast().expect("package directive"));
-                    package_end = Some(tree.subtree_end(id));
-                }
-                SyntaxKind::IMPORT_LIST => {
-                    import_detector.enter_import_list(&element.cast().expect("import list"));
-                    import_list_end = Some(tree.subtree_end(id));
-                }
-                // The kinds `accept` routes to `visitReferenceExpression`.
-                SyntaxKind::REFERENCE_EXPRESSION
-                | SyntaxKind::ENUM_ENTRY_SUPERCLASS_REFERENCE_EXPRESSION
-                | SyntaxKind::OPERATION_REFERENCE
-                | SyntaxKind::LABEL
-                | SyntaxKind::CALL_EXPRESSION
-                | SyntaxKind::ARRAY_ACCESS_EXPRESSION => {
-                    let reference = element.cast::<KtReferenceExpression>().expect("reference expression kind");
-                    import_detector.take_reference_expression(&reference);
-                }
-                _ => {}
+        match kind {
+            SyntaxKind::PACKAGE_DIRECTIVE => {
+                import_detector.enter_package_directive(&file.at(id).cast().expect("package directive"));
+                package_end = Some(tree.subtree_end(id));
+            }
+            SyntaxKind::IMPORT_LIST => {
+                import_detector.enter_import_list(&file.at(id).cast().expect("import list"));
+                import_list_end = Some(tree.subtree_end(id));
+            }
+            // The kinds `accept` routes to `visitReferenceExpression`.
+            SyntaxKind::REFERENCE_EXPRESSION
+            | SyntaxKind::ENUM_ENTRY_SUPERCLASS_REFERENCE_EXPRESSION
+            | SyntaxKind::OPERATION_REFERENCE
+            | SyntaxKind::LABEL
+            | SyntaxKind::CALL_EXPRESSION
+            | SyntaxKind::ARRAY_ACCESS_EXPRESSION => {
+                let reference = file.at(id).cast::<KtReferenceExpression>().expect("reference expression kind");
+                import_detector.take_reference_expression(&reference);
             }
             // `visitElement`: KDoc is read for references and not descended into.
-            if let Some(kdoc) = element.cast::<KDocImpl>() {
-                import_detector.take_kdoc(&kdoc);
+            SyntaxKind::DOC_COMMENT => {
+                import_detector.take_kdoc(&file.at(id).cast::<KDocImpl>().expect("KDoc"));
                 id = tree.subtree_end(id);
                 continue;
             }
-        }
-        semicolon_detector.take_element(&element);
-        if removes_trailing_commas {
-            trailing_comma_detector.take_element(&element);
+            _ => {}
         }
         id += 1;
     }
@@ -109,12 +107,9 @@ pub fn add_redundant_elements(file: &KtFile, options: &FormattingOptions) -> Res
     // without dispatching at every node.
     let tree = file.tree();
     for id in file.id()..tree.subtree_end(file.id()) {
-        if tree.is_token(id) {
-            continue;
-        }
-        let element = file.at(id);
-        if trailing_commas::Suggestor::may_be_list(&element)
-            && let Some(kt_element) = element.cast::<KtElement>()
+        if !tree.is_token(id)
+            && trailing_commas::Suggestor::may_be_list_kind(tree.kind(id))
+            && let Some(kt_element) = file.at(id).cast::<KtElement>()
         {
             suggestor.take_element(&kt_element);
         }
