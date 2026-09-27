@@ -136,9 +136,9 @@ impl Level {
     }
 
     /// The splits and the breaks between them, interleaved, are just `docs` in order.
-    pub(super) fn write_filled(&self, output: &mut dyn Output) {
+    pub(super) fn write_filled(&self, output: &mut dyn Output, flat: &mut String) {
         for doc in &self.docs {
-            doc.write(output);
+            doc.write_with(output, flat);
         }
     }
 

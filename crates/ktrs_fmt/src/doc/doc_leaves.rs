@@ -74,11 +74,12 @@ impl DocToken {
     }
 
     pub(crate) fn compute_width(&self) -> i32 {
-        let idx = newlines::first_break(self.tok().get_original_text());
-        if idx >= 0 {
+        // `firstBreak(text) >= 0` is "contains a break"; `length()` is `utf16_len(text)`.
+        let text = self.tok().get_original_text();
+        if newlines::contains_breaks(text) {
             MAX_LINE_WIDTH
         } else {
-            self.tok().length()
+            utf16_len(text)
         }
     }
 
@@ -88,10 +89,6 @@ impl DocToken {
 
     pub(crate) fn compute_range(&self) -> Range {
         Range::singleton(self.tok().get_index())
-    }
-
-    pub(crate) fn compute_breaks(&self, state: State) -> State {
-        state.with_column(state.column + self.compute_width())
     }
 
     pub(crate) fn write(&self, output: &mut dyn Output, range: Range) {
