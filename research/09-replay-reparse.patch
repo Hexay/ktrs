@@ -1,0 +1,818 @@
+diff --git a/crates/ktrs_parser/src/builder/chameleon_cache.rs b/crates/ktrs_parser/src/builder/chameleon_cache.rs
+index 83138d8..65dfbb0 100644
+--- a/crates/ktrs_parser/src/builder/chameleon_cache.rs
++++ b/crates/ktrs_parser/src/builder/chameleon_cache.rs
+@@ -10,10 +10,15 @@ use std::collections::HashMap;
+ 
+ use ktrs_syntax::{SyntaxKind, Tree};
+ 
++use super::replay::ReplayRecord;
++
+ #[derive(Default)]
+ pub struct ChameleonCache {
+     /// The entry's own text is its key; the hash only picks the bucket.
+     subtrees: HashMap<u64, Vec<Tree>>,
++    /// Recorded parses by non-trivia token signature, for text that differs in trivia only
++    /// (see `replay.rs`); each record checks its own applicability.
++    replays: HashMap<u64, Vec<ReplayRecord>>,
+ }
+ 
+ impl ChameleonCache {
+@@ -30,6 +35,19 @@ impl ChameleonCache {
+         let key = hash(subtree.kind(Tree::ROOT), subtree.text());
+         self.subtrees.entry(key).or_default().push(subtree);
+     }
++
++    pub(super) fn replays(&self, signature: u64) -> &[ReplayRecord] {
++        self.replays.get(&signature).map_or(&[], Vec::as_slice)
++    }
++
++    /// Keeps at most a few records per token sequence (one per trivia shape that answers
++    /// differently), so a lookup's cost stays bounded.
++    pub(super) fn insert_replay(&mut self, signature: u64, record: ReplayRecord) {
++        let bucket = self.replays.entry(signature).or_default();
++        if bucket.len() < 4 {
++            bucket.push(record);
++        }
++    }
+ }
+ 
+ /// FxHash-style multiply-rotate over 8-byte words.
+diff --git a/crates/ktrs_parser/src/builder/layers.rs b/crates/ktrs_parser/src/builder/layers.rs
+index 8ae1816..5775679 100644
+--- a/crates/ktrs_parser/src/builder/layers.rs
++++ b/crates/ktrs_parser/src/builder/layers.rs
+@@ -92,8 +92,9 @@ impl SemanticWhitespaceAwarePsiBuilder {
+             return None;
+         }
+ 
+-        // Truncated lookahead is raw: complex tokens are not joined.
+-        self.psi.raw_lookup(raw_look_ahead_steps)
++        // Truncated lookahead is raw: complex tokens are not joined. It lands on the `steps`-th
++        // non-trivia token (or past the end) whatever the trivia, so it isn't a replay query.
++        self.psi.raw_lookup_unlogged(raw_look_ahead_steps)
+     }
+ 
+     /// `TruncatedSemanticWhitespaceAwarePsiBuilder.rawLookAhead`.
+@@ -103,10 +104,10 @@ impl SemanticWhitespaceAwarePsiBuilder {
+         while steps > 0 {
+             cur += 1;
+ 
+-            let mut raw_token_type = self.psi.raw_lookup(cur);
++            let mut raw_token_type = self.psi.raw_lookup_unlogged(cur);
+             while raw_token_type.is_some_and(|t| self.is_whitespace_or_comment(t)) {
+                 cur += 1;
+-                raw_token_type = self.psi.raw_lookup(cur);
++                raw_token_type = self.psi.raw_lookup_unlogged(cur);
+             }
+ 
+             steps -= 1;
+diff --git a/crates/ktrs_parser/src/builder/mod.rs b/crates/ktrs_parser/src/builder/mod.rs
+index 9efb1a8..81fa8eb 100644
+--- a/crates/ktrs_parser/src/builder/mod.rs
++++ b/crates/ktrs_parser/src/builder/mod.rs
+@@ -33,6 +33,7 @@ mod marker;
+ mod pool;
+ mod production;
+ mod psi_builder;
++mod replay;
+ mod semantic;
+ mod sink;
+ mod tree;
+@@ -44,7 +45,7 @@ pub use binders::{EdgeBinder, GREEDY_LEFT_BINDER, GREEDY_RIGHT_BINDER};
+ pub use chameleon_cache::ChameleonCache;
+ pub use marker::{Marker, MarkerHost};
+ pub use psi_builder::PsiBuilder;
+-pub use layers::Layer;
++pub(crate) use replay::QueryLog;pub use layers::Layer;
+ pub use semantic::SemanticWhitespaceAwarePsiBuilder;
+ pub use sink::TreeSink;
+ pub use tree::{LazyLeaf, LazyReparse};
+diff --git a/crates/ktrs_parser/src/builder/pool.rs b/crates/ktrs_parser/src/builder/pool.rs
+index 1bb7b53..75eeb4a 100644
+--- a/crates/ktrs_parser/src/builder/pool.rs
++++ b/crates/ktrs_parser/src/builder/pool.rs
+@@ -103,6 +103,7 @@ impl PsiBuilder {
+             token_type_checked: false,
+             production: Production::from_vecs(markers, list),
+             skipped_errors,
++            log: None,
+         }
+     }
+ }
+diff --git a/crates/ktrs_parser/src/builder/production.rs b/crates/ktrs_parser/src/builder/production.rs
+index dec5273..96e5219 100644
+--- a/crates/ktrs_parser/src/builder/production.rs
++++ b/crates/ktrs_parser/src/builder/production.rs
+@@ -10,7 +10,7 @@ use ktrs_syntax::SyntaxKind;
+ 
+ use super::binders::EdgeBinder;
+ 
+-#[derive(Debug)]
++#[derive(Clone, Debug)]
+ pub(crate) struct MarkerData {
+     /// `ErrorItem` (from `builder.error`) rather than `StartMarker`.
+     pub(crate) is_error_item: bool,
+@@ -45,6 +45,12 @@ impl MarkerData {
+         self.message.is_some()
+     }
+ 
++    /// A copy with the live (`>= 0`) start and done lexemes passed through `map`.
++    fn with_lexemes(&self, map: impl Fn(i32) -> i32) -> MarkerData {
++        let live = |i: i32| if i >= 0 { map(i) } else { i };
++        MarkerData { lexeme: live(self.lexeme), done_lexeme: live(self.done_lexeme), ..self.clone() }
++    }
++
+     pub(crate) fn is_done(&self) -> bool {
+         self.done_lexeme != -1
+     }
+@@ -95,6 +101,26 @@ impl Production {
+         self.error_items > 0
+     }
+ 
++    /// Whether the production (rolled-back markers aside) holds an error item or a marker with a
++    /// message (an `ERROR_ELEMENT`).
++    pub(crate) fn has_live_errors(&self) -> bool {
++        self.list.iter().any(|&id| id > 0 && (self.marker(id).is_error_item || self.marker(id).has_message()))
++    }
++
++    /// Markers and list with every live lexeme index passed through `map` (for `replay.rs`).
++    pub(crate) fn snapshot(&self, map: impl Fn(i32) -> i32) -> (Vec<MarkerData>, Vec<i32>) {
++        let markers = self.markers.iter().map(|m| m.with_lexemes(&map)).collect();
++        (markers, self.list.clone())
++    }
++
++    /// Replaces an empty production with a [`Self::snapshot`] of one without live errors (its
++    /// messages are not carried), mapping lexemes back.
++    pub(crate) fn restore(&mut self, markers: &[MarkerData], list: &[i32], map: impl Fn(i32) -> i32) {
++        debug_assert!(self.markers.is_empty() && self.list.is_empty());
++        self.markers.extend(markers.iter().map(|m| m.with_lexemes(&map)));
++        self.list.extend_from_slice(list);
++    }
++
+     pub(crate) fn take_vecs(&mut self) -> (Vec<MarkerData>, Vec<i32>) {
+         (std::mem::take(&mut self.markers), std::mem::take(&mut self.list))
+     }
+diff --git a/crates/ktrs_parser/src/builder/psi_builder.rs b/crates/ktrs_parser/src/builder/psi_builder.rs
+index 4345d55..d512604 100644
+--- a/crates/ktrs_parser/src/builder/psi_builder.rs
++++ b/crates/ktrs_parser/src/builder/psi_builder.rs
+@@ -5,6 +5,7 @@ use ktrs_syntax::SyntaxKind;
+ 
+ use super::marker::Marker;
+ use super::production::Production;
++use super::replay::QueryLog;
+ 
+ /// Constructed (from recycled buffers) in `pool.rs`.
+ pub struct PsiBuilder {
+@@ -20,6 +21,8 @@ pub struct PsiBuilder {
+     pub(crate) production: Production,
+     /// Scratch for `prepareLightTree`'s duplicate-error pass (see `tree.rs`).
+     pub(crate) skipped_errors: Vec<bool>,
++    /// Trivia-observing queries, logged while a cached chameleon parse runs (`replay.rs`).
++    pub(crate) log: Option<QueryLog>,
+ }
+ 
+ impl PsiBuilder {
+@@ -64,7 +67,33 @@ impl PsiBuilder {
+         lex_index
+     }
+ 
+-    pub fn raw_lookup(&self, steps: i32) -> Option<SyntaxKind> {
++    pub fn raw_lookup(&mut self, steps: i32) -> Option<SyntaxKind> {
++        if let Some(log) = &mut self.log {
++            log.raw(self.current_lexeme, steps);
++        }
++        self.raw_lookup_unlogged(steps)
++    }
++
++    /// `raw_lookup(steps) == Some(kind)` for punctuation `kind` (never produced or replaced by a
++    /// remap), logged as just that question so trivia changes elsewhere don't void a replay.
++    pub fn raw_is(&mut self, steps: i32, kind: SyntaxKind) -> bool {
++        debug_assert!(matches!(kind, SyntaxKind::AT | SyntaxKind::COLON | SyntaxKind::DOT | SyntaxKind::EXCL));
++        if let Some(log) = &mut self.log {
++            log.raw_is(self.current_lexeme, steps, kind);
++        }
++        self.raw_lookup_unlogged(steps) == Some(kind)
++    }
++
++    /// `WHITE_SPACE_OR_COMMENT_BIT_SET.contains(raw_lookup(steps))`, logged as that question.
++    pub fn raw_is_trivia(&mut self, steps: i32) -> bool {
++        if let Some(log) = &mut self.log {
++            log.raw_is_trivia(self.current_lexeme, steps);
++        }
++        self.raw_lookup_unlogged(steps).is_some_and(|k| self.is_whitespace_or_comment(k))
++    }
++
++    /// [`Self::raw_lookup`] for callers whose answer doesn't depend on trivia (they walk over it).
++    pub fn raw_lookup_unlogged(&self, steps: i32) -> Option<SyntaxKind> {
+         let cur = self.current_lexeme as i64 + steps as i64;
+         if cur >= 0 && (cur as usize) < self.lexeme_count() { Some(self.lex_types[cur as usize]) } else { None }
+     }
+@@ -80,7 +109,11 @@ impl PsiBuilder {
+         self.lex_starts[cur as usize] as i32
+     }
+ 
+-    pub fn raw_token_index(&self) -> i32 {
++    /// A raw index counts trivia: a parse that looked at one can't be replayed.
++    pub fn raw_token_index(&mut self) -> i32 {
++        if let Some(log) = &mut self.log {
++            log.make_unrecordable();
++        }
+         self.current_lexeme as i32
+     }
+ 
+diff --git a/crates/ktrs_parser/src/builder/replay.rs b/crates/ktrs_parser/src/builder/replay.rs
+new file mode 100644
+index 0000000..5c99e5c
+--- /dev/null
++++ b/crates/ktrs_parser/src/builder/replay.rs
+@@ -0,0 +1,291 @@
++//! Replaying a chameleon's parse on whitespace-changed text (see research/09-replay-reparse.md).
++//!
++//! A parse is a function of the non-trivia token sequence plus the answers to the few queries that
++//! look at trivia: newline-before-token and raw neighbour lookups. While a cached parse runs, the
++//! builder logs those queries; the finished production is stored with lexemes as token ordinals
++//! ("the gap before non-trivia token k", which `balance_white_spaces` treats alike whatever raw
++//! index in the gap was recorded). A later chameleon with the same non-trivia tokens whose logged
++//! queries answer the same gets that production back and only runs the tree phase. Anything
++//! outside that model (an anchor inside trivia, `raw_token_index`) makes the parse unrecordable.
++
++use ktrs_syntax::SyntaxKind;
++
++use super::production::MarkerData;
++use super::psi_builder::PsiBuilder;
++
++/// Trivia-observing queries of one parse, by raw lexeme index.
++#[derive(Default)]
++pub(crate) struct QueryLog {
++    queries: Vec<Query>,
++    unrecordable: bool,
++}
++
++#[derive(Clone, Copy)]
++enum Query {
++    /// `newline_before_current_token` with newlines enabled, not at EOF.
++    Newline { anchor: u32, result: bool },
++    /// `raw_lookup(steps)`.
++    Raw { anchor: u32, steps: i32 },
++    /// `raw_is(steps, kind)`.
++    RawIs { anchor: u32, steps: i32, kind: SyntaxKind },
++    /// `raw_is_trivia(steps)`.
++    RawTrivia { anchor: u32, steps: i32 },
++}
++
++impl QueryLog {
++    pub(crate) fn newline(&mut self, anchor: usize, result: bool) {
++        self.queries.push(Query::Newline { anchor: anchor as u32, result });
++    }
++
++    pub(crate) fn raw(&mut self, anchor: usize, steps: i32) {
++        self.queries.push(Query::Raw { anchor: anchor as u32, steps });
++    }
++
++    pub(crate) fn raw_is(&mut self, anchor: usize, steps: i32, kind: SyntaxKind) {
++        self.queries.push(Query::RawIs { anchor: anchor as u32, steps, kind });
++    }
++
++    pub(crate) fn raw_is_trivia(&mut self, anchor: usize, steps: i32) {
++        self.queries.push(Query::RawTrivia { anchor: anchor as u32, steps });
++    }
++
++    pub(crate) fn make_unrecordable(&mut self) {
++        self.unrecordable = true;
++    }
++}
++
++/// What a raw lookup saw: trivia and absence by kind, a real token by ordinal (its kind then
++/// follows from the parse itself, remaps included).
++#[derive(Clone, Copy, PartialEq, Eq)]
++enum Seen {
++    Nothing,
++    Trivia(SyntaxKind),
++    Token(u32),
++}
++
++#[derive(Clone, Copy)]
++enum Check {
++    Newline { k: u32, result: bool },
++    Raw { k: u32, steps: i32, seen: Seen },
++    RawIs { k: u32, steps: i32, kind: SyntaxKind, result: bool },
++    RawTrivia { k: u32, steps: i32, result: bool },
++}
++
++/// A recorded chameleon parse, lexemes as token ordinals.
++pub struct ReplayRecord {
++    pub(super) kind: SyntaxKind,
++    /// The lexer's kinds and the texts of the non-trivia tokens.
++    token_kinds: Vec<SyntaxKind>,
++    token_text: String,
++    token_ends: Vec<u32>,
++    /// Kinds after the parse's remaps (soft keywords etc.), which become leaf kinds.
++    final_kinds: Vec<SyntaxKind>,
++    markers: Vec<MarkerData>,
++    list: Vec<i32>,
++    checks: Vec<Check>,
++}
++
++impl ReplayRecord {
++    pub(super) fn signature(&self) -> u64 {
++        let mut hasher = Signature::new(self.kind);
++        let mut start = 0;
++        for (&kind, &end) in self.token_kinds.iter().zip(&self.token_ends) {
++            hasher.add(kind, &self.token_text[start..end as usize]);
++            start = end as usize;
++        }
++        hasher.finish()
++    }
++}
++
++/// The non-trivia tokens of a builder: raw positions, and ordinals by raw index.
++struct Tokens {
++    pos: Vec<u32>,
++    /// `ord[i]` = number of non-trivia lexemes before raw index `i` (`lexeme_count + 1` entries).
++    ord: Vec<u32>,
++}
++
++impl PsiBuilder {
++    fn tokens(&self) -> Tokens {
++        let mut pos = Vec::new();
++        let mut ord = Vec::with_capacity(self.lexeme_count() + 1);
++        for (i, &kind) in self.orig_types.iter().enumerate() {
++            ord.push(pos.len() as u32);
++            if !kind.is_trivia() {
++                pos.push(i as u32);
++            }
++        }
++        ord.push(pos.len() as u32);
++        Tokens { pos, ord }
++    }
++
++    /// Hash of the chameleon `kind` over this builder's non-trivia (lexer kind, text) sequence.
++    pub(super) fn signature(&self, kind: SyntaxKind) -> u64 {
++        let mut hasher = Signature::new(kind);
++        for (i, &k) in self.orig_types.iter().enumerate() {
++            if !k.is_trivia() {
++                hasher.add(k, self.token_text(i));
++            }
++        }
++        hasher.finish()
++    }
++
++    /// The lexer's kind at raw `anchor + steps` (remaps aside: only compared with kinds they don't touch).
++    fn raw_kind(&self, anchor: usize, steps: i32) -> Option<SyntaxKind> {
++        let at = anchor as i64 + steps as i64;
++        (at >= 0 && (at as usize) < self.lexeme_count()).then(|| self.orig_types[at as usize])
++    }
++
++    fn seen(&self, tokens: &Tokens, anchor: usize, steps: i32) -> Seen {
++        match self.raw_kind(anchor, steps) {
++            None => Seen::Nothing,
++            Some(kind) if kind.is_trivia() => Seen::Trivia(kind),
++            Some(_) => Seen::Token(tokens.ord[(anchor as i64 + steps as i64) as usize]),
++        }
++    }
++
++    /// The finished parse of chameleon `kind` as a record, if its log allows it and it has no
++    /// errors (a record never has to reproduce error messages). Call before building the tree.
++    pub(crate) fn replay_record(&self, kind: SyntaxKind, log: &QueryLog) -> Option<ReplayRecord> {
++        if log.unrecordable || self.production.has_live_errors() || self.lexeme_count() == 0 {
++            return None;
++        }
++        // The root marker sits at raw 0 (it skips no trivia): only an ordinal if that's a token.
++        if self.orig_types[0].is_trivia() {
++            return None;
++        }
++        let tokens = self.tokens();
++        let count = self.lexeme_count();
++        let is_anchor = |i: usize| i == count || !self.orig_types[i].is_trivia();
++        let mut checks = Vec::with_capacity(log.queries.len());
++        for &query in &log.queries {
++            let (anchor, check) = match query {
++                Query::Newline { anchor, result } => (anchor, Check::Newline { k: tokens.ord[anchor as usize], result }),
++                Query::Raw { anchor, steps } => {
++                    let seen = self.seen(&tokens, anchor as usize, steps);
++                    (anchor, Check::Raw { k: tokens.ord[anchor as usize], steps, seen })
++                }
++                Query::RawIs { anchor, steps, kind } => {
++                    let result = self.raw_kind(anchor as usize, steps) == Some(kind);
++                    (anchor, Check::RawIs { k: tokens.ord[anchor as usize], steps, kind, result })
++                }
++                Query::RawTrivia { anchor, steps } => {
++                    let result = self.raw_kind(anchor as usize, steps).is_some_and(SyntaxKind::is_trivia);
++                    (anchor, Check::RawTrivia { k: tokens.ord[anchor as usize], steps, result })
++                }
++            };
++            if !is_anchor(anchor as usize) {
++                return None;
++            }
++            checks.push(check);
++        }
++        let (markers, list) = self.production.snapshot(|lexeme| tokens.ord[lexeme as usize] as i32);
++        let mut token_text = String::new();
++        let mut token_ends = Vec::with_capacity(tokens.pos.len());
++        for &p in &tokens.pos {
++            token_text.push_str(self.token_text(p as usize));
++            token_ends.push(token_text.len() as u32);
++        }
++        Some(ReplayRecord {
++            kind,
++            token_kinds: tokens.pos.iter().map(|&p| self.orig_types[p as usize]).collect(),
++            token_text,
++            token_ends,
++            final_kinds: tokens.pos.iter().map(|&p| self.lex_types[p as usize]).collect(),
++            markers,
++            list,
++            checks,
++        })
++    }
++
++    /// Installs the first of `records` whose parse applies to this fresh builder's lexemes (same
++    /// non-trivia tokens, every logged query answering the same); `false` leaves it untouched.
++    pub(crate) fn try_replay(&mut self, kind: SyntaxKind, records: &[ReplayRecord]) -> bool {
++        debug_assert!(self.production.is_empty());
++        // The root marker's raw 0 must be token 0 here too.
++        if records.is_empty() || self.orig_types.first().is_none_or(|k| k.is_trivia()) {
++            return false;
++        }
++        let tokens = self.tokens();
++        records.iter().any(|record| record.kind == kind && self.apply(&tokens, record))
++    }
++
++    fn apply(&mut self, tokens: &Tokens, record: &ReplayRecord) -> bool {
++        if tokens.pos.len() != record.token_kinds.len() || !self.same_tokens(tokens, record) {
++            return false;
++        }
++        let count = self.lexeme_count();
++        let raw_of = |k: u32| tokens.pos.get(k as usize).map_or(count, |&p| p as usize);
++        let holds = |check: &Check| match *check {
++            Check::Newline { k, result } => self.newline_before(raw_of(k)) == result,
++            Check::Raw { k, steps, seen } => self.seen(tokens, raw_of(k), steps) == seen,
++            Check::RawIs { k, steps, kind, result } => (self.raw_kind(raw_of(k), steps) == Some(kind)) == result,
++            Check::RawTrivia { k, steps, result } => {
++                self.raw_kind(raw_of(k), steps).is_some_and(SyntaxKind::is_trivia) == result
++            }
++        };
++        if !record.checks.iter().all(holds) {
++            return false;
++        }
++        for (&p, &kind) in tokens.pos.iter().zip(&record.final_kinds) {
++            self.lex_types[p as usize] = kind;
++        }
++        self.production.restore(&record.markers, &record.list, |k| raw_of(k as u32) as i32);
++        true
++    }
++
++    fn same_tokens(&self, tokens: &Tokens, record: &ReplayRecord) -> bool {
++        let mut start = 0;
++        tokens.pos.iter().zip(&record.token_kinds).zip(&record.token_ends).all(|((&p, &kind), &end)| {
++            let same = self.orig_types[p as usize] == kind
++                && self.token_text(p as usize) == &record.token_text[start..end as usize];
++            start = end as usize;
++            same
++        })
++    }
++
++    /// `newline_before_current_token`'s scan with the cursor at raw `at` (not EOF): back over
++    /// comments, true at a whitespace with a line break, false at anything else.
++    pub(crate) fn newline_before(&self, at: usize) -> bool {
++        for i in (0..at).rev() {
++            match self.lex_types[i] {
++                SyntaxKind::BLOCK_COMMENT | SyntaxKind::DOC_COMMENT | SyntaxKind::EOL_COMMENT | SyntaxKind::SHEBANG_COMMENT => {}
++                SyntaxKind::WHITE_SPACE => {
++                    let (start, end) = (self.lex_starts[i] as usize, self.lex_starts[i + 1] as usize);
++                    if self.text.as_bytes()[start..end].contains(&b'\n') {
++                        return true;
++                    }
++                }
++                _ => return false,
++            }
++        }
++        false
++    }
++}
++
++/// FxHash-style mix over the (kind, text) pairs.
++struct Signature(u64);
++
++impl Signature {
++    fn new(kind: SyntaxKind) -> Signature {
++        Signature(kind as u64)
++    }
++
++    fn mix(&mut self, word: u64) {
++        self.0 = (self.0.rotate_left(5) ^ word).wrapping_mul(0x517c_c1b7_2722_0a95);
++    }
++
++    fn add(&mut self, kind: SyntaxKind, text: &str) {
++        self.mix(kind as u64 | (text.len() as u64) << 16);
++        let (words, rest) = text.as_bytes().as_chunks::<8>();
++        for &word in words {
++            self.mix(u64::from_le_bytes(word));
++        }
++        let mut tail = [0u8; 8];
++        tail[..rest.len()].copy_from_slice(rest);
++        self.mix(u64::from_le_bytes(tail));
++    }
++
++    fn finish(&self) -> u64 {
++        self.0 ^ self.0 >> 29
++    }
++}
+diff --git a/crates/ktrs_parser/src/builder/semantic.rs b/crates/ktrs_parser/src/builder/semantic.rs
+index 9daace0..7ca6a62 100644
+--- a/crates/ktrs_parser/src/builder/semantic.rs
++++ b/crates/ktrs_parser/src/builder/semantic.rs
+@@ -82,30 +82,13 @@ impl SemanticWhitespaceAwarePsiBuilder {
+             return true;
+         }
+ 
+-        // Upstream bounds `i` by the char offset; the loop always breaks long before that.
+-        let mut i = 1;
+-        while i <= self.psi.get_current_offset() {
+-            let previous_token = self.psi.raw_lookup(-i);
+-
+-            if matches!(previous_token, Some(BLOCK_COMMENT | DOC_COMMENT | EOL_COMMENT | SHEBANG_COMMENT)) {
+-                i += 1;
+-                continue;
+-            }
+-
+-            if previous_token != Some(WHITE_SPACE) {
+-                break;
+-            }
+-
+-            let previous_token_start = self.psi.raw_token_type_start(-i) as usize;
+-            let previous_token_end = self.psi.raw_token_type_start(-i + 1) as usize;
+-
+-            if self.psi.text.as_bytes()[previous_token_start..previous_token_end].contains(&b'\n') {
+-                return true;
+-            }
+-            i += 1;
++        // Upstream's backwards scan over comments and whitespace; shared with the replay check.
++        let current = self.psi.current_lexeme;
++        let result = self.psi.newline_before(current);
++        if let Some(log) = &mut self.psi.log {
++            log.newline(current, result);
+         }
+-
+-        false
++        result
+     }
+ 
+     pub fn disable_newlines(&mut self) {
+@@ -149,14 +132,11 @@ impl SemanticWhitespaceAwarePsiBuilder {
+         self.get_joined_token_type(raw, 1)
+     }
+ 
+-    fn get_joined_token_type(&self, raw_token_type: Option<SyntaxKind>, raw_lookup_steps: i32) -> Option<SyntaxKind> {
++    fn get_joined_token_type(&mut self, raw_token_type: Option<SyntaxKind>, raw_lookup_steps: i32) -> Option<SyntaxKind> {
+         match raw_token_type {
+-            Some(QUEST) => match self.psi.raw_lookup(raw_lookup_steps) {
+-                Some(DOT) => return Some(SAFE_ACCESS),
+-                Some(COLON) => return Some(ELVIS),
+-                _ => {}
+-            },
+-            Some(EXCL) if self.psi.raw_lookup(raw_lookup_steps) == Some(EXCL) => return Some(EXCLEXCL),
++            Some(QUEST) if self.psi.raw_is(raw_lookup_steps, DOT) => return Some(SAFE_ACCESS),
++            Some(QUEST) if self.psi.raw_is(raw_lookup_steps, COLON) => return Some(ELVIS),
++            Some(EXCL) if self.psi.raw_is(raw_lookup_steps, EXCL) => return Some(EXCLEXCL),
+             _ => {}
+         }
+         raw_token_type
+@@ -214,15 +194,27 @@ impl SemanticWhitespaceAwarePsiBuilder {
+         self.psi.error(message);
+     }
+ 
+-    pub fn raw_lookup(&self, steps: i32) -> Option<SyntaxKind> {
++    pub fn raw_lookup(&mut self, steps: i32) -> Option<SyntaxKind> {
+         self.psi.raw_lookup(steps)
+     }
+ 
++    pub fn raw_is(&mut self, steps: i32, kind: SyntaxKind) -> bool {
++        self.psi.raw_is(steps, kind)
++    }
++
++    pub fn raw_is_trivia(&mut self, steps: i32) -> bool {
++        self.psi.raw_is_trivia(steps)
++    }
++
++    pub fn raw_lookup_unlogged(&self, steps: i32) -> Option<SyntaxKind> {
++        self.psi.raw_lookup_unlogged(steps)
++    }
++
+     pub fn raw_token_type_start(&self, steps: i32) -> i32 {
+         self.psi.raw_token_type_start(steps)
+     }
+ 
+-    pub fn raw_token_index(&self) -> i32 {
++    pub fn raw_token_index(&mut self) -> i32 {
+         self.psi.raw_token_index()
+     }
+ 
+diff --git a/crates/ktrs_parser/src/builder/sink.rs b/crates/ktrs_parser/src/builder/sink.rs
+index 91cc6ea..56db7f7 100644
+--- a/crates/ktrs_parser/src/builder/sink.rs
++++ b/crates/ktrs_parser/src/builder/sink.rs
+@@ -4,6 +4,8 @@
+ use ktrs_syntax::{Parse, SyntaxKind, TreeBuilder};
+ 
+ use super::chameleon_cache::ChameleonCache;
++use super::psi_builder::PsiBuilder;
++use super::replay::ReplayRecord;
+ 
+ #[derive(Default)]
+ pub struct TreeSink {
+@@ -45,6 +47,32 @@ impl TreeSink {
+         }
+     }
+ 
++    pub(crate) fn len(&self) -> u32 {
++        self.tree.len()
++    }
++
++    /// A copy of the finished subtree at `root` (nothing emitted after it).
++    pub(crate) fn subtree(&self, root: u32) -> ktrs_syntax::Tree {
++        self.tree.extract(root)
++    }
++
++    /// Whether chameleon parses should be recorded for replay (only when there is a cache).
++    pub(crate) fn records(&self) -> bool {
++        self.cache.is_some()
++    }
++
++    /// Installs a recorded parse of chameleon `kind` that applies to `psi`'s lexemes, if any.
++    pub(crate) fn replay(&self, kind: SyntaxKind, psi: &mut PsiBuilder) -> bool {
++        let Some(cache) = &self.cache else { return false };
++        psi.try_replay(kind, cache.replays(psi.signature(kind)))
++    }
++
++    pub(crate) fn insert_replay(&mut self, record: ReplayRecord) {
++        if let Some(cache) = &mut self.cache {
++            cache.insert_replay(record.signature(), record);
++        }
++    }
++
+     pub(super) fn token(&mut self, kind: SyntaxKind, text: &str) {
+         self.tree.token(kind, text);
+     }
+diff --git a/crates/ktrs_parser/src/lib.rs b/crates/ktrs_parser/src/lib.rs
+index df2cf82..b7b3909 100644
+--- a/crates/ktrs_parser/src/lib.rs
++++ b/crates/ktrs_parser/src/lib.rs
+@@ -44,4 +44,4 @@ pub fn parse_file(text: &str, kind: FileKind) -> Parse {
+ /// lambdas and KDoc whose text was already seen with `cache` are reused instead of re-parsed.
+ pub fn parse_file_cached(text: &str, kind: FileKind, cache: &mut ChameleonCache) -> Parse {
+     parsing::kotlin_parser::parse_cached(text, kind, cache)
+-}
++}
+\ No newline at end of file
+diff --git a/crates/ktrs_parser/src/parsing/abstract_kotlin_parsing.rs b/crates/ktrs_parser/src/parsing/abstract_kotlin_parsing.rs
+index 75d53f4..1e62d00 100644
+--- a/crates/ktrs_parser/src/parsing/abstract_kotlin_parsing.rs
++++ b/crates/ktrs_parser/src/parsing/abstract_kotlin_parsing.rs
+@@ -8,13 +8,14 @@ use crate::kt_tokens::{self, WHITE_SPACE_OR_COMMENT_BIT_SET};
+ use crate::token_set::TokenSet;
+ 
+ impl Parser {
++    /// The previous non-trivia token's kind, whatever trivia lies between: not a replay query.
+     pub(crate) fn get_last_token(&mut self) -> Option<SyntaxKind> {
+         let mut i = 1;
+         let current_offset = self.my_builder.get_current_offset();
+-        while i <= current_offset && WHITE_SPACE_OR_COMMENT_BIT_SET.contains(self.my_builder.raw_lookup(-i)) {
++        while i <= current_offset && WHITE_SPACE_OR_COMMENT_BIT_SET.contains(self.my_builder.raw_lookup_unlogged(-i)) {
+             i += 1;
+         }
+-        self.my_builder.raw_lookup(-i)
++        self.my_builder.raw_lookup_unlogged(-i)
+     }
+ 
+     pub(crate) fn expect_2(&mut self, expectation: SyntaxKind, message: &str) -> bool {
+diff --git a/crates/ktrs_parser/src/parsing/declarations/annotations.rs b/crates/ktrs_parser/src/parsing/declarations/annotations.rs
+index 141adfa..961651d 100644
+--- a/crates/ktrs_parser/src/parsing/declarations/annotations.rs
++++ b/crates/ktrs_parser/src/parsing/declarations/annotations.rs
+@@ -218,7 +218,7 @@ impl Parser {
+ 
+         if self.at(LPAR)
+             && !VAL_VAR.contains(self.lookahead(1))
+-            && !(WHITE_SPACE_OR_COMMENT_BIT_SET.contains(self.my_builder.raw_lookup(-1))
++            && !(self.my_builder.raw_is_trivia(-1)
+                 && mode.with_significant_whitespace_before_arguments())
+         {
+             self.parse_value_argument_list();
+diff --git a/crates/ktrs_parser/src/parsing/declarations/types.rs b/crates/ktrs_parser/src/parsing/declarations/types.rs
+index 4ddf9f2..d29c597 100644
+--- a/crates/ktrs_parser/src/parsing/declarations/types.rs
++++ b/crates/ktrs_parser/src/parsing/declarations/types.rs
+@@ -173,7 +173,7 @@ impl Parser {
+     fn parse_nullable_type_suffix(&mut self, type_element_marker: Marker) -> Marker {
+         let mut type_element_marker = type_element_marker;
+         // ?: is joined regardless of joining state
+-        while self.at(QUEST) && self.my_builder.raw_lookup(1) != Some(COLON) {
++        while self.at(QUEST) && !self.my_builder.raw_is(1, COLON) {
+             let precede = type_element_marker.precede(self);
+             self.advance(); // QUEST
+             type_element_marker.done(self, NULLABLE_TYPE);
+diff --git a/crates/ktrs_parser/src/parsing/expressions/calls.rs b/crates/ktrs_parser/src/parsing/expressions/calls.rs
+index 036690b..c3773bd 100644
+--- a/crates/ktrs_parser/src/parsing/expressions/calls.rs
++++ b/crates/ktrs_parser/src/parsing/expressions/calls.rs
+@@ -183,6 +183,6 @@ impl Parser {
+     }
+ 
+     pub(crate) fn is_at_label_definition_or_missing_identifier(&mut self) -> bool {
+-        (self.at(IDENTIFIER) && self.my_builder.raw_lookup(1) == Some(AT)) || self.at(AT)
++        (self.at(IDENTIFIER) && self.my_builder.raw_is(1, AT)) || self.at(AT)
+     }
+ }
+diff --git a/crates/ktrs_parser/src/parsing/expressions/control.rs b/crates/ktrs_parser/src/parsing/expressions/control.rs
+index c67a908..4c47bb6 100644
+--- a/crates/ktrs_parser/src/parsing/expressions/control.rs
++++ b/crates/ktrs_parser/src/parsing/expressions/control.rs
+@@ -3,7 +3,6 @@
+ use ktrs_syntax::SyntaxKind::{self, *};
+ 
+ use super::TRY_CATCH_RECOVERY_TOKEN_SET;
+-use crate::kt_tokens::WHITE_SPACE_OR_COMMENT_BIT_SET;
+ use crate::parsing::Parser;
+ use crate::parsing::declarations::EXPRESSION_FIRST;
+ 
+@@ -171,7 +170,7 @@ impl Parser {
+      */
+     pub(crate) fn parse_label_reference_with_no_whitespace(&mut self) {
+         if self.at(AT) && !self.my_builder.newline_before_current_token() {
+-            if WHITE_SPACE_OR_COMMENT_BIT_SET.contains(self.my_builder.raw_lookup(-1)) {
++            if self.my_builder.raw_is_trivia(-1) {
+                 self.error("There should be no space or comments before '@' in label reference");
+             }
+             self.parse_label_reference();
+diff --git a/crates/ktrs_parser/src/parsing/kotlin_parser.rs b/crates/ktrs_parser/src/parsing/kotlin_parser.rs
+index c28b5db..d00a87a 100644
+--- a/crates/ktrs_parser/src/parsing/kotlin_parser.rs
++++ b/crates/ktrs_parser/src/parsing/kotlin_parser.rs
+@@ -5,7 +5,7 @@ use ktrs_syntax::{Parse, SyntaxKind};
+ 
+ use super::Parser;
+ use crate::FileKind;
+-use crate::builder::{ChameleonCache, LazyLeaf, PsiBuilder, SemanticWhitespaceAwarePsiBuilder, TreeSink};
++use crate::builder::{ChameleonCache, LazyLeaf, PsiBuilder, QueryLog, SemanticWhitespaceAwarePsiBuilder, TreeSink};
+ 
+ /// `KotlinParser.parse(psiBuilder, psiFile)`: `parseFile` or `parseScript` by file kind.
+ pub fn parse(text: &str, kind: FileKind) -> Parse {
+@@ -70,12 +70,10 @@ fn run_into(psi: PsiBuilder, parse: impl FnOnce(&mut Parser), root_kind: Option<
+ pub(crate) fn reparse_lazy(leaf: &LazyLeaf<'_>, sink: &mut TreeSink) -> bool {
+     let (kind, text) = (leaf.kind, leaf.text);
+     match kind {
+-        SyntaxKind::BLOCK => sink.chameleon(kind, text, |sink| {
+-            run_into(leaf.relexed_builder(), Parser::parse_block_expression, Some(kind), sink)
+-        }),
+-        SyntaxKind::LAMBDA_EXPRESSION => sink.chameleon(kind, text, |sink| {
+-            run_into(leaf.relexed_builder(), Parser::parse_lambda_expression, Some(kind), sink)
+-        }),
++        SyntaxKind::BLOCK => sink.chameleon(kind, text, |sink| parse_chameleon(leaf, Parser::parse_block_expression, sink)),
++        SyntaxKind::LAMBDA_EXPRESSION => {
++            sink.chameleon(kind, text, |sink| parse_chameleon(leaf, Parser::parse_lambda_expression, sink))
++        }
+         SyntaxKind::DOC_COMMENT => sink.chameleon(kind, text, |sink| crate::kdoc::parse_kdoc_into(text, sink)),
+         SyntaxKind::KDOC_MARKDOWN_LINK => {
+             sink.chameleon(kind, text, |sink| crate::kdoc::parse_markdown_link_into(text, sink))
+@@ -84,3 +82,39 @@ pub(crate) fn reparse_lazy(leaf: &LazyLeaf<'_>, sink: &mut TreeSink) -> bool {
+     }
+     true
+ }
++
++/// A `BLOCK`/`LAMBDA_EXPRESSION` chameleon. With a cache, a recorded parse of the same non-trivia
++/// tokens is replayed when its trivia queries still hold (see `builder/replay.rs`); otherwise the
++/// parse runs and, if replayable, is recorded.
++fn parse_chameleon(leaf: &LazyLeaf<'_>, parse: fn(&mut Parser), sink: &mut TreeSink) {
++    let kind = leaf.kind;
++    let mut psi = leaf.relexed_builder();
++    if !sink.records() {
++        return run_into(psi, parse, Some(kind), sink);
++    }
++    if sink.replay(kind, &mut psi) {
++        let root = sink.len();
++        psi.build_tree_into(Some(kind), sink, &reparse_lazy);
++        if verify_replay() {
++            let mut fresh = TreeSink::new();
++            run_into(leaf.relexed_builder(), parse, Some(kind), &mut fresh);
++            assert!(sink.subtree(root) == *fresh.finish().tree, "replayed {kind:?} differs from its parse:\n{}", leaf.text);
++        }
++        return;
++    }
++    psi.log = Some(QueryLog::default());
++    let mut kt_parsing = Parser::create_for_top_level(SemanticWhitespaceAwarePsiBuilder::new(psi));
++    parse(&mut kt_parsing);
++    let psi = &mut kt_parsing.my_builder.psi;
++    let log = psi.log.take().expect("set above");
++    if let Some(record) = psi.replay_record(kind, &log) {
++        sink.insert_replay(record);
++    }
++    psi.build_tree_into(Some(kind), sink, &reparse_lazy);
++}
++
++/// `KTRS_VERIFY_REPLAY=1`: check every replayed chameleon against a real parse (for tests).
++fn verify_replay() -> bool {
++    static VERIFY: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
++    *VERIFY.get_or_init(|| std::env::var_os("KTRS_VERIFY_REPLAY").is_some_and(|v| v == "1"))
++}
