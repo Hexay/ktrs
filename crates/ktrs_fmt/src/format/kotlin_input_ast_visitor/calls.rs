@@ -43,8 +43,7 @@ impl KotlinInputAstVisitor<'_, '_> {
                     v.builder.space();
                     v.visit_argument_internal(&lambda_arguments[0].upcast(), false, broke_before_brace.as_ref());
                 }
-                // A ParseError upstream, turned into a FormattingError by `visitElement`.
-                _ => v.fail_with("Maximum one trailing lambda is allowed"),
+                _ => v.throw_parse_error("Maximum one trailing lambda is allowed", &lambda_arguments[1].upcast()),
             }
         });
     }

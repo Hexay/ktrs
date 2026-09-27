@@ -142,7 +142,7 @@ impl KotlinInputAstVisitor<'_, '_> {
                     v.builder.close();
                 } else {
                     if index != 0 {
-                        return v.fail_with("Check failed.");
+                        return v.throw_runtime("Check failed.");
                     }
                     v.visit(Some(kt_expression));
                 }

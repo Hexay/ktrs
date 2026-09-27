@@ -147,7 +147,7 @@ impl KotlinInputAstVisitor<'_, '_> {
                     } else if let Some(component) = component.cast::<KtBackingField>() {
                         v.emit_backing_field(&component);
                     } else {
-                        return v.fail_with("Unexpected property component");
+                        return v.throw_runtime("Unexpected property component");
                     }
                 }
             });

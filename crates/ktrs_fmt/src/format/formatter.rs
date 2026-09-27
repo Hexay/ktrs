@@ -75,7 +75,11 @@ fn pretty_print(file: &KtFile, options: &FormattingOptions, line_separator: &str
     let mut java_output = JavaOutput::new(line_separator, &kotlin_input, Box::new(comments_helper));
     let ops = {
         let mut builder = OpsBuilder::new(&kotlin_input, &mut java_output);
-        file.accept(&mut create_ast_visitor(options, &mut builder));
+        let mut visitor = create_ast_visitor(options, &mut builder);
+        file.accept(&mut visitor);
+        if let Some(exception) = visitor.take_exception() {
+            return Err(exception);
+        }
         builder.sync(kotlin_input.get_text().len() as i32);
         builder.drain();
         builder.build()?

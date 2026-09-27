@@ -181,6 +181,6 @@ impl KotlinInputAstVisitor<'_, '_> {
             return;
         }
 
-        self.fail_with("AssertionError");
+        self.throw_runtime("AssertionError");
     }
 }
