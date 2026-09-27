@@ -201,7 +201,8 @@ impl KtImportAlias {
 #[derive(Clone, Debug)]
 pub struct FqName {
     fq_name: String,
-    structure: Option<Box<(FqName, String)>>,
+    /// Shared so `child` doesn't deep-copy the parent chain.
+    structure: Option<Rc<(FqName, String)>>,
 }
 
 impl PartialEq for FqName {
@@ -222,12 +223,12 @@ impl FqName {
     }
 
     pub fn top_level(short_name: &str) -> FqName {
-        FqName { fq_name: short_name.to_owned(), structure: Some(Box::new((FqName::root(), short_name.to_owned()))) }
+        FqName { fq_name: short_name.to_owned(), structure: Some(Rc::new((FqName::root(), short_name.to_owned()))) }
     }
 
     pub fn child(&self, name: &str) -> FqName {
         let fq_name = if self.is_root() { name.to_owned() } else { format!("{}.{name}", self.fq_name) };
-        FqName { fq_name, structure: Some(Box::new((self.clone(), name.to_owned()))) }
+        FqName { fq_name, structure: Some(Rc::new((self.clone(), name.to_owned()))) }
     }
 
     pub fn as_string(&self) -> &str {

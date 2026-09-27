@@ -176,15 +176,16 @@ impl RedundantImportDetector {
             return Vec::new();
         }
 
-        let mut identifier_counts: HashMap<Option<String>, usize> = HashMap::new();
-        for candidate in &self.import_clean_up_candidates {
-            *identifier_counts.entry(identifier(candidate)).or_default() += 1;
+        let identifiers: Vec<Option<String>> = self.import_clean_up_candidates.iter().map(identifier).collect();
+        let mut identifier_counts: HashMap<&Option<String>, usize> = HashMap::new();
+        for identifier in &identifiers {
+            *identifier_counts.entry(identifier).or_default() += 1;
         }
 
         self.import_clean_up_candidates
             .iter()
-            .filter(|import_candidate| {
-                let identifier = identifier(import_candidate);
+            .zip(&identifiers)
+            .filter(|(import_candidate, identifier)| {
                 let is_used = identifier.as_ref().is_some_and(|i| self.used_references.contains(i));
                 let imported_fq_name = import_candidate.imported_fq_name();
                 // A backtick-escaped full path (import `foo.bar.baz`) is a single-segment FqName whose
@@ -194,11 +195,11 @@ impl RedundantImportDetector {
                 let is_from_this_package =
                     !is_bracket_escaped_path && imported_fq_name.and_then(|f| f.parent()) == self.this_package;
                 let has_alias = import_candidate.alias().is_some();
-                let is_overload = identifier_counts[&identifier] > 1;
+                let is_overload = identifier_counts[identifier] > 1;
                 // Remove if...
                 !is_used || (is_from_this_package && !has_alias && !is_overload)
             })
-            .map(|i| PsiElement::from(i.clone()))
+            .map(|(i, _)| PsiElement::from(i.clone()))
             .collect()
     }
 }
