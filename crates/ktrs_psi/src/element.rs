@@ -7,6 +7,7 @@ use std::rc::Rc;
 use ktrs_parser::token_set::TokenSet;
 use ktrs_syntax::{ElementId, SyntaxKind, TextRange, Tree};
 
+pub use crate::ast_node::AstNode;
 use crate::cast::PsiType;
 use crate::classes;
 
@@ -129,7 +130,23 @@ impl PsiElement {
 
     /// Every child including leaves, in order (the `getFirstChild`/`getNextSibling` walk).
     pub fn all_children(&self) -> impl Iterator<Item = PsiElement> + use<> {
-        std::iter::successors(self.first_child(), PsiElement::next_sibling)
+        let tree = self.tree.clone();
+        let (mut next, end) = (self.id + 1, tree.subtree_end(self.id));
+        std::iter::from_fn(move || {
+            let id = (next < end).then_some(next)?;
+            next = tree.subtree_end(id);
+            Some(PsiElement { tree: tree.clone(), id })
+        })
+    }
+
+    /// The child ids, leaves included, in order: each next sibling starts where the child's subtree ends.
+    pub(crate) fn child_id_iter(&self) -> impl Iterator<Item = ElementId> + '_ {
+        let (mut next, end) = (self.id + 1, self.tree.subtree_end(self.id));
+        std::iter::from_fn(move || {
+            let id = (next < end).then_some(next)?;
+            next = self.tree.subtree_end(id);
+            Some(id)
+        })
     }
 
     /// `PsiElement.getChildren()`. `ASTDelegatePsiElement` (almost every Kt class) and `KtBlockExpression`
@@ -140,9 +157,9 @@ impl PsiElement {
             return Vec::new();
         }
         if self.is_file() || classes::children_include_leaves(self.kind()) {
-            return self.all_children().collect();
+            return self.child_id_iter().map(|c| self.at(c)).collect();
         }
-        self.all_children().filter(|c| !c.is_leaf()).collect()
+        self.child_id_iter().filter(|&c| !self.tree.is_token(c)).map(|c| self.at(c)).collect()
     }
 
     /// `getChildren().length > 0` without collecting (or materializing skipped leaves).
@@ -150,7 +167,7 @@ impl PsiElement {
         if self.is_file() || classes::children_include_leaves(self.kind()) {
             return self.tree.first_child(self.id).is_some();
         }
-        self.tree.children(self.id).any(|c| !self.tree.is_token(c))
+        self.child_id_iter().any(|c| !self.tree.is_token(c))
     }
 
     pub fn node(&self) -> AstNode {
@@ -175,13 +192,13 @@ impl PsiElement {
     }
 
     /// The first child (leaves included) whose kind matches.
-    fn first_child_by_kind(&self, matches: impl Fn(SyntaxKind) -> bool) -> Option<PsiElement> {
-        self.tree.children(self.id).find(|&c| matches(self.tree.kind(c))).map(|c| self.at(c))
+    pub(crate) fn first_child_by_kind(&self, matches: impl Fn(SyntaxKind) -> bool) -> Option<PsiElement> {
+        self.child_id_iter().find(|&c| matches(self.tree.kind(c))).map(|c| self.at(c))
     }
 
     /// The children (leaves included) whose kind matches.
-    fn children_by_kind(&self, matches: impl Fn(SyntaxKind) -> bool) -> impl Iterator<Item = PsiElement> {
-        self.all_children().filter(move |c| matches(c.kind()))
+    pub(crate) fn children_by_kind(&self, matches: impl Fn(SyntaxKind) -> bool) -> impl Iterator<Item = PsiElement> {
+        self.child_id_iter().filter(move |&c| matches(self.tree.kind(c))).map(|c| self.at(c))
     }
 
     /// `findLastChildByType(IElementType)`.
@@ -212,85 +229,5 @@ impl PsiElement {
     /// `getStubOrPsiChildren(TokenSet)` on the AST path.
     pub fn get_stub_or_psi_children_set<T: PsiType>(&self, kinds: TokenSet) -> Vec<T> {
         self.children_by_kind(|k| kinds.contains(k)).map(T::cast_unchecked).collect()
-    }
-}
-
-/// `ASTNode` view of a [`PsiElement`] (same underlying tree element).
-#[derive(Clone, PartialEq, Eq, Hash, Debug)]
-pub struct AstNode(PsiElement);
-
-impl AstNode {
-    pub fn psi(&self) -> PsiElement {
-        self.0.clone()
-    }
-
-    pub fn element_type(&self) -> SyntaxKind {
-        self.0.kind()
-    }
-
-    pub fn text(&self) -> String {
-        self.0.text()
-    }
-
-    pub fn text_slice(&self) -> &str {
-        self.0.text_slice()
-    }
-
-    pub fn text_range(&self) -> TextRange {
-        self.0.text_range()
-    }
-
-    pub fn start_offset(&self) -> usize {
-        self.0.start_offset()
-    }
-
-    pub fn text_contains(&self, c: char) -> bool {
-        self.0.text_contains(c)
-    }
-
-    /// Kotlin `node is PsiElement`: true for leaves and for composites whose node is their own PSI
-    /// (`LazyParseablePsiElement` / `CompositePsiElement` classes); false for `ASTWrapperPsiElement` classes.
-    pub fn is_psi_element(&self) -> bool {
-        self.0.is_leaf() || (!self.0.is_file() && classes::node_is_psi(self.0.kind()))
-    }
-
-    pub fn first_child_node(&self) -> Option<AstNode> {
-        self.0.first_child().map(AstNode)
-    }
-
-    pub fn last_child_node(&self) -> Option<AstNode> {
-        self.0.last_child().map(AstNode)
-    }
-
-    pub fn tree_next(&self) -> Option<AstNode> {
-        self.0.next_sibling().map(AstNode)
-    }
-
-    pub fn tree_prev(&self) -> Option<AstNode> {
-        self.0.prev_sibling().map(AstNode)
-    }
-
-    pub fn tree_parent(&self) -> Option<AstNode> {
-        self.0.parent().map(AstNode)
-    }
-
-    /// psiUtil `ASTNode.children()`: every child node, leaves included.
-    pub fn children(&self) -> impl Iterator<Item = AstNode> + use<> {
-        self.0.all_children().map(AstNode)
-    }
-
-    /// `ASTNode.findChildByType(IElementType)`.
-    pub fn find_child_by_type(&self, kind: SyntaxKind) -> Option<AstNode> {
-        self.0.first_child_by_kind(|k| k == kind).map(AstNode)
-    }
-
-    /// `ASTNode.findChildByType(TokenSet)`.
-    pub fn find_child_by_type_set(&self, kinds: TokenSet) -> Option<AstNode> {
-        self.0.first_child_by_kind(|k| kinds.contains(k)).map(AstNode)
-    }
-
-    /// `ASTNode.getChildren(TokenSet)`.
-    pub fn get_children(&self, kinds: TokenSet) -> Vec<AstNode> {
-        self.0.children_by_kind(|k| kinds.contains(k)).map(AstNode).collect()
     }
 }
