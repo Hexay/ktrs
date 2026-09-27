@@ -28,3 +28,9 @@ panic = "abort"
 [profile.release-unwind]
 inherits = "release"
 panic = "unwind"
+
+# Shipped binaries: the CLI isolates a formatter panic to its file, like ktfmt with an exception.
+[profile.dist]
+inherits = "release"
+panic = "unwind"
+strip = true

@@ -15,6 +15,9 @@ Milestone 1: the parser's tree must be identical to the Kotlin compiler's PSI (`
   Porting conventions and the full API list: `crates/ktrs_psi/src/lib.rs` docs.
 - `crates/ktrs_fmt` — ktfmt port. Throughput: `cargo run -p ktrs_fmt --release --example bench [dir] [reps] [filter]
   [threads]`; compare runs by its "format = N parses" line (stable under machine load), not MB/s.
+- `crates/ktrs_cli` — binaries `ktrs` (`ktrs fmt`) and `ktfmt` (1:1 port of ktfmt's `cli/`: flags, messages,
+  exit codes). Ship with `--profile dist` (unwinds, so a formatter panic fails only its file).
+  Adoption gaps and integrations: research/08-drop-in-replacement.md.
 - `tools/psi-accessors/psi-accessors.sh` — JVM oracle for ktrs_psi (`one|hashes|dump <dir> [--fixture] [--script]`);
   Rust mirror: `cargo run -p ktrs_psi --release --example psi_accessors -- one|hashes|compare|dump ...`.
 - `xtask` — `cargo xtask codegen` regenerates `ktrs_syntax/src/generated/kinds.rs` from `kinds.tsv`.
@@ -40,6 +43,9 @@ Milestone 1: the parser's tree must be identical to the Kotlin compiler's PSI (`
   `tests/golden-passing.txt`. Regenerate (JVM, background): `tools/ktfmt-oracle/extract-goldens.sh`.
 - `cargo fmt-diff [meta|google|kotlinlang]` (repo root) — byte diff vs real ktfmt on the corpus; oracle built
   in the background by `tools/ktfmt-oracle/ktfmt-oracle.sh <style> corpus target/ktfmt-oracle/<style>`.
+
+- `cargo test -p ktrs_cli` — ktfmt's CLI tests, ported. `tools/ktfmt-oracle/cli-diff.sh` (JVM, ~2 min) — the
+  `ktfmt` binary vs the ktfmt jar on stdout/stderr/exit code/files (`ONLY=<regex>`, `KEEP=1`).
 
 ## Rules
 
