@@ -128,6 +128,7 @@
 //! - KDocName `qualifier`, `name_text_range`, `name_text`, `qualified_name`; KDocImpl/KDocSection/KDocTag/
 //!   KDocLink are traversed with `get_children_of_type`.
 
+mod ast_node;
 mod cast;
 mod classes;
 mod element;
