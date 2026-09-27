@@ -182,37 +182,27 @@ impl Output for JavaOutput<'_> {
                 self.newlines_pending += 1;
             }
             self.spaces_pending.clear();
-        } else if !text.is_empty() && !text.bytes().any(|b| matches!(b, b' ' | b'\t' | b'\r' | b'\n')) {
-            // The loop below, for text with no whitespace (most tokens): its first char flushes the
-            // pending newlines and spaces and sets the range; the rest are plain pushes.
-            self.emit_pending_newlines();
-            if !self.spaces_pending.is_empty() {
-                self.line_builder.push_str(&self.spaces_pending);
-                self.spaces_pending.clear();
-            }
-            self.line_builder.push_str(text);
-            if !range.is_empty() {
-                let j = self.mutable_lines.len();
-                while self.io.ranges.len() <= j {
-                    self.io.ranges.push(EMPTY_RANGE);
-                }
-                self.io.ranges[j] = Self::union(self.io.ranges[j], range);
-            }
         } else {
+            // Upstream's per-char loop, taking each run of non-whitespace chars at once: only a run's
+            // first char can flush pending newlines/spaces or set the range. The whitespace chars are
+            // ASCII, so byte offsets split `text` on char boundaries.
+            let bytes = text.as_bytes();
+            let is_space = |b: &u8| matches!(b, b' ' | b'\t' | b'\r' | b'\n');
             let mut ranges_set = false;
-            let mut chars = text.chars().peekable();
-            while let Some(c) = chars.next() {
-                match c {
-                    ' ' => self.spaces_pending.push(' '),
-                    '\t' => self.spaces_pending.push('\t'),
-                    '\r' | '\n' => {
-                        if c == '\r' && chars.peek() == Some(&'\n') {
-                            chars.next();
+            let mut i = 0;
+            while i < bytes.len() {
+                match bytes[i] {
+                    b' ' => self.spaces_pending.push(' '),
+                    b'\t' => self.spaces_pending.push('\t'),
+                    c @ (b'\r' | b'\n') => {
+                        if c == b'\r' && bytes.get(i + 1) == Some(&b'\n') {
+                            i += 1;
                         }
                         self.spaces_pending.clear();
                         self.newlines_pending += 1;
                     }
                     _ => {
+                        let end = bytes[i..].iter().position(is_space).map_or(bytes.len(), |n| i + n);
                         if self.newlines_pending > 0 {
                             ranges_set = false;
                         }
@@ -221,7 +211,7 @@ impl Output for JavaOutput<'_> {
                             self.line_builder.push_str(&self.spaces_pending);
                             self.spaces_pending.clear();
                         }
-                        self.line_builder.push(c);
+                        self.line_builder.push_str(&text[i..end]);
                         if !range.is_empty() && !ranges_set {
                             let j = self.mutable_lines.len();
                             while self.io.ranges.len() <= j {
@@ -230,8 +220,11 @@ impl Output for JavaOutput<'_> {
                             self.io.ranges[j] = Self::union(self.io.ranges[j], range);
                             ranges_set = true;
                         }
+                        i = end;
+                        continue;
                     }
                 }
+                i += 1;
             }
         }
         if !range.is_empty() {
