@@ -36,7 +36,8 @@ What paid, measured by the bench's format/parse ratio (stable under load), three
 | Tree building: skip the error-dedup pass when no error items (e606323) | parser-side, corpus-diff clean |
 | JavaOutput whitespace-free fast path + lazy whitespace split (b87d29a) | 6.10 -> 5.95 |
 
-What did not pay (reverted): list+index `Tok`/`Token` handles (see above); preloading the source
+What did not pay (reverted): replaying recorded body parses after whitespace-only edits (see
+09-replay-reparse.md §6); list+index `Tok`/`Token` handles (see above); preloading the source
 into `TreeBuilder` to skip per-token text copies (no change: it still copies the source once);
 computing `Doc` widths eagerly instead of memoizing (slightly slower, ~1%: it computes widths the
 lazy path never reads).
