@@ -3,15 +3,33 @@
 Fast, native Kotlin tooling in Rust. The goal is ktfmt-identical formatting and ktlint-compatible
 linting without starting a JVM.
 
-**Status: milestone 1, parser.** A lossless Kotlin parser whose tree matches the Kotlin compiler's
-PSI node for node, verified against the compiler's own parser fixtures and against real-world code.
+**Status:** the formatter is done: output identical to ktfmt 0.64 on 6,121 of 6,123 real-world files
+(the other two are rejected by both), about 10x faster than the ktfmt jar end to end. Underneath is a
+lossless Kotlin parser whose tree matches the Kotlin compiler's PSI node for node. Linting
+(ktlint-compatible) is next.
 
 ## Formatting
 
-Output is byte-identical to ktfmt 0.64. Two binaries, from one build:
+Output is byte-identical to ktfmt 0.64. One install gives two binaries, `ktrs` and `ktfmt`:
 
 ```sh
-cargo install --path crates/ktrs_cli --profile dist   # installs `ktrs` and `ktfmt`
+curl -fsSL https://raw.githubusercontent.com/ktrs/ktrs/master/install.sh | sh   # prebuilt, Linux/macOS
+cargo install --git https://github.com/ktrs/ktrs ktrs                           # from source
+```
+
+Windows: unzip a release from the GitHub releases page. As a [pre-commit](https://pre-commit.com) hook:
+
+```yaml
+- repo: https://github.com/ktrs/ktrs
+  rev: v0.1.0
+  hooks:
+    - id: ktrs-fmt          # or `ktrs-fmt-check`, or `ktfmt` with ktfmt's flags in `args`
+      args: [--style, kotlinlang]
+```
+
+Usage:
+
+```sh
 
 ktrs fmt                              # format every .kt/.kts under the current directory (meta style)
 ktrs fmt --style kotlinlang src/      # styles: meta (default), google, kotlinlang

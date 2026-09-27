@@ -1,0 +1,24 @@
+# pre-commit builds the root package (`cargo install --path .`) once per hook version.
+- id: ktfmt
+  name: ktfmt (ktrs)
+  description: Format Kotlin exactly like ktfmt 0.64. Pass ktfmt's own flags in `args`.
+  entry: ktfmt
+  language: rust
+  files: \.kts?$
+  types: [text]
+
+- id: ktrs-fmt
+  name: ktrs fmt
+  description: Format Kotlin exactly like ktfmt 0.64. Pass e.g. `--style kotlinlang` in `args`.
+  entry: ktrs fmt
+  language: rust
+  files: \.kts?$
+  types: [text]
+
+- id: ktrs-fmt-check
+  name: ktrs fmt --check
+  description: Fail if any Kotlin file isn't formatted, without changing it.
+  entry: ktrs fmt --check
+  language: rust
+  files: \.kts?$
+  types: [text]

@@ -15,8 +15,9 @@ Milestone 1: the parser's tree must be identical to the Kotlin compiler's PSI (`
   Porting conventions and the full API list: `crates/ktrs_psi/src/lib.rs` docs.
 - `crates/ktrs_fmt` — ktfmt port. Throughput: `cargo run -p ktrs_fmt --release --example bench [dir] [reps] [filter]
   [threads]`; compare runs by its "format = N parses" line (stable under machine load), not MB/s.
-- `crates/ktrs_cli` — binaries `ktrs` (`ktrs fmt`) and `ktfmt` (1:1 port of ktfmt's `cli/`: flags, messages,
-  exit codes). Ship with `--profile dist` (unwinds, so a formatter panic fails only its file).
+- `crates/ktrs_cli` — `ktrs fmt` and the `ktfmt` drop-in (1:1 port of ktfmt's `cli/`: flags, messages, exit
+  codes). The root package `ktrs` owns the two binaries (so `cargo install --path .` and pre-commit work);
+  releases build `--profile dist` (`.github/workflows/release.yml`).
   Adoption gaps and integrations: research/08-drop-in-replacement.md.
 - `tools/psi-accessors/psi-accessors.sh` — JVM oracle for ktrs_psi (`one|hashes|dump <dir> [--fixture] [--script]`);
   Rust mirror: `cargo run -p ktrs_psi --release --example psi_accessors -- one|hashes|compare|dump ...`.
