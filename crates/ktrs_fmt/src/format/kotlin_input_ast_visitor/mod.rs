@@ -23,6 +23,7 @@ use ktrs_psi::*;
 
 use crate::doc::{Indent, OpsBuilder};
 
+use super::FormatError;
 use super::formatting_options::FormattingOptions;
 
 pub struct KotlinInputAstVisitor<'b, 'a> {
@@ -39,6 +40,8 @@ pub struct KotlinInputAstVisitor<'b, 'a> {
     in_expression: Vec<bool>,
     /// Tracks whether we are handling an import directive.
     in_import: bool,
+    /// The non-`FormattingError` exception upstream throws first, if any (see [`Self::throw`]).
+    exception: Option<FormatError>,
 }
 
 impl<'b, 'a> KotlinInputAstVisitor<'b, 'a> {
@@ -53,7 +56,13 @@ impl<'b, 'a> KotlinInputAstVisitor<'b, 'a> {
             builder,
             in_expression: vec![false],
             in_import: false,
+            exception: None,
         }
+    }
+
+    /// What upstream's visit threw other than a `FormattingError`: it escapes `format` as is.
+    pub fn take_exception(&mut self) -> Option<FormatError> {
+        self.exception.take()
     }
 }
 

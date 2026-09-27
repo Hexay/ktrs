@@ -6,6 +6,8 @@ use ktrs_psi::{KtExpression, PsiElement, PsiType};
 
 use crate::doc::{FillMode, FormattingError, Indent, Op, RealOrImaginary};
 
+use super::super::FormatError;
+use super::super::input::ParseError;
 use super::KotlinInputAstVisitor;
 
 impl KotlinInputAstVisitor<'_, '_> {
@@ -80,6 +82,27 @@ impl KotlinInputAstVisitor<'_, '_> {
     pub(super) fn fail_with(&mut self, message: &str) {
         let diagnostic = self.builder.diagnostic(message.to_owned());
         self.builder.fail(FormattingError::new(diagnostic));
+    }
+
+    /// Records an exception other than `FormattingError` (a `ParseError`, `IllegalStateException`,
+    /// ...); a placeholder failure makes the visit unwind like any other. Callers return right after.
+    pub(super) fn throw(&mut self, exception: FormatError) {
+        if self.builder.error().is_none() {
+            self.exception = Some(exception);
+        }
+        self.fail();
+    }
+
+    /// Upstream's `error(..)`, `check(..)` or `AssertionError`: not caught by ktfmt's CLI either.
+    pub(super) fn throw_runtime(&mut self, message: &str) {
+        self.throw(FormatError::Runtime(message.to_owned()));
+    }
+
+    /// `ParseError(errorDescription, element)`.
+    pub(super) fn throw_parse_error(&mut self, error_description: &str, element: &PsiElement) {
+        let text = self.builder.get_input().get_text();
+        let error = ParseError::at_offset(error_description, text, element.start_offset());
+        self.throw(error.into());
     }
 
     pub(super) fn visit<T: PsiType>(&mut self, element: Option<&T>) {
