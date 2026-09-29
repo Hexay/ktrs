@@ -14,6 +14,8 @@ pub struct TreeBuilder {
     prev_sibs: Vec<u32>,
     /// Open nodes, innermost last, each with its most recent child so far.
     open: Vec<(ElementId, u32)>,
+    /// The smallest capacity of the five element arrays (which always have equal lengths).
+    room: usize,
 }
 
 impl TreeBuilder {
@@ -23,15 +25,31 @@ impl TreeBuilder {
 
     /// Room for `elements` elements over `text_len` bytes of text, so the arrays never regrow.
     pub fn with_capacity(elements: usize, text_len: usize) -> TreeBuilder {
-        TreeBuilder {
-            text: String::with_capacity(text_len),
-            kinds: Vec::with_capacity(elements),
-            starts: Vec::with_capacity(elements),
-            ends: Vec::with_capacity(elements),
-            parents: Vec::with_capacity(elements),
-            prev_sibs: Vec::with_capacity(elements),
-            open: Vec::new(),
-        }
+        let mut builder = TreeBuilder { text: String::with_capacity(text_len), ..TreeBuilder::default() };
+        builder.reserve(elements);
+        builder
+    }
+
+    fn reserve(&mut self, additional: usize) {
+        self.kinds.reserve(additional);
+        self.starts.reserve(additional);
+        self.ends.reserve(additional);
+        self.parents.reserve(additional);
+        self.prev_sibs.reserve(additional);
+        self.update_room();
+    }
+
+    fn update_room(&mut self) {
+        self.room = [
+            self.kinds.capacity(),
+            self.starts.capacity(),
+            self.ends.capacity(),
+            self.parents.capacity(),
+            self.prev_sibs.capacity(),
+        ]
+        .into_iter()
+        .min()
+        .unwrap_or(0);
     }
 
     #[inline]
@@ -102,6 +120,7 @@ impl TreeBuilder {
         self.prev_sibs.push(prev);
         self.prev_sibs.extend(tree.prev_sibs[1..].iter().map(|&p| shift(p)));
         self.text.push_str(&tree.text);
+        self.update_room();
     }
 
     /// Appends a copy of `e`'s subtree from another tree.
@@ -131,16 +150,38 @@ impl TreeBuilder {
 
     #[inline]
     fn push(&mut self, raw_kind: u16, end: u32) -> ElementId {
-        let e = self.kinds.len() as u32;
+        let len = self.kinds.len();
+        if len >= self.room {
+            self.reserve(len.max(64));
+        }
+        let e = len as u32;
         let (parent, prev) = match self.open.last_mut() {
             Some((parent, last_child)) => (*parent, std::mem::replace(last_child, e)),
             None => (NONE, NONE),
         };
-        self.kinds.push(raw_kind);
-        self.starts.push(self.text.len() as u32);
-        self.ends.push(end);
-        self.parents.push(parent);
-        self.prev_sibs.push(prev);
+        let start = self.text.len() as u32;
+        // SAFETY: the five arrays all have length `len` (every mutation appends to each of them)
+        // and capacity of at least `room > len`.
+        unsafe {
+            push_unchecked(&mut self.kinds, raw_kind);
+            push_unchecked(&mut self.starts, start);
+            push_unchecked(&mut self.ends, end);
+            push_unchecked(&mut self.parents, parent);
+            push_unchecked(&mut self.prev_sibs, prev);
+        }
         e
+    }
+}
+
+/// # Safety
+/// `v.len() < v.capacity()`.
+#[inline(always)]
+unsafe fn push_unchecked<T>(v: &mut Vec<T>, x: T) {
+    debug_assert!(v.len() < v.capacity());
+    let len = v.len();
+    // SAFETY: the slot at `len` is allocated (caller's contract) and uninitialized.
+    unsafe {
+        v.as_mut_ptr().add(len).write(x);
+        v.set_len(len + 1);
     }
 }
