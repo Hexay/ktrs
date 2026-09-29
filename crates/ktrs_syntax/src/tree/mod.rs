@@ -4,8 +4,10 @@
 //! research/06-tree-library.md for the measurements).
 
 mod builder;
+mod kind_scan;
 
 pub use builder::TreeBuilder;
+pub use kind_scan::KindScan;
 
 use crate::{SyntaxKind, TextRange, TextSize};
 
@@ -116,14 +118,14 @@ impl Tree {
         e: ElementId,
         nodes: [SyntaxKind; N],
         tokens: [SyntaxKind; M],
-    ) -> impl Iterator<Item = ElementId> + '_ {
-        let (nodes, tokens) = (nodes.map(|k| k as u16), tokens.map(|k| k as u16 | TOKEN_BIT));
+    ) -> KindScan<'_> {
+        const { assert!(N + M <= kind_scan::MAX_WANTED) };
+        let mut wanted = [kind_scan::NEVER; kind_scan::MAX_WANTED];
+        for (slot, k) in wanted.iter_mut().zip(nodes.map(|k| k as u16).into_iter().chain(tokens.map(|k| k as u16 | TOKEN_BIT))) {
+            *slot = k;
+        }
         let start = e as usize;
-        self.kinds[start..self.ends[start] as usize]
-            .iter()
-            .enumerate()
-            .filter(move |(_, k)| nodes.contains(k) || tokens.contains(k))
-            .map(move |(i, _)| (start + i) as ElementId)
+        KindScan::new(&self.kinds[start..self.ends[start] as usize], start, wanted)
     }
 }
 

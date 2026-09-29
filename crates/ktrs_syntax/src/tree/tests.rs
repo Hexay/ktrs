@@ -82,3 +82,27 @@ fn tokens_and_empty_nodes() {
     assert!(t.has_descendant_of_kind(Tree::ROOT, RPAR));
     assert!(!t.has_descendant_of_kind(empty, RPAR));
 }
+
+#[test]
+fn find_kinds_matches_a_filter_across_chunks() {
+    let mut b = TreeBuilder::new();
+    b.start_node(BLOCK);
+    for i in 0..150 {
+        b.start_node(if i % 7 == 0 { VALUE_ARGUMENT_LIST } else { CALL_EXPRESSION });
+        b.token(if i % 5 == 0 { COMMA } else { IDENTIFIER }, "x");
+        b.finish_node();
+    }
+    b.finish_node();
+    let t = b.finish();
+    let first_call = t.first_child(Tree::ROOT).unwrap() + 2;
+    for start in [Tree::ROOT, first_call] {
+        let expected: Vec<u32> = (start..t.subtree_end(start))
+            .filter(|&e| {
+                (!t.is_token(e) && t.kind(e) == VALUE_ARGUMENT_LIST) || (t.is_token(e) && t.kind(e) == COMMA)
+            })
+            .collect();
+        let found: Vec<u32> = t.find_kinds(start, [VALUE_ARGUMENT_LIST], [COMMA]).collect();
+        assert_eq!(found, expected);
+        assert!(!found.is_empty() || start != Tree::ROOT);
+    }
+}
