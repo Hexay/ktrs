@@ -130,6 +130,7 @@
 
 mod ast_node;
 mod cast;
+mod class_names;
 mod classes;
 mod element;
 mod element_text;
@@ -140,7 +141,7 @@ mod types;
 mod visitor;
 
 pub use cast::PsiType;
-pub use classes::psi_class_name;
+pub use class_names::psi_class_name;
 pub use element::{AstNode, PsiElement};
 pub use kt::*;
 pub use tokens::*;
