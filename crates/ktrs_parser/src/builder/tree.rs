@@ -13,7 +13,9 @@ use super::psi_builder::PsiBuilder;
 use super::sink::TreeSink;
 
 /// Reparses a lazy-parseable leaf into `sink`; `false` if its kind isn't lazy (nothing emitted).
-pub type LazyReparse<'a> = &'a dyn Fn(&LazyLeaf<'_>, &mut TreeSink) -> bool;
+/// Generic rather than `dyn` so the per-leaf kind check inlines into `create_leaf`.
+pub trait LazyReparse: Fn(&LazyLeaf<'_>, &mut TreeSink) -> bool {}
+impl<F: Fn(&LazyLeaf<'_>, &mut TreeSink) -> bool> LazyReparse for F {}
 
 /// A leaf about to be built, with the outer builder's (unremapped) lexemes covering it.
 pub struct LazyLeaf<'a> {
@@ -34,14 +36,14 @@ impl LazyLeaf<'_> {
 }
 
 impl PsiBuilder {
-    pub fn get_tree_built(&mut self, lazy: LazyReparse<'_>) -> Parse {
+    pub fn get_tree_built(&mut self, lazy: &impl LazyReparse) -> Parse {
         let mut sink = TreeSink::new();
         self.build_tree_into(None, &mut sink, lazy);
         sink.finish()
     }
 
     /// `getTreeBuilt` into a shared sink; the root node gets `root_kind` if given.
-    pub fn build_tree_into(&mut self, root_kind: Option<SyntaxKind>, sink: &mut TreeSink, lazy: LazyReparse<'_>) {
+    pub fn build_tree_into(&mut self, root_kind: Option<SyntaxKind>, sink: &mut TreeSink, lazy: &impl LazyReparse) {
         assert!(!self.production.is_empty(), "Parser produced no markers");
         self.balance_white_spaces();
         let mut skipped_errors = std::mem::take(&mut self.skipped_errors);
@@ -114,7 +116,7 @@ impl PsiBuilder {
     }
 
     /// Walks the production in order; equivalent to `bind` over the light tree.
-    fn bind(&self, root_kind: Option<SyntaxKind>, skipped_errors: &[bool], out: &mut TreeSink, lazy: LazyReparse<'_>) {
+    fn bind(&self, root_kind: Option<SyntaxKind>, skipped_errors: &[bool], out: &mut TreeSink, lazy: &impl LazyReparse) {
         let list = &self.production.list;
         let root = self.production.marker(list[0]);
         out.start_node(root_kind.unwrap_or_else(|| kind_of(root.kind)));
@@ -162,7 +164,7 @@ impl PsiBuilder {
         }
     }
 
-    fn insert_leaves(&self, cur_token: usize, last_idx: i32, out: &mut TreeSink, lazy: LazyReparse<'_>) -> usize {
+    fn insert_leaves(&self, cur_token: usize, last_idx: i32, out: &mut TreeSink, lazy: &impl LazyReparse) -> usize {
         let last_idx = (last_idx.max(0) as usize).min(self.lexeme_count());
         let mut cur_token = cur_token;
         while cur_token < last_idx {
@@ -175,13 +177,13 @@ impl PsiBuilder {
         cur_token
     }
 
-    fn collapse_leaves(&self, start: i32, end: i32, kind: SyntaxKind, out: &mut TreeSink, lazy: LazyReparse<'_>) -> usize {
+    fn collapse_leaves(&self, start: i32, end: i32, kind: SyntaxKind, out: &mut TreeSink, lazy: &impl LazyReparse) -> usize {
         self.create_leaf(kind, start as usize, end as usize, out, lazy);
         end as usize
     }
 
     /// A leaf of `kind` over lexemes `start..end`.
-    fn create_leaf(&self, kind: SyntaxKind, start: usize, end: usize, out: &mut TreeSink, lazy: LazyReparse<'_>) {
+    fn create_leaf(&self, kind: SyntaxKind, start: usize, end: usize, out: &mut TreeSink, lazy: &impl LazyReparse) {
         let leaf = LazyLeaf {
             kind,
             text: &self.text[self.lex_starts[start] as usize..self.lex_starts[end] as usize],

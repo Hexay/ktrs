@@ -32,6 +32,7 @@ impl PsiBuilder {
     }
 
     /// No remapper is ever installed for Kotlin, so the cached-type machinery reduces to this.
+    #[inline]
     pub fn get_token_type(&mut self) -> Option<SyntaxKind> {
         if self.eof() { None } else { Some(self.lex_types[self.current_lexeme]) }
     }
@@ -134,6 +135,7 @@ impl PsiBuilder {
         Marker(id)
     }
 
+    #[inline]
     pub fn eof(&mut self) -> bool {
         if !self.token_type_checked {
             self.token_type_checked = true;

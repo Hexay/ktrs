@@ -125,19 +125,22 @@ impl<'a> KDocFlexLexer<'a> {
     /// Fast path: a run of chars on which only the state's catch-all `[^]` rule matches. Its
     /// one-char tokens would be merged anyway, and never precede a code fence `TEXT`.
     fn plain_text_run(&mut self, start: usize) -> Option<(SyntaxKind, usize)> {
-        let (kind, special): (SyntaxKind, &[u8]) = match self.state {
-            LexState::Contents => (SyntaxKind::KDOC_TEXT, b"*`\r\n \t\x0c\\()["),
+        const CONTENTS: [bool; 256] = byte_set(b"*`\r\n \t\x0c\\()[");
+        const CODE_BLOCK: [bool; 256] = byte_set(b"*\r\n \t\x0c");
+        const CODE_SPAN: [bool; 256] = byte_set(b"*`\r\n");
+        let (kind, special) = match self.state {
+            LexState::Contents => (SyntaxKind::KDOC_TEXT, &CONTENTS),
             LexState::CodeBlock | LexState::IndentedCodeBlock => {
-                (SyntaxKind::KDOC_CODE_BLOCK_TEXT, b"*\r\n \t\x0c")
+                (SyntaxKind::KDOC_CODE_BLOCK_TEXT, &CODE_BLOCK)
             }
-            LexState::CodeSpanContents => (SyntaxKind::KDOC_CODE_SPAN_TEXT, b"*`\r\n"),
+            LexState::CodeSpanContents => (SyntaxKind::KDOC_CODE_SPAN_TEXT, &CODE_SPAN),
             _ => return None,
         };
         let bytes = self.text.as_bytes();
         let end = start
             + bytes[start..]
                 .iter()
-                .take_while(|b| !special.contains(b))
+                .take_while(|&&b| !special[b as usize])
                 .count();
         if end == start {
             return None;
@@ -152,4 +155,14 @@ impl<'a> KDocFlexLexer<'a> {
         }
         Some((kind, end))
     }
+}
+
+const fn byte_set(bytes: &[u8]) -> [bool; 256] {
+    let mut set = [false; 256];
+    let mut i = 0;
+    while i < bytes.len() {
+        set[bytes[i] as usize] = true;
+        i += 1;
+    }
+    set
 }

@@ -195,8 +195,8 @@ impl Production {
         self.marker(id).get_lexeme_index(id < 0)
     }
 
+    /// Only the disposed flag matters: a freed id is never read again except by the asserts.
     fn free_marker(&mut self, id: i32) {
-        let is_error_item = self.marker(id).is_error_item;
-        *self.marker_mut(id) = MarkerData::new(is_error_item, -1);
+        self.marker_mut(id).lexeme = -1;
     }
 }
