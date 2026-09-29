@@ -21,15 +21,23 @@ fn skip_bytes(text: &str, mut pos: usize, pred: impl Fn(u8) -> bool) -> usize {
 
 /// `{IDENTIFIER} = {PLAIN_IDENTIFIER}|{ESCAPED_IDENTIFIER}`.
 pub(crate) fn identifier(text: &str, pos: usize) -> Option<usize> {
-    if byte(text, pos) == b'`' {
+    let b0 = byte(text, pos);
+    if b0 == b'`' {
         return escaped_identifier(text, pos);
     }
-    let first = char_at(text, pos)?;
-    if !is_kotlin_letter(first) {
-        return None;
-    }
+    let mut end = if b0.is_ascii() {
+        if !(b0.is_ascii_alphabetic() || b0 == b'_') {
+            return None;
+        }
+        pos + 1
+    } else {
+        let first = char_at(text, pos)?;
+        if !is_kotlin_letter(first) {
+            return None;
+        }
+        pos + first.len_utf8()
+    };
     let bytes = text.as_bytes();
-    let mut end = pos + first.len_utf8();
     while end < bytes.len() {
         let b = bytes[end];
         if b.is_ascii() {

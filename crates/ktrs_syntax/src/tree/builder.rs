@@ -21,17 +21,20 @@ impl TreeBuilder {
         TreeBuilder::default()
     }
 
+    #[inline]
     pub fn start_node(&mut self, kind: SyntaxKind) {
         let e = self.push(kind as u16, NONE);
         self.open.push((e, NONE));
     }
 
+    #[inline]
     pub fn token(&mut self, kind: SyntaxKind, text: &str) {
         let e = self.kinds.len() as u32;
         self.push(kind as u16 | TOKEN_BIT, e + 1);
         self.text.push_str(text);
     }
 
+    #[inline]
     pub fn finish_node(&mut self) {
         let (e, _) = self.open.pop().expect("finish_node without start_node");
         self.ends[e as usize] = self.kinds.len() as u32;
@@ -113,6 +116,7 @@ impl TreeBuilder {
         }
     }
 
+    #[inline]
     fn push(&mut self, raw_kind: u16, end: u32) -> ElementId {
         let e = self.kinds.len() as u32;
         let (parent, prev) = match self.open.last_mut() {
