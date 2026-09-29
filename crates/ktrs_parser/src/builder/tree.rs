@@ -182,17 +182,19 @@ impl PsiBuilder {
 
     fn insert_leaves(&self, cur_token: usize, last_idx: i32, out: &mut TreeSink, lazy: &impl LazyReparse) -> usize {
         let last_idx = (last_idx.max(0) as usize).min(self.lexeme_count());
-        let mut cur_token = cur_token;
-        while cur_token < last_idx {
-            let (text_start, text_end) = (self.lex_starts[cur_token], self.lex_starts[cur_token + 1]);
-            // Empty tokens are skipped (no Kotlin token type is an ILeafElementType).
-            if text_start < text_end {
-                let text = &self.text[text_start as usize..text_end as usize];
-                self.create_leaf(self.lex_types[cur_token], cur_token, cur_token + 1, text, out, lazy);
-            }
-            cur_token += 1;
+        if cur_token >= last_idx {
+            return cur_token;
         }
-        cur_token
+        let kinds = &self.lex_types[cur_token..last_idx];
+        let starts = &self.lex_starts[cur_token..=last_idx];
+        for (i, (&kind, bounds)) in kinds.iter().zip(starts.windows(2)).enumerate() {
+            // Empty tokens are skipped (no Kotlin token type is an ILeafElementType).
+            if bounds[0] < bounds[1] {
+                let text = &self.text[bounds[0] as usize..bounds[1] as usize];
+                self.create_leaf(kind, cur_token + i, cur_token + i + 1, text, out, lazy);
+            }
+        }
+        last_idx
     }
 
     fn collapse_leaves(&self, start: i32, end: i32, kind: SyntaxKind, out: &mut TreeSink, lazy: &impl LazyReparse) -> usize {
