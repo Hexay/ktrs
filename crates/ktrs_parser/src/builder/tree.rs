@@ -66,12 +66,25 @@ impl PsiBuilder {
             let binder = if item.is_error_item { EdgeBinder::DefaultRight } else { item.get_binder(done) };
             let mut lexeme_index = item.get_lexeme_index(done);
 
+            // The default binders always land on the run's end (left) or start (right), so they
+            // skip scanning the other side; the result equals the general path's.
+            if binder == EdgeBinder::DefaultLeft {
+                lexeme_index = self.shift_over_whitespace_forward(lexeme_index as usize) as i32;
+                self.production.marker_mut(id).set_lexeme_index(lexeme_index, done);
+                (last_index, prev_index) = (lexeme_index, lexeme_index);
+                continue;
+            }
             let prev_production_lex_index = prev_index;
             let mut ws_start_index = lexeme_index.max(last_index);
             while ws_start_index > prev_production_lex_index
                 && self.is_whitespace_or_comment(self.lex_types[ws_start_index as usize - 1])
             {
                 ws_start_index -= 1;
+            }
+            if binder == EdgeBinder::DefaultRight {
+                self.production.marker_mut(id).set_lexeme_index(ws_start_index, done);
+                (last_index, prev_index) = (ws_start_index, ws_start_index);
+                continue;
             }
             let ws_end_index = self.shift_over_whitespace_forward(lexeme_index as usize) as i32;
 

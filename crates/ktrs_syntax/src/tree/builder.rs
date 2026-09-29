@@ -21,6 +21,19 @@ impl TreeBuilder {
         TreeBuilder::default()
     }
 
+    /// Room for `elements` elements over `text_len` bytes of text, so the arrays never regrow.
+    pub fn with_capacity(elements: usize, text_len: usize) -> TreeBuilder {
+        TreeBuilder {
+            text: String::with_capacity(text_len),
+            kinds: Vec::with_capacity(elements),
+            starts: Vec::with_capacity(elements),
+            ends: Vec::with_capacity(elements),
+            parents: Vec::with_capacity(elements),
+            prev_sibs: Vec::with_capacity(elements),
+            open: Vec::new(),
+        }
+    }
+
     #[inline]
     pub fn start_node(&mut self, kind: SyntaxKind) {
         let e = self.push(kind as u16, NONE);

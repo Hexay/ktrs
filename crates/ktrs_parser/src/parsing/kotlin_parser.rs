@@ -14,8 +14,9 @@ pub fn parse(text: &str, kind: FileKind) -> Parse {
 
 /// [`parse`], reusing and extending `cache`'s expanded chameleons.
 pub fn parse_cached(text: &str, kind: FileKind, cache: &mut ChameleonCache) -> Parse {
-    let mut sink = TreeSink::with_cache(std::mem::take(cache));
-    run_into(PsiBuilder::lex_kotlin(text), |kt_parsing| parse_by_kind(kt_parsing, kind), None, &mut sink);
+    let psi = PsiBuilder::lex_kotlin(text);
+    let mut sink = TreeSink::for_file(&psi, Some(std::mem::take(cache)));
+    run_into(psi, |kt_parsing| parse_by_kind(kt_parsing, kind), None, &mut sink);
     *cache = sink.take_cache().expect("sink keeps its cache");
     sink.finish()
 }
@@ -52,8 +53,9 @@ pub fn parse_block_expression(text: &str) -> Parse {
 /// `KotlinParsing.createForTopLevel(new SemanticWhitespaceAwarePsiBuilderImpl(psiBuilder))`, run,
 /// then `psiBuilder.getTreeBuilt()`.
 fn run_top_level(text: &str, parse: impl FnOnce(&mut Parser)) -> Parse {
-    let mut sink = TreeSink::new();
-    run_into(PsiBuilder::lex_kotlin(text), parse, None, &mut sink);
+    let psi = PsiBuilder::lex_kotlin(text);
+    let mut sink = TreeSink::for_file(&psi, None);
+    run_into(psi, parse, None, &mut sink);
     sink.finish()
 }
 
