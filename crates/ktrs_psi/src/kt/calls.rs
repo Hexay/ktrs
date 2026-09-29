@@ -2,6 +2,7 @@
 
 use ktrs_syntax::SyntaxKind::*;
 
+use crate::classes::is_expression;
 use crate::element::{AstNode, PsiElement};
 use crate::tokens::{KtSingleValueToken, NAME_REFERENCE_EXPRESSIONS, OPERATIONS, OPERATION_TOKENS, single_value};
 use crate::tree_util::get_trailing_comma_by_closing_element;
@@ -28,8 +29,16 @@ macro_rules! qualified_expression {
             Some(KtSingleValueToken(self.operation_token_node()?.element_type()))
         }
 
+        /// `operationTokenNode.psi.siblings(afterOperation, false).firstIsInstanceOrNull()`, walked by id.
         fn get_expression(&self, after_operation: bool) -> Option<KtExpression> {
-            self.operation_token_node()?.psi().siblings(after_operation, false).find_map(|s| s.cast())
+            let tree = self.tree();
+            let mut sibling = self.find_child_by_type_set::<PsiElement>(OPERATIONS)?.id();
+            loop {
+                sibling = if after_operation { tree.next_sibling(sibling) } else { tree.prev_sibling(sibling) }?;
+                if !tree.is_token(sibling) && is_expression(tree.kind(sibling)) {
+                    return self.at(sibling).cast();
+                }
+            }
         }
     })*};
 }
