@@ -14,12 +14,12 @@ use ktrs_syntax::{ElementId, SyntaxKind, Tree};
 
 use super::kotlin_tok::KotlinTok;
 use super::parse_error::ParseError;
-use super::whitespace_tombstones::replace_trailing_whitespace_with_tombstone;
+use super::whitespace_tombstones::{has_trailing_whitespace, replace_trailing_whitespace_with_tombstone};
 
 pub struct Tokenizer<'a> {
     file_text: &'a str,
     /// `file_text`, shared by the toks.
-    source: Rc<str>,
+    pub source: Rc<str>,
     pub toks: Vec<KotlinTok>,
     index: i32,
 }
@@ -114,8 +114,13 @@ impl<'a> Tokenizer<'a> {
             return Ok(false);
         }
         if kind == SyntaxKind::STRING_TEMPLATE {
-            let text = replace_trailing_whitespace_with_tombstone(original_text);
-            self.push(KotlinTok::new(self.index, text, original_text.to_string(), start as i32, 0, true));
+            let tok = if has_trailing_whitespace(original_text) {
+                let text = replace_trailing_whitespace_with_tombstone(original_text);
+                KotlinTok::new(self.index, text, original_text.to_string(), start as i32, 0, true)
+            } else {
+                KotlinTok::from_source(self.index, &self.source, start..end, None, 0, true)
+            };
+            self.push(tok);
             return Ok(false);
         }
         if is_leaf {
