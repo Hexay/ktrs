@@ -19,6 +19,17 @@ fn skip_bytes(text: &str, mut pos: usize, pred: impl Fn(u8) -> bool) -> usize {
     pos
 }
 
+/// `[A-Za-z0-9_]`; false for every non-ASCII byte.
+const ASCII_IDENTIFIER_PART: [bool; 256] = {
+    let mut set = [false; 256];
+    let mut b = 0;
+    while b < 128 {
+        set[b] = (b as u8).is_ascii_alphanumeric() || b == b'_' as usize;
+        b += 1;
+    }
+    set
+};
+
 /// `{IDENTIFIER} = {PLAIN_IDENTIFIER}|{ESCAPED_IDENTIFIER}`.
 pub(crate) fn identifier(text: &str, pos: usize) -> Option<usize> {
     let b0 = byte(text, pos);
@@ -40,11 +51,10 @@ pub(crate) fn identifier(text: &str, pos: usize) -> Option<usize> {
     let bytes = text.as_bytes();
     while end < bytes.len() {
         let b = bytes[end];
-        if b.is_ascii() {
-            if !(b.is_ascii_alphanumeric() || b == b'_') {
-                break;
-            }
+        if ASCII_IDENTIFIER_PART[b as usize] {
             end += 1;
+        } else if b.is_ascii() {
+            break;
         } else {
             let c = char_at(text, end).unwrap();
             if !is_kotlin_identifier_part(c) {

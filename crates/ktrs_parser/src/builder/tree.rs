@@ -21,8 +21,10 @@ impl<F: Fn(&LazyLeaf<'_>, &mut TreeSink) -> bool> LazyReparse for F {}
 pub struct LazyLeaf<'a> {
     pub kind: SyntaxKind,
     pub text: &'a str,
-    starts: &'a [u32],
-    kinds: &'a [SyntaxKind],
+    /// Lexemes `start..end` of `outer`; sliced only when the leaf is actually reparsed.
+    outer: &'a PsiBuilder,
+    start: usize,
+    end: usize,
 }
 
 impl LazyLeaf<'_> {
@@ -31,7 +33,8 @@ impl LazyLeaf<'_> {
     /// Kotlin lexer's state at a `{` only differs inside a `${...}` template, whose brace
     /// counting agrees with `advanceBalancedBlock`.
     pub(crate) fn relexed_builder(&self) -> PsiBuilder {
-        PsiBuilder::from_lexemes(self.text, self.starts, self.kinds)
+        let (start, end) = (self.start, self.end);
+        PsiBuilder::from_lexemes(self.text, &self.outer.lex_starts[start..=end], &self.outer.orig_types[start..end])
     }
 }
 
@@ -181,9 +184,11 @@ impl PsiBuilder {
         let last_idx = (last_idx.max(0) as usize).min(self.lexeme_count());
         let mut cur_token = cur_token;
         while cur_token < last_idx {
+            let (text_start, text_end) = (self.lex_starts[cur_token], self.lex_starts[cur_token + 1]);
             // Empty tokens are skipped (no Kotlin token type is an ILeafElementType).
-            if self.lex_starts[cur_token] < self.lex_starts[cur_token + 1] {
-                self.create_leaf(self.lex_types[cur_token], cur_token, cur_token + 1, out, lazy);
+            if text_start < text_end {
+                let text = &self.text[text_start as usize..text_end as usize];
+                self.create_leaf(self.lex_types[cur_token], cur_token, cur_token + 1, text, out, lazy);
             }
             cur_token += 1;
         }
@@ -191,18 +196,23 @@ impl PsiBuilder {
     }
 
     fn collapse_leaves(&self, start: i32, end: i32, kind: SyntaxKind, out: &mut TreeSink, lazy: &impl LazyReparse) -> usize {
-        self.create_leaf(kind, start as usize, end as usize, out, lazy);
-        end as usize
+        let (start, end) = (start as usize, end as usize);
+        let text = &self.text[self.lex_starts[start] as usize..self.lex_starts[end] as usize];
+        self.create_leaf(kind, start, end, text, out, lazy);
+        end
     }
 
-    /// A leaf of `kind` over lexemes `start..end`.
-    fn create_leaf(&self, kind: SyntaxKind, start: usize, end: usize, out: &mut TreeSink, lazy: &impl LazyReparse) {
-        let leaf = LazyLeaf {
-            kind,
-            text: &self.text[self.lex_starts[start] as usize..self.lex_starts[end] as usize],
-            starts: &self.lex_starts[start..=end],
-            kinds: &self.orig_types[start..end],
-        };
+    /// A leaf of `kind` over lexemes `start..end`, whose text is `text`.
+    fn create_leaf(
+        &self,
+        kind: SyntaxKind,
+        start: usize,
+        end: usize,
+        text: &str,
+        out: &mut TreeSink,
+        lazy: &impl LazyReparse,
+    ) {
+        let leaf = LazyLeaf { kind, text, outer: self, start, end };
         if !lazy(&leaf, out) {
             out.token(kind, leaf.text);
         }

@@ -11,17 +11,6 @@ use super::scan::{
 use super::{KotlinLexer, LexState};
 use crate::chars::is_kotlin_identifier_part;
 
-/// First entry whose text prefixes the input wins, so longer operators come first.
-fn operator(text: &str, start: usize, table: &[(&str, SyntaxKind)]) -> (SyntaxKind, usize) {
-    let rest = &text[start..];
-    table
-        .iter()
-        .find(|(op, _)| rest.starts_with(op))
-        .map_or((BAD_CHARACTER, start + 1), |&(op, kind)| {
-            (kind, start + op.len())
-        })
-}
-
 impl KotlinLexer<'_> {
     pub(super) fn lex_default(&mut self, start: usize) -> Option<SyntaxKind> {
         let text = self.text;
@@ -97,16 +86,12 @@ impl KotlinLexer<'_> {
             }
             b'.' => match double_literal(text, start) {
                 Some(end) => (FLOAT_LITERAL, end),
-                None => operator(
-                    text,
-                    start,
-                    &[
-                        ("...", RESERVED),
-                        ("..<", RANGE_UNTIL),
-                        ("..", RANGE),
-                        (".", DOT),
-                    ],
-                ),
+                None => match (self.byte(start + 1), self.byte(start + 2)) {
+                    (b'.', b'.') => (RESERVED, start + 3),
+                    (b'.', b'<') => (RANGE_UNTIL, start + 3),
+                    (b'.', _) => (RANGE, start + 2),
+                    _ => (DOT, start + 1),
+                },
             },
             b'\'' => (CHARACTER_LITERAL, character_literal(text, start)),
             b'`' => match identifier(text, start) {
@@ -117,39 +102,23 @@ impl KotlinLexer<'_> {
                 }
             },
             b'!' => self.lex_excl(start),
-            b'=' => operator(
-                text,
-                start,
-                &[
-                    ("===", EQEQEQ),
-                    ("==", EQEQ),
-                    ("=>", DOUBLE_ARROW),
-                    ("=", EQ),
-                ],
-            ),
-            b'<' => operator(text, start, &[("<=", LTEQ), ("<", LT)]),
-            b'>' => operator(text, start, &[(">=", GTEQ), (">", GT)]),
-            b'+' => operator(
-                text,
-                start,
-                &[("++", PLUSPLUS), ("+=", PLUSEQ), ("+", PLUS)],
-            ),
-            b'-' => operator(
-                text,
-                start,
-                &[
-                    ("--", MINUSMINUS),
-                    ("-=", MINUSEQ),
-                    ("->", ARROW),
-                    ("-", MINUS),
-                ],
-            ),
-            b'*' => operator(text, start, &[("*=", MULTEQ), ("*", MUL)]),
-            b'%' => operator(text, start, &[("%=", PERCEQ), ("%", PERC)]),
-            b'&' => operator(text, start, &[("&&", ANDAND), ("&", AND)]),
-            b'|' => operator(text, start, &[("||", OROR)]),
-            b':' => operator(text, start, &[("::", COLONCOLON), (":", COLON)]),
-            b';' => operator(text, start, &[(";;", DOUBLE_SEMICOLON), (";", SEMICOLON)]),
+            b'=' => match (self.byte(start + 1), self.byte(start + 2)) {
+                (b'=', b'=') => (EQEQEQ, start + 3),
+                (b'=', _) => (EQEQ, start + 2),
+                (b'>', _) => (DOUBLE_ARROW, start + 2),
+                _ => (EQ, start + 1),
+            },
+            b'<' => self.operator(start, &[(b'=', LTEQ)], LT),
+            b'>' => self.operator(start, &[(b'=', GTEQ)], GT),
+            b'+' => self.operator(start, &[(b'+', PLUSPLUS), (b'=', PLUSEQ)], PLUS),
+            b'-' => self.operator(start, &[(b'-', MINUSMINUS), (b'=', MINUSEQ), (b'>', ARROW)], MINUS),
+            b'*' => self.operator(start, &[(b'=', MULTEQ)], MUL),
+            b'%' => self.operator(start, &[(b'=', PERCEQ)], PERC),
+            b'&' => self.operator(start, &[(b'&', ANDAND)], AND),
+            // A lone `|` matches no rule: the catch-all makes it a BAD_CHARACTER.
+            b'|' => self.operator(start, &[(b'|', OROR)], BAD_CHARACTER),
+            b':' => self.operator(start, &[(b':', COLONCOLON)], COLON),
+            b';' => self.operator(start, &[(b';', DOUBLE_SEMICOLON)], SEMICOLON),
             b'[' => (LBRACKET, start + 1),
             b']' => (RBRACKET, start + 1),
             b'{' => (LBRACE, start + 1),
@@ -184,11 +153,21 @@ impl KotlinLexer<'_> {
                 _ => (not_kind, start + 3),
             };
         }
-        operator(
-            self.text,
-            start,
-            &[("!==", EXCLEQEQEQ), ("!=", EXCLEQ), ("!", EXCL)],
-        )
+        match (self.byte(start + 1), self.byte(start + 2)) {
+            (b'=', b'=') => (EXCLEQEQEQ, start + 3),
+            (b'=', _) => (EXCLEQ, start + 2),
+            _ => (EXCL, start + 1),
+        }
+    }
+
+    /// A one-char operator or, if the next byte is in `two_char`, that two-char one (longest match).
+    #[inline(always)]
+    fn operator(&self, start: usize, two_char: &[(u8, SyntaxKind)], one_char: SyntaxKind) -> (SyntaxKind, usize) {
+        let next = self.byte(start + 1);
+        match two_char.iter().find(|&&(b, _)| b == next) {
+            Some(&(_, kind)) => (kind, start + 2),
+            None => (one_char, start + 1),
+        }
     }
 
     fn lex_identifier_or_bad_character(&self, start: usize) -> (SyntaxKind, usize) {
