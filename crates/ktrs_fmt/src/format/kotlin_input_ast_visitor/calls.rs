@@ -9,7 +9,7 @@ use crate::format::psi_utils::value_argument_list_has_empty_parens;
 use super::KotlinInputAstVisitor;
 use super::comma_separated::{EachCommaSeparated, psi_list};
 
-impl KotlinInputAstVisitor<'_, '_> {
+impl KotlinInputAstVisitor<'_, '_, '_> {
     /// Examples `foo<T>(a, b)`, `foo(a)`, `boo()`, `super(a)`. `lambda_indent` indents the trailing
     /// lambda; `negative_lambda_indent` undoes it for the callee and arguments, so all share one block
     /// and breaks in the argument list cause a break in the lambda.

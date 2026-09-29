@@ -8,20 +8,20 @@ use super::doc_leaves::{DocBreak, DocTok, DocToken};
 use super::indent::Indent;
 
 #[derive(Debug)]
-pub enum Op {
+pub enum Op<'a> {
     Open(Indent),
     Close,
-    Token(DocToken),
+    Token(DocToken<'a>),
     Space,
     Break(DocBreak),
-    Tok(DocTok),
+    Tok(DocTok<'a>),
     /// ktfmt's `FenceCommentsOp`: adds nothing, but keeps `OpsBuilder.build` from hoisting
     /// comments past it into parent levels.
     FenceComments,
 }
 
-impl Op {
-    pub fn add(self, builder: &mut DocBuilder) {
+impl<'a> Op<'a> {
+    pub fn add(self, builder: &mut DocBuilder<'a>) {
         match self {
             Op::Open(plus_indent) => builder.open(plus_indent),
             Op::Close => builder.close(),

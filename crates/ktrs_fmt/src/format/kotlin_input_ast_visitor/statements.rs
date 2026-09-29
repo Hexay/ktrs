@@ -9,7 +9,7 @@ use super::KotlinInputAstVisitor;
 use super::comma_separated::{EachCommaSeparated, psi_list};
 use super::declarations::DeclarationKind;
 
-impl KotlinInputAstVisitor<'_, '_> {
+impl KotlinInputAstVisitor<'_, '_, '_> {
     /// Example `for (i in items) { ... }`
     pub(super) fn visit_for_expression(&mut self, expression: &KtForExpression) {
         self.sync(expression);

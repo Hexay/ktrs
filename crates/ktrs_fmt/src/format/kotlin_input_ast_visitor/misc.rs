@@ -9,7 +9,7 @@ use crate::format::kotlin_text::is_kotlin_whitespace;
 use super::KotlinInputAstVisitor;
 use super::comma_separated::{EachCommaSeparated, psi_list};
 
-impl KotlinInputAstVisitor<'_, '_> {
+impl KotlinInputAstVisitor<'_, '_, '_> {
     /// Example `a is Int` or `b !is Int`
     pub(super) fn visit_is_expression(&mut self, expression: &KtIsExpression) {
         self.sync(expression);

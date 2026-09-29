@@ -14,7 +14,7 @@ pub(super) enum DeclarationKind {
     Parameter,
 }
 
-impl KotlinInputAstVisitor<'_, '_> {
+impl KotlinInputAstVisitor<'_, '_, '_> {
     /// Declare one variable or variable-like thing, e.g. `var a: Int = 5` or `a: Int`.
     #[allow(clippy::too_many_arguments)]
     pub(super) fn declare_one(

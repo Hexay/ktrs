@@ -9,7 +9,7 @@ use super::KotlinInputAstVisitor;
 use super::comma_separated::{EachCommaSeparated, psi_list};
 use super::function_like::ParameterList;
 
-impl KotlinInputAstVisitor<'_, '_> {
+impl KotlinInputAstVisitor<'_, '_, '_> {
     /// Example: `fun foo(n: Int) { println(n) }`
     pub(super) fn visit_named_function(&mut self, function: &KtNamedFunction) {
         self.sync(function);

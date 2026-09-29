@@ -10,7 +10,7 @@ use crate::format::enum_entry_list::EnumEntryList;
 use super::KotlinInputAstVisitor;
 use super::comma_separated::{EachCommaSeparated, psi_list};
 
-impl KotlinInputAstVisitor<'_, '_> {
+impl KotlinInputAstVisitor<'_, '_, '_> {
     pub(super) fn visit_when_expression(&mut self, expression: &KtWhenExpression) {
         self.sync(expression);
         let block_indent = self.block_indent();

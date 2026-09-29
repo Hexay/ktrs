@@ -29,7 +29,7 @@ pub(super) fn psi_list<T: Into<PsiElement>>(list: Vec<T>) -> Vec<PsiElement> {
     list.into_iter().map(Into::into).collect()
 }
 
-impl KotlinInputAstVisitor<'_, '_> {
+impl KotlinInputAstVisitor<'_, '_, '_> {
     pub(super) fn comma_separated(&self) -> EachCommaSeparated {
         EachCommaSeparated {
             has_trailing_comma: false,

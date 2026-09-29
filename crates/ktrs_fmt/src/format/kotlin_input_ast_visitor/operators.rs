@@ -9,7 +9,7 @@ use crate::doc::{FillMode, Indent};
 
 use super::KotlinInputAstVisitor;
 
-impl KotlinInputAstVisitor<'_, '_> {
+impl KotlinInputAstVisitor<'_, '_, '_> {
     /// For example `a + b`, `a + b + c` or `a..b`. The AST parses `a + b + c` as `a + (b + c)`; drill
     /// to the leftmost operand so the chain is formatted as `(a + b) + c`.
     pub(super) fn visit_binary_expression(&mut self, expression: &KtBinaryExpression) {

@@ -12,19 +12,19 @@ use super::range::Range;
 
 /// A `Level` inside a `Doc`.
 #[derive(Debug)]
-pub struct Level {
+pub struct Level<'a> {
     plus_indent: Indent,
-    pub(super) docs: Vec<Doc>,
+    pub(super) docs: Vec<Doc<'a>>,
     /// True if the entire level fits on one line.
     pub(super) one_line: bool,
 }
 
-impl Level {
-    pub(crate) fn make(plus_indent: Indent) -> Level {
+impl<'a> Level<'a> {
+    pub(crate) fn make(plus_indent: Indent) -> Level<'a> {
         Level::with_capacity(plus_indent, 0)
     }
 
-    pub(crate) fn with_capacity(plus_indent: Indent, docs: usize) -> Level {
+    pub(crate) fn with_capacity(plus_indent: Indent, docs: usize) -> Level<'a> {
         Level {
             plus_indent,
             docs: Vec::with_capacity(docs),
@@ -32,11 +32,11 @@ impl Level {
         }
     }
 
-    pub(crate) fn add(&mut self, doc: Doc) {
+    pub(crate) fn add(&mut self, doc: Doc<'a>) {
         self.docs.push(doc);
     }
 
-    pub fn docs(&self) -> &[Doc] {
+    pub fn docs(&self) -> &[Doc<'a>] {
         &self.docs
     }
 
@@ -65,7 +65,7 @@ impl Level {
     }
 
     /// The indices of the breaks; split `i` is the range between break `i - 1` and break `i`.
-    fn split_by_breaks(docs: &[Doc]) -> Vec<usize> {
+    fn split_by_breaks(docs: &[Doc<'_>]) -> Vec<usize> {
         (0..docs.len()).filter(|&i| matches!(docs[i].kind(), DocKind::Break(_))).collect()
     }
 
@@ -94,7 +94,7 @@ impl Level {
         comments_helper: &dyn CommentsHelper,
         max_width: i32,
         mut state: State,
-        docs: &mut [Doc],
+        docs: &mut [Doc<'a>],
         opt_break_doc: Option<usize>,
         split: IndexRange<usize>,
     ) -> State {
@@ -126,7 +126,7 @@ impl Level {
     fn compute_split(
         comments_helper: &dyn CommentsHelper,
         max_width: i32,
-        split: &mut [Doc],
+        split: &mut [Doc<'a>],
         mut state: State,
     ) -> State {
         for doc in split {
@@ -143,7 +143,10 @@ impl Level {
     }
 
     /// `getWidth(List<Doc>)`: the summed width, saturating at `MAX_LINE_WIDTH`.
-    pub(super) fn get_width_of<'d>(docs: impl Iterator<Item = &'d Doc>) -> i32 {
+    pub(super) fn get_width_of<'d>(docs: impl Iterator<Item = &'d Doc<'a>>) -> i32
+    where
+        'a: 'd,
+    {
         let mut width = 0;
         for doc in docs {
             width += doc.get_width();
@@ -164,7 +167,7 @@ impl Level {
         }
     }
 
-    fn as_break(doc: &mut Doc) -> &mut DocBreak {
+    fn as_break<'d>(doc: &'d mut Doc<'_>) -> &'d mut DocBreak {
         match doc.kind_mut() {
             DocKind::Break(b) => b,
             _ => unreachable!("split_by_breaks only records breaks"),

@@ -4,8 +4,6 @@
 //! Where Java throws `FormattingError`, the builder records the first error and keeps going;
 //! [`OpsBuilder::build`] returns it. Formatting output is discarded on error either way.
 
-use std::rc::Rc;
-
 use super::blank_line_wanted::BlankLineWanted;
 use super::doc_leaves::{DocToken, RealOrImaginary};
 use super::formatting_error::{FormatterDiagnostic, FormattingError};
@@ -14,10 +12,14 @@ use super::input::{Input, Tok, Token};
 use super::op::Op;
 use super::output::Output;
 
-pub struct OpsBuilder<'a> {
+/// `'a` is the input's (and so the ops'), `'o` the output's: the ops outlive the builder's borrow
+/// of the output, which then writes them.
+pub struct OpsBuilder<'a, 'o> {
     pub(super) input: &'a dyn Input,
-    pub(super) ops: Vec<Op>,
-    pub(super) output: &'a mut dyn Output,
+    /// `input.get_tokens()`.
+    pub(super) tokens: &'a [Token<'a>],
+    pub(super) ops: Vec<Op<'a>>,
+    pub(super) output: &'o mut dyn Output,
     token_i: usize,
     input_position: i32,
     /// The number of unclosed open ops in the input stream.
@@ -26,9 +28,9 @@ pub struct OpsBuilder<'a> {
     pub(super) error: Option<FormattingError>,
 }
 
-impl<'a> OpsBuilder<'a> {
+impl<'a, 'o> OpsBuilder<'a, 'o> {
     /// Add an `Op`, and record open/close ops for later validation of unclosed levels.
-    pub fn add(&mut self, op: Op) {
+    pub fn add(&mut self, op: Op<'a>) {
         match op {
             Op::Open(_) => self.depth += 1,
             Op::Close => {
@@ -40,18 +42,20 @@ impl<'a> OpsBuilder<'a> {
         self.ops.push(op);
     }
 
-    pub fn add_all(&mut self, ops: Vec<Op>) {
+    pub fn add_all(&mut self, ops: Vec<Op<'a>>) {
         for op in ops {
             self.add(op);
         }
     }
 
     /// `output` is used here only to record blank-line and partial-format information.
-    pub fn new(input: &'a dyn Input, output: &'a mut dyn Output) -> OpsBuilder<'a> {
+    pub fn new(input: &'a dyn Input, output: &'o mut dyn Output) -> OpsBuilder<'a, 'o> {
+        let tokens = input.get_tokens();
         OpsBuilder {
             input,
+            tokens,
             // Typically a few ops per token; reserving avoids regrowing a large Vec of large ops.
-            ops: Vec::with_capacity(input.get_tokens().len() * 4),
+            ops: Vec::with_capacity(tokens.len() * 4),
             output,
             token_i: 0,
             input_position: i32::MIN,
@@ -95,7 +99,7 @@ impl<'a> OpsBuilder<'a> {
     /// Sync to position in the input; complains if any input token was skipped.
     pub fn sync(&mut self, input_position: i32) {
         if input_position > self.input_position {
-            let tokens = self.input.get_tokens();
+            let tokens = self.tokens;
             self.input_position = input_position;
             if self.token_i < tokens.len()
                 && input_position > tokens[self.token_i].get_tok().get_position()
@@ -116,11 +120,11 @@ impl<'a> OpsBuilder<'a> {
     pub fn drain(&mut self) {
         let input_position = self.input.get_text().len() as i32 + 1;
         if input_position > self.input_position {
-            let tokens = self.input.get_tokens();
+            let tokens = self.tokens;
             while self.token_i < tokens.len()
                 && input_position > tokens[self.token_i].get_tok().get_position()
             {
-                let token = tokens[self.token_i].clone();
+                let token = &tokens[self.token_i];
                 self.token_i += 1;
                 self.add(DocToken::make(
                     token,
@@ -145,13 +149,15 @@ impl<'a> OpsBuilder<'a> {
     }
 
     /// Return the text of the next input token, or `None` if there is none.
+    #[inline]
     pub fn peek_token(&self) -> Option<&'a str> {
         self.peek_token_skip(0)
     }
 
     /// Return the text of an upcoming input token, or `None` if there is none.
+    #[inline]
     pub fn peek_token_skip(&self, skip: usize) -> Option<&'a str> {
-        let tokens: &'a [Rc<dyn Token>] = self.input.get_tokens();
+        let tokens = self.tokens;
         tokens
             .get(self.token_i + skip)
             .map(|t| t.get_tok().get_original_text())
@@ -161,9 +167,9 @@ impl<'a> OpsBuilder<'a> {
     pub fn peek_tokens(
         &self,
         start_position: i32,
-        predicate: impl Fn(&dyn Tok) -> bool,
-    ) -> Vec<Rc<dyn Tok>> {
-        let tokens = self.input.get_tokens();
+        predicate: impl Fn(&Tok<'_>) -> bool,
+    ) -> Vec<&'a Tok<'a>> {
+        let tokens = self.tokens;
         assert!(
             tokens[self.token_i].get_tok().get_position() == start_position,
             "Expected the current token to be at position {start_position}, found: {:?}",
@@ -172,8 +178,7 @@ impl<'a> OpsBuilder<'a> {
         tokens[self.token_i..]
             .iter()
             .map(|t| t.get_tok())
-            .take_while(|tok| predicate(&***tok))
-            .cloned()
+            .take_while(|tok| predicate(tok))
             .collect()
     }
 
@@ -189,10 +194,9 @@ impl<'a> OpsBuilder<'a> {
         plus_indent_comments_before: Indent,
         break_and_indent_trailing_comment: Option<Indent>,
     ) {
-        let tokens = self.input.get_tokens();
         if self.peek_token() == Some(token) {
             // Found the input token. Output it.
-            let input_token = tokens[self.token_i].clone();
+            let input_token = &self.tokens[self.token_i];
             self.token_i += 1;
             self.add(DocToken::make(
                 input_token,
@@ -233,17 +237,17 @@ impl<'a> OpsBuilder<'a> {
         if self.token_i as i32 == self.last_partial_format_boundary {
             return;
         }
-        let tokens = self.input.get_tokens();
+        let tokens = self.tokens;
         let start = &tokens[self.last_partial_format_boundary as usize];
         let end = &tokens[self.token_i - 1];
-        self.output.mark_for_partial_format(&**start, &**end);
+        self.output.mark_for_partial_format(start, end);
         self.last_partial_format_boundary = self.token_i as i32;
     }
 
     /// Force or suppress a blank line here in the output.
     pub fn blank_line_wanted(&mut self, wanted: BlankLineWanted) {
-        match self.input.get_tokens().get(self.token_i) {
-            Some(token) => self.output.blank_line(Self::get_i(&**token), wanted),
+        match self.tokens.get(self.token_i) {
+            Some(token) => self.output.blank_line(Self::get_i(token), wanted),
             None => {
                 let diagnostic = self.diagnostic(format!(
                     "Index {} out of bounds for blankLineWanted",
@@ -254,7 +258,7 @@ impl<'a> OpsBuilder<'a> {
         }
     }
 
-    fn get_i(token: &dyn Token) -> i32 {
+    fn get_i(token: &Token<'_>) -> i32 {
         token
             .get_toks_before()
             .iter()
