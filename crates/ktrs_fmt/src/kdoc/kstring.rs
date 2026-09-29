@@ -75,17 +75,22 @@ pub trait KChar: Copy {
 }
 
 fn simple_case_map(c: u16, upper: bool) -> u16 {
+    if c < 0x80 {
+        let b = c as u8;
+        return u16::from(if upper { b.to_ascii_uppercase() } else { b.to_ascii_lowercase() });
+    }
     let Some(ch) = char::from_u32(c as u32) else { return c };
     // Java's simple (1:1) mapping; Rust only exposes full mappings, which expand these.
     if !upper && c == 0x0130 {
         return 'i' as u16;
     }
-    let mut it: Box<dyn Iterator<Item = char>> =
-        if upper { Box::new(ch.to_uppercase()) } else { Box::new(ch.to_lowercase()) };
-    match (it.next(), it.next()) {
-        (Some(m), None) if (m as u32) <= 0xFFFF => m as u16,
-        _ => c,
+    fn single(c: u16, mut it: impl Iterator<Item = char>) -> u16 {
+        match (it.next(), it.next()) {
+            (Some(m), None) if (m as u32) <= 0xFFFF => m as u16,
+            _ => c,
+        }
     }
+    if upper { single(c, ch.to_uppercase()) } else { single(c, ch.to_lowercase()) }
 }
 
 impl KChar for u16 {
@@ -129,6 +134,9 @@ impl KChar for u16 {
     fn eq_ignore_case(self, other: u16) -> bool {
         if self == other {
             return true;
+        }
+        if self < 0x80 && other < 0x80 {
+            return (self as u8).eq_ignore_ascii_case(&(other as u8));
         }
         let a = self.uppercase_char();
         let b = other.uppercase_char();
@@ -184,7 +192,10 @@ impl KStr for [u16] {
         if p.len() > self.len() {
             return -1;
         }
-        (from..=self.len() - p.len()).find(|&i| self[i..].starts_with(p)).map_or(-1, |i| i as i32)
+        let Some((&first, rest)) = p.split_first() else { return if from <= self.len() { from as i32 } else { -1 } };
+        (from..=self.len() - p.len())
+            .find(|&i| self[i] == first && self[i + 1..].starts_with(rest))
+            .map_or(-1, |i| i as i32)
     }
 
     fn index_of_char(&self, c: u16, from: usize) -> i32 {
