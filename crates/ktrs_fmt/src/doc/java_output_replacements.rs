@@ -34,8 +34,8 @@ impl JavaOutput<'_> {
                 .java_input
                 .get_token(range.upper_endpoint() - 1)
                 .expect("no token for end index");
-            let start_tok = Self::start_tok(&**start_token);
-            let end_tok = Self::end_tok(&**end_token);
+            let start_tok = Self::start_tok(start_token);
+            let end_tok = Self::end_tok(end_token);
 
             // Add all output lines in the given token range to the replacement.
             let mut replacement = String::new();

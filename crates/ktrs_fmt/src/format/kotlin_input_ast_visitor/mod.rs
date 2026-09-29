@@ -26,9 +26,9 @@ use crate::doc::{Indent, OpsBuilder};
 use super::FormatError;
 use super::formatting_options::FormattingOptions;
 
-pub struct KotlinInputAstVisitor<'b, 'a> {
+pub struct KotlinInputAstVisitor<'b, 'a, 'o> {
     options: FormattingOptions,
-    builder: &'b mut OpsBuilder<'a>,
+    builder: &'b mut OpsBuilder<'a, 'o>,
     /// Standard indentation for a block.
     block_indent: Indent,
     /// Indentation for a long expression or function call; differs from block indentation on purpose.
@@ -44,8 +44,8 @@ pub struct KotlinInputAstVisitor<'b, 'a> {
     exception: Option<FormatError>,
 }
 
-impl<'b, 'a> KotlinInputAstVisitor<'b, 'a> {
-    pub fn new(options: FormattingOptions, builder: &'b mut OpsBuilder<'a>) -> Self {
+impl<'b, 'a, 'o> KotlinInputAstVisitor<'b, 'a, 'o> {
+    pub fn new(options: FormattingOptions, builder: &'b mut OpsBuilder<'a, 'o>) -> Self {
         KotlinInputAstVisitor {
             block_indent: Indent::make_const(options.block_indent, 1),
             expression_break_indent: Indent::make_const(options.continuation_indent, 1),
@@ -68,7 +68,7 @@ impl<'b, 'a> KotlinInputAstVisitor<'b, 'a> {
 
 macro_rules! forward {
     ($($name:ident($t:ty);)*) => {
-        impl KtVisitorVoid for KotlinInputAstVisitor<'_, '_> {
+        impl KtVisitorVoid for KotlinInputAstVisitor<'_, '_, '_> {
             /// A leaf reaches only `visit_element`, which for a leaf pushes and pops `in_expression`.
             fn ignores_leaves(&self) -> bool {
                 true

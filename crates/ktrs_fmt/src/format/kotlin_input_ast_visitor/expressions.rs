@@ -10,7 +10,7 @@ use super::KotlinInputAstVisitor;
 use super::comma_separated::{EachCommaSeparated, psi_list};
 use super::declarations::DeclarationKind;
 
-impl KotlinInputAstVisitor<'_, '_> {
+impl KotlinInputAstVisitor<'_, '_, '_> {
     /// Example `val (a, b: Int) = Pair(1, 2)` or `val [a, b] = Pair(1, 2)`
     pub(super) fn visit_destructuring_declaration(&mut self, destructuring_declaration: &KtDestructuringDeclaration) {
         self.sync(destructuring_declaration);

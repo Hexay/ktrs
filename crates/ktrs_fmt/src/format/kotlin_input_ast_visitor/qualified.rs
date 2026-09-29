@@ -36,7 +36,7 @@ fn text_shorter_than(element: &PsiElement, limit: i32) -> bool {
         .is_continue()
 }
 
-impl KotlinInputAstVisitor<'_, '_> {
+impl KotlinInputAstVisitor<'_, '_, '_> {
     /// Example: "com.facebook.bla.bla" in imports or "a.b.c.d" in expressions. Imports stay on one
     /// line; other chains go to the leftmost descendant so indentation starts at the first break.
     pub(super) fn visit_qualified_expression(&mut self, expression: &KtQualifiedExpression) {

@@ -8,7 +8,7 @@ use crate::doc::{FillMode, Indent};
 use super::KotlinInputAstVisitor;
 use super::comma_separated::psi_list;
 
-impl KotlinInputAstVisitor<'_, '_> {
+impl KotlinInputAstVisitor<'_, '_, '_> {
     /// For example `@Magic private final`
     pub(super) fn visit_modifier_list(&mut self, list: &KtModifierList) {
         self.sync(list);

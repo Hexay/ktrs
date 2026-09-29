@@ -59,37 +59,37 @@ impl State {
 }
 
 #[derive(Debug)]
-pub struct Doc {
-    kind: DocKind,
+pub struct Doc<'a> {
+    kind: DocKind<'a>,
     /// Memoized `getWidth()`; `-1` until computed (widths are never negative).
     width: Cell<i32>,
 }
 
 #[derive(Debug)]
-pub enum DocKind {
-    Level(Level),
-    Token(DocToken),
+pub enum DocKind<'a> {
+    Level(Level<'a>),
+    Token(DocToken<'a>),
     Space,
     Break(DocBreak),
-    Tok(DocTok),
+    Tok(DocTok<'a>),
 }
 
 // `Level` is stored inline (boxing it cost one allocation per level); it must not grow `DocKind`.
 const _: () = assert!(std::mem::size_of::<Level>() <= std::mem::size_of::<DocBreak>());
 
-impl Doc {
-    pub(crate) fn new(kind: DocKind) -> Doc {
+impl<'a> Doc<'a> {
+    pub(crate) fn new(kind: DocKind<'a>) -> Doc<'a> {
         Doc {
             kind,
             width: Cell::new(-1),
         }
     }
 
-    pub fn kind(&self) -> &DocKind {
+    pub fn kind(&self) -> &DocKind<'a> {
         &self.kind
     }
 
-    pub(super) fn kind_mut(&mut self) -> &mut DocKind {
+    pub(super) fn kind_mut(&mut self) -> &mut DocKind<'a> {
         &mut self.kind
     }
 

@@ -8,7 +8,7 @@ use super::op::Op;
 use super::ops_builder::OpsBuilder;
 use super::output::BreakTag;
 
-impl OpsBuilder<'_> {
+impl OpsBuilder<'_, '_> {
     pub fn space(&mut self) {
         self.add(Op::Space);
     }

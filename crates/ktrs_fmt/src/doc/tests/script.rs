@@ -20,7 +20,7 @@ use crate::format::input::whitespace_tombstones::replace_tombstone_with_trailing
 pub(super) struct IdentityCommentsHelper;
 
 impl CommentsHelper for IdentityCommentsHelper {
-    fn rewrite(&self, tok: &dyn Tok, _max_width: i32, _column0: i32) -> String {
+    fn rewrite(&self, tok: &Tok<'_>, _max_width: i32, _column0: i32) -> String {
         tok.get_original_text().to_string()
     }
 }
@@ -41,7 +41,7 @@ fn flat(f: &str) -> &str {
     }
 }
 
-fn run_script(b: &mut OpsBuilder<'_>, script: &str) {
+fn run_script(b: &mut OpsBuilder<'_, '_>, script: &str) {
     let mut tags: HashMap<String, BreakTag> = HashMap::new();
     let mut tag = |name: &str| tags.entry(name.to_string()).or_default().clone();
     let mut it = script.split_whitespace();
