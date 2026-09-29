@@ -199,13 +199,13 @@ impl PsiBuilder {
             Some(before) => self.production.marker(before.0).lexeme,
         };
         let start = self.production.marker(id).lexeme;
-        let empty = self.is_empty(start, done_lexeme);
+        let left_bound_empty = is_left_bound(kind) && self.is_empty(start, done_lexeme);
         if let Some(message) = error_message {
             self.production.set_message(id, message);
         }
         let data = self.production.marker_mut(id);
         data.kind = Some(kind);
-        if is_left_bound(kind) && empty {
+        if left_bound_empty {
             data.left_binder = Some(super::EdgeBinder::DefaultRight);
         }
         data.done_lexeme = done_lexeme;

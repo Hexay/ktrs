@@ -4,6 +4,7 @@
 use ktrs_syntax::{Parse, SyntaxKind, TreeBuilder};
 
 use super::chameleon_cache::ChameleonCache;
+use super::psi_builder::PsiBuilder;
 
 #[derive(Default)]
 pub struct TreeSink {
@@ -15,6 +16,13 @@ pub struct TreeSink {
 impl TreeSink {
     pub fn new() -> TreeSink {
         TreeSink::default()
+    }
+
+    /// A sink sized for the tree of `builder`'s file, chameleons included.
+    pub(crate) fn for_file(builder: &PsiBuilder, cache: Option<ChameleonCache>) -> TreeSink {
+        // Chameleons re-cut the file's own lexemes, so leaves <= lexemes; nodes are fewer in practice.
+        let elements = 2 * builder.lexeme_count() + 1;
+        TreeSink { tree: TreeBuilder::with_capacity(elements, builder.text.len()), cache, errors: Vec::new() }
     }
 
     pub fn with_cache(cache: ChameleonCache) -> TreeSink {
