@@ -1,8 +1,12 @@
 //! Port of ktfmt's `KotlinInput.kt`: what `JavaInput` is for Java, with the Kotlin parse tree as
 //! the lexer.
+//!
+//! The position-to-token and position-to-column maps are built on first use: ktfmt reads neither
+//! (the formatter's one character-range lookup binary-searches the tokens instead).
 
 use std::cell::OnceCell;
 use std::collections::HashMap;
+use std::iter::Peekable;
 use std::rc::Rc;
 
 use ktrs_psi::PsiElement;
@@ -20,14 +24,15 @@ use super::tokenizer::Tokenizer;
 
 pub struct KotlinInput {
     io: InputOutput,
-    text: String,
+    text: Rc<str>,
     /// The Tokens for this input.
     tokens: Vec<Rc<dyn Token>>,
-    toks: Vec<Rc<KotlinTok>>,
-    /// Map Tok position to column. Built on first use: ktfmt never reads it.
+    /// Newline toks dropped after parameter comments: the toks not in any token.
+    dropped_toks: Vec<Rc<KotlinTok>>,
+    /// Map Tok position to column.
     position_to_column_map: OnceCell<HashMap<i32, i32>>,
     /// Map position to Token.
-    position_token_map: RangeMap<Rc<dyn Token>>,
+    position_token_map: OnceCell<RangeMap<Rc<dyn Token>>>,
     /// The number of numbered toks (tokens or comments), excluding the EOF.
     k_n: i32,
     /// Indices into `tokens`.
@@ -38,34 +43,20 @@ impl KotlinInput {
     pub fn new(text: &str, file: &PsiElement) -> Result<KotlinInput, ParseError> {
         let mut io = InputOutput::default();
         io.set_line_count(newlines::line_iterator(text).count());
-        let (toks, k_n) = Self::build_toks(&mut io, file, text)?;
-        let tokens = Self::build_tokens(&toks);
-        let position_token_map = Self::build_token_positions_map(&tokens);
-
-        // adjust kN for EOF
-        let mut k_to_token: Vec<Option<u32>> = vec![None; k_n as usize + 1];
-        for (i, token) in tokens.iter().enumerate() {
-            let numbered = token
-                .get_toks_before()
-                .iter()
-                .chain([token.get_tok()])
-                .chain(token.get_toks_after());
-            for tok in numbered {
-                if tok.get_index() >= 0 {
-                    k_to_token[tok.get_index() as usize] = Some(i as u32);
-                }
-            }
-        }
-        Ok(KotlinInput {
+        let (source, toks, k_n) = Self::build_toks(&mut io, file, text)?;
+        let mut input = KotlinInput {
             io,
-            text: text.to_string(),
-            tokens,
-            toks,
+            text: source,
+            tokens: Vec::with_capacity(toks.len() / 2),
+            dropped_toks: Vec::new(),
             position_to_column_map: OnceCell::new(),
-            position_token_map,
+            position_token_map: OnceCell::new(),
             k_n,
-            k_to_token,
-        })
+            // adjust kN for EOF
+            k_to_token: vec![None; k_n as usize + 1],
+        };
+        input.build_tokens(toks);
+        Ok(input)
     }
 
     pub fn character_ranges_to_token_ranges(
@@ -99,136 +90,141 @@ impl KotlinInput {
             0 => 1, // 0 stands for "format the line under the cursor"
             _ => length,
         };
-        let mut enclosed = self
-            .position_token_map
-            .sub_range_values_closed_open(offset, offset + expanded_length);
-        let first = enclosed.next();
-        let last = enclosed.next_back().or(first);
-        match (first, last) {
-            (Some(first), Some(last)) => Ok(Range::closed_open(
-                first.get_tok().get_index(),
-                last.get_tok().get_index() + 1,
-            )),
-            _ => Ok(EMPTY_RANGE),
+        // `positionTokenMap.subRangeMap(closedOpen(offset, offset + expandedLength))`: the token
+        // spans are sorted and disjoint, so both bounds are monotone in the token index.
+        let tokens = &self.tokens;
+        let first = tokens.partition_point(|t| Self::token_span(&**t).1 < offset);
+        let end = tokens.partition_point(|t| Self::token_span(&**t).0 < offset + expanded_length);
+        if first >= end {
+            return Ok(EMPTY_RANGE);
         }
+        Ok(Range::closed_open(
+            tokens[first].get_tok().get_index(),
+            tokens[end - 1].get_tok().get_index() + 1,
+        ))
     }
 
-    fn make_position_to_column_map(toks: &[Rc<KotlinTok>]) -> HashMap<i32, i32> {
-        toks.iter()
+    fn make_position_to_column_map(&self) -> HashMap<i32, i32> {
+        let token_toks = self.tokens.iter().flat_map(|token| {
+            let tok = std::slice::from_ref(token.get_tok());
+            token.get_toks_before().iter().chain(tok).chain(token.get_toks_after())
+        });
+        let dropped = self.dropped_toks.iter().map(|tok| &**tok as &dyn Tok);
+        token_toks
+            .map(|tok| &**tok)
+            .chain(dropped)
             .map(|tok| (tok.get_position(), tok.get_column()))
             .collect()
     }
 
-    /// Returns the toks and `kN`; also computes the input's line ranges.
+    /// Returns the shared source, the toks and `kN`; also computes the input's line ranges.
     fn build_toks(
         io: &mut InputOutput,
         file: &PsiElement,
         file_text: &str,
-    ) -> Result<(Vec<Rc<KotlinTok>>, i32), ParseError> {
+    ) -> Result<(Rc<str>, Vec<Rc<KotlinTok>>, i32), ParseError> {
         let mut tokenizer = Tokenizer::new(file_text);
         tokenizer.visit_file(file)?;
         let k_n = tokenizer.index();
-        let mut toks: Vec<Rc<KotlinTok>> = tokenizer.toks.into_iter().map(Rc::new).collect();
-        toks.push(Rc::new(KotlinTok::new(
-            k_n,
-            String::new(),
-            String::new(),
-            file_text.len() as i32,
-            0,
-            true,
-        )));
+        let mut toks = tokenizer.toks;
+        let eof = file_text.len();
+        toks.push(KotlinTok::from_source(k_n, &tokenizer.source, eof..eof, None, 0, true));
         io.compute_ranges(&toks);
-        Ok((toks, k_n))
+        Ok((tokenizer.source, toks.into_iter().map(Rc::new).collect(), k_n))
     }
 
-    fn build_tokens(toks: &[Rc<KotlinTok>]) -> Vec<Rc<dyn Token>> {
-        let as_dyn = |tok: &Rc<KotlinTok>| -> Rc<dyn Tok> { tok.clone() };
-        let mut tokens: Vec<Rc<dyn Token>> = Vec::with_capacity(toks.len() / 2);
-        let mut k = 0;
-        let k_n = toks.len();
+    /// Upstream's index loop over `toks`, which only ever looks at the next tok: a peekable
+    /// iterator, so each tok moves into its token.
+    fn build_tokens(&mut self, toks: Vec<Rc<KotlinTok>>) {
+        let mut toks = toks.into_iter().peekable();
 
-        // Remaining non-tokens before the token go here.
-        let mut toks_before: Vec<Rc<dyn Tok>> = Vec::new();
+        // Remaining non-tokens before the token, then the token and the non-tokens after it.
+        let mut token_toks: Vec<Rc<KotlinTok>> = Vec::new();
 
-        'outermost: while k < k_n {
-            while !toks[k].is_token {
-                let tok = &toks[k];
-                k += 1;
-                toks_before.push(as_dyn(tok));
-                if Self::is_param_comment(&**tok) {
-                    while toks[k].is_newline() {
-                        // drop newlines after parameter comments
-                        k += 1;
-                    }
+        'outermost: while toks.peek().is_some() {
+            while let Some(tok) = toks.next_if(|tok| !tok.is_token) {
+                let is_param_comment = Self::is_param_comment(&*tok);
+                token_toks.push(tok);
+                if is_param_comment {
+                    self.drop_newlines(&mut toks);
                 }
             }
-            let tok = &toks[k];
-            k += 1;
+            let tok = toks.next().expect("the EOF tok is a token");
+            // Don't attach inline comments to certain leading tokens, e.g. for
+            // `f(/*flag1=*/true)`. This barely scratches the surface, but it's enough to do a
+            // better job with parameter name comments.
+            let text = tok.get_text();
+            let (keep_slash_star, keep_javadoc) = (matches!(text, "(" | "<" | "."), text == ";");
+            let tok_i = token_toks.len();
+            token_toks.push(tok);
 
             // Non-tokens starting on the same line go here too.
-            let mut toks_after: Vec<Rc<dyn Tok>> = Vec::new();
-            while k < k_n && !toks[k].is_token {
-                // Don't attach inline comments to certain leading tokens, e.g. for
-                // `f(/*flag1=*/true)`. This barely scratches the surface, but it's enough to do a
-                // better job with parameter name comments.
-                let text = tok.get_text();
-                if toks[k].is_slash_star_comment() && (text == "(" || text == "<" || text == ".") {
+            while let Some(next) = toks.peek().filter(|tok| !tok.is_token) {
+                if next.is_slash_star_comment() && keep_slash_star {
                     break;
                 }
-                if toks[k].is_javadoc_comment() && text == ";" {
+                if next.is_javadoc_comment() && keep_javadoc {
                     break;
                 }
-                if Self::is_param_comment(&*toks[k]) {
-                    tokens.push(Rc::new(KotlinToken::new(
-                        std::mem::take(&mut toks_before),
-                        as_dyn(tok),
-                        toks_after,
-                    )));
-                    toks_before = vec![as_dyn(&toks[k])];
-                    k += 1;
-                    // drop newlines after parameter comments
-                    while toks[k].is_newline() {
-                        k += 1;
-                    }
+                if Self::is_param_comment(&**next) {
+                    self.push_token(&mut token_toks, tok_i);
+                    token_toks.extend(toks.next());
+                    self.drop_newlines(&mut toks);
                     continue 'outermost;
                 }
-                let non_token_after = &toks[k];
-                k += 1;
-                toks_after.push(as_dyn(non_token_after));
-                if newlines::contains_breaks(non_token_after.get_text()) {
+                let non_token_after = toks.next().expect("peeked");
+                let breaks = newlines::contains_breaks(non_token_after.get_text());
+                token_toks.push(non_token_after);
+                if breaks {
                     break;
                 }
             }
-            tokens.push(Rc::new(KotlinToken::new(
-                std::mem::take(&mut toks_before),
-                as_dyn(tok),
-                toks_after,
-            )));
+            self.push_token(&mut token_toks, tok_i);
         }
-        tokens
+    }
+
+    /// Drops the newlines after a parameter comment.
+    fn drop_newlines(&mut self, toks: &mut Peekable<impl Iterator<Item = Rc<KotlinTok>>>) {
+        while let Some(tok) = toks.next_if(|tok| tok.is_newline()) {
+            self.dropped_toks.push(tok);
+        }
+    }
+
+    /// Adds the token made of (and empties) `token_toks`, and indexes its numbered toks.
+    fn push_token(&mut self, token_toks: &mut Vec<Rc<KotlinTok>>, tok_i: usize) {
+        let i = self.tokens.len() as u32;
+        for tok in token_toks.iter() {
+            if tok.get_index() >= 0 {
+                self.k_to_token[tok.get_index() as usize] = Some(i);
+            }
+        }
+        let toks = token_toks.drain(..).map(|tok| tok as Rc<dyn Tok>).collect();
+        self.tokens.push(Rc::new(KotlinToken::new(toks, tok_i)));
     }
 
     fn build_token_positions_map(tokens: &[Rc<dyn Token>]) -> RangeMap<Rc<dyn Token>> {
         let entries = tokens
             .iter()
             .map(|token| {
-                let end = JavaOutput::end_tok(&**token);
-                // Byte length: this is position arithmetic.
-                let end_length = end.get_original_text().len() as i32;
-                let end_position = end.get_position()
-                    + if !end.get_text().is_empty() {
-                        end_length - 1
-                    } else {
-                        0
-                    };
-                (
-                    JavaOutput::start_tok(&**token).get_position(),
-                    end_position,
-                    token.clone(),
-                )
+                let (start, end) = Self::token_span(&**token);
+                (start, end, token.clone())
             })
             .collect();
         RangeMap::from_closed(entries)
+    }
+
+    /// The closed position range a token covers in `positionTokenMap`.
+    fn token_span(token: &dyn Token) -> (i32, i32) {
+        let end = JavaOutput::end_tok(token);
+        // Byte length: this is position arithmetic.
+        let end_length = end.get_original_text().len() as i32;
+        let end_position = end.get_position()
+            + if !end.get_text().is_empty() {
+                end_length - 1
+            } else {
+                0
+            };
+        (JavaOutput::start_tok(token).get_position(), end_position)
     }
 
     /// `/\*[A-Za-z0-9\s_\-]+=\s*\*/`, fully matched.
@@ -261,11 +257,11 @@ impl Input for KotlinInput {
     }
 
     fn get_position_token_map(&self) -> &RangeMap<Rc<dyn Token>> {
-        &self.position_token_map
+        self.position_token_map.get_or_init(|| Self::build_token_positions_map(&self.tokens))
     }
 
     fn get_position_to_column_map(&self) -> &HashMap<i32, i32> {
-        self.position_to_column_map.get_or_init(|| Self::make_position_to_column_map(&self.toks))
+        self.position_to_column_map.get_or_init(|| self.make_position_to_column_map())
     }
 
     fn get_text(&self) -> &str {
