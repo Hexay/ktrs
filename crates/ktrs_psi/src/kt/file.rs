@@ -180,9 +180,9 @@ fn fq_name_from_expression(expression: Option<KtExpression>) -> Option<FqName> {
     if let Some(dot) = expression.cast::<KtDotQualifiedExpression>() {
         let parent_fqn = fq_name_from_expression(dot.receiver_expression());
         let Some(child) = name_from_expression(dot.selector_expression()) else { return parent_fqn };
-        return Some(parent_fqn?.child(&child));
+        return Some(parent_fqn?.into_child(child));
     }
-    Some(FqName::top_level(&expression.cast::<KtSimpleNameExpression>()?.referenced_name()))
+    Some(FqName::root().into_child(expression.cast::<KtSimpleNameExpression>()?.referenced_name()))
 }
 
 fn name_from_expression(expression: Option<KtExpression>) -> Option<String> {
@@ -227,8 +227,21 @@ impl FqName {
     }
 
     pub fn child(&self, name: &str) -> FqName {
-        let fq_name = if self.is_root() { name.to_owned() } else { format!("{}.{name}", self.fq_name) };
-        FqName { fq_name, structure: Some(Rc::new((self.clone(), name.to_owned()))) }
+        self.clone().into_child(name.to_owned())
+    }
+
+    /// [`Self::child`] consuming both parts.
+    fn into_child(self, name: String) -> FqName {
+        let fq_name = if self.is_root() {
+            name.clone()
+        } else {
+            let mut fq_name = String::with_capacity(self.fq_name.len() + 1 + name.len());
+            fq_name.push_str(&self.fq_name);
+            fq_name.push('.');
+            fq_name.push_str(&name);
+            fq_name
+        };
+        FqName { fq_name, structure: Some(Rc::new((self, name))) }
     }
 
     pub fn as_string(&self) -> &str {

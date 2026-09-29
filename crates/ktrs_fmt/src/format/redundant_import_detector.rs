@@ -2,10 +2,11 @@
 //! callbacks become `enter_x` / `leave_x` around the caller's walk of the directive's subtree.
 
 use std::collections::{HashMap, HashSet};
+use std::hash::{BuildHasherDefault, Hasher};
 
 use ktrs_psi::{
-    FqName, KDocImpl, KDocLink, KDocName, KDocSection, KDocTag, KtImportDirective, KtImportList, KtPackageDirective,
-    KtReferenceExpression, PsiElement,
+    FqName, ImportPath, KDocImpl, KDocLink, KDocName, KDocSection, KDocTag, KtImportDirective, KtImportList,
+    KtPackageDirective, KtReferenceExpression, PsiElement,
 };
 
 const OPERATORS: &[&str] = &[
@@ -76,9 +77,13 @@ fn matches_kdoc_tag_skip_first_reference(s: &str) -> bool {
 pub struct RedundantImportDetector {
     pub enabled: bool,
     this_package: Option<FqName>,
-    used_references: HashSet<String>,
+    /// Upstream's set of every reference name, which it only queries for the candidates' identifiers:
+    /// here the names seen before the import list, then the candidate identifiers not seen yet.
+    /// (Upstream seeds it with OPERATORS, which candidates exclude.)
+    used_references: HashSet<String, BuildHasherDefault<FxHasher>>,
+    unused_identifiers: Option<HashSet<String, BuildHasherDefault<FxHasher>>>,
     /// `lateinit` upstream; always set because every parsed file has an import list.
-    import_clean_up_candidates: Vec<KtImportDirective>,
+    import_clean_up_candidates: Vec<ImportCandidate>,
     is_package_element: bool,
     is_import_element: bool,
 }
@@ -88,10 +93,33 @@ impl RedundantImportDetector {
         RedundantImportDetector {
             enabled,
             this_package: None,
-            used_references: OPERATORS.iter().map(|s| s.to_string()).collect(),
+            used_references: HashSet::default(),
+            unused_identifiers: None,
             import_clean_up_candidates: Vec::new(),
             is_package_element: false,
             is_import_element: false,
+        }
+    }
+
+    /// Upstream's `usedReferences.add(name)`; see [`Self::used_references`].
+    fn add_used_reference(&mut self, name: &str) {
+        match &mut self.unused_identifiers {
+            None => {
+                if !self.used_references.contains(name) {
+                    self.used_references.insert(name.to_owned());
+                }
+            }
+            Some(unused) => {
+                unused.remove(name);
+            }
+        }
+    }
+
+    /// Upstream's `usedReferences.contains(identifier)` for a candidate's identifier.
+    fn is_used_reference(&self, identifier: &str) -> bool {
+        match &self.unused_identifiers {
+            None => self.used_references.contains(identifier),
+            Some(unused) => !unused.contains(identifier),
         }
     }
 
@@ -117,13 +145,18 @@ impl RedundantImportDetector {
         self.import_clean_up_candidates = import_list
             .imports()
             .into_iter()
-            .filter(|import| {
-                let Some(identifier) = identifier(import) else { return false };
-                import.is_valid_import()
+            .filter_map(|import| {
+                let import_path = import.import_path()?;
+                let identifier = identifier(&import_path)?;
+                (import.is_valid_import()
                     && !OPERATORS.contains(&identifier.as_str())
-                    && !matches_component_operator(&identifier)
+                    && !matches_component_operator(&identifier))
+                .then_some(ImportCandidate { import, identifier, imported_fq_name: import_path.fq_name })
             })
             .collect();
+        let unused = self.import_clean_up_candidates.iter().map(|c| &c.identifier);
+        let unused = unused.filter(|i| !self.used_references.contains(*i)).cloned().collect();
+        self.unused_identifiers = Some(unused);
         self.is_import_element = true;
     }
 
@@ -151,7 +184,7 @@ impl RedundantImportDetector {
             for link in links {
                 for name in link.get_children_of_type::<KDocName>() {
                     if let Some(first) = name.qualified_name().first() {
-                        self.used_references.insert(first.trim_matches(['[', ']']).to_owned());
+                        self.add_used_reference(first.trim_matches(['[', ']']));
                     }
                 }
             }
@@ -159,15 +192,13 @@ impl RedundantImportDetector {
     }
 
     pub fn take_reference_expression(&mut self, expression: &KtReferenceExpression) {
-        if !self.enabled {
+        // Once every candidate is known to be used, no reference can change the result.
+        if !self.enabled || self.unused_identifiers.as_ref().is_some_and(HashSet::is_empty) {
             return;
         }
 
         if !self.is_package_element && !self.is_import_element && !expression.has_children() {
-            let name = expression.text_slice().trim_matches('`');
-            if !self.used_references.contains(name) {
-                self.used_references.insert(name.to_owned());
-            }
+            self.add_used_reference(expression.text_slice().trim_matches('`'));
         }
     }
 
@@ -176,41 +207,75 @@ impl RedundantImportDetector {
             return Vec::new();
         }
 
-        let identifiers: Vec<Option<String>> = self.import_clean_up_candidates.iter().map(identifier).collect();
-        let mut identifier_counts: HashMap<&Option<String>, usize> = HashMap::new();
-        for identifier in &identifiers {
-            *identifier_counts.entry(identifier).or_default() += 1;
+        let mut identifier_counts: HashMap<&str, usize> = HashMap::new();
+        for candidate in &self.import_clean_up_candidates {
+            *identifier_counts.entry(&candidate.identifier).or_default() += 1;
         }
 
         self.import_clean_up_candidates
             .iter()
-            .zip(&identifiers)
-            .filter(|(import_candidate, identifier)| {
-                let is_used = identifier.as_ref().is_some_and(|i| self.used_references.contains(i));
-                let imported_fq_name = import_candidate.imported_fq_name();
+            .filter(|candidate| {
+                let is_used = self.is_used_reference(&candidate.identifier);
+                let imported_fq_name = &candidate.imported_fq_name;
                 // A backtick-escaped full path (import `foo.bar.baz`) is a single-segment FqName whose
                 // parent is ROOT, which would wrongly match the default package.
-                let is_bracket_escaped_path =
-                    imported_fq_name.as_ref().and_then(FqName::short_name).is_some_and(|s| s.contains('.'));
-                let is_from_this_package =
-                    !is_bracket_escaped_path && imported_fq_name.and_then(|f| f.parent()) == self.this_package;
-                let has_alias = import_candidate.alias().is_some();
-                let is_overload = identifier_counts[identifier] > 1;
+                let is_bracket_escaped_path = imported_fq_name.short_name().is_some_and(|s| s.contains('.'));
+                let is_from_this_package = !is_bracket_escaped_path && imported_fq_name.parent() == self.this_package;
+                let has_alias = candidate.import.alias().is_some();
+                let is_overload = identifier_counts[candidate.identifier.as_str()] > 1;
                 // Remove if...
                 !is_used || (is_from_this_package && !has_alias && !is_overload)
             })
-            .map(|(i, _)| PsiElement::from(i.clone()))
+            .map(|candidate| PsiElement::from(candidate.import.clone()))
             .collect()
     }
 }
 
+/// An import clean-up candidate with its [`identifier`] and `importedFqName`, each computed once.
+struct ImportCandidate {
+    import: KtImportDirective,
+    identifier: String,
+    imported_fq_name: FqName,
+}
+
 /// The imported short name, possibly an alias name, if any.
-fn identifier(import: &KtImportDirective) -> Option<String> {
-    let name = import.import_path()?.imported_name()?;
+fn identifier(import_path: &ImportPath) -> Option<String> {
+    let name = import_path.imported_name()?;
     let name = name.trim_matches('`');
     // A fully backtick-escaped path (import `foo.bar.baz`) is one name with dots; use its last segment.
     Some(match name.rfind('.') {
         Some(dot_index) => name[dot_index + 1..].to_owned(),
         None => name.to_owned(),
     })
+}
+
+/// rustc's FxHash: [`RedundantImportDetector::used_references`] hashes every reference name in the file.
+#[derive(Default)]
+struct FxHasher(u64);
+
+impl FxHasher {
+    fn add(&mut self, word: u64) {
+        self.0 = (self.0.rotate_left(5) ^ word).wrapping_mul(0x51_7c_c1_b7_27_22_0a_95);
+    }
+}
+
+impl Hasher for FxHasher {
+    fn write(&mut self, bytes: &[u8]) {
+        let mut chunks = bytes.chunks_exact(8);
+        for chunk in &mut chunks {
+            self.add(u64::from_le_bytes(chunk.try_into().unwrap()));
+        }
+        let mut tail = [0u8; 8];
+        tail[..chunks.remainder().len()].copy_from_slice(chunks.remainder());
+        self.add(u64::from_le_bytes(tail));
+    }
+
+    fn write_u8(&mut self, byte: u8) {
+        self.add(u64::from(byte));
+    }
+
+    fn finish(&self) -> u64 {
+        // hashbrown picks buckets from the low bits, which the multiply leaves weakest.
+        self.0.rotate_left(26)
+    }
 }
