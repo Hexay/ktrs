@@ -17,10 +17,7 @@ pub fn replace_trailing_whitespace_with_tombstone(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
     let mut chars = s.chars().peekable();
     while let Some(c) = chars.next() {
-        let at_line_end = matches!(
-            chars.peek(),
-            None | Some('\n' | '\r' | '\u{85}' | '\u{2028}' | '\u{2029}')
-        );
+        let at_line_end = is_line_end(chars.peek().copied());
         out.push(if c == ' ' && at_line_end {
             SPACE_TOMBSTONE
         } else {
@@ -28,6 +25,15 @@ pub fn replace_trailing_whitespace_with_tombstone(s: &str) -> String {
         });
     }
     out
+}
+
+/// Whether [`replace_trailing_whitespace_with_tombstone`] would change `s`.
+pub fn has_trailing_whitespace(s: &str) -> bool {
+    s.match_indices(' ').any(|(i, _)| is_line_end(s[i + 1..].chars().next()))
+}
+
+fn is_line_end(next: Option<char>) -> bool {
+    matches!(next, None | Some('\n' | '\r' | '\u{85}' | '\u{2028}' | '\u{2029}'))
 }
 
 pub fn replace_tombstone_with_trailing_whitespace(s: &str) -> String {

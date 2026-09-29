@@ -4,8 +4,8 @@
 //! gjf wants newline toks separate from maximal-space toks, but Kotlin emits whitespace as one
 //! leaf, so it is split with `\R|( )+` (other whitespace, e.g. tabs, produces no tok).
 //!
-//! The walk is over tree indices: the tokenizer only needs kinds, offsets and the two enclosing
-//! kinds of each comment.
+//! The walk is over tree indices: the tokenizer only needs kinds, offsets and each comment's
+//! enclosing nodes.
 
 use std::rc::Rc;
 
@@ -14,22 +14,14 @@ use ktrs_syntax::{ElementId, SyntaxKind, Tree};
 
 use super::kotlin_tok::KotlinTok;
 use super::parse_error::ParseError;
-use super::whitespace_tombstones::replace_trailing_whitespace_with_tombstone;
+use super::whitespace_tombstones::{has_trailing_whitespace, replace_trailing_whitespace_with_tombstone};
 
 pub struct Tokenizer<'a> {
     file_text: &'a str,
     /// `file_text`, shared by the toks.
-    source: Rc<str>,
+    pub source: Rc<str>,
     pub toks: Vec<KotlinTok>,
     index: i32,
-}
-
-/// What a comment's `element.parent` checks need about the node being walked.
-#[derive(Clone, Copy)]
-struct Parent {
-    kind: SyntaxKind,
-    grandparent_kind: Option<SyntaxKind>,
-    has_node_children: bool,
 }
 
 impl<'a> Tokenizer<'a> {
@@ -47,49 +39,25 @@ impl<'a> Tokenizer<'a> {
         self.index
     }
 
-    /// `file.accept(tokenizer)`.
+    /// `file.accept(tokenizer)`: the recursive walk as one preorder pass, skipping the subtrees
+    /// `visitElement` doesn't descend into.
     pub fn visit_file(&mut self, file: &PsiElement) -> Result<(), ParseError> {
-        let parent = file.parent().map(|p| Parent {
-            kind: p.kind(),
-            grandparent_kind: p.parent().map(|g| g.kind()),
-            has_node_children: true,
-        });
-        self.visit_element(file.tree(), file.id(), parent)
-    }
-
-    /// `visitElement` for a composite, then (as `super.visitElement`) its children.
-    fn visit_element(&mut self, tree: &Tree, e: ElementId, parent: Option<Parent>) -> Result<(), ParseError> {
-        let kind = tree.kind(e);
-        let range = tree.text_range(e);
-        if !self.visit_element_self(kind, range.start().into(), range.end().into(), parent, false)? {
-            return Ok(());
-        }
-        let this = Parent {
-            kind,
-            grandparent_kind: parent.map(|p| p.kind),
-            has_node_children: tree.children(e).any(|c| !tree.is_token(c)),
-        };
-        for child in tree.children(e) {
-            if tree.is_token(child) {
-                let range = tree.text_range(child);
-                self.visit_element_self(tree.kind(child), range.start().into(), range.end().into(), Some(this), true)?;
-            } else {
-                self.visit_element(tree, child, Some(this))?;
-            }
+        let tree = file.tree();
+        let mut e = file.id();
+        let end = tree.subtree_end(e);
+        while e < end {
+            e = if self.visit_element(tree, e)? { e + 1 } else { tree.subtree_end(e) };
         }
         Ok(())
     }
 
     /// The body of upstream's `visitElement` before `super.visitElement`; returns whether to
     /// continue into the children.
-    fn visit_element_self(
-        &mut self,
-        kind: SyntaxKind,
-        start: usize,
-        end: usize,
-        parent: Option<Parent>,
-        is_leaf: bool,
-    ) -> Result<bool, ParseError> {
+    fn visit_element(&mut self, tree: &Tree, e: ElementId) -> Result<bool, ParseError> {
+        let kind = tree.kind(e);
+        let is_leaf = tree.is_token(e);
+        let range = tree.text_range(e);
+        let (start, end): (usize, usize) = (range.start().into(), range.end().into());
         let original_text = &self.file_text[start..end];
         if is_psi_comment(kind) {
             // For a leaf or KDoc, `element.text` is the source text.
@@ -104,18 +72,25 @@ impl<'a> Tokenizer<'a> {
             // Block comments inside statement-less lambda bodies are tokens, so the visitor can
             // position them with proper break structure.
             let is_block_comment = element_text.starts_with("/*");
-            let parent_block = parent.filter(|p| p.kind == SyntaxKind::BLOCK);
-            let is_in_lambda_body =
-                parent_block.is_some_and(|b| b.grandparent_kind == Some(SyntaxKind::FUNCTION_LITERAL));
+            let parent_block = tree.parent(e).filter(|&p| tree.kind(p) == SyntaxKind::BLOCK);
+            let is_in_lambda_body = parent_block
+                .and_then(|b| tree.parent(b))
+                .is_some_and(|g| tree.kind(g) == SyntaxKind::FUNCTION_LITERAL);
             // PSI `getChildren()` of a block lists only composite children.
-            let body_has_no_statements = parent_block.is_some_and(|b| !b.has_node_children);
+            let body_has_no_statements =
+                parent_block.is_some_and(|b| tree.children(b).all(|c| tree.is_token(c)));
             let treat_as_token = is_block_comment && is_in_lambda_body && body_has_no_statements;
             self.push(KotlinTok::from_source(self.index, &self.source, start..end, None, 0, treat_as_token));
             return Ok(false);
         }
         if kind == SyntaxKind::STRING_TEMPLATE {
-            let text = replace_trailing_whitespace_with_tombstone(original_text);
-            self.push(KotlinTok::new(self.index, text, original_text.to_string(), start as i32, 0, true));
+            let tok = if has_trailing_whitespace(original_text) {
+                let text = replace_trailing_whitespace_with_tombstone(original_text);
+                KotlinTok::new(self.index, text, original_text.to_string(), start as i32, 0, true)
+            } else {
+                KotlinTok::from_source(self.index, &self.source, start..end, None, 0, true)
+            };
+            self.push(tok);
             return Ok(false);
         }
         if is_leaf {

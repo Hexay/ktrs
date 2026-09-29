@@ -1,7 +1,5 @@
 //! Port of `InputOutput.java`: the line/range bookkeeping shared by inputs and outputs.
 
-use std::rc::Rc;
-
 use super::input::Tok;
 use super::newlines;
 use super::range::{EMPTY_RANGE, Range};
@@ -47,7 +45,7 @@ impl InputOutput {
         );
     }
 
-    pub fn compute_ranges<T: Tok + ?Sized>(&mut self, toks: &[Rc<T>]) {
+    pub fn compute_ranges<T: Tok>(&mut self, toks: &[T]) {
         let mut line_i = 0usize;
         for tok in toks {
             let txt = tok.get_original_text();
