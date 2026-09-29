@@ -114,16 +114,19 @@ impl Parser {
         self.tt()
     }
 
+    #[inline]
     pub(crate) fn tt(&mut self) -> Option<SyntaxKind> {
         self.my_builder.get_token_type()
     }
 
     /// Side-effect-free version of `at()`.
+    #[inline]
     pub(crate) fn _at(&mut self, expectation: SyntaxKind) -> bool {
         let token = self.tt();
         self.token_matches(token, expectation)
     }
 
+    #[inline]
     fn token_matches(&mut self, token: Option<SyntaxKind>, expectation: SyntaxKind) -> bool {
         if token == Some(expectation) {
             return true;

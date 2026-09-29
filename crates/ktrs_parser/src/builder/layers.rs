@@ -65,8 +65,18 @@ impl SemanticWhitespaceAwarePsiBuilder {
         })
     }
 
+    /// Inlined into every `at`: with no layers (the common case) it is the memo check.
+    #[inline]
     pub fn get_token_type(&mut self) -> Option<SyntaxKind> {
-        if !self.layers.is_empty() && self.top_truncated_eof_position().is_some() && self.eof() {
+        if !self.layers.is_empty() {
+            return self.layered_get_token_type();
+        }
+        self.impl_get_token_type()
+    }
+
+    #[inline(never)]
+    fn layered_get_token_type(&mut self) -> Option<SyntaxKind> {
+        if self.top_truncated_eof_position().is_some() && self.eof() {
             return None;
         }
         self.impl_get_token_type()

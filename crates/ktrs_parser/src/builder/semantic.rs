@@ -16,6 +16,11 @@ pub struct SemanticWhitespaceAwarePsiBuilder {
     join_complex_tokens: BoolStack,
     newlines_enabled: BoolStack,
     pub(super) layers: Vec<Layer>,
+    /// `impl_get_token_type` memo: its result at post-whitespace lexeme `tt_lexeme` (`usize::MAX`
+    /// = none). It depends only on that lexeme's kind and the next one's (changed only by remaps of
+    /// the current token) and the joining flag, so those clear it; any cursor move changes the key.
+    tt_lexeme: usize,
+    tt: Option<SyntaxKind>,
 }
 
 /// A `Stack<Boolean>` whose top, read on every token query, lives inline.
@@ -66,6 +71,8 @@ impl SemanticWhitespaceAwarePsiBuilder {
             join_complex_tokens: BoolStack::new(true),
             newlines_enabled: BoolStack::new(true),
             layers: Vec::new(),
+            tt_lexeme: usize::MAX,
+            tt: None,
         }
     }
 
@@ -124,24 +131,35 @@ impl SemanticWhitespaceAwarePsiBuilder {
 
     pub fn restore_joining_complex_tokens_state(&mut self) {
         self.join_complex_tokens.pop();
+        self.tt_lexeme = usize::MAX;
     }
 
     pub fn enable_joining_complex_tokens(&mut self) {
         self.join_complex_tokens.push(true);
+        self.tt_lexeme = usize::MAX;
     }
 
     pub fn disable_joining_complex_tokens(&mut self) {
         self.join_complex_tokens.push(false);
+        self.tt_lexeme = usize::MAX;
     }
 
-    /// The Impl's `getTokenType` (no truncation).
+    /// The Impl's `getTokenType` (no truncation), memoized (see `tt_lexeme`). Returning the memo
+    /// without `eof()`'s skip is fine: the key is a lexeme that skip leaves in place.
     #[inline]
     pub(super) fn impl_get_token_type(&mut self) -> Option<SyntaxKind> {
-        let raw = self.psi.get_token_type();
-        if !self.join_complex_tokens() {
-            return raw;
+        if self.tt_lexeme == self.psi.current_lexeme {
+            return self.tt;
         }
-        self.get_joined_token_type(raw, 1)
+        self.impl_get_token_type_uncached()
+    }
+
+    #[inline(never)]
+    fn impl_get_token_type_uncached(&mut self) -> Option<SyntaxKind> {
+        let raw = self.psi.get_token_type();
+        let tt = if self.join_complex_tokens() { self.get_joined_token_type(raw, 1) } else { raw };
+        (self.tt_lexeme, self.tt) = (self.psi.current_lexeme, tt);
+        tt
     }
 
     #[inline]
@@ -228,6 +246,7 @@ impl SemanticWhitespaceAwarePsiBuilder {
 
     pub fn remap_current_token(&mut self, kind: SyntaxKind) {
         self.psi.remap_current_token(kind);
+        self.tt_lexeme = usize::MAX;
     }
 
     pub fn get_original_text(&self) -> &str {
