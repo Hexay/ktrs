@@ -22,11 +22,28 @@ pub fn drop_redundant_elements(file: &KtFile, options: &FormattingOptions) -> Re
 
     // Upstream's `KtTreeVisitorVoid`, as a preorder scan: the same elements in the same order,
     // with each override's work done where the visitor would do it (see `visitor/dispatch.rs`).
-    // Only kinds some override or detector acts on become `PsiElement`s.
-    let (mut package_end, mut import_list_end) = (None, None);
-    let mut id = file.id();
-    let end = tree.subtree_end(id);
-    while id < end {
+    // Only the kinds some override or detector acts on are visited (the detectors: `;` and `,` leaves).
+    let (mut package_end, mut import_list_end, mut kdoc_end) = (None, None, file.id());
+    let comma = if removes_trailing_commas { SyntaxKind::COMMA } else { SyntaxKind::SEMICOLON };
+    let visited = tree.find_kinds(
+        file.id(),
+        [
+            SyntaxKind::PACKAGE_DIRECTIVE,
+            SyntaxKind::IMPORT_LIST,
+            SyntaxKind::REFERENCE_EXPRESSION,
+            SyntaxKind::ENUM_ENTRY_SUPERCLASS_REFERENCE_EXPRESSION,
+            SyntaxKind::OPERATION_REFERENCE,
+            SyntaxKind::LABEL,
+            SyntaxKind::CALL_EXPRESSION,
+            SyntaxKind::ARRAY_ACCESS_EXPRESSION,
+            SyntaxKind::DOC_COMMENT,
+        ],
+        [SyntaxKind::SEMICOLON, comma],
+    );
+    for id in visited {
+        if id < kdoc_end {
+            continue;
+        }
         if package_end.is_some_and(|e| id >= e) {
             import_detector.leave_package_directive();
             package_end = None;
@@ -37,13 +54,10 @@ pub fn drop_redundant_elements(file: &KtFile, options: &FormattingOptions) -> Re
         }
         let kind = tree.kind(id);
         if tree.is_token(id) {
-            // The detectors only act on `;` and `,` leaves.
             match kind {
                 SyntaxKind::SEMICOLON => semicolon_detector.take_element(&file.at(id)),
-                SyntaxKind::COMMA if removes_trailing_commas => trailing_comma_detector.take_element(&file.at(id)),
-                _ => {}
+                _ => trailing_comma_detector.take_element(&file.at(id)),
             }
-            id += 1;
             continue;
         }
         match kind {
@@ -68,12 +82,10 @@ pub fn drop_redundant_elements(file: &KtFile, options: &FormattingOptions) -> Re
             // `visitElement`: KDoc is read for references and not descended into.
             SyntaxKind::DOC_COMMENT => {
                 import_detector.take_kdoc(&file.at(id).cast::<KDocImpl>().expect("KDoc"));
-                id = tree.subtree_end(id);
-                continue;
+                kdoc_end = tree.subtree_end(id);
             }
             _ => {}
         }
-        id += 1;
     }
 
     let mut elements_to_remove: Vec<PsiElement> = semicolon_detector.get_redundant_semicolon_elements().to_vec();
@@ -106,11 +118,8 @@ pub fn add_redundant_elements(file: &KtFile, options: &FormattingOptions) -> Res
     // acts only on list-like ones: a preorder scan for those visits the same elements in the same order
     // without dispatching at every node.
     let tree = file.tree();
-    for id in file.id()..tree.subtree_end(file.id()) {
-        if !tree.is_token(id)
-            && trailing_commas::Suggestor::may_be_list_kind(tree.kind(id))
-            && let Some(kt_element) = file.at(id).cast::<KtElement>()
-        {
+    for id in tree.find_kinds(file.id(), trailing_commas::Suggestor::LIST_KINDS, []) {
+        if let Some(kt_element) = file.at(id).cast::<KtElement>() {
             suggestor.take_element(&kt_element);
         }
     }

@@ -108,6 +108,23 @@ impl Tree {
         let raw = kind as u16;
         self.kinds[e as usize + 1..self.ends[e as usize] as usize].iter().any(|&k| k & !TOKEN_BIT == raw)
     }
+
+    /// The elements of `e`'s subtree (`e` included), in preorder, that are nodes of one of `nodes` or
+    /// tokens of one of `tokens`: a scan of the raw kind words, cheaper than a `kind`/`is_token` walk.
+    pub fn find_kinds<const N: usize, const M: usize>(
+        &self,
+        e: ElementId,
+        nodes: [SyntaxKind; N],
+        tokens: [SyntaxKind; M],
+    ) -> impl Iterator<Item = ElementId> + '_ {
+        let (nodes, tokens) = (nodes.map(|k| k as u16), tokens.map(|k| k as u16 | TOKEN_BIT));
+        let start = e as usize;
+        self.kinds[start..self.ends[start] as usize]
+            .iter()
+            .enumerate()
+            .filter(move |(_, k)| nodes.contains(k) || tokens.contains(k))
+            .map(move |(i, _)| (start + i) as ElementId)
+    }
 }
 
 pub struct Children<'t> {

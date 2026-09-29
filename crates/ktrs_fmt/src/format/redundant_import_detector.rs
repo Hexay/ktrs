@@ -77,7 +77,11 @@ fn matches_kdoc_tag_skip_first_reference(s: &str) -> bool {
 pub struct RedundantImportDetector {
     pub enabled: bool,
     this_package: Option<FqName>,
+    /// Upstream's set of every reference name, which it only queries for the candidates' identifiers:
+    /// here the names seen before the import list, then the candidate identifiers not seen yet.
+    /// (Upstream seeds it with OPERATORS, which candidates exclude.)
     used_references: HashSet<String, BuildHasherDefault<FxHasher>>,
+    unused_identifiers: Option<HashSet<String, BuildHasherDefault<FxHasher>>>,
     /// `lateinit` upstream; always set because every parsed file has an import list.
     import_clean_up_candidates: Vec<ImportCandidate>,
     is_package_element: bool,
@@ -89,11 +93,33 @@ impl RedundantImportDetector {
         RedundantImportDetector {
             enabled,
             this_package: None,
-            // Upstream seeds this with OPERATORS; it is only queried for candidates, which exclude them.
             used_references: HashSet::default(),
+            unused_identifiers: None,
             import_clean_up_candidates: Vec::new(),
             is_package_element: false,
             is_import_element: false,
+        }
+    }
+
+    /// Upstream's `usedReferences.add(name)`; see [`Self::used_references`].
+    fn add_used_reference(&mut self, name: &str) {
+        match &mut self.unused_identifiers {
+            None => {
+                if !self.used_references.contains(name) {
+                    self.used_references.insert(name.to_owned());
+                }
+            }
+            Some(unused) => {
+                unused.remove(name);
+            }
+        }
+    }
+
+    /// Upstream's `usedReferences.contains(identifier)` for a candidate's identifier.
+    fn is_used_reference(&self, identifier: &str) -> bool {
+        match &self.unused_identifiers {
+            None => self.used_references.contains(identifier),
+            Some(unused) => !unused.contains(identifier),
         }
     }
 
@@ -128,6 +154,9 @@ impl RedundantImportDetector {
                 .then_some(ImportCandidate { import, identifier, imported_fq_name: import_path.fq_name })
             })
             .collect();
+        let unused = self.import_clean_up_candidates.iter().map(|c| &c.identifier);
+        let unused = unused.filter(|i| !self.used_references.contains(*i)).cloned().collect();
+        self.unused_identifiers = Some(unused);
         self.is_import_element = true;
     }
 
@@ -155,7 +184,7 @@ impl RedundantImportDetector {
             for link in links {
                 for name in link.get_children_of_type::<KDocName>() {
                     if let Some(first) = name.qualified_name().first() {
-                        self.used_references.insert(first.trim_matches(['[', ']']).to_owned());
+                        self.add_used_reference(first.trim_matches(['[', ']']));
                     }
                 }
             }
@@ -163,15 +192,13 @@ impl RedundantImportDetector {
     }
 
     pub fn take_reference_expression(&mut self, expression: &KtReferenceExpression) {
-        if !self.enabled {
+        // Once every candidate is known to be used, no reference can change the result.
+        if !self.enabled || self.unused_identifiers.as_ref().is_some_and(HashSet::is_empty) {
             return;
         }
 
         if !self.is_package_element && !self.is_import_element && !expression.has_children() {
-            let name = expression.text_slice().trim_matches('`');
-            if !self.used_references.contains(name) {
-                self.used_references.insert(name.to_owned());
-            }
+            self.add_used_reference(expression.text_slice().trim_matches('`'));
         }
     }
 
@@ -188,7 +215,7 @@ impl RedundantImportDetector {
         self.import_clean_up_candidates
             .iter()
             .filter(|candidate| {
-                let is_used = self.used_references.contains(&candidate.identifier);
+                let is_used = self.is_used_reference(&candidate.identifier);
                 let imported_fq_name = &candidate.imported_fq_name;
                 // A backtick-escaped full path (import `foo.bar.baz`) is a single-segment FqName whose
                 // parent is ROOT, which would wrongly match the default package.
