@@ -2,10 +2,11 @@
 //! same [`Main`], so output, messages and exit codes stay those of the `ktfmt` drop-in.
 
 use std::io;
+use std::path::Path;
 
 use ktrs_fmt::{FormattingOptions, GOOGLE_FORMAT, KOTLINLANG_FORMAT, META_FORMAT};
 
-use crate::ktfmt::{KTFMT_VERSION, Main, ParsedArgs};
+use crate::ktfmt::{KTFMT_VERSION, Main, ParsedArgs, editor_config_resolver};
 
 const HELP: &str = "\
 ktrs - fast Kotlin tooling
@@ -22,8 +23,9 @@ Format options:
   --check                           Don't write; list files that would change and exit 1 if any
   --keep-unused-imports             Leave unused imports in place
   --editorconfig                    Apply .editorconfig overrides (max_line_length, indent sizes,
-                                      ktfmt_trailing_comma_management_strategy)
-  --stdin-name <name>               Name to report for stdin input
+                                      ktfmt_trailing_comma_management_strategy); for stdin, at
+                                      --stdin-name
+  --stdin-name <name>               Name (path) of the stdin input, for messages and .editorconfig
   -v, --verbose                     Report each formatted file
 
 A ktfmt-compatible `ktfmt` binary ships alongside, for existing scripts and integrations.";
@@ -93,6 +95,12 @@ pub fn parse_fmt_args(args: &[String]) -> Result<ParsedArgs, String> {
     }
     if parsed.stdin_name.is_some() && !reads_stdin {
         return Err("--stdin-name can only be used when reading from stdin (-)".to_owned());
+    }
+    // Unlike ktfmt 0.64 (the `ktfmt` binary), resolve .editorconfig for stdin at --stdin-name, as
+    // ktfmt's next release will: editors format buffers through stdin.
+    if let (true, true, Some(name)) = (reads_stdin, parsed.editor_config, &parsed.stdin_name) {
+        parsed.formatting_options =
+            editor_config_resolver::resolve_formatting_options(Path::new(name), &parsed.formatting_options);
     }
     Ok(parsed)
 }
