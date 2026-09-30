@@ -18,7 +18,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::{env, fs, process, thread};
 
 use ktrs_lint::KtLintRuleEngine;
-use ktrs_lint::rules::{STANDARD_RULE_PROVIDERS, standard_rule_provider};
+use ktrs_lint::rules::{standard_rule_provider, standard_rule_providers};
 use probe::FileResult;
 
 #[global_allocator]
@@ -44,13 +44,9 @@ fn main() {
         eprintln!("usage: ktlint_probe <src-dir> <out-dir> [--rules a,b] [--dumps] [--no-lint] [--threads N] | compare <jvm-out> <rust-out> [src]");
         process::exit(2);
     };
-    let engine = KtLintRuleEngine {
-        rule_providers: opts
-            .rules
-            .iter()
-            .map(|id| standard_rule_provider(id).unwrap_or_else(|| panic!("rule {id} is not ported")))
-            .collect(),
-    };
+    let engine = KtLintRuleEngine::new(
+        opts.rules.iter().map(|id| standard_rule_provider(id).unwrap_or_else(|| panic!("rule {id} is not ported"))).collect(),
+    );
     let mut files = Vec::new();
     collect(&opts.src, &opts.src, &mut files);
     files.sort();
@@ -63,7 +59,7 @@ fn parse_args(args: &[String]) -> Option<Options> {
     let mut opts = Options {
         src: PathBuf::from(args.first()?),
         out: PathBuf::from(args.get(1)?),
-        rules: STANDARD_RULE_PROVIDERS.iter().map(|(id, _)| id.to_string()).collect(),
+        rules: standard_rule_providers().iter().map(|p| p.rule_id().value().to_owned()).collect(),
         dumps: false,
         lint: true,
         threads: thread::available_parallelism().map_or(1, |n| n.get()),

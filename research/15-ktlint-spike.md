@@ -25,10 +25,10 @@ the 4 `MultiLineIfElseRuleTest` cases that add `IndentationRule` are skipped (vi
 - **Rust run:** `cargo ktlint-probe corpus target/ktlint-probe/three <same flags>`.
 - **Compare:** `cargo ktlint-probe compare target/ktlint-oracle/three-for-rust target/ktlint-probe/three corpus`
   reports 211 files with a row on either side:
-  - 111 identical in every artifact.
-  - 98 differ **only** in `internal:ktlint-suppression` rows, all `manual`. That internal rule always runs and is
-    not ported (finding 6). These are `@Suppress("ktlint:…")` in ktlint's own sources, reported as "unknown or not
-    loaded" because only 3 rules are loaded. None of the 98 has a row from the three rules on either side.
+  - 209 identical in every artifact (after phase 1A; the spike had 111, plus 98 that differed only in the then
+    unported `internal:ktlint-suppression` rows: `@Suppress("ktlint:…")` ids "unknown or not loaded").
+  - The probes number passes in the probe rule's `beforeFirstNode`, after the suppression rule's own traversal, so
+    that rule's rows carry the previous pass number (0 in pass 1) on both sides.
   - 2 differ in `mut.p1` only, in KDoc the rules never touch: `AbstractCoroutine.kt` and `Semaphore.kt`.
     Around `` `true` ``, the jar's 2.4.10 lexer yields `KDOC_TEXT('`true`') KDOC_CODE_SPAN_TEXT(' if …')`, where
     2.4.20 (our pin) yields `KDOC_TEXT('`') KDOC_CODE_SPAN_TEXT('true') …`. This is a parser-pin difference,
@@ -114,8 +114,7 @@ oracle already existed.
 5. **The line table maps the end of a file without a trailing newline to `1:1`.** `SegmentTree.indexOf` returns
    -1 there. The port keeps this.
 6. **The internal `ktlint-suppression` rule always runs** (`InternalRuleProvidersFilter`), in its own first
-   traversal, even with `--rules`. It is not ported, so files with `ktlint-disable` directives may differ.
-   `compare` flags files mentioning `ktlint` as suspects.
+   traversal, even with `--rules`. Ported in phase 1A.
 7. **Cost.**
    - Offsets use IntelliJ's lazy offset-in-parent cache, with the valid-prefix invariant.
    - Lengths are kept eagerly (propagated in `set_tree_parent`), so `text_length` is O(1).
@@ -128,11 +127,29 @@ oracle already existed.
    its parent, so the neighbours of a deleted node are merged into, or replaced by, new whitespace leaves
    (`crates/ktrs-ast/tests/data/edit_cases.jvm.txt`). `KtModifierList` deletes itself once emptied.
 
+## Done in phase 1A
+
+- Rule registry: `RuleV2Provider`, `RuleSetId`, marker methods, `InternalRuleProvidersFilter`, `RuleExecutionRuleFilter`,
+  ALPHA-4 sort (standard first, then id). 2.0 has no rule-requires-rule gate; only the `standard:max-line-length`
+  execution property is passed to every rule (research/12's gates are 1.8's `RunAfterRule`).
+- `crates/ktrs-editorconfig`: 1:1 port of ec4j-core 1.2.0 (parser, Java-regex globs, per-section indent defaults,
+  `keepUnset`, default configs). ktfmt stays on ec4rs (its resolver has no cascade logic of its own); ktfmt's jar also
+  uses ec4j, so switching it is possible behind `cli-diff.sh`.
+- ktlint editorconfig: `EditorConfigProperty<T>` + `PropertyRef`, `EditorConfig`, code-style defaults, the core
+  properties, `EditorConfigLoader`/`Defaults`/`Override`, global cache, `EditorConfigPropertyRegistry`.
+- `SuppressionLocator` (+ formatter tags), `KtlintSuppression`, internal `KtlintSuppressionRule` (own first traversal).
+- `stopTraversalOfAST` (`TraversalState`), `KtLintRuleException` wrapping and message, `KtLintException`, `Code`
+  factories, `insertSuppression`, `transformToAst`, `trimMemory`, `reloadEditorConfigFile`.
+- Oracle diff: 209 of 211 files identical; the 2 left are the KDoc lexer-pin files (finding 3), not the engine.
+- Tests: `tests/engine_*.rs` port the engine's upstream unit tests (skips need unported standard rules).
+
 ## Missing (TODO pointers in code)
 
-- `SuppressionLocator`, `KtlintSuppressionRule`, `EditorConfigLoader`/rule-execution properties (defaults of
-  `ktlint_official` hard-wired), `stopTraversalOfAST`, and `KtLintRuleException` line/col wrapping (rule panics
-  propagate; the probe reports `crash`).
+- `EditorConfigFinder` (`editorConfigFilePaths`), `EditorConfigGenerator` (`generateKotlinEditorConfigSection`), log
+  output (upstream warnings are dropped), a file-system abstraction (tests use temp dirs).
+- Suppression hints are rebuilt on a `(node_count, text_length)` change, then compared by text hash; needs an `Ast`
+  modification counter to be exact for raw-only reorders.
+- Helpers in `engine/ast_helpers.rs` marked `TODO: move to ast_node_extension`.
 - Done (1B): `CodeEditUtil.removeChild` path + `psi.delete()` (`ktrs_ast::code_edit_util`, `psi::delete`), `addLeaf`.
 - Done (1B): all of `ASTNodeExtension.kt` (`ast_node_extension/`), `IndentConfig`, `ElementType`, `TokenSets`.
 - Done (1B): typed PSI of research/11 §5 (`ktrs_ast::psi`). Coverage of the rules' API: research/16.

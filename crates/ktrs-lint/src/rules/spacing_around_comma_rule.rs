@@ -6,7 +6,8 @@ use ktrs_syntax::SyntaxKind::{GT, RBRACKET, RPAR};
 
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::AstNodeExtension;
-use crate::rule::{Emit, RuleId, RuleV2};
+use crate::rule::{About, Emit, RuleId, RuleV2};
+use crate::rules::STANDARD_RULE_ABOUT;
 
 const R_TOKEN_SET: TokenSet = TokenSet::create(&[RPAR, RBRACKET, GT]);
 
@@ -15,6 +16,10 @@ pub struct SpacingAroundCommaRule;
 impl RuleV2 for SpacingAroundCommaRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:comma-spacing")
+    }
+
+    fn about(&self) -> About {
+        STANDARD_RULE_ABOUT
     }
 
     fn before_visit_child_nodes(&mut self, ast: &mut Ast, node: NodeId, emit: &mut Emit<'_>) {

@@ -1,92 +1,348 @@
-//! Port of ktlint-rule-engine `RuleExecutionContext.kt` (2.0 traversal: every rule at a node, then the
-//! children, then every rule's `after` at that node).
+//! Port of ktlint-rule-engine `internal/RuleExecutionContext.kt`: the parsed file, its `.editorconfig`
+//! and enabled rules, and the 2.0 traversal (every rule at a node, then the children, then every rule's
+//! `after` at that node), preceded by a traversal of the internal suppression rule alone.
+
+use std::borrow::Cow;
+use std::panic::{self, AssertUnwindSafe};
+use std::rc::Rc;
+use std::sync::LazyLock;
 
 use ktrs_ast::{Ast, NodeId};
 use ktrs_parser::{FileKind, parse_file};
 use ktrs_syntax::SyntaxKind::{ERROR_ELEMENT, FILE};
 
-use crate::engine::ktlint_rule_engine::{Code, KtLintParseException, KtLintRuleEngine, UTF8_BOM};
+use crate::editorconfig::{
+    CODE_STYLE_PROPERTY, EditorConfig, EditorConfigProperty, PropertyRef, RuleExecution,
+    create_rule_execution_editor_config_property,
+};
+use crate::engine::code::{Code, KtLintException, KtLintParseException, KtLintRuleException};
+use crate::engine::internal_rules::KTLINT_SUPPRESSION_RULE_ID;
+use crate::engine::ktlint_rule_engine::{KtLintRuleEngine, UTF8_BOM};
 use crate::engine::position_in_text_locator::PositionInTextLocator;
-use crate::rule::{AutocorrectDecision, EditorConfig, RuleId, RuleV2, RuleV2Provider};
+use crate::engine::rule_filter::{
+    InternalRuleProvidersFilter, RuleExecutionRuleFilter, apply_rule_filters,
+};
+use crate::engine::suppression_locator::SuppressionLocator;
+use crate::rule::{About, AutocorrectDecision, RuleId, RuleV2};
+use crate::rule_provider::RuleV2Provider;
 
 /// `emitAndApprove(offset, ruleId, errorMessage, canBeAutoCorrected)`; `offset` in UTF-16 units.
 pub type EmitAndApprove<'a> = dyn FnMut(usize, RuleId, &str, bool) -> AutocorrectDecision + 'a;
 
 pub(crate) struct RuleExecutionContext {
+    file_path_or_stdin: String,
     pub(crate) ast: Ast,
     pub(crate) rule_providers: Vec<RuleV2Provider>,
     pub(crate) editor_config: EditorConfig,
-    pub(crate) position_in_text_locator: PositionInTextLocator,
+    /// Built from the original text and kept for every pass (so later positions are stale, as upstream).
+    pub(crate) position_in_text_locator: Rc<PositionInTextLocator>,
+    suppression_locator: SuppressionLocator,
 }
 
-// TODO: SuppressionLocator (`@Suppress("ktlint:…")`, formatter tags) and the internal
-// ktlint-suppression rule, which always runs first in its own traversal (`executeRules`).
-/// One traversal of `rules` over `ast` (`RuleExecutionContext.executeRules`); public for measurements.
+/// A rule of one traversal. `stopped_at` is the node sequence number current when the rule stopped:
+/// it still sees the `after` hooks of nodes entered up to then, and no node entered later.
+struct RuleInstance {
+    rule: Box<dyn RuleV2>,
+    stopped_at: Option<u64>,
+}
+
+impl RuleInstance {
+    fn visits(&self, entry_seq: u64) -> bool {
+        self.stopped_at.is_none_or(|s| s >= entry_seq)
+    }
+
+    fn note_stop(&mut self, seq: u64) {
+        if self.stopped_at.is_none() && self.rule.traversal_state().is_some_and(|t| t.is_stopped())
+        {
+            self.stopped_at = Some(seq);
+        }
+    }
+}
+
+struct RuleExecutionException {
+    rule_id: RuleId,
+    about: About,
+    line: usize,
+    col: usize,
+    cause: String,
+}
+
+static MAX_LINE_LENGTH_RULE_ENABLED: LazyLock<EditorConfigProperty<RuleExecution>> =
+    LazyLock::new(|| {
+        create_rule_execution_editor_config_property(
+            "standard:max-line-length",
+            RuleExecution::Enabled,
+        )
+    });
+static MAX_LINE_LENGTH_RULE_DISABLED: LazyLock<EditorConfigProperty<RuleExecution>> =
+    LazyLock::new(|| {
+        create_rule_execution_editor_config_property(
+            "standard:max-line-length",
+            RuleExecution::Disabled,
+        )
+    });
+
+impl RuleExecutionContext {
+    /// The suppression rule first, over the whole tree: its `ktlint-disable` migration climbs the tree to
+    /// add annotations. Then all other rules together.
+    pub(crate) fn execute_rules(
+        &mut self,
+        rules: Vec<Box<dyn RuleV2>>,
+        lint_mode: bool,
+        emit_and_approve: &mut EmitAndApprove<'_>,
+    ) -> Result<(), KtLintRuleException> {
+        let (suppression, others): (Vec<_>, Vec<_>) = rules
+            .into_iter()
+            .partition(|r| r.rule_id() == KTLINT_SUPPRESSION_RULE_ID);
+        self.execute_rules_on_ast(suppression, lint_mode, emit_and_approve)?;
+        self.execute_rules_on_ast(others, lint_mode, emit_and_approve)
+    }
+
+    fn execute_rules_on_ast(
+        &mut self,
+        rules: Vec<Box<dyn RuleV2>>,
+        lint_mode: bool,
+        emit_and_approve: &mut EmitAndApprove<'_>,
+    ) -> Result<(), KtLintRuleException> {
+        let (editor_config, rule_providers) = (&self.editor_config, &self.rule_providers);
+        let parts = TraversalParts {
+            ast: &mut self.ast,
+            suppression_locator: &mut self.suppression_locator,
+            position_in_text_locator: &self.position_in_text_locator,
+            lint_mode,
+        };
+        let rule_editor_config =
+            |rule: &dyn RuleV2| Cow::Owned(rule_editor_config(editor_config, rule_providers, rule));
+        let file_path_or_stdin = &self.file_path_or_stdin;
+        traverse(parts, rules, &rule_editor_config, emit_and_approve).map_err(|e| KtLintRuleException {
+            line: e.line,
+            col: e.col,
+            rule_id: e.rule_id.value().to_owned(),
+            message: format!(
+                "Rule '{}' throws exception in file '{file_path_or_stdin}' at position ({}:{})\n   Rule maintainer: {}\n   Issue tracker  : {}\n   Repository     : {}",
+                e.rule_id.value(),
+                e.line,
+                e.col,
+                e.about.maintainer,
+                e.about.issue_tracker_url,
+                e.about.repository_url
+            ),
+            cause: e.cause,
+        })
+    }
+}
+
+/// The rule's view of the `.editorconfig`: its declared properties, the code style (needed for the
+/// defaults) and whether `standard:max-line-length` runs (whether `max_line_length` applies at all).
+fn rule_editor_config(
+    editor_config: &EditorConfig,
+    rule_providers: &[RuleV2Provider],
+    rule: &dyn RuleV2,
+) -> EditorConfig {
+    let max_line_length_rule_loaded = rule_providers
+        .iter()
+        .any(|p| p.rule_id().value() == "standard:max-line-length");
+    let mut properties = rule.uses_editor_config_properties();
+    properties.push(PropertyRef::from(&*CODE_STYLE_PROPERTY));
+    properties.push(PropertyRef::from(if max_line_length_rule_loaded {
+        &*MAX_LINE_LENGTH_RULE_ENABLED
+    } else {
+        &*MAX_LINE_LENGTH_RULE_DISABLED
+    }));
+    editor_config.filter_by(&properties)
+}
+
+struct TraversalParts<'a> {
+    ast: &'a mut Ast,
+    suppression_locator: &'a mut SuppressionLocator,
+    position_in_text_locator: &'a PositionInTextLocator,
+    lint_mode: bool,
+}
+
+/// One traversal: `beforeFirstNode` for all rules, the node walk, `afterLastNode` for all rules.
+fn traverse<'c>(
+    parts: TraversalParts<'_>,
+    rules: Vec<Box<dyn RuleV2>>,
+    rule_editor_config: &dyn Fn(&dyn RuleV2) -> Cow<'c, EditorConfig>,
+    emit_and_approve: &mut EmitAndApprove<'_>,
+) -> Result<(), RuleExecutionException> {
+    let mut rules: Vec<RuleInstance> = rules
+        .into_iter()
+        .map(|rule| RuleInstance {
+            rule,
+            stopped_at: None,
+        })
+        .collect();
+    for r in &mut rules {
+        execute(&mut *r.rule, |rule| {
+            let editor_config = rule_editor_config(&*rule);
+            rule.before_first_node(&editor_config)
+        })?;
+        r.note_stop(0);
+    }
+    let mut traversal = Traversal {
+        ast: parts.ast,
+        suppression_locator: parts.suppression_locator,
+        position_in_text_locator: parts.position_in_text_locator,
+        lint_mode: parts.lint_mode,
+        emit_and_approve,
+        children: Vec::new(),
+        seq: 0,
+    };
+    let root = traversal.ast.root();
+    traversal.execute_rules_on_node_recursively(root, &mut rules)?;
+    for r in &mut rules {
+        execute(&mut *r.rule, |rule| rule.after_last_node())?;
+    }
+    Ok(())
+}
+
+/// One traversal of `rules` over `ast` with a fixed `editor_config` for every rule, in format mode;
+/// public for measurements (the engine's traversal minus the per-rule `.editorconfig` view).
 pub fn execute_rules(
     ast: &mut Ast,
-    rules: &mut [Box<dyn RuleV2>],
+    rules: Vec<Box<dyn RuleV2>>,
     editor_config: &EditorConfig,
+    suppression_locator: &mut SuppressionLocator,
     emit_and_approve: &mut EmitAndApprove<'_>,
-) {
-    execute_rules_on_ast(ast, rules, editor_config, emit_and_approve);
+) -> Result<(), String> {
+    let position_in_text_locator = PositionInTextLocator::new("");
+    let parts = TraversalParts {
+        ast,
+        suppression_locator,
+        position_in_text_locator: &position_in_text_locator,
+        lint_mode: false,
+    };
+    traverse(
+        parts,
+        rules,
+        &|_| Cow::Borrowed(editor_config),
+        emit_and_approve,
+    )
+    .map_err(|e| e.cause)
 }
 
-fn execute_rules_on_ast(
-    ast: &mut Ast,
-    rules: &mut [Box<dyn RuleV2>],
-    editor_config: &EditorConfig,
-    emit_and_approve: &mut EmitAndApprove<'_>,
-) {
-    for rule in rules.iter_mut() {
-        rule.before_first_node(editor_config);
-    }
-    let root = ast.root();
-    execute_rules_on_node_recursively(ast, root, rules, emit_and_approve, &mut Vec::new());
-    for rule in rules.iter_mut() {
-        rule.after_last_node();
-    }
-}
-
-/// `children` is one stack shared by the whole walk: each level pushes its `getChildren(null)` snapshot
-/// and pops it when done, so the traversal allocates nothing per node.
-fn execute_rules_on_node_recursively(
-    ast: &mut Ast,
-    node: NodeId,
-    rules: &mut [Box<dyn RuleV2>],
-    emit_and_approve: &mut EmitAndApprove<'_>,
-    children: &mut Vec<NodeId>,
-) {
-    for rule in rules.iter_mut() {
-        if is_replaced(ast, node) {
-            return;
+/// `rule.execute { }`: an exception outside a node visit has no position.
+fn execute(
+    rule: &mut dyn RuleV2,
+    action: impl FnOnce(&mut dyn RuleV2),
+) -> Result<(), RuleExecutionException> {
+    let (rule_id, about) = (rule.rule_id(), rule.about());
+    panic::catch_unwind(AssertUnwindSafe(|| action(rule))).map_err(|payload| {
+        RuleExecutionException {
+            rule_id,
+            about,
+            line: 0,
+            col: 0,
+            cause: panic_message(payload),
         }
-        let rule_id = rule.rule_id();
-        let mut emit = |ast: &Ast, offset: usize, message: &str, can_be_auto_corrected: bool| {
-            emit_and_approve(ast.utf16_offset(ast.root(), offset), rule_id, message, can_be_auto_corrected)
-        };
-        rule.before_visit_child_nodes(ast, node, &mut emit);
-    }
-    let start = children.len();
-    ast.get_children(node, children);
-    let end = children.len();
-    for i in start..end {
-        let child = children[i];
-        execute_rules_on_node_recursively(ast, child, rules, emit_and_approve, children);
-    }
-    children.truncate(start);
-    for rule in rules.iter_mut() {
-        if is_replaced(ast, node) {
-            return;
+    })
+}
+
+pub(crate) fn panic_message(payload: Box<dyn std::any::Any + Send>) -> String {
+    payload
+        .downcast_ref::<String>()
+        .cloned()
+        .or_else(|| payload.downcast_ref::<&str>().map(|s| s.to_string()))
+        .unwrap_or_default()
+}
+
+struct Traversal<'a, 'e> {
+    ast: &'a mut Ast,
+    suppression_locator: &'a mut SuppressionLocator,
+    position_in_text_locator: &'a PositionInTextLocator,
+    lint_mode: bool,
+    emit_and_approve: &'a mut EmitAndApprove<'e>,
+    /// One stack of `getChildren(null)` snapshots for the whole walk, so it allocates nothing per node.
+    children: Vec<NodeId>,
+    seq: u64,
+}
+
+impl Traversal<'_, '_> {
+    fn execute_rules_on_node_recursively(
+        &mut self,
+        node: NodeId,
+        rules: &mut [RuleInstance],
+    ) -> Result<(), RuleExecutionException> {
+        self.seq += 1;
+        let entry_seq = self.seq;
+        for r in rules.iter_mut().filter(|r| r.visits(entry_seq)) {
+            // A node replaced by an earlier rule (e.g. `rawReplaceWithText`) is not processed further.
+            if is_replaced(self.ast, node) {
+                return Ok(());
+            }
+            self.visit(node, r, true)?;
         }
-        let rule_id = rule.rule_id();
-        let mut emit = |ast: &Ast, offset: usize, message: &str, can_be_auto_corrected: bool| {
-            emit_and_approve(ast.utf16_offset(ast.root(), offset), rule_id, message, can_be_auto_corrected)
-        };
-        rule.after_visit_child_nodes(ast, node, &mut emit);
+        let start = self.children.len();
+        self.ast.get_children(node, &mut self.children);
+        let end = self.children.len();
+        for i in start..end {
+            let child = self.children[i];
+            self.execute_rules_on_node_recursively(child, rules)?;
+        }
+        self.children.truncate(start);
+        for r in rules.iter_mut().filter(|r| r.visits(entry_seq)) {
+            if is_replaced(self.ast, node) {
+                return Ok(());
+            }
+            self.visit(node, r, false)?;
+        }
+        Ok(())
+    }
+
+    fn visit(
+        &mut self,
+        node: NodeId,
+        r: &mut RuleInstance,
+        before: bool,
+    ) -> Result<(), RuleExecutionException> {
+        let root = self.ast.root();
+        let rule_id = r.rule.rule_id();
+        let outcome = panic::catch_unwind(AssertUnwindSafe(|| {
+            if !self.suppression_locator.suppress(
+                self.ast,
+                root,
+                self.ast.start_offset(node),
+                &*r.rule,
+            ) {
+                let emit_and_approve = &mut *self.emit_and_approve;
+                let mut emit =
+                    |ast: &Ast, offset: usize, message: &str, can_be_auto_corrected: bool| {
+                        emit_and_approve(
+                            ast.utf16_offset(ast.root(), offset),
+                            rule_id,
+                            message,
+                            can_be_auto_corrected,
+                        )
+                    };
+                if before {
+                    r.rule.before_visit_child_nodes(self.ast, node, &mut emit);
+                } else {
+                    r.rule.after_visit_child_nodes(self.ast, node, &mut emit);
+                }
+            }
+        }));
+        r.note_stop(self.seq);
+        outcome.map_err(|payload| {
+            // In format mode the node may not be in the original text, so no position is given.
+            let (line, col) = if self.lint_mode {
+                self.position_in_text_locator
+                    .locate(self.ast.utf16_offset(node, self.ast.start_offset(node)))
+            } else {
+                (0, 0)
+            };
+            RuleExecutionException {
+                rule_id,
+                about: r.rule.about(),
+                line,
+                col,
+                cause: panic_message(payload),
+            }
+        })
     }
 }
 
-/// The 2.0 bail-out: a node without parent that is not the file was replaced (e.g. `rawReplaceWithText`).
+/// The 2.0 bail-out: a node without parent that is not the file was replaced.
 fn is_replaced(ast: &Ast, node: NodeId) -> bool {
     ast.tree_parent(node).is_none() && ast.element_type(node) != FILE
 }
@@ -94,21 +350,39 @@ fn is_replaced(ast: &Ast, node: NodeId) -> bool {
 pub(crate) fn create_rule_execution_context(
     engine: &KtLintRuleEngine,
     code: &Code,
-) -> Result<RuleExecutionContext, KtLintParseException> {
+) -> Result<RuleExecutionContext, KtLintException> {
     let normalized_text = normalize_text(&code.content);
     let position_in_text_locator = PositionInTextLocator::new(&normalized_text);
     let psi_file_name = code.psi_file_name();
     let parse = parse_file(&normalized_text, FileKind::from_file_name(&psi_file_name));
     let ast = Ast::from_parse(&parse);
     if let Some(error_element) = find_error_element(&ast, ast.root()) {
-        let (line, col) = position_in_text_locator.locate(ast.utf16_offset(error_element, ast.start_offset(error_element)));
-        return Err(KtLintParseException { line, col, message: ast.error_description(error_element).to_owned() });
+        let (line, col) = position_in_text_locator
+            .locate(ast.utf16_offset(error_element, ast.start_offset(error_element)));
+        return Err(KtLintParseException {
+            line,
+            col,
+            message: ast.error_description(error_element).to_owned(),
+        }
+        .into());
     }
+    let editor_config = engine
+        .editor_config_loader()
+        .load(code.file_path.as_deref())?;
+    let rule_providers = apply_rule_filters(
+        &engine.rule_providers,
+        &[
+            &InternalRuleProvidersFilter::new(&engine.rule_providers),
+            &RuleExecutionRuleFilter::new(&editor_config),
+        ],
+    );
     Ok(RuleExecutionContext {
+        file_path_or_stdin: code.file_path_or_stdin(),
         ast,
-        rule_providers: engine.rule_providers.clone(),
-        editor_config: EditorConfig::default(),
-        position_in_text_locator,
+        rule_providers,
+        suppression_locator: SuppressionLocator::new(&editor_config),
+        editor_config,
+        position_in_text_locator: Rc::new(position_in_text_locator),
     })
 }
 
