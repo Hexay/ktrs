@@ -15,7 +15,7 @@ Output is byte-identical to ktfmt 0.64. One install gives two binaries, `ktrs` a
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/Hexay/ktrs/master/install.sh | sh   # prebuilt, Linux/macOS
-cargo install --git https://github.com/Hexay/ktrs ktrs                           # from source
+cargo install ktrs                                                                # from source (crates.io)
 ```
 
 Windows: unzip a release from the GitHub releases page. As a [pre-commit](https://pre-commit.com) hook:
