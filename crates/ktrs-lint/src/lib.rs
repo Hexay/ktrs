@@ -10,18 +10,31 @@
 //! - `emit(offset, message, canBeAutoCorrected)` -> `emit(ast, offset, message, can_be_auto_corrected)`
 //!   with the UTF-8 offset of the current tree; the engine converts it to UTF-16 and maps it through the
 //!   line table of the *original* text, as ktlint does (stale after earlier edits by design).
-//! - A Kotlin exception (NPE on `!!`, a failed cast) is a panic whose message starts with the exception name.
+//! - A rule reads `.editorconfig` values as `editor_config.get(&INDENT_SIZE_PROPERTY)` in
+//!   `before_first_node`, for the properties it lists in `uses_editor_config_properties`
+//!   ([`editorconfig`]); marker interfaces (`Experimental`, ...) are `is_*` methods of [`RuleV2`].
+//! - A Kotlin exception (NPE on `!!`, a failed cast) is a panic whose message starts with the exception
+//!   name; the engine turns a rule's panic into a [`KtLintRuleException`].
 
 pub mod ast_node_edit;
 pub mod ast_node_extension;
+pub mod editorconfig;
 pub mod element_type;
 pub mod engine;
 pub mod indent_config;
 pub mod rule;
+pub mod rule_provider;
 pub mod rules;
 pub mod token_sets;
 
 pub use ast_node_edit::AstNodeEdit;
 pub use ast_node_extension::{AstNodeExtension, AstNodeLines, AstNodeQueries};
-pub use engine::ktlint_rule_engine::{Code, KtLintParseException, KtLintRuleEngine, LintError};
-pub use rule::{AutocorrectDecision, EditorConfig, Emit, RuleId, RuleV2, RuleV2Provider};
+pub use engine::code::{
+    Code, KtLintException, KtLintParseException, KtLintRuleException, LintError,
+};
+pub use engine::editor_config_defaults::{EditorConfigDefaults, EditorConfigOverride};
+pub use engine::ktlint_rule_engine::KtLintRuleEngine;
+pub use rule::{
+    About, AutocorrectDecision, EditorConfig, Emit, RuleId, RuleSetId, RuleV2, TraversalState,
+};
+pub use rule_provider::RuleV2Provider;

@@ -8,7 +8,9 @@ use ktrs_syntax::SyntaxKind::{
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::AstNodeExtension;
 use crate::indent_config::IndentConfig;
-use crate::rule::{EditorConfig, Emit, RuleId, RuleV2};
+use crate::editorconfig::{INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, PropertyRef};
+use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2};
+use crate::rules::STANDARD_RULE_ABOUT;
 
 /// https://kotlinlang.org/docs/reference/coding-conventions.html#formatting-control-flow-statements
 pub struct MultiLineIfElseRule {
@@ -32,8 +34,16 @@ impl RuleV2 for MultiLineIfElseRule {
         RuleId("standard:multiline-if-else")
     }
 
+    fn about(&self) -> About {
+        STANDARD_RULE_ABOUT
+    }
+
+    fn uses_editor_config_properties(&self) -> Vec<PropertyRef> {
+        vec![PropertyRef::from(&*INDENT_SIZE_PROPERTY), PropertyRef::from(&*INDENT_STYLE_PROPERTY)]
+    }
+
     fn before_first_node(&mut self, editor_config: &EditorConfig) {
-        self.indent_config = IndentConfig::new(editor_config.indent_style, editor_config.indent_size);
+        self.indent_config = IndentConfig::new(editor_config.get(&INDENT_STYLE_PROPERTY), editor_config.get(&INDENT_SIZE_PROPERTY));
     }
 
     fn before_visit_child_nodes(&mut self, ast: &mut Ast, node: NodeId, emit: &mut Emit<'_>) {

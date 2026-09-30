@@ -12,6 +12,8 @@ publish = false
 ktrs-syntax.workspace = true
 ktrs-parser.workspace = true
 ktrs-ast.workspace = true
+ktrs-psi.workspace = true
+ktrs-editorconfig.workspace = true
 
 [dev-dependencies]
 mimalloc.workspace = true
