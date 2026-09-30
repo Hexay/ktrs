@@ -93,6 +93,9 @@ impl KDocCommentsHelper {
         if !tok.is_comment() {
             return tok.original_text().to_string();
         }
+        if !tok.is_javadoc_comment() && self.is_unchanged_single_line(tok, column0) {
+            return tok.original_text().to_string();
+        }
         let mut text = tok.original_text().to_string();
         if tok.is_javadoc_comment() {
             text = self.kdoc_formatter.reformat_comment(&text, &" ".repeat(column0.max(0) as usize));
@@ -113,6 +116,21 @@ impl KDocCommentsHelper {
             self.preserve_indentation(&lines, column0)
         };
         to_string(&result)
+    }
+
+    /// Not upstream: whether [Self::rewrite] returns a non-javadoc comment as is because it is one line of
+    /// printable ASCII with nothing to trim, no `//` space to add and nothing to wrap.
+    fn is_unchanged_single_line(&self, tok: &dyn CommentTok, column0: i32) -> bool {
+        let text = tok.original_text().as_bytes();
+        let printable = |b: &u8| (0x20..=0x7E).contains(b);
+        if text.first() != Some(&b'/') || text.last() == Some(&b' ') || !text.iter().all(printable) {
+            return false;
+        }
+        if !tok.is_slash_slash_comment() {
+            return true;
+        }
+        let slashes = text.iter().take_while(|&&b| b == b'/').count();
+        (slashes == text.len() || text[slashes] == b' ') && text.len() as i32 + column0 <= self.max_line_length
     }
 
     /// For non-javadoc-shaped block comments, shift the entire block to the correct column, but

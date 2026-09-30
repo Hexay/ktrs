@@ -82,8 +82,9 @@ impl Suggestor {
             }
         }
 
-        // The line-break test goes before building the list (all checks here are pure): most lists are one line.
-        if !Self::may_be_list(element) || !element.text_contains('\n') {
+        // Cheap necessary conditions go before building the list (all checks here are pure): every
+        // item is a composite child, and most lists have fewer than two items or are one line.
+        if !Self::may_be_list(element) || !has_two_composite_children(element) || !element.text_contains('\n') {
             return; // Only suggest trailing commas where there is already a line break
         }
         let Some(list) = extract_managed_list(element) else { return };
@@ -128,6 +129,20 @@ fn extract_managed_list(element: &PsiElement) -> Option<ManagedList> {
     } else {
         None
     }
+}
+
+fn has_two_composite_children(element: &PsiElement) -> bool {
+    let tree = element.tree();
+    let (mut child, end) = (element.id() + 1, tree.subtree_end(element.id()));
+    let mut count = 0;
+    while child < end {
+        count += usize::from(!tree.is_token(child));
+        if count == 2 {
+            return true;
+        }
+        child = tree.subtree_end(child);
+    }
+    false
 }
 
 /// The element after which a comma belongs for a list item: its last leaf that isn't a comment or whitespace.
