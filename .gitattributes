@@ -1,3 +1,5 @@
 * text=auto eol=lf
 # Upstream fixtures are byte-exact test inputs (some lexer cases are about \r); never convert them.
 testdata/** -text
+*.bat text eol=crlf
+*.jar binary
