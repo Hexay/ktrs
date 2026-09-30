@@ -2,10 +2,14 @@
 
 mod annotation;
 mod annotation_spacing_rule;
+mod argument_list_wrapping_rule;
 mod backing_property_naming_rule;
 mod blank_line_between_when_conditions;
+mod call_expression_wrapping_rule;
 mod class_naming_rule;
 pub mod class_signature;
+mod context_parameter_list_wrapping_rule;
+mod context_receiver_wrapping_rule;
 mod enum_entry_name_case_rule;
 mod enum_wrapping_rule;
 mod filename_rule;
@@ -32,6 +36,7 @@ mod multiline_loop_rule;
 mod no_blank_line_at_start_of_file_rule;
 mod no_empty_file_rule;
 mod no_line_break_after_else_rule;
+mod no_line_break_before_assignment_rule;
 mod no_multiple_spaces_rule;
 mod no_semicolons_rule;
 mod no_trailing_spaces_rule;
@@ -41,7 +46,10 @@ mod no_wildcard_imports_rule;
 mod nullable_type_spacing_rule;
 mod package_name_rule;
 mod parameter_list_spacing_rule;
+mod parameter_list_wrapping_rule;
+mod parameter_wrapping_rule;
 mod property_naming_rule;
+mod property_wrapping_rule;
 mod spacing_around_angle_brackets_rule;
 mod spacing_around_colon_rule;
 mod spacing_around_comma_rule;
@@ -64,13 +72,18 @@ mod try_catch_finally_spacing_rule;
 mod type_argument_list_spacing_rule;
 mod type_parameter_list_spacing_rule;
 mod when_entry_bracing;
+mod wrapping_rule;
 
 pub use annotation::{ANNOTATIONS_WITH_PARAMETERS_NOT_TO_BE_WRAPPED_PROPERTY, AnnotationRule};
 pub use annotation_spacing_rule::AnnotationSpacingRule;
+pub use argument_list_wrapping_rule::{ArgumentListWrappingRule, IGNORE_WHEN_PARAMETER_COUNT_GREATER_OR_EQUAL_THAN_PROPERTY};
 pub use backing_property_naming_rule::BackingPropertyNamingRule;
 pub use blank_line_between_when_conditions::{BlankLineBetweenWhenConditions, LINE_BREAK_AFTER_WHEN_CONDITION_PROPERTY};
+pub use call_expression_wrapping_rule::CallExpressionWrappingRule;
 pub use class_naming_rule::ClassNamingRule;
 pub use class_signature::ClassSignatureRule;
+pub use context_parameter_list_wrapping_rule::ContextParameterListWrappingRule;
+pub use context_receiver_wrapping_rule::ContextReceiverWrappingRule;
 pub use enum_entry_name_case_rule::EnumEntryNameCaseRule;
 pub use enum_wrapping_rule::EnumWrappingRule;
 pub use filename_rule::FilenameRule;
@@ -96,6 +109,7 @@ pub use multiline_loop_rule::MultilineLoopRule;
 pub use no_blank_line_at_start_of_file_rule::NoBlankLineAtStartOfFileRule;
 pub use no_empty_file_rule::NoEmptyFileRule;
 pub use no_line_break_after_else_rule::NoLineBreakAfterElseRule;
+pub use no_line_break_before_assignment_rule::NoLineBreakBeforeAssignmentRule;
 pub use no_multiple_spaces_rule::NoMultipleSpacesRule;
 pub use no_semicolons_rule::NoSemicolonsRule;
 pub use no_trailing_spaces_rule::NoTrailingSpacesRule;
@@ -105,7 +119,10 @@ pub use no_wildcard_imports_rule::NoWildcardImportsRule;
 pub use nullable_type_spacing_rule::NullableTypeSpacingRule;
 pub use package_name_rule::PackageNameRule;
 pub use parameter_list_spacing_rule::ParameterListSpacingRule;
+pub use parameter_list_wrapping_rule::ParameterListWrappingRule;
+pub use parameter_wrapping_rule::ParameterWrappingRule;
 pub use property_naming_rule::PropertyNamingRule;
+pub use property_wrapping_rule::PropertyWrappingRule;
 pub use spacing_around_angle_brackets_rule::SpacingAroundAngleBracketsRule;
 pub use spacing_around_colon_rule::SpacingAroundColonRule;
 pub use spacing_around_comma_rule::SpacingAroundCommaRule;
@@ -128,6 +145,7 @@ pub use try_catch_finally_spacing_rule::TryCatchFinallySpacingRule;
 pub use type_argument_list_spacing_rule::TypeArgumentListSpacingRule;
 pub use type_parameter_list_spacing_rule::TypeParameterListSpacingRule;
 pub use when_entry_bracing::WhenEntryBracing;
+pub use wrapping_rule::WrappingRule;
 
 use crate::rule::{About, RuleV2};
 use crate::rule_provider::RuleV2Provider;
@@ -144,10 +162,14 @@ pub fn standard_rule_providers() -> Vec<RuleV2Provider> {
     vec![
         RuleV2Provider::new(|| Box::new(AnnotationRule::new())),
         RuleV2Provider::new(|| Box::new(AnnotationSpacingRule)),
+        RuleV2Provider::new(|| Box::new(ArgumentListWrappingRule::new())),
         RuleV2Provider::new(|| Box::new(BackingPropertyNamingRule::new()) as Box<dyn RuleV2>),
         RuleV2Provider::new(|| Box::new(BlankLineBetweenWhenConditions::new())),
+        RuleV2Provider::new(|| Box::new(CallExpressionWrappingRule::new())),
         RuleV2Provider::new(|| Box::new(ClassNamingRule::default())),
         RuleV2Provider::new(|| Box::new(ClassSignatureRule::new())),
+        RuleV2Provider::new(|| Box::new(ContextReceiverWrappingRule::new())),
+        RuleV2Provider::new(|| Box::new(ContextParameterListWrappingRule::new())),
         RuleV2Provider::new(|| Box::new(EnumEntryNameCaseRule::default())),
         RuleV2Provider::new(|| Box::new(EnumWrappingRule::new())),
         RuleV2Provider::new(|| Box::new(FilenameRule::default())),
@@ -174,6 +196,7 @@ pub fn standard_rule_providers() -> Vec<RuleV2Provider> {
         RuleV2Provider::new(|| Box::new(NoBlankLineAtStartOfFileRule::default())),
         RuleV2Provider::new(|| Box::new(NoEmptyFileRule)),
         RuleV2Provider::new(|| Box::new(NoLineBreakAfterElseRule)),
+        RuleV2Provider::new(|| Box::new(NoLineBreakBeforeAssignmentRule)),
         RuleV2Provider::new(|| Box::new(NoMultipleSpacesRule)),
         RuleV2Provider::new(|| Box::new(NoSemicolonsRule)),
         RuleV2Provider::new(|| Box::new(NoTrailingSpacesRule)),
@@ -183,7 +206,10 @@ pub fn standard_rule_providers() -> Vec<RuleV2Provider> {
         RuleV2Provider::new(|| Box::new(NullableTypeSpacingRule)),
         RuleV2Provider::new(|| Box::new(PackageNameRule)),
         RuleV2Provider::new(|| Box::new(ParameterListSpacingRule::new())),
+        RuleV2Provider::new(|| Box::new(ParameterListWrappingRule::new())),
+        RuleV2Provider::new(|| Box::new(ParameterWrappingRule::new())),
         RuleV2Provider::new(|| Box::new(PropertyNamingRule::new())),
+        RuleV2Provider::new(|| Box::new(PropertyWrappingRule::new())),
         RuleV2Provider::new(|| Box::new(SpacingAroundAngleBracketsRule)),
         RuleV2Provider::new(|| Box::new(SpacingAroundColonRule)),
         RuleV2Provider::new(|| Box::new(SpacingAroundCommaRule)),
@@ -206,6 +232,7 @@ pub fn standard_rule_providers() -> Vec<RuleV2Provider> {
         RuleV2Provider::new(|| Box::new(TypeArgumentListSpacingRule::new())),
         RuleV2Provider::new(|| Box::new(TypeParameterListSpacingRule::new())),
         RuleV2Provider::new(|| Box::new(WhenEntryBracing::new())),
+        RuleV2Provider::new(|| Box::new(WrappingRule::new())),
     ]
 }
 
