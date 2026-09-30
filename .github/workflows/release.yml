@@ -54,16 +54,60 @@ jobs:
             ktrs-*.tar.gz
             ktrs-*.zip
 
-  release:
+  # The JVM wrapper (io.github.hexay:ktrs) with all six binaries bundled. Maven Central publishing
+  # runs only when the MAVEN_CENTRAL_* and SIGNING_* secrets exist.
+  java:
     needs: build
+    runs-on: ubuntu-24.04
+    env:
+      ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+      ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+      ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
+      ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_KEY_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Bundle the binaries
+        shell: bash
+        run: |
+          for pair in x86_64-unknown-linux-musl:linux-x86_64 aarch64-unknown-linux-musl:linux-aarch64 \
+                      x86_64-apple-darwin:macos-x86_64 aarch64-apple-darwin:macos-aarch64 \
+                      x86_64-pc-windows-msvc:windows-x86_64 aarch64-pc-windows-msvc:windows-aarch64; do
+            target=${pair%%:*} dir=java/native/${pair##*:}
+            mkdir -p "$dir"
+            case $target in
+              *windows*) unzip -j -q dist/ktrs-*-$target.zip '*/ktrs.exe' -d "$dir" ;;
+              *) tar -xzf dist/ktrs-*-$target.tar.gz -C "$dir" --strip-components=1 --wildcards '*/ktrs' ;;
+            esac
+          done
+          find java/native -type f
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21 }
+      - name: Test and build
+        working-directory: java
+        run: ./gradlew --console=plain test jar -PktrsVersion=${GITHUB_REF_NAME#v} -PktrsExecutable=native/linux-x86_64/ktrs
+      - name: Publish to Maven Central
+        if: env.ORG_GRADLE_PROJECT_mavenCentralUsername != ''
+        working-directory: java
+        run: ./gradlew --console=plain publishAndReleaseToMavenCentral -PktrsVersion=${GITHUB_REF_NAME#v}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: java
+          path: java/build/libs/ktrs-*[0-9].jar
+
+  release:
+    needs: [build, java]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/download-artifact@v4
         with:
           merge-multiple: true
       - name: Checksums
-        run: sha256sum ktrs-*.tar.gz ktrs-*.zip > SHA256SUMS
+        run: sha256sum ktrs-*.tar.gz ktrs-*.zip ktrs-*.jar > SHA256SUMS
       - name: Publish
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --generate-notes ktrs-*.tar.gz ktrs-*.zip SHA256SUMS
+        run: gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --generate-notes ktrs-*.tar.gz ktrs-*.zip ktrs-*.jar SHA256SUMS

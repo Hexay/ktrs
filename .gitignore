@@ -5,3 +5,7 @@
 /tools/psi-dump/build/
 /tools/ktfmt-oracle/lib/
 /tools/jdk/
+/tools/gradle/
+/java/build/
+/java/.gradle/
+/java/native/
