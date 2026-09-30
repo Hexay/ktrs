@@ -124,3 +124,29 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --generate-notes ktrs-*.tar.gz ktrs-*.zip ktrs-*.jar SHA256SUMS
+
+  # Formula/ktrs.rb for `brew tap hexay/ktrs https://github.com/Hexay/ktrs`: generated from the
+  # release's checksums, installed and tested from a scratch tap, then committed to master.
+  homebrew:
+    needs: release
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: master }
+      - name: Generate and test the formula
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" -p SHA256SUMS -D "$RUNNER_TEMP"
+          mkdir -p Formula
+          bash tools/release/homebrew-formula.sh "$GITHUB_REF_NAME" "$RUNNER_TEMP/SHA256SUMS" > Formula/ktrs.rb
+          brew tap-new --no-git ktrs-ci/scratch
+          cp Formula/ktrs.rb "$(brew --repository ktrs-ci/scratch)/Formula/"
+          brew install ktrs-ci/scratch/ktrs
+          brew test ktrs-ci/scratch/ktrs
+      - name: Commit it
+        run: |
+          git add Formula/ktrs.rb
+          git -c user.name=github-actions[bot] -c user.email=41898282+github-actions[bot]@users.noreply.github.com \
+            commit -q -m "Homebrew formula for $GITHUB_REF_NAME"
+          git push -q origin HEAD:master
