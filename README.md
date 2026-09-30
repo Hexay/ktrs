@@ -11,7 +11,9 @@ lossless Kotlin parser whose tree matches the Kotlin compiler's PSI node for nod
 
 ## Formatting
 
-Output is byte-identical to ktfmt 0.64. One install gives two binaries, `ktrs` and `ktfmt`:
+Output is byte-identical to ktfmt 0.64. Try it without installing anything in the
+[playground](https://hexay.github.io/ktrs/) (the formatter compiled to WebAssembly, running in your
+browser). One install gives two binaries, `ktrs` and `ktfmt`:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/Hexay/ktrs/master/install.sh | sh   # prebuilt

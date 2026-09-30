@@ -53,3 +53,9 @@ panic = "unwind"
 [profile.dist]
 inherits = "release"
 strip = true
+
+# The browser playground (crates/ktrs-wasm): wasm32-unknown-unknown can't unwind.
+[profile.wasm]
+inherits = "release"
+panic = "abort"
+strip = true

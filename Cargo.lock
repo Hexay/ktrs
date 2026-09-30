@@ -50,7 +50,7 @@ dependencies = [
 
 [[package]]
 name = "ktrs-ast"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "ktrs-parser",
  "ktrs-syntax",
@@ -87,7 +87,7 @@ dependencies = [
 
 [[package]]
 name = "ktrs-lint"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "ktrs-ast",
  "ktrs-parser",
@@ -119,6 +119,13 @@ name = "ktrs-syntax"
 version = "0.2.0"
 dependencies = [
  "text-size",
+]
+
+[[package]]
+name = "ktrs-wasm"
+version = "0.2.0"
+dependencies = [
+ "ktrs-fmt",
 ]
 
 [[package]]

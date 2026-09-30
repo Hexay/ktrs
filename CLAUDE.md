@@ -20,6 +20,8 @@ Milestone 1: the parser's tree must be identical to the Kotlin compiler's PSI (`
   releases build `--profile dist` (`.github/workflows/release.yml`).
   Adoption gaps and integrations: research/08-drop-in-replacement.md. `ktrs serve` is the build-tool
   server (protocol in `crates/ktrs-cli/src/serve.rs`).
+- `crates/ktrs-wasm` + `site/` — the browser playground (plain Wasm exports, no bindgen); build and
+  preview: `tools/release/build-site.sh && py -3 -m http.server -d target/site`.
 - `java/` — `io.github.hexay:ktrs`: JVM wrapper around `ktrs serve` (bundled binaries, Spotless `KtrsStep`).
   Tests: `cargo build --bins`, then `java/gradlew -p java test` (JAVA_HOME = tools/jdk/*).
 - `crates/ktrs-ast` — mutable arena AST with IntelliJ `TreeElement` semantics, seeded from `Tree` (for ktlint);
