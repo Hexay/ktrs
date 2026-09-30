@@ -112,6 +112,7 @@ dependencies = [
  "ktrs-psi",
  "ktrs-syntax",
  "mimalloc",
+ "regex",
 ]
 
 [[package]]
