@@ -13,14 +13,14 @@ lossless Kotlin parser whose tree matches the Kotlin compiler's PSI node for nod
 Output is byte-identical to ktfmt 0.64. One install gives two binaries, `ktrs` and `ktfmt`:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/ktrs/ktrs/master/install.sh | sh   # prebuilt, Linux/macOS
-cargo install --git https://github.com/ktrs/ktrs ktrs                           # from source
+curl -fsSL https://raw.githubusercontent.com/Hexay/ktrs/master/install.sh | sh   # prebuilt, Linux/macOS
+cargo install --git https://github.com/Hexay/ktrs ktrs                           # from source
 ```
 
 Windows: unzip a release from the GitHub releases page. As a [pre-commit](https://pre-commit.com) hook:
 
 ```yaml
-- repo: https://github.com/ktrs/ktrs
+- repo: https://github.com/Hexay/ktrs
   rev: v0.1.0
   hooks:
     - id: ktrs-fmt          # or `ktrs-fmt-check`, or `ktfmt` with ktfmt's flags in `args`

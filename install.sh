@@ -1,9 +1,9 @@
 #!/bin/sh
 # Installs the latest (or $KTRS_VERSION) `ktrs` and `ktfmt` release binaries:
-#   curl -fsSL https://raw.githubusercontent.com/ktrs/ktrs/master/install.sh | sh
+#   curl -fsSL https://raw.githubusercontent.com/Hexay/ktrs/master/install.sh | sh
 # Env: KTRS_VERSION (tag, e.g. v0.1.0), KTRS_INSTALL_DIR (default ~/.local/bin), KTRS_REPO.
 set -eu
-repo=${KTRS_REPO:-ktrs/ktrs}
+repo=${KTRS_REPO:-Hexay/ktrs}
 dir=${KTRS_INSTALL_DIR:-$HOME/.local/bin}
 
 case "$(uname -s)" in
