@@ -82,7 +82,6 @@ pub fn compare(jvm: &Path, rust: &Path, src: &Path) -> i32 {
 fn suspect(source: &Path) -> &'static str {
     match read(source) {
         Some(text) if text.contains("ktlint") => "ktlint-directive (suppression TODO)",
-        Some(text) if text.contains("@formatter:") => "formatter-tag (suppression TODO)",
         Some(_) => "",
         None => "no staged source",
     }
