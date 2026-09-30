@@ -52,9 +52,7 @@ fixture() {
   printf 'fun a( ) = 1\n' > "$w/stdin.kt"
 }
 
-pass=0 fail=0 known=0
-# Scenarios whose output depends on rules ktrs hasn't ported (generateEditorConfig lists every rule's properties).
-KNOWN='^gen_(ktlint|android|intellij|after_args)$'
+pass=0 fail=0
 # scenario <name> <stdin-file-or-empty> <setup-snippet-or-empty> <args...>
 scenario() {
   local name=$1 stdin=$2 setup=$3; shift 3
@@ -85,7 +83,6 @@ scenario() {
   cmp -s "$a/err" "$b/err" || bad+=(stderr)
   diff -rq -x .git "$a/w" "$b/w" > /dev/null || bad+=("tree: $(diff -rq -x .git "$a/w" "$b/w" | head -3 | tr '\n' ';')")
   if ((${#bad[@]})); then
-    if [[ $name =~ $KNOWN ]]; then known=$((known + 1)); echo "KNOWN $name: ${bad[*]}"; return 0; fi
     fail=$((fail + 1)); echo "MISMATCH $name: ${bad[*]}"
     if [[ -n ${VERBOSE:-} ]]; then diff "$a/out" "$b/out" | head -20; diff "$a/err" "$b/err" | head -20; fi
   else
@@ -255,5 +252,5 @@ scenario hook_pre_push "" "$git_repo" installGitPrePushHook
 scenario hook_backup "" "$git_repo && printf 'old hook' > .git/hooks/pre-commit" installGitPreCommitHook
 scenario hook_hooks_path "" "$git_repo && git config core.hooksPath myhooks" installGitPrePushHook
 
-echo "cli-diff: $pass identical, $fail mismatched, $known known (unported rules) of $((pass + fail + known)) scenarios"
+echo "cli-diff: $pass identical, $fail mismatched of $((pass + fail)) scenarios"
 ((fail == 0))
