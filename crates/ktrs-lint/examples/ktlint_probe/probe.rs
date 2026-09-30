@@ -3,6 +3,7 @@
 
 use std::panic::{self, AssertUnwindSafe};
 use std::path::Path;
+use std::time::Instant;
 
 use ktrs_ast::Ast;
 use ktrs_lint::{AutocorrectDecision, Code, KtLintParseException, KtLintRuleEngine, LintError};
@@ -23,6 +24,9 @@ pub struct FileResult {
     pub format: Vec<String>,
     pub lint: Vec<String>,
     pub failure: Option<String>,
+    /// Wall time of `format` (probe included) and of the probe alone, as in the oracle's summary.
+    pub format_seconds: f64,
+    pub probe_seconds: f64,
     pub formatted: Option<String>,
 }
 
@@ -109,6 +113,7 @@ pub fn process(engine: &KtLintRuleEngine, file: &Path, rel: &str, dumps: bool, l
     };
     let outcome = panic::catch_unwind(AssertUnwindSafe(|| {
         let run = std::cell::RefCell::new(&mut run);
+        let t0 = Instant::now();
         let formatted = engine.format_observed(
             &code,
             &mut |e| {
@@ -119,8 +124,13 @@ pub fn process(engine: &KtLintRuleEngine, file: &Path, rel: &str, dumps: bool, l
                 }
                 AutocorrectDecision::AllowAutocorrect
             },
-            &mut |ast| run.borrow_mut().end_of_pass(ast),
+            &mut |ast| {
+                let t = Instant::now();
+                run.borrow_mut().end_of_pass(ast);
+                result.probe_seconds += t.elapsed().as_secs_f64();
+            },
         )?;
+        result.format_seconds = t0.elapsed().as_secs_f64();
         if formatted != code.content {
             result.formatted = Some(formatted);
         }
