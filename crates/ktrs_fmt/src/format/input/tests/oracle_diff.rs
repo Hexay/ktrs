@@ -45,7 +45,7 @@ pub(super) fn dump(code: &str) -> String {
         u += c.len_utf16() as i32;
     }
     utf16_at[code.len()] = u;
-    let tok = |t: &dyn Tok| {
+    let tok = |t: &Tok<'_>| {
         let mut s = format!(
             "{}@{}:{}",
             t.get_index(),
@@ -61,11 +61,11 @@ pub(super) fn dump(code: &str) -> String {
     for t in input.get_tokens() {
         out.push('B');
         for x in t.get_toks_before() {
-            write!(out, " {}", tok(&**x)).unwrap();
+            write!(out, " {}", tok(x)).unwrap();
         }
-        write!(out, "\nT {}\nA", tok(&**t.get_tok())).unwrap();
+        write!(out, "\nT {}\nA", tok(t.get_tok())).unwrap();
         for x in t.get_toks_after() {
-            write!(out, " {}", tok(&**x)).unwrap();
+            write!(out, " {}", tok(x)).unwrap();
         }
         out.push('\n');
     }

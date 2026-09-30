@@ -75,7 +75,7 @@ impl<'a> JavaOutput<'a> {
     }
 
     /// The earliest position of any Tok in the Token, including leading whitespace.
-    pub fn start_position(token: &dyn Token) -> i32 {
+    pub fn start_position(token: &Token<'_>) -> i32 {
         let mut min = token.get_tok().get_position();
         for tok in token.get_toks_before() {
             min = min.min(tok.get_position());
@@ -84,23 +84,23 @@ impl<'a> JavaOutput<'a> {
     }
 
     /// The earliest non-whitespace Tok in the Token.
-    pub fn start_tok(token: &dyn Token) -> &dyn Tok {
+    pub fn start_tok<'t, 's>(token: &'t Token<'s>) -> &'t Tok<'s> {
         for tok in token.get_toks_before() {
             if tok.get_index() >= 0 {
-                return &**tok;
+                return tok;
             }
         }
-        &**token.get_tok()
+        token.get_tok()
     }
 
     /// The last non-whitespace Tok in the Token.
-    pub fn end_tok(token: &dyn Token) -> &dyn Tok {
+    pub fn end_tok<'t, 's>(token: &'t Token<'s>) -> &'t Tok<'s> {
         for tok in token.get_toks_after().iter().rev() {
             if tok.get_index() >= 0 {
-                return &**tok;
+                return tok;
             }
         }
-        &**token.get_tok()
+        token.get_tok()
     }
 
     fn is_comment(text: &str) -> bool {
@@ -143,7 +143,7 @@ impl Output for JavaOutput<'_> {
         self.blank_lines[k] = Some(merged);
     }
 
-    fn mark_for_partial_format(&mut self, start: &dyn Token, end: &dyn Token) {
+    fn mark_for_partial_format(&mut self, start: &Token<'_>, end: &Token<'_>) {
         let lo = Self::start_tok(start).get_index();
         let hi = Self::end_tok(end).get_index();
         self.partial_format_ranges.add_closed(lo, hi);

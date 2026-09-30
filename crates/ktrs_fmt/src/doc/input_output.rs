@@ -45,7 +45,7 @@ impl InputOutput {
         );
     }
 
-    pub fn compute_ranges<T: Tok>(&mut self, toks: &[T]) {
+    pub fn compute_ranges(&mut self, toks: &[Tok<'_>]) {
         let mut line_i = 0usize;
         for tok in toks {
             let txt = tok.get_original_text();

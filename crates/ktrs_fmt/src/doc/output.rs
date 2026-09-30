@@ -35,7 +35,7 @@ pub trait Output {
 
     fn blank_line(&mut self, k: i32, wanted: BlankLineWanted);
 
-    fn mark_for_partial_format(&mut self, start: &dyn Token, end: &dyn Token);
+    fn mark_for_partial_format(&mut self, start: &Token<'_>, end: &Token<'_>);
 
     fn get_comments_helper(&self) -> &dyn CommentsHelper;
 }

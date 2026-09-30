@@ -56,8 +56,8 @@ fn range_set_keeps_closed_ranges_apart() {
     );
 }
 
-fn comment(text: &str) -> KotlinTok {
-    KotlinTok::new(0, text.to_string(), text.to_string(), 0, 0, false)
+fn comment(text: &str) -> KotlinTok<'_> {
+    KotlinTok::new(0, None, text, 0, 0, false)
 }
 
 #[test]

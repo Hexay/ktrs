@@ -35,7 +35,7 @@ impl ParameterList {
     }
 }
 
-impl KotlinInputAstVisitor<'_, '_> {
+impl KotlinInputAstVisitor<'_, '_, '_> {
     /// `keyword` is e.g. "fun" or "class"; `type_or_delegation_call` is a function's return type or
     /// a constructor's delegation call.
     #[allow(clippy::too_many_arguments)]
@@ -52,10 +52,10 @@ impl KotlinInputAstVisitor<'_, '_> {
         body_expression: Option<&KtExpression>,
         type_or_delegation_call: Option<&PsiElement>,
     ) {
-        fn emit_type_or_delegation_call<'v, 'b, 'a>(
-            v: &'v mut KotlinInputAstVisitor<'b, 'a>,
+        fn emit_type_or_delegation_call<'v, 'b, 'a, 'o>(
+            v: &'v mut KotlinInputAstVisitor<'b, 'a, 'o>,
             type_or_delegation_call: Option<&PsiElement>,
-            block: impl FnOnce(&mut KotlinInputAstVisitor<'b, 'a>),
+            block: impl FnOnce(&mut KotlinInputAstVisitor<'b, 'a, 'o>),
         ) {
             if let Some(type_or_delegation_call) = type_or_delegation_call {
                 v.block(Indent::ZERO, |v| {

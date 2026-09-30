@@ -7,7 +7,7 @@ use crate::doc::{FillMode, Indent};
 
 use super::KotlinInputAstVisitor;
 
-impl KotlinInputAstVisitor<'_, '_> {
+impl KotlinInputAstVisitor<'_, '_, '_> {
     /// Whether an expression is a lambda or scoping function whose block we don't want to indent:
     /// `{ ... }`, `Runnable { ... }`, `scope { ... }`, `scope.launch { ... }`, but not
     /// `foo() { ... }` (parens) or `Runnable @Annotation { ... }`.
