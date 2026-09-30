@@ -23,7 +23,7 @@ command -v cygpath >/dev/null && jar=$(cygpath -m "$jar")
 scratch=$(mktemp -d)
 if [[ -n ${KEEP:-} ]]; then echo "outputs in $scratch"; else trap 'rm -rf "$scratch"' EXIT; fi
 
-"$java" -cp "$jar" "$here/RuleIds.java" 2>/dev/null | grep -a '^[a-z-]*:' | sort > "$scratch/jar-rules"
+"$java" -cp "$jar" "$here/RuleIds.java" 2>/dev/null | grep -a '^standard:' | sort > "$scratch/jar-rules"
 "$ktrs" lint --list-rules | tr -d '\r' | sort > "$scratch/our-rules"
 unported=$(comm -23 "$scratch/jar-rules" "$scratch/our-rules")
 echo "rules: $(wc -l < "$scratch/our-rules") ported, $(echo "$unported" | grep -c .) disabled on both sides"
