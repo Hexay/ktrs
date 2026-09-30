@@ -4,7 +4,8 @@ Fast, native Kotlin tooling in Rust. The goal is ktfmt-identical formatting and 
 linting without starting a JVM.
 
 **Status:** the formatter is done: output identical to ktfmt 0.64 on 6,121 of 6,123 real-world files
-(the other two are rejected by both), about 10x faster than the ktfmt jar end to end. Underneath is a
+(the other two are rejected by both), 7-100x faster than the ktfmt jar end to end ([numbers](#performance)).
+Underneath is a
 lossless Kotlin parser whose tree matches the Kotlin compiler's PSI node for node. Linting
 (ktlint-compatible) is next.
 
@@ -46,6 +47,26 @@ Spotless's generic step:
 ```kotlin
 spotless { kotlin { nativeCmd("ktfmt", "/path/to/ktfmt", listOf("--kotlinlang-style", "-")) } }
 ```
+
+## Performance
+
+The `ktfmt` binary against the ktfmt 0.64 jar, both run from the command line the way users run them
+(same flags, same files, identical output). Median of 5 alternating runs after a warm-up, on a Windows 11
+laptop (Intel Core Ultra, 22 threads, JDK 21):
+
+| Scenario | ktrs | ktfmt 0.64 (JVM) | Speedup |
+|---|---|---|---|
+| Seven open-source projects (6,123 files, 31 MB), format in place | 3.69 s | 24.55 s | **7x** |
+| One project (okhttp, 617 files), format in place | 465 ms | 9.58 s | **21x** |
+| okhttp, format in place, 1 core | 1.29 s | 40.08 s | **31x** |
+| okhttp, CI check (`-n --set-exit-if-changed`) | 316 ms | 9.08 s | **29x** |
+| Pre-commit: 10 changed files | 26 ms | 2.57 s | **99x** |
+| Editor: one 8 KB file on stdin | 16 ms | 1.49 s | **96x** |
+
+Small runs are dominated by JVM startup; large ones by formatting work, where ktrs is still several
+times faster per core and uses all of them. The binary is 1.6 MB with no runtime; the jar is 71 MB plus
+a JRE. Reproduce with `python3 tools/bench/e2e.py` (needs the corpus from `tools/fetch-corpus.sh` and
+the jar, which `tools/ktfmt-oracle/extract-goldens.sh` downloads).
 
 ## Development
 
