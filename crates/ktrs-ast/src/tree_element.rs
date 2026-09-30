@@ -190,7 +190,7 @@ impl Ast {
         self.raw_remove(this);
     }
 
-    fn invalidate(&mut self, this: NodeId) {
+    pub(crate) fn invalidate(&mut self, this: NodeId) {
         self.set_tree_next(this, NONE);
         self.set_tree_prev(this, NONE);
         self.set_tree_parent(this, NONE);

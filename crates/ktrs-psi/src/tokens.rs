@@ -12,10 +12,15 @@ pub const TYPE_ELEMENT_TYPES: TokenSet =
 /// `KtTokenSets.SUPER_TYPE_LIST_ENTRIES`.
 pub const SUPER_TYPE_LIST_ENTRIES: TokenSet =
     TokenSet::create(&[DELEGATED_SUPER_TYPE_ENTRY, SUPER_TYPE_CALL_ENTRY, SUPER_TYPE_ENTRY]);
+/// `KtTokenSets.DECLARATION_TYPES`.
+pub const DECLARATION_TYPES: TokenSet = TokenSet::create(&[
+    CLASS, OBJECT_DECLARATION, FUN, PROPERTY, DESTRUCTURING_DECLARATION, TYPEALIAS, CLASS_INITIALIZER,
+    SECONDARY_CONSTRUCTOR, ENUM_ENTRY,
+]);
 /// `KtTokenSets.INSIDE_DIRECTIVE_EXPRESSIONS`.
 pub const INSIDE_DIRECTIVE_EXPRESSIONS: TokenSet = TokenSet::create(&[REFERENCE_EXPRESSION, DOT_QUALIFIED_EXPRESSION]);
 /// `KtNameReferenceExpression.NAME_REFERENCE_EXPRESSIONS`.
-pub(crate) const NAME_REFERENCE_EXPRESSIONS: TokenSet = TokenSet::create(&[IDENTIFIER, THIS_KEYWORD, SUPER_KEYWORD]);
+pub const NAME_REFERENCE_EXPRESSIONS: TokenSet = TokenSet::create(&[IDENTIFIER, THIS_KEYWORD, SUPER_KEYWORD]);
 /// `KtClassOrObject.classInterfaceObjectTokenSet`.
 pub(crate) const CLASS_INTERFACE_OBJECT: TokenSet = TokenSet::create(&[CLASS_KEYWORD, INTERFACE_KEYWORD, OBJECT_KEYWORD]);
 /// `KtDestructuringDeclaration.OPENING_BRACES` / `CLOSING_BRACES`.
@@ -24,7 +29,7 @@ pub(crate) const CLOSING_BRACES: TokenSet = TokenSet::create(&[RPAR, RBRACKET]);
 
 /// `KtOperationReferenceExpression.OPERATION_TOKENS`: postfix + prefix operations + every
 /// `BinaryOperationPrecedence` token.
-pub(crate) const OPERATION_TOKENS: TokenSet = TokenSet::create(&[
+pub const OPERATION_TOKENS: TokenSet = TokenSet::create(&[
     // KtTokenSets.POSTFIX_OPERATIONS
     PLUSPLUS, MINUSMINUS, EXCLEXCL, DOT, SAFE_ACCESS,
     // KtTokenSets.PREFIX_OPERATIONS

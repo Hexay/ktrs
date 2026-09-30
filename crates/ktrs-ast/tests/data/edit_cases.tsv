@@ -1,0 +1,17 @@
+leaf_delete	delete	WHITE_SPACE	3	fun f() { a(1,  2) }
+two_keywords	remove	WHITE_SPACE	0	private fun f() {}
+get_keyword	remove	WHITE_SPACE	2	val x: Int get() = 1
+ws_ws	delete	SEMICOLON	0	fun f() {a() ; b()}
+blank_lines	delete	SEMICOLON	0	fun f() {\n  a()\n  ;\n\n  b()\n}
+ws_recreated	remove	VALUE_ARGUMENT	1	val v = foo(a,b )
+trailing	delete	ANNOTATION_ENTRY	1	@A @B fun f() {}
+modifier_list	delete	ANNOTATION_ENTRY	0	@A fun f() {}
+semicolon	delete	PROPERTY	0	fun f() { val a = 1; val b = 2 }
+import	delete	IMPORT_DIRECTIVE	0	import a.b\nimport c.d\n\nfun f() {}
+import_semicolon	delete	IMPORT_DIRECTIVE	0	import a.b;\nimport c.d\n\nfun f() {}
+when_entries	remove	SEMICOLON	0	fun f() = when (x) {\n  1 -> a;  2 -> b\n}
+whole_file	delete	PROPERTY	0	val a = 1
+first_in_block	delete	CALL_EXPRESSION	0	fun f() {\n    a()\n    b()\n}
+last_in_block	delete	CALL_EXPRESSION	1	fun f() {\n    a()\n    b()\n}
+comment_between_keywords	remove	BLOCK_COMMENT	0	private/**/fun f() {}
+when_entry_join	remove	WHITE_SPACE	8	fun f() = when (x) {\n  1 -> a\n  2 -> b\n}

@@ -53,6 +53,7 @@ name = "ktrs-ast"
 version = "0.2.0"
 dependencies = [
  "ktrs-parser",
+ "ktrs-psi",
  "ktrs-syntax",
  "mimalloc",
 ]

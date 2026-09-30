@@ -77,6 +77,34 @@ pub fn prev_leaf(ast: &Ast, start: NodeId) -> Option<NodeId> {
     None
 }
 
+/// `TreeUtil.CommonParentState`, the part `prevLeaf(start, state)` fills. (`strongWhiteSpaceHolder` keys
+/// on `UNCLOSED_ELEMENT_PROPERTY` user data, which only the incremental reparser sets.)
+#[derive(Clone, Copy, Debug, Default)]
+pub struct CommonParentState {
+    /// The ancestor-or-self of `start` whose previous sibling holds the returned leaf.
+    pub next_leaf_branch_start: Option<NodeId>,
+    /// That previous sibling.
+    pub start_leaf_branch_start: Option<NodeId>,
+}
+
+/// `TreeUtil.prevLeaf(start, commonParent)`.
+pub fn prev_leaf_with_state(ast: &Ast, start: NodeId, common_parent: &mut CommonParentState) -> Option<NodeId> {
+    let mut start = Some(start);
+    while let Some(s) = start {
+        common_parent.next_leaf_branch_start = Some(s);
+        let mut prev_tree = ast.tree_prev(s);
+        while let Some(t) = prev_tree {
+            if let Some(prev) = find_last_leaf(ast, t) {
+                common_parent.start_leaf_branch_start = Some(t);
+                return Some(prev);
+            }
+            prev_tree = ast.tree_prev(t);
+        }
+        start = ast.tree_parent(s);
+    }
+    None
+}
+
 impl Ast {
     /// psiUtil `ASTNode.leaves(forward)`: the leaves after (or before) `node`, nearest first.
     pub fn leaves(&self, node: NodeId, forward: bool) -> Leaves<'_> {

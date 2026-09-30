@@ -327,8 +327,8 @@ fn index_of_last_dot_with_backticks_support(fq_name: &str) -> Option<usize> {
     None
 }
 
-/// `org.jetbrains.kotlin.resolve.ImportPath`.
-#[derive(Clone, Debug, PartialEq, Eq)]
+/// `org.jetbrains.kotlin.resolve.ImportPath`; `pathStr`, `hasAlias` and `toString` are in `import_path.rs`.
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct ImportPath {
     pub fq_name: FqName,
     pub is_all_under: bool,

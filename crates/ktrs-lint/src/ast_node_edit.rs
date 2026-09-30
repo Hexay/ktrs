@@ -1,6 +1,6 @@
 //! The editing half of ktlint-rule-engine-core `ASTNodeExtension.kt` (`upsertWhitespaceBeforeMe`,
-//! `replaceTextWith`, `upsertWhitespaceAfterMe`, `remove`), in file order; the queries are in
-//! `ast_node_extension.rs`.
+//! `replaceTextWith`, `upsertWhitespaceAfterMe`, `replaceWith`, `remove`), in file order; the queries are in
+//! `ast_node_extension/`.
 
 use ktrs_ast::{Ast, NodeId};
 use ktrs_syntax::SyntaxKind::WHITE_SPACE;
@@ -11,6 +11,7 @@ pub trait AstNodeEdit {
     fn upsert_whitespace_before_me(&mut self, n: NodeId, text: &str);
     fn replace_text_with(&mut self, n: NodeId, text: &str);
     fn upsert_whitespace_after_me(&mut self, n: NodeId, text: &str);
+    fn replace_with(&mut self, n: NodeId, node: NodeId);
     fn remove(&mut self, n: NodeId);
 }
 
@@ -92,6 +93,14 @@ impl AstNodeEdit for Ast {
                 }
             }
         }
+    }
+
+    /// `parent.addChild(node, this)`, then `remove()`.
+    fn replace_with(&mut self, n: NodeId, node: NodeId) {
+        if let Some(parent) = self.parent(n) {
+            self.add_child(parent, node, Some(n));
+        }
+        self.remove(n);
     }
 
     /// `parent.removeChild(this)`: the node moves into a dummy holder; adjacent whitespace is not merged.

@@ -1,0 +1,163 @@
+category	upstream	uses	files	rust	status	note
+compiler	psi.psiUtil.siblings	26	9	Ast::siblings	done	
+compiler	psi.psiUtil.children	23	5	Ast::children	done	
+compiler	psi.psiUtil.leaves	21	13	Ast::leaves	done	
+compiler	psi.KtImportDirective	11	5	psi::KtImportDirective	done	
+compiler	lexer.KtTokens	8	5	kt_tokens	done	ktrs_parser::kt_tokens (KEYWORDS, SOFT_KEYWORDS, OPERATIONS, ...)
+compiler	psi.KtStringTemplateExpression	5	1	psi::KtStringTemplateExpression	done	
+compiler	resolve.ImportPath	4	3	psi::ImportPath	done	
+compiler	descriptors.annotations.AnnotationUseSiteTarget	3	1	psi::AnnotationUseSiteTarget	done	
+compiler	psi.KtBlockExpression	3	3	psi::KtBlockExpression	done	KtBlockExpression(null) -> ast.new_composite(BLOCK)
+compiler	psi.KtFunction	3	1	psi::KtFunction	done	
+compiler	psi.psiUtil.parents	3	3	Ast::parents	done	
+compiler	utils.addToStdlib.applyIf	2	2	n/a	n/a	if c { f(x) } else { x }
+compiler	utils.addToStdlib.ifTrue	2	2	n/a	n/a	bool::then
+compiler	KtNodeTypes.WHEN_ENTRY_GUARD	1	1	SyntaxKind::WHEN_ENTRY_GUARD	done	
+compiler	kdoc.lexer.KDocTokens.MARKDOWN_LINK	1	1	SyntaxKind::KDOC_MARKDOWN_LINK	done	
+compiler	lexer.KtSingleValueToken	1	1	psi::single_value	done	.value
+compiler	psi.KtDotQualifiedExpression	1	1	psi::KtDotQualifiedExpression	done	
+compiler	psi.KtFile	1	1	psi::KtFile	done	
+compiler	psi.KtPackageDirective	1	1	psi::KtPackageDirective	done	
+compiler	psi.KtPsiUtil	1	1	psi::unquote_identifier	done	unquoteIdentifier
+compiler	psi.KtSuperTypeList	1	1	psi::KtSuperTypeList	done	
+compiler	psi.KtWhenEntry	1	1	psi::KtWhenEntry	done	
+compiler	psi.KtWhenExpression	1	1	psi::KtWhenExpression	done	
+core	ElementType.*	884	101	element_type::*	done	SyntaxKind::X; 4 renamed consts
+core	parent	301	58	parent / parent_matching	done	
+core	prevLeaf	283	59	prev_leaf / prev_leaf_matching	done	
+core	AutocorrectDecision	279	105	AutocorrectDecision	done	
+core	ifAutocorrectAllowed	237	88	if_autocorrect_allowed	done	
+core	nextLeaf	167	49	next_leaf / next_leaf_matching	done	
+core	SinceKtlint	162	105	n/a	n/a	rule metadata annotation
+core	isWhiteSpace	155	59	is_white_space	done	
+core	isWhiteSpaceWithNewline	136	50	is_white_space_with_newline	done	
+core	nextSibling	121	39	next_sibling / next_sibling_matching	done	
+core	children	118	33	children	done	
+core	RuleId	106	106	RuleId	done	
+core	RuleV2Provider	106	1	RuleV2Provider	done	
+core	remove	99	38	AstNodeEdit::remove	done	
+core	SinceKtlint.Status.STABLE	94	94	n/a	n/a	rule metadata annotation
+core	upsertWhitespaceBeforeMe	86	38	upsert_whitespace_before_me	done	
+core	prevSibling	75	30	prev_sibling / prev_sibling_matching	done	
+core	editorconfig.INDENT_SIZE_PROPERTY	72	38	EditorConfig.indent_size	done	engine (1A)
+core	editorconfig.INDENT_STYLE_PROPERTY	72	38	EditorConfig.indent_style	done	engine (1A)
+core	IndentConfig	59	34	IndentConfig	done	
+core	isPartOfComment	59	30	is_part_of_comment	done	
+core	lastChildLeafOrSelf	59	23	last_child_leaf_or_self	done	
+core	SinceKtlint.Status.EXPERIMENTAL	58	58	n/a	n/a	rule metadata annotation
+core	prevCodeLeaf	57	16	prev_code_leaf	done	
+core	editorconfig.EditorConfig	54	51	EditorConfig	done	engine (1A): fields, no property lookup yet
+core	isWhiteSpaceWithoutNewline	48	28	is_white_space_without_newline	done	
+core	nextCodeSibling	47	20	next_code_sibling	done	
+core	upsertWhitespaceAfterMe	45	30	upsert_whitespace_after_me	done	
+core	indent	44	20	indent	done	
+core	replaceTextWith	44	33	replace_text_with	done	
+core	editorconfig.MAX_LINE_LENGTH_PROPERTY	36	17	TODO	TODO	engine (1A)
+core	prevCodeSibling	36	18	prev_code_sibling	done	
+core	editorconfig.EditorConfigProperty	33	16	TODO	TODO	engine (1A)
+core	editorconfig.CODE_STYLE_PROPERTY	30	15	TODO	TODO	engine (1A)
+core	hasNoMaxLineLengthSuppression	29	13	has_no_max_line_length_suppression	done	
+core	firstChildLeafOrSelf	28	23	first_child_leaf_or_self	done	
+core	nextCodeLeaf	25	9	next_code_leaf	done	
+core	RuleV2	21	19	RuleV2	done	
+core	isCode	21	18	is_code	done	
+core	isPartOf	18	14	is_part_of / is_part_of_set	done	
+core	editorconfig.CodeStyleValue.ktlint_official	17	4	TODO	TODO	engine (1A)
+core	indentWithoutNewlinePrefix	16	11	indent_without_newline_prefix	done	
+core	lineLength	15	7	line_length	done	counts UTF-16 units
+core	findParentByType	14	6	find_parent_by_type	done	
+core	hasModifier	13	7	has_modifier	done	
+core	leavesOnLine	13	8	leaves_on_line	done	
+core	IndentConfig.Companion.DEFAULT_INDENT_CONFIG	12	12	IndentConfig::default_indent_config	done	
+core	dropTrailingEolComment	10	6	drop_trailing_eol_comment	done	
+core	isWhiteSpaceWithoutNewlineOrNull	9	3	is_white_space_without_newline_or_null	done	
+core	editorconfig.CodeStyleValue	8	6	TODO	TODO	engine (1A)
+core	leavesForwardsIncludingSelf	8	8	leaves_forwards_including_self	done	
+core	AutocorrectDecision.NO_AUTOCORRECT	7	3	AutocorrectDecision::NoAutocorrect	done	
+core	hasNewLineInClosedRange	7	3	has_new_line_in_closed_range	done	
+core	ElementType	6	1	element_type	done	
+core	isRoot	6	6	is_root	done	
+core	noNewLineInClosedRange	6	3	no_new_line_in_closed_range	done	
+core	editorconfig.MAX_LINE_LENGTH_PROPERTY_OFF	5	4	TODO	TODO	engine (1A)
+core	TokenSets	4	4	token_sets	done	
+core	column	4	2	column	done	counts UTF-16 units
+core	isDeclaration	4	3	is_declaration	done	
+core	isLeaf	4	4	is_leaf	done	
+core	KtlintKotlinCompiler	3	3	Ast::create_ast_node_from_text	done	createASTNodeFromText
+core	betweenCodeSiblings	3	1	between_code_siblings	done	
+core	editorconfig.INSERT_FINAL_NEWLINE_PROPERTY	3	1	TODO	TODO	engine (1A)
+core	endOffset	3	2	end_offset	done	
+core	leavesBackwardsIncludingSelf	3	3	leaves_backwards_including_self	done	
+core	RuleSetId	2	2	TODO	TODO	engine (1A)
+core	editorconfig.CommaSeparatedListValueParser	2	2	TODO	TODO	engine (1A)
+core	editorconfig.SafeEnumValueParser	2	2	TODO	TODO	engine (1A)
+core	isPartOfString	2	2	is_part_of_string	done	
+core	leavesInClosedRange	2	2	leaves_in_closed_range	done	
+core	IgnoreKtlintSuppressions	1	1	TODO	TODO	engine (1A)
+core	IndentConfig.IndentStyle.SPACE	1	1	IndentStyle::Space	done	
+core	IndentConfig.IndentStyle.TAB	1	1	IndentStyle::Tab	done	
+core	RuleV2.OnlyWhenEnabledInEditorconfig	1	1	TODO	TODO	engine (1A)
+core	editorconfig.CodeStyleValue.android_studio	1	1	TODO	TODO	engine (1A)
+core	editorconfig.RULE_EXECUTION_PROPERTY_TYPE	1	1	TODO	TODO	engine (1A)
+core	editorconfig.RuleExecution	1	1	TODO	TODO	engine (1A)
+core	editorconfig.ktLintRuleExecutionPropertyName	1	1	TODO	TODO	engine (1A)
+core	util.cast	1	1	n/a (psi::KtX::of)	n/a	cast helper
+intellij	lang.ASTNode	766	105	NodeId + Ast	done	node.foo -> ast.foo(node)
+intellij	psi.impl.source.tree.LeafPsiElement	34	18	Ast::new_leaf	done	
+intellij	psi.impl.source.tree.PsiWhiteSpaceImpl	22	12	Ast::new_leaf(WHITE_SPACE, _)	done	
+intellij	psi.tree.TokenSet	22	15	TokenSet	done	ktrs_parser::token_set
+intellij	psi.tree.IElementType	8	5	SyntaxKind	done	
+intellij	psi.impl.source.tree.LeafElement	3	2	Ast::is_leaf_element	done	
+intellij	psi.tree.TokenSet.create	3	1	TokenSet::create	done	
+intellij	lang.FileASTNode	2	1	Ast::is_file_element	done	
+intellij	psi.PsiWhiteSpace	2	1	psi::PsiWhiteSpace	done	
+intellij	psi.impl.source.tree.CompositeElement	2	2	!Ast::is_leaf_element	done	
+intellij	psi.impl.source.tree.PsiCommentImpl	2	2	Ast::new_leaf(kind, _)	done	
+member	.elementType	777	102	element_type	done	
+member	.startOffset	271	101	start_offset	done	UTF-8; utf16_offset for reporting
+member	.text	214	69	text / leaf_text	done	
+member	.findChildByType	205	45	find_child_by_type	done	
+member	.firstChildNode	72	32	first_child_node	done	
+member	.textLength	39	20	text_length / text_length_utf16	done	UTF-8 vs JVM's UTF-16
+member	.textContains	34	20	text_contains	done	
+member	.addChild	29	17	add_child	done	
+member	.psi	17	9	psi::KtX::of / cast / is	done	
+member	.lastChildNode	13	10	last_child_node	done	
+member	.importPath	9	5	KtImportDirective::import_path	done	
+member	.pathStr	9	3	ImportPath::path_str	done	
+member	.node	6	5	KtX::node	done	
+member	.rawInsertBeforeMe	6	5	raw_insert_before_me	done	
+member	.replaceChild	5	5	replace_child	done	
+member	.treeParent	5	2	tree_parent	done	
+member	.hasAlias	4	2	ImportPath::has_alias	done	
+member	.createASTNodeFromText	3	3	Ast::create_ast_node_from_text	done	
+member	.delete	3	2	psi::delete	done	CodeEditUtil.removeChild path
+member	.rawInsertAfterMe	3	2	raw_insert_after_me	done	
+member	.clone	2	2	Ast::clone	done	
+member	.getChildren	2	2	get_children / get_children_filtered	done	
+member	.rawRemove	2	2	raw_remove	done	
+member	.removeRange	2	2	remove_range	done	
+member	.textMatches	2	2	text_matches	done	
+member	.treePrev	2	1	tree_prev	done	
+member	.addChildren	1	1	add_children	done	
+member	.aliasName	1	1	KtImportDirective::alias_name	done	
+member	.bodyExpression	1	1	KtFunction::body_expression	done	
+member	.containingFile	1	1	psi::KtFile	done	containingFile.virtualFile.name
+member	.firstChild	1	1	first_child_node	done	PSI getFirstChild (StringTemplateRule, commented out)
+member	.hasDeclaredReturnType	1	1	KtFunction::has_declared_return_type	done	
+member	.importedName	1	1	ImportPath::imported_name	done	
+member	.isAllUnder	1	1	ImportPath.is_all_under	done	
+member	.isElse	1	1	KtWhenEntry::is_else	done	
+member	.leftParenthesis	1	1	KtWhenExpression::left_parenthesis	done	
+member	.qualifiedName	1	1	KtPackageDirective::qualified_name	done	
+member	.renderName	1	1	AnnotationUseSiteTarget::render_name	done	
+member	.selectorExpression	1	1	KtDotQualifiedExpression::selector_expression	done	
+member	.treeNext	1	1	tree_next	done	
+member	.unquoteIdentifier	1	1	psi::unquote_identifier	done	
+member	.virtualFile	1	1	KtFile::virtual_file_name	done	
+member	.virtualFilePath	1	1	KtFile::virtual_file_path	done	
+other	org.ec4j.core.model.PropertyType	33	15	TODO	TODO	engine (1A): editorconfig
+other	io.github.ktlint.core.logger.api.initKtLintKLogger	6	6	n/a	n/a	logging
+other	org.ec4j.core.model.PropertyType.PropertyValueParser	3	3	TODO	TODO	engine (1A): editorconfig
+other	org.ec4j.core.model.PropertyType.PropertyValueParser.EnumValueParser	2	1	TODO	TODO	engine (1A): editorconfig
+other	io.github.ktlint.core.cli.ruleset.core.api.RuleSetV2Provider	1	1	rules::STANDARD_RULE_PROVIDERS	done	
