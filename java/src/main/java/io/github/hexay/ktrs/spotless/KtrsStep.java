@@ -4,6 +4,7 @@ import com.diffplug.spotless.FormatterFunc;
 import com.diffplug.spotless.FormatterStep;
 import io.github.hexay.ktrs.Ktrs;
 import io.github.hexay.ktrs.KtrsOptions;
+import java.io.File;
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -25,8 +26,10 @@ public final class KtrsStep {
         return FormatterStep.create("ktrs", new State(options), KtrsStep::formatter);
     }
 
+    // Not Ktrs.shared(): its shutdown hook would pin Spotless's classloader in a long-lived daemon.
     private static FormatterFunc formatter(State state) {
-        return (FormatterFunc.NeedsFile) (code, file) -> Ktrs.shared().format(code, state.options, file.toPath());
+        return FormatterFunc.Closeable.of(Ktrs.create(),
+                (Ktrs ktrs, String code, File file) -> ktrs.format(code, state.options, file.toPath()));
     }
 
     /** Spotless's up-to-date key: the options and this jar's version (which pins the binary). */

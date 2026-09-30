@@ -24,6 +24,8 @@ Milestone 1: the parser's tree must be identical to the Kotlin compiler's PSI (`
   preview: `tools/release/build-site.sh && py -3 -m http.server -d target/site`.
 - `java/` — `io.github.hexay:ktrs`: JVM wrapper around `ktrs serve` (bundled binaries, Spotless `KtrsStep`).
   Tests: `cargo build --bins`, then `java/gradlew -p java test` (JAVA_HOME = tools/jdk/*).
+  `java/gradle-plugin` — `io.github.hexay.ktrs`, ktfmt-gradle 0.27.0 drop-in (same DSL/tasks/FQNs);
+  tests: `java/gradlew -p java :ktrs-gradle-plugin:test` (TestKit, slow: background it).
 - `crates/ktrs-ast` — mutable arena AST with IntelliJ `TreeElement` semantics, seeded from `Tree` (for ktlint);
   conventions in `src/lib.rs`. `crates/ktrs-lint` — ktlint 2.0.0-ALPHA-4 engine + ported rules; status
   research/15-ktlint-spike.md. `crates/ktrs-editorconfig` — ec4j 1.2.0 port (ktlint's `.editorconfig` semantics;
