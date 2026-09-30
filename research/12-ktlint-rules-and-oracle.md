@@ -142,7 +142,7 @@ coverage over the 4 other repos.
 
 ## 3. Test extraction (mirror `tools/ktfmt-oracle/extract-goldens.sh`)
 
-Built for 2.0.0-ALPHA-4 as `tools/ktlint-tests/extract-goldens.sh`: 2,326 cases from 2,362 passing upstream tests. It
+Built for 2.0.0-ALPHA-4 as `tools/ktlint-tests/extract-goldens.sh`: 2,324 cases from 2,362 passing upstream tests. It
 differs from the plan below in three ways. `.options` carries the engine's full override, including the forced properties.
 `.lint`/`.format` use `line:col\trule\tauto|manual\tdetail`. There is no `.upstream` file: the upstream assertions stay live
 instead. Runner: `crates/ktrs-lint/tests/golden/`.
