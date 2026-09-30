@@ -7,6 +7,7 @@ publish = false
 
 [dependencies]
 ktrs-fmt.workspace = true
+ktrs-lint.workspace = true
 ktrs-parser.workspace = true
 ktrs-syntax.workspace = true
 mimalloc.workspace = true
