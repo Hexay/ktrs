@@ -1,5 +1,6 @@
 //! The native `ktrs` command. `ktrs fmt` maps its flags onto ktfmt's [`ParsedArgs`] and runs the
-//! same [`Main`], so output, messages and exit codes stay those of the `ktfmt` drop-in.
+//! same [`Main`], so output, messages and exit codes stay those of the `ktfmt` drop-in; `ktrs lint`
+//! does the same over the `ktlint` drop-in (`crate::ktrs_lint`).
 
 use std::io;
 use std::path::Path;
@@ -8,13 +9,16 @@ use ktrs_fmt::{FormattingOptions, GOOGLE_FORMAT, KOTLINLANG_FORMAT, META_FORMAT}
 
 use crate::ktfmt::{KTFMT_VERSION, Main, ParsedArgs, editor_config_resolver};
 
-const HELP: &str = "\
+const HELP_TEMPLATE: &str = "\
 ktrs - fast Kotlin tooling
 
 Usage:
   ktrs fmt [OPTIONS] [PATH ...]    Format .kt/.kts files in place (default PATH: .)
   ktrs fmt [OPTIONS] -             Format stdin to stdout
-  ktrs serve                       Format requests framed on stdin until it closes (for build tools;
+  ktrs lint [OPTIONS] [PATH ...]   Check .kt/.kts files with ktlint's rules (default PATH: .); exit 1
+                                     on violations. Rules are being ported: `ktrs lint --list-rules`
+  ktrs lint [OPTIONS] -            Check stdin (with --format: fixed code to stdout)
+  ktrs serve                      Format requests framed on stdin until it closes (for build tools;
                                      protocol: crates/ktrs-cli/src/serve.rs)
   ktrs --version
 
@@ -28,28 +32,39 @@ Format options:
   --stdin-name <name>               Name (path) of the stdin input, for messages and .editorconfig
   -v, --verbose                     Report each formatted file
 
-A ktfmt-compatible `ktfmt` binary ships alongside, for existing scripts and integrations.";
+{LINT_HELP}
+
+`ktfmt` and `ktlint` binaries with those tools' exact flags ship alongside, for existing scripts
+and integrations.";
+
+fn help() -> String {
+    HELP_TEMPLATE.replace("{LINT_HELP}", crate::ktrs_lint::HELP)
+}
 
 pub fn run(args: &[String]) -> i32 {
     match args.first().map(String::as_str) {
         Some("fmt") => match parse_fmt_args(&args[1..]) {
             Ok(parsed) => Main::new(io::stdin(), io::stdout(), io::stderr()).run_parsed(&parsed),
             Err(message) => {
-                eprintln!("error: {message}\n\n{HELP}");
+                eprintln!("error: {message}\n\n{}", help());
                 2
             }
         },
+        Some("lint") => crate::ktrs_lint::run(&args[1..]).unwrap_or_else(|message| {
+            eprintln!("error: {message}\n\n{}", help());
+            2
+        }),
         Some("serve") if args.len() == 1 => crate::serve::run(io::stdin().lock(), io::stdout().lock()),
         Some("--version" | "-V") => {
             println!("ktrs {} (formats like ktfmt {KTFMT_VERSION})", env!("CARGO_PKG_VERSION"));
             0
         }
         Some("help" | "--help" | "-h") => {
-            println!("{HELP}");
+            println!("{}", help());
             0
         }
         _ => {
-            eprintln!("{HELP}");
+            eprintln!("{}", help());
             2
         }
     }

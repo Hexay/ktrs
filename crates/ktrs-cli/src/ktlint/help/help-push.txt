@@ -1,0 +1,7 @@
+Usage: ktlint installGitPrePushHook [<options>]
+
+  Install git hook to automatically check files for style violations before
+  push
+
+Options:
+  -h, --help  Show this message and exit
