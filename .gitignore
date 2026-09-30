@@ -4,6 +4,8 @@
 /tools/psi-dump/lib/
 /tools/psi-dump/build/
 /tools/ktfmt-oracle/lib/
+/tools/ktlint-oracle/lib/
+/tools/ktlint-oracle/build/
 /tools/jdk/
 /tools/gradle/
 /java/build/
