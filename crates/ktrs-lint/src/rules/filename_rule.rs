@@ -35,6 +35,7 @@ impl RuleV2 for FilenameRule {
     }
 
     fn before_visit_child_nodes(&mut self, ast: &mut Ast, node: NodeId, emit: &mut Emit<'_>) {
+        let ast: &Ast = ast;
         if !ast.is_root(node) {
             return;
         }
@@ -73,7 +74,7 @@ impl RuleV2 for FilenameRule {
     }
 }
 
-fn top_level_declarations(ast: &Ast, node: NodeId, element_type: Option<SyntaxKind>) -> Vec<TopLevelDeclaration> {
+fn top_level_declarations(ast: &Ast, node: NodeId, element_type: Option<SyntaxKind>) -> Vec<TopLevelDeclaration<'_>> {
     let mut declarations: Vec<TopLevelDeclaration> = Vec::new();
     for declaration in ast
         .children(node)
@@ -89,7 +90,7 @@ fn top_level_declarations(ast: &Ast, node: NodeId, element_type: Option<SyntaxKi
 }
 
 fn does_not_have_private_modifier(ast: &Ast, node: NodeId) -> bool {
-    ast.find_child_by_type(node, MODIFIER_LIST).is_none_or(|list| !ast.children(list).any(|it| ast.text(it) == "private"))
+    ast.find_child_by_type(node, MODIFIER_LIST).is_none_or(|list| !ast.children(list).any(|it| ast.text_matches(it, "private")))
 }
 
 fn has_top_level_declaration_not_extending(ast: &Ast, node: NodeId, class_name: &str) -> bool {
@@ -134,15 +135,15 @@ fn should_match_pascal_case(ast: &Ast, this: &str, emit: &mut Emit<'_>) {
 }
 
 #[derive(PartialEq, Eq)]
-struct TopLevelDeclaration {
+struct TopLevelDeclaration<'a> {
     element_type: SyntaxKind,
-    identifier: String,
+    identifier: &'a str,
 }
 
-fn to_top_level_declaration(ast: &Ast, node: NodeId) -> Option<TopLevelDeclaration> {
+fn to_top_level_declaration(ast: &Ast, node: NodeId) -> Option<TopLevelDeclaration<'_>> {
     ast.find_child_by_type(node, IDENTIFIER).map(|it| TopLevelDeclaration {
         element_type: ast.element_type(node),
-        identifier: remove_surrounding(&ast.text(it), "`", "`").to_owned(),
+        identifier: remove_surrounding(ast.leaf_text(it), "`", "`"),
     })
 }
 

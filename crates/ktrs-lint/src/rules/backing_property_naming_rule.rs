@@ -60,7 +60,7 @@ impl BackingPropertyNamingRule {
     fn visit_property(&self, ast: &Ast, property: NodeId, emit: &mut Emit<'_>) {
         let identifier = ast
             .find_child_by_type(property, IDENTIFIER)
-            .filter(|&it| ast.text(it).starts_with('_'))
+            .filter(|&it| ast.leaf_text(it).starts_with('_'))
             // A local property named "_" expresses that the value is not used (KEEP-0412).
             .filter(|&it| ast.text_length_utf16(it) != 1)
             // Overridden properties can only be changed by changing the base property.
@@ -138,7 +138,7 @@ fn find_property_with_name(ast: &Ast, node: NodeId, name: &str) -> Option<NodeId
     ast.children(node)
         .filter(|&it| ast.element_type(it) == PROPERTY)
         .filter_map(|it| ast.find_child_by_type(it, IDENTIFIER))
-        .find(|&it| ast.text(it) == name)
+        .find(|&it| ast.leaf_text(it) == name)
         .and_then(|it| ast.parent(it))
 }
 
@@ -166,7 +166,7 @@ fn find_function_with_name(ast: &Ast, node: NodeId, name: &str) -> Option<NodeId
         .filter(|&it| ast.element_type(it) == FUN)
         .filter(|&it| has_non_empty_parameter_list(ast, it))
         .filter_map(|it| ast.find_child_by_type(it, IDENTIFIER))
-        .find(|&it| ast.text(it) == name)
+        .find(|&it| ast.leaf_text(it) == name)
         .and_then(|it| ast.parent(it))
 }
 

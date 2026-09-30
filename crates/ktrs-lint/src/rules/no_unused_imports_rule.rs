@@ -2,6 +2,7 @@
 //! import is occasionally falsely marked as unused (ktlint#3038); it ignores ktlint suppressions, so imports only
 //! used in suppressed code are not reported.
 
+use std::borrow::Cow;
 use std::collections::HashSet;
 
 use ktrs_ast::psi::{self, ImportPath, KtDotQualifiedExpression, KtImportDirective, KtPackageDirective};
@@ -17,11 +18,9 @@ use crate::rule::{About, Emit, RuleId, RuleV2};
 use crate::rules::STANDARD_RULE_ABOUT;
 use crate::rules::internal::kotlin_string::{is_blank, remove_surrounding, substring_after, substring_before, substring_before_last, trim};
 
-/// `Reference(text, inDotQualifiedExpression)`.
-type Reference = (String, bool);
-
 pub struct NoUnusedImportsRule {
-    r#ref: HashSet<Reference>,
+    /// The set of `Reference(text, inDotQualifiedExpression)`, split by the flag: `[false]`, `[true]`.
+    r#ref: [HashSet<String>; 2],
     /// A `LinkedHashSet`: its order is the emit order.
     parent_expressions: Vec<String>,
     /// A `LinkedHashMap`.
@@ -33,7 +32,7 @@ pub struct NoUnusedImportsRule {
 impl NoUnusedImportsRule {
     pub fn new() -> NoUnusedImportsRule {
         NoUnusedImportsRule {
-            r#ref: HashSet::from([("*".to_owned(), false)]),
+            r#ref: [HashSet::from(["*".to_owned()]), HashSet::new()],
             parent_expressions: Vec::new(),
             imports: Vec::new(),
             package_name: String::new(),
@@ -94,15 +93,15 @@ impl RuleV2 for NoUnusedImportsRule {
             KDOC_MARKDOWN_LINK => {
                 let text = ast.text(node);
                 let link_text = remove_backticks_and_trim(remove_surrounding(&text, "[", "]"));
-                self.r#ref.insert((substring_before(&link_text, ".").to_owned(), false));
-                self.r#ref.insert((link_text.rsplit('.').next().unwrap_or_default().to_owned(), false));
+                self.add_reference(substring_before(&link_text, "."), false);
+                self.add_reference(link_text.rsplit('.').next().unwrap_or_default(), false);
             }
 
             REFERENCE_EXPRESSION | OPERATION_REFERENCE => {
                 if !ast.is_part_of(node, IMPORT_DIRECTIVE) {
                     let identifier = if !ast.is_leaf_element(node) { ast.find_child_by_type(node, IDENTIFIER) } else { Some(node) };
-                    if let Some(text) = identifier.map(|it| ast.text(it)).filter(|it| !is_blank(it)) {
-                        self.r#ref.insert((remove_backticks_and_trim(&text), is_parent_dot_qualified_expression_or_null(ast, node)));
+                    if let Some(text) = identifier.map(|it| ast.leaf_text(it)).filter(|it| !is_blank(it)) {
+                        self.add_reference(&remove_backticks_and_trim(text), is_parent_dot_qualified_expression_or_null(ast, node));
                     }
                 }
             }
@@ -119,13 +118,14 @@ impl RuleV2 for NoUnusedImportsRule {
         if ast.element_type(node) != FILE {
             return;
         }
-        let direct_calls: Vec<String> = self.r#ref.iter().filter(|(_, in_dot)| !in_dot).map(|(text, _)| text.clone()).collect();
+        let direct_calls: Vec<String> = self.r#ref[0].iter().cloned().collect();
         for parent in self.parent_expressions.clone() {
             let matching: Vec<(ImportPath, NodeId)> = self
                 .imports
                 .iter()
                 .filter(|(import, _)| {
-                    let import_path = remove_backticks_and_trim(&import.path_str());
+                    let path_str = import.path_str();
+                    let import_path = remove_backticks_and_trim(&path_str);
                     import_path.ends_with(&format!(".{parent}")) && !direct_calls.iter().any(|it| import_path.ends_with(&format!(".{it}")))
                 })
                 .cloned()
@@ -138,12 +138,12 @@ impl RuleV2 for NoUnusedImportsRule {
             }
         }
 
-        let referenced: HashSet<&str> = self.r#ref.iter().map(|(text, _)| text.as_str()).collect();
+        let referenced: HashSet<&str> = self.r#ref.iter().flatten().map(String::as_str).collect();
         for &(_, node) in &self.imports {
             let import_directive = KtImportDirective::of(ast, node);
             let path = import_directive.import_path(ast);
-            let name = path.as_ref().and_then(ImportPath::imported_name).map(|it| remove_backticks_and_trim(&it));
-            let import_path = remove_backticks_and_trim(&path.expect("NullPointerException: importPath").path_str());
+            let name = path.as_ref().and_then(ImportPath::imported_name).map(|it| remove_backticks_and_trim(&it).into_owned());
+            let import_path = remove_backticks_and_trim(&path.expect("NullPointerException: importPath").path_str()).into_owned();
             let package_name = &self.package_name;
             if import_directive.alias_name(ast).is_none()
                 && (package_name.is_empty() || import_path.starts_with(&format!("{package_name}.")))
@@ -191,6 +191,14 @@ impl RuleV2 for NoUnusedImportsRule {
 }
 
 impl NoUnusedImportsRule {
+    /// `ref.add(Reference(text, inDotQualifiedExpression))`; allocates only for a new text.
+    fn add_reference(&mut self, text: &str, in_dot_qualified_expression: bool) {
+        let set = &mut self.r#ref[usize::from(in_dot_qualified_expression)];
+        if !set.contains(text) {
+            set.insert(text.to_owned());
+        }
+    }
+
     fn ignore_provide_delegate(&self, import_path: &str) -> bool {
         if import_path.ends_with(".provideDelegate") {
             // Ignore provideDelegate if the `by` keyword is found anywhere in the file
@@ -201,6 +209,10 @@ impl NoUnusedImportsRule {
     }
 
     fn is_expression_for_static_import_with_existing_parent_import(&self, ast: &Ast, node: NodeId) -> bool {
+        // Without imports every path below returns false; skips building the text of every expression.
+        if self.imports.is_empty() {
+            return false;
+        }
         let text = ast.text(node);
         if !contains_method_call(&text) {
             return false;
@@ -214,7 +226,7 @@ impl NoUnusedImportsRule {
             return false;
         }
 
-        let paths: Vec<String> = self.imports.iter().map(|(it, _)| remove_backticks_and_trim(&it.path_str())).collect();
+        let paths: Vec<String> = self.imports.iter().map(|(it, _)| remove_backticks_and_trim(&it.path_str()).into_owned()).collect();
         for import in paths.iter().filter(|it| it.ends_with(&format!(".{method_call_expression}"))) {
             let prefix = substring_before(import, method_call_expression);
             let count = paths.iter().filter(|it| it.starts_with(prefix)).count();
@@ -273,8 +285,8 @@ fn is_dot_qualified_expression(ast: &Ast, node: NodeId) -> bool {
         .is_some_and(|it| it.selector_expression(ast) == Some(node))
 }
 
-fn remove_backticks_and_trim(s: &str) -> String {
-    trim(&s.replace('`', "")).to_owned()
+fn remove_backticks_and_trim(s: &str) -> Cow<'_, str> {
+    if s.contains('`') { Cow::Owned(trim(&s.replace('`', "")).to_owned()) } else { Cow::Borrowed(trim(s)) }
 }
 
 /// `substring(n)`, `n` counted in chars (UTF-16 units upstream; the same cut for the callers' prefixes).

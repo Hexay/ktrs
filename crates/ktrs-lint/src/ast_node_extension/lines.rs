@@ -106,13 +106,26 @@ impl AstNodeLines for Ast {
     /// The length of the first non-empty line of the leaves' joined text. Panics `IllegalArgumentException`
     /// unless the first leaf contains a newline or starts the file.
     fn line_length(&self, leaves: impl IntoIterator<Item = NodeId>) -> usize {
-        let leaves: Vec<NodeId> = leaves.into_iter().collect();
-        let Some(&first) = leaves.first() else { return 0 };
+        let mut leaves = leaves.into_iter().peekable();
+        let Some(&first) = leaves.peek() else { return 0 };
         assert!(
             self.text_contains(first, '\n') || self.prev_leaf(first).is_none(),
             "IllegalArgumentException: First node in non-empty sequence must be a whitespace containing a newline"
         );
-        let text: String = leaves.iter().map(|&it| self.text(it)).collect();
-        text.trim_start_matches('\n').split('\n').next().unwrap_or("").encode_utf16().count()
+        // Streams `joinToString("").trimStart('\n').substringBefore('\n').length` without building the text.
+        let (mut leading, mut length) = (true, 0);
+        for leaf in leaves {
+            for c in self.text_chunks(leaf).flat_map(str::chars) {
+                match c {
+                    '\n' if leading => {}
+                    '\n' => return length,
+                    _ => {
+                        leading = false;
+                        length += c.len_utf16();
+                    }
+                }
+            }
+        }
+        length
     }
 }

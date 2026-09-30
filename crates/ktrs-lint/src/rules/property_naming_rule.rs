@@ -72,9 +72,9 @@ impl PropertyNamingRule {
     }
 
     fn visit_const_property(&self, ast: &Ast, identifier: NodeId, emit: &mut Emit<'_>) {
-        let text = ast.text(identifier);
+        let text = ast.leaf_text(identifier);
         // Allow `private const val serialVersionUID: Long = 123` in an object
-        if text == SERIAL_VERSION_UID_PROPERTY_NAME || self.constant_naming_property.reg_ex().matches(&text) {
+        if text == SERIAL_VERSION_UID_PROPERTY_NAME || self.constant_naming_property.reg_ex().matches(text) {
             return;
         }
         let expected_naming = self.constant_naming_property.name().replace('_', " ");
@@ -88,9 +88,9 @@ impl PropertyNamingRule {
 }
 
 fn visit_non_const_property(ast: &Ast, identifier: NodeId, emit: &mut Emit<'_>) {
-    let text = ast.text(identifier);
+    let text = ast.leaf_text(identifier);
     // Ignore backing properties
-    if LOWER_CAMEL_CASE_REGEXP.matches(&text) || text.starts_with('_') {
+    if LOWER_CAMEL_CASE_REGEXP.matches(text) || text.starts_with('_') {
         return;
     }
     emit(ast, ast.start_offset(identifier), "Property name should start with a lowercase letter and use camel case", false);
@@ -120,8 +120,8 @@ fn is_object_value(ast: &Ast, node: NodeId) -> bool {
 }
 
 fn is_token_keyword_between_backticks(ast: &Ast, node: NodeId) -> bool {
-    let text = if ast.element_type(node) == IDENTIFIER { ast.text(node) } else { String::new() };
-    is_keyword(remove_surrounding(&text, "`", "`"))
+    let text = if ast.element_type(node) == IDENTIFIER { ast.leaf_text(node) } else { "" };
+    is_keyword(remove_surrounding(text, "`", "`"))
 }
 
 static LOWER_CAMEL_CASE_REGEXP: LazyLock<KotlinRegex> =

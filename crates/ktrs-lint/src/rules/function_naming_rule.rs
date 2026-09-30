@@ -96,41 +96,54 @@ fn is_factory_method(ast: &Ast, node: NodeId) -> bool {
         // Allow:
         //     fun Foo(): Foo = ..
         //     fun <T> Foo(action: () -> T): Foo<T> = ..
-        kt_function.name(ast) == type_reference_name_without_generics(ast, kt_function)
+        name_equals_text_of(ast, kt_function, type_reference_name_without_generics(ast, kt_function))
     } else {
         // Allow factory methods to overload another factory method or class constructor without specifying the type like:
         //     fun Foo(value: Bar) = Foo(value.baz())
-        kt_function.name(ast) == call_expression_reference_identifier(ast, kt_function)
+        name_equals_text_of(ast, kt_function, call_expression_reference_identifier(ast, kt_function))
     }
 }
 
-fn type_reference_name_without_generics(ast: &Ast, kt_function: KtFunction) -> Option<String> {
+/// `ktFunction.name == other?.text`, without building either string (this runs on every function).
+fn name_equals_text_of(ast: &Ast, kt_function: KtFunction, other: Option<NodeId>) -> bool {
+    let name = kt_function.name_identifier(ast).map(|it| {
+        let quoted = ast.leaf_text(it);
+        if quoted.len() >= 2 && quoted.starts_with('`') && quoted.ends_with('`') { &quoted[1..quoted.len() - 1] } else { quoted }
+    });
+    match (name, other) {
+        (None, None) => true,
+        (Some(name), Some(other)) => ast.text_matches(other, name),
+        _ => false,
+    }
+}
+
+/// The node whose text upstream returns.
+fn type_reference_name_without_generics(ast: &Ast, kt_function: KtFunction) -> Option<NodeId> {
     kt_function
         .type_reference(ast)
         .and_then(|it| ast.find_child_by_type(it.node(), USER_TYPE))
         .and_then(|it| ast.find_child_by_type(it, REFERENCE_EXPRESSION))
-        .map(|it| ast.text(it))
 }
 
-fn call_expression_reference_identifier(ast: &Ast, kt_function: KtFunction) -> Option<String> {
+/// The node whose text upstream returns.
+fn call_expression_reference_identifier(ast: &Ast, kt_function: KtFunction) -> Option<NodeId> {
     kt_function
         .body_expression(ast)
         .filter(|&it| ast.element_type(it) == CALL_EXPRESSION)
         .and_then(|it| ast.find_child_by_type(it, REFERENCE_EXPRESSION))
         .and_then(|it| ast.find_child_by_type(it, IDENTIFIER))
-        .map(|it| ast.text(it))
 }
 
-fn identifier_text(ast: &Ast, node: NodeId) -> String {
-    ast.find_child_by_type(node, IDENTIFIER).map(|it| ast.text(it)).unwrap_or_default()
+fn identifier_text(ast: &Ast, node: NodeId) -> &str {
+    ast.find_child_by_type(node, IDENTIFIER).map_or("", |it| ast.leaf_text(it))
 }
 
 fn has_valid_test_function_name(ast: &Ast, node: NodeId) -> bool {
-    VALID_TEST_FUNCTION_NAME_REGEXP.matches(&identifier_text(ast, node))
+    VALID_TEST_FUNCTION_NAME_REGEXP.matches(identifier_text(ast, node))
 }
 
 fn has_valid_function_name(ast: &Ast, node: NodeId) -> bool {
-    VALID_FUNCTION_NAME_REGEXP.matches(&identifier_text(ast, node))
+    VALID_FUNCTION_NAME_REGEXP.matches(identifier_text(ast, node))
 }
 
 fn is_anonymous_function(ast: &Ast, node: NodeId) -> bool {
@@ -169,8 +182,8 @@ fn annotation_entry_name(ast: &Ast, node: NodeId) -> Option<String> {
 }
 
 fn is_token_keyword_between_backticks(ast: &Ast, node: NodeId) -> bool {
-    let text = if ast.element_type(node) == IDENTIFIER { ast.text(node) } else { String::new() };
-    is_keyword(remove_surrounding(&text, "`", "`"))
+    let text = if ast.element_type(node) == IDENTIFIER { ast.leaf_text(node) } else { "" };
+    is_keyword(remove_surrounding(text, "`", "`"))
 }
 
 static IGNORE_WHEN_ANNOTATED_WITH_PROPERTY_TYPE: PropertyType<Vec<String>> = PropertyType {
