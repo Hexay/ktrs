@@ -8,6 +8,9 @@ root="$(cd "$(dirname "$0")/../.." && pwd)"
 jvm="${1:-$root/target/ktlint-oracle/three}"
 [[ -f $jvm/format.tsv ]] || { echo "no oracle output in $jvm (scp testbox:work/ktlint-probe/out/three-rule-oracle.tgz)" >&2; exit 1; }
 rules=standard:no-semi,standard:comma-spacing,standard:multiline-if-else
+# Match the oracle's --no-lint when its lint table is only a header.
+lint=()
+[[ $(wc -l < "$jvm/lint.tsv") -le 1 ]] && lint=(--no-lint)
 cd "$root"
-cargo ktlint-probe corpus target/ktlint-probe/three --rules "$rules" --dumps --threads "${THREADS:-4}"
+cargo ktlint-probe corpus target/ktlint-probe/three --rules "$rules" --dumps "${lint[@]}" --threads "${THREADS:-4}"
 cargo ktlint-probe compare "$jvm" target/ktlint-probe/three corpus

@@ -7,13 +7,34 @@ Target ktlint **2.0.0-ALPHA-4** (`third_party/ktlint`). IntelliJ semantics from 
 
 | Criterion (research/11) | Result |
 |---|---|
-| (a) dumps + text byte-equal to the JVM oracle where the rules fire | **Pending**: the oracle's three-rule corpus run (tools/ktlint-oracle, testbox `~/work/ktlint-probe/out/three`) had not been produced when this was written. Runner ready: `tools/ktlint-tests/oracle-diff.sh`. |
+| (a) dumps + text byte-equal to the JVM oracle where the rules fire | **Go**: 113 files fire on either side (see below). All 272 violation rows are identical, including the stale-table line:col of pass 2. So are all 111 formatted texts, the pass flags and both parse failures. The mutated dumps are byte-identical in 111 of 113 files; the other 2 differ only in untouched KDoc, from the 2.4.10-vs-2.4.20 KDoc lexer. |
 | (b) seeding ≤ 25% of parse | **Go**: 11.3% (corpus, 6123 files, 30.8 MB, 10.5 M nodes: parse 0.975 s, `Ast::from_parse` 0.110 s; best of 3, thread cycles). |
 | (c) no allocation per navigation step | **Go**: 0 allocations for 11 navigation calls on each of 70,403 nodes; the 3-rule traversal allocates 10 times in total (children stack growth). `crates/ktrs-lint/tests/alloc.rs`. |
 
 Upstream unit tests of the three rules: 60 of 63 run, all pass (3 are `@Disabled` upstream). Formatting checks of
 the 4 `MultiLineIfElseRuleTest` cases that add `IndentationRule` are skipped (violations still checked).
-Go on (b) and (c); (a) decides whether option (a) is confirmed.
+
+**Overall: go for option (a)** (mutable arena, IntelliJ primitives ported 1:1, no reparse).
+
+## Oracle diff (a), details
+
+- **Oracle run:** tools/ktlint-oracle `KtlintProbe` (ktlint 2.0.0-ALPHA-4 fat jar) on corpus/ (6123 files, the
+  revisions in corpus/REVISIONS). Flags: `--rules standard:no-semi,standard:comma-spacing,standard:multiline-if-else
+  --dumps --no-lint`.
+  - Run on the testbox (`~/work/ktlint-probe/out/three-for-rust.tgz`) and once locally; the results are identical.
+- **Rust run:** `cargo ktlint-probe corpus target/ktlint-probe/three <same flags>`.
+- **Compare:** `cargo ktlint-probe compare target/ktlint-oracle/three-for-rust target/ktlint-probe/three corpus`
+  reports 211 files with a row on either side:
+  - 111 identical in every artifact.
+  - 98 differ **only** in `internal:ktlint-suppression` rows, all `manual`. That internal rule always runs and is
+    not ported (finding 6). These are `@Suppress("ktlint:…")` in ktlint's own sources, reported as "unknown or not
+    loaded" because only 3 rules are loaded. None of the 98 has a row from the three rules on either side.
+  - 2 differ in `mut.p1` only, in KDoc the rules never touch: `AbstractCoroutine.kt` and `Semaphore.kt`.
+    Around `` `true` ``, the jar's 2.4.10 lexer yields `KDOC_TEXT('`true`') KDOC_CODE_SPAN_TEXT(' if …')`, where
+    2.4.20 (our pin) yields `KDOC_TEXT('`') KDOC_CODE_SPAN_TEXT('true') …`. This is a parser-pin difference,
+    not an engine one (finding 3).
+- **Oracle smoke set** (testbox `~/work/ktlint-probe/smoke`): identical in every artifact. It includes research/11
+  §3's comma grafted into `REFERENCE_EXPRESSION`, a `;` removal and two block wraps.
 
 ## What was built
 
@@ -52,15 +73,20 @@ Per out-dir:
 The task brief's fallback format (`<file>.pass<N>.txt` / `.formatted.kt` / `.lint.txt`) was dropped because the
 oracle already existed.
 
-## Rust-side corpus run (6123 files, 4 threads, 57 s wall including lint)
+## What fires on the corpus (identical on both sides)
 
 - 112 files with violations: multiline-if-else 261 rows, no-semi 6, comma-spacing 5. 270 rows in pass 1, 2 in pass 2.
 - 111 files changed. 2 files had a second mutating pass (nested `if` in `else`).
 - 2 parse failures: Exposed `sourceFiles/*.kt` templates.
-- 3 files diverge from a fresh parse:
+- 3 files diverge from a fresh parse. These are real ktlint shapes, reproduced:
   - `ktfmt/.../ListFormatter.kt`: KDoc `(,)`. `KDOC_TEXT(',')` gets a following `PsiWhiteSpace`; a reparse makes one
     `KDOC_TEXT(', ')`.
   - Two ktor `.gradle.kts`: `else @Suppress(..) { … }` is wrapped in a `BLOCK`; a reparse reads a lambda.
+- Time (local, 2 threads, no lint), summed over files, probe included:
+  - Rust: 3.8 s of `format`, 9.9 s wall.
+  - JVM: 53.0 s of `format`, 33.4 s wall.
+  - One earlier Rust run took 87 s wall with the same format sum, under machine load. Compare runs by the sums,
+    not by wall time.
 
 ## Findings that correct or sharpen research/11
 
@@ -112,5 +138,5 @@ oracle already existed.
 cargo test -p ktrs-ast -p ktrs-lint --release
 cargo run -p ktrs-ast --release --example seed_bench -- corpus 3
 cargo ktlint-probe corpus target/ktlint-probe/corpus --dumps --threads 4
-tools/ktlint-tests/oracle-diff.sh [jvm-out]     # (a), once the oracle's three-rule run exists
+tools/ktlint-tests/oracle-diff.sh target/ktlint-oracle/three-for-rust   # (a); unpack the testbox tarball there first
 ```

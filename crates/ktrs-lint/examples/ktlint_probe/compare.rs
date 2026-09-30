@@ -8,6 +8,9 @@ use std::path::Path;
 
 type Table = BTreeMap<String, Vec<String>>;
 
+/// The engine's internal rule (always loaded, not ported): rows from it alone get their own label.
+const SUPPRESSION_RULE: &str = "internal:ktlint-suppression";
+
 /// Rows of a `file\t...` table grouped by file, the file column stripped; `keep` picks the columns kept.
 fn table(path: &Path, header: bool, keep: impl Fn(&[&str]) -> String) -> Table {
     let mut rows = Table::new();
@@ -53,7 +56,9 @@ pub fn compare(jvm: &Path, rust: &Path, src: &Path) -> i32 {
             ("failed", &jvm_failed, &rust_failed),
         ] {
             if a.get(file) != b.get(file) {
-                what.push(name.to_owned());
+                let ported = |t: &Table| t.get(file).map(|rows| rows.iter().filter(|r| !r.contains(SUPPRESSION_RULE)).cloned().collect::<Vec<_>>());
+                let only_unported = name == "format" && ported(a).unwrap_or_default() == ported(b).unwrap_or_default();
+                what.push(if only_unported { format!("{name}:{SUPPRESSION_RULE}-only") } else { name.to_owned() });
             }
         }
         if read(&jvm.join("fmt").join(file)) != read(&rust.join("fmt").join(file)) {

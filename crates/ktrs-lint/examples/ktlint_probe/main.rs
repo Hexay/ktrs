@@ -157,12 +157,15 @@ fn write_tables(opts: &Options, results: &[FileResult], wall: f64) {
     }
     let ok: Vec<&FileResult> = results.iter().filter(|r| r.failure.is_none()).collect();
     let summary = format!(
-        "ktrs_lint probe (ktlint 2.0.0-ALPHA-4 port), rules={}\nfiles {}, failed {}\nfiles changed {}, diverged (any pass) {}\nwall {wall:.1} s\n",
+        "ktrs_lint probe (ktlint 2.0.0-ALPHA-4 port), rules={}\nfiles {}, failed {}\nfiles changed {}, diverged (any pass) {}\n\
+         wall {wall:.1} s; per-file time sums: format {:.1} s (probe {:.1} s of it)\n",
         opts.rules.join(","),
         results.len(),
         results.len() - ok.len(),
         ok.iter().filter(|r| r.passes.iter().any(|p| p.changed)).count(),
         ok.iter().filter(|r| r.passes.iter().any(|p| p.diverged)).count(),
+        ok.iter().map(|r| r.format_seconds).sum::<f64>(),
+        ok.iter().map(|r| r.probe_seconds).sum::<f64>(),
     );
     write(&out.join("summary.txt"), &summary);
     print!("{summary}");
