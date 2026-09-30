@@ -1,0 +1,3 @@
+5:22	standard:double-colon-spacing	auto	Unexpected spacing after "::"
+6:19	standard:double-colon-spacing	auto	Unexpected spacing before "::"
+7:19	standard:double-colon-spacing	auto	Unexpected spacing around "::"

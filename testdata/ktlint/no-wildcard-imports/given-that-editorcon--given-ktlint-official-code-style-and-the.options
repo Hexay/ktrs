@@ -1,0 +1,6 @@
+rules=standard:no-wildcard-imports
+ec.ktlint_code_style=ktlint_official
+ec.ij_kotlin_packages_to_use_import_on_demand=unset
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoWildcardImportsRuleTest.Given that editorconfig property ij_kotlin_packages_to_use_import_on_demand is set.Given ktlint_official code style and the property is set with value 'unset' then packages which are accepted by IntelliJ Default are detected

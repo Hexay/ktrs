@@ -1,0 +1,4 @@
+rules=standard:indent
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=IndentationRuleTest.Issue 796 - Given an if-condition with multiline call expression which is indented properly then do no return lint errors

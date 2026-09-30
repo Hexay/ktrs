@@ -1,0 +1,5 @@
+rules=standard:filename
+path=/project/nonPascalCaseName.kt
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=FilenameRuleTest.Given a file containing a single top level property declaration (non-private) and one private top level class declaration then the file should conform to PascalCase[1]

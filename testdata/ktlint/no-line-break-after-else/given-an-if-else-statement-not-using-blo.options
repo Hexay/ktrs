@@ -1,0 +1,4 @@
+rules=standard:no-line-break-after-else
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoLineBreakAfterElseRuleTest.Given an if-else statement not using blocks around the branch(es) then do not return a lint errors

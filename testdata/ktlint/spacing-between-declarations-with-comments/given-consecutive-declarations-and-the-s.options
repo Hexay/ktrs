@@ -1,0 +1,4 @@
+rules=standard:spacing-between-declarations-with-comments
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=SpacingBetweenDeclarationsWithCommentsRuleTest.Given consecutive declarations, and the second declaration contains an inner comment on a separate line then do nothing

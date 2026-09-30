@@ -1,0 +1,4 @@
+rules=standard:paren-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=SpacingAroundParensRuleTest.Given a function call with multiple arguments and an EOL comment on the last one then do not remove the newline before RPAR

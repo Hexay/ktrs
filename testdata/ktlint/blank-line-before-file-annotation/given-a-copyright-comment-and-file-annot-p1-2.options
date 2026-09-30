@@ -1,0 +1,5 @@
+rules=standard:blank-line-before-file-annotation,standard:no-consecutive-blank-lines
+ec.ktlint_code_style=android_studio
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=BlankLineBeforeFileAnnotationTest.Given a copyright comment and file annotation not separated by a blank line then insert a blank line in between[1]

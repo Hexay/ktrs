@@ -1,0 +1,1 @@
+2:1	standard:no-consecutive-comments	manual	an EOL comment may not be preceded by a KDoc. Reversed order is allowed though when separated by a newline.

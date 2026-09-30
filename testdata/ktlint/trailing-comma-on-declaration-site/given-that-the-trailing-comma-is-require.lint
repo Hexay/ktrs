@@ -1,0 +1,3 @@
+3:6	standard:trailing-comma-on-declaration-site	auto	Expected a newline between the trailing comma and  "->"
+7:6	standard:trailing-comma-on-declaration-site	auto	Expected a newline between the trailing comma and  "->"
+11:25	standard:trailing-comma-on-declaration-site	auto	Expected a newline between the trailing comma and  "->"

@@ -1,0 +1,1 @@
+1:1	standard:import-ordering	manual	Imports must be ordered in lexicographic order without any empty lines in-between -- no autocorrection due to comments in the import list

@@ -1,0 +1,3 @@
+2:17	standard:chain-method-continuation	auto	Expected newline before '.'
+2:45	standard:chain-method-continuation	auto	Expected newline before '.'
+2:56	standard:max-line-length	manual	Exceeded max line length (55)

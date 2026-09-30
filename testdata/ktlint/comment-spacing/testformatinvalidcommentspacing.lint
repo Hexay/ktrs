@@ -1,0 +1,8 @@
+1:1	standard:comment-spacing	auto	Missing space after //
+2:22	standard:comment-spacing	auto	Missing space before //
+3:23	standard:comment-spacing	auto	Missing space after //
+4:22	standard:comment-spacing	auto	Missing space before //
+4:22	standard:comment-spacing	auto	Missing space after //
+6:24	standard:comment-spacing	auto	Missing space before //
+6:24	standard:comment-spacing	auto	Missing space after //
+10:5	standard:comment-spacing	auto	Missing space after //

@@ -1,0 +1,4 @@
+rules=standard:chain-method-continuation,standard:max-line-length,standard:indent
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ChainMethodContinuationRuleTest.Given chain with comments.Given method chain which is incorrectly wrapped in next line with previous RBrace with single line comments

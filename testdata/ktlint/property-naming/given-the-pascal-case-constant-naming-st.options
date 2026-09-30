@@ -1,0 +1,5 @@
+rules=standard:property-naming
+ec.ktlint_property_naming_constant_naming=pascal_case
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=PropertyNamingRuleTest.Given the pascal_case constant naming style, and a const property name not in pascal_case notation then do emit

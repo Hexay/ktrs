@@ -1,0 +1,5 @@
+rules=standard:no-unused-imports
+ec.ktlint_standard_no-unused-imports=enabled
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoUnusedImportsRuleTest.Given a parent import.Given that a package statement is present and an import is used for which the parent is also imported then remove the direct import

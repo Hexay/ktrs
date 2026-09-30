@@ -1,0 +1,4 @@
+rules=standard:function-start-of-body-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=FunctionStartOfBodySpacingRuleTest.Given a function signature followed by an expression body.Given the spacing before the equality sign.Given that newline is found before the equals sign then reformat

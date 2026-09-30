@@ -1,0 +1,4 @@
+2:37	standard:class-signature	auto	Super type should start on a newline
+3:5	standard:indent	auto	Unexpected indentation (4) (should be 8)
+5:3	standard:indent	auto	Unexpected indentation (4) (should be 8)
+6:9	standard:indent	auto	Unexpected indentation (0) (should be 4)

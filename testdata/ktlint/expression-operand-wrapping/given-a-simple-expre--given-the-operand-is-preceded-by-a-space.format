@@ -1,0 +1,8 @@
+2:12	standard:expression-operand-wrapping	auto	Newline expected before operand in multiline expression
+2:12	standard:indent	auto	Unexpected indentation (4) (should be 8)
+3:9	standard:indent	auto	Unexpected indentation (8) (should be 12)
+5:7	standard:indent	auto	Unexpected indentation (4) (should be 8)
+6:27	standard:expression-operand-wrapping	auto	Newline expected before operand in multiline expression
+6:27	standard:indent	auto	Unexpected indentation (4) (should be 8)
+1:1	standard:indent	auto	Unexpected indentation (8) (should be 12)
+1:1	standard:indent	auto	Unexpected indentation (4) (should be 8)

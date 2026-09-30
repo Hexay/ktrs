@@ -1,0 +1,5 @@
+rules=standard:class-signature,standard:max-line-length
+ec.ktlint_code_style=android_studio
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ClassSignatureRuleTest.Issue 2689 - Given a multiline class containing an EOL comment.Issue 2689 - Given android_studio code style

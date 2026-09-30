@@ -1,0 +1,5 @@
+rules=standard:call-expression-wrapping,standard:max-line-length
+ec.max_line_length=33
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=CallExpressionWrappingRuleTest.Given a single line call expression with an argument value list which does not fits on the line, and a lambda argument that after wrapping also does not fit the line then wrap both the value argument list and the lambda argument

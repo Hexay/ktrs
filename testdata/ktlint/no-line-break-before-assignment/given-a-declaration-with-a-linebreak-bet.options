@@ -1,0 +1,4 @@
+rules=standard:no-line-break-before-assignment
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoLineBreakBeforeAssignmentRuleTest.Given a declaration with a linebreak between the equals sign and the value then do not return a lint error

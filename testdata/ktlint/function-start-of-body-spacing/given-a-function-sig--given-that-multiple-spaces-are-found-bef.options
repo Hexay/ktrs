@@ -1,0 +1,4 @@
+rules=standard:function-start-of-body-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=FunctionStartOfBodySpacingRuleTest.Given a function signature followed by a body block.Given that multiple spaces are found before the body block then reformat

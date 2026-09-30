@@ -1,0 +1,7 @@
+3:12	standard:binary-expression-wrapping	auto	Newline expected after '{'
+3:12	standard:wrapping	auto	Missing newline after "{"
+3:22	standard:argument-list-wrapping	auto	Argument should be on a separate line (unless all arguments can fit a single line)
+3:46	standard:max-line-length	manual	Exceeded max line length (45)
+3:49	standard:argument-list-wrapping	auto	Missing newline before ")"
+3:51	standard:binary-expression-wrapping	auto	Newline expected before '}'
+3:60	standard:binary-expression-wrapping	auto	Line is exceeding max line length. Break line after 'returns' in binary expression

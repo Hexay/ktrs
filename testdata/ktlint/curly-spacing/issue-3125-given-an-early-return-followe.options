@@ -1,0 +1,4 @@
+rules=standard:curly-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=SpacingAroundCurlyRuleTest.Issue 3125 - Given an early return followed by a lambda expression, then do not join lines

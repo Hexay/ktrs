@@ -1,0 +1,9 @@
+3:9	standard:multiline-if-else	auto	Missing { ... }
+4:13	standard:multiline-if-else	auto	Missing { ... }
+6:13	standard:multiline-if-else	auto	Missing { ... }
+8:9	standard:multiline-if-else	auto	Missing { ... }
+9:13	standard:multiline-if-else	auto	Missing { ... }
+11:13	standard:multiline-if-else	auto	Missing { ... }
+13:9	standard:multiline-if-else	auto	Missing { ... }
+14:13	standard:multiline-if-else	auto	Missing { ... }
+16:13	standard:multiline-if-else	auto	Missing { ... }

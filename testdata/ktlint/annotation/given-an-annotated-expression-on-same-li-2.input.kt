@@ -1,0 +1,1 @@
+fun foo() = @Bar1 @Bar2 bar()

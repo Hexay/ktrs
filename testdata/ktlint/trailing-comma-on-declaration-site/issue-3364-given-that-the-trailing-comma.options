@@ -1,0 +1,5 @@
+rules=standard:trailing-comma-on-declaration-site,standard:indent
+ec.ij_kotlin_allow_trailing_comma=true
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=TrailingCommaOnDeclarationSiteRuleTest.Issue 3364 - Given that the trailing comma is required on declaration site then add it to the positional destructuring declaration when missing

@@ -1,0 +1,4 @@
+rules=standard:expression-operand-wrapping,standard:indent
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ExpressionOperandWrappingRuleTest.Given a multiline expression containing EOL comments after the wrappable operand the wrap but leave the EOL after the operand on the same line

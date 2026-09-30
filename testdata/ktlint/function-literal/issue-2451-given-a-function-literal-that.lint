@@ -1,0 +1,8 @@
+2:11	standard:property-wrapping	auto	Missing newline before "requireNotNull(bar.filter { it == "bar" }) { "some message" }"
+2:55	standard:function-literal	auto	Newline expected after opening brace
+2:66	standard:max-line-length	manual	Exceeded max line length (65)
+2:72	standard:function-literal	auto	Newline expected before closing brace
+3:11	standard:property-wrapping	auto	Missing newline before "requireNotNull(bar?.filter { it == "bar" }) { "some message" }"
+3:56	standard:function-literal	auto	Newline expected after opening brace
+3:66	standard:max-line-length	manual	Exceeded max line length (65)
+3:73	standard:function-literal	auto	Newline expected before closing brace

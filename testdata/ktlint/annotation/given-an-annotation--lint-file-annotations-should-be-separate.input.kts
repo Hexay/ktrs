@@ -1,0 +1,3 @@
+@file:Suppress("UnstableApiUsage")
+pluginManagement {
+}

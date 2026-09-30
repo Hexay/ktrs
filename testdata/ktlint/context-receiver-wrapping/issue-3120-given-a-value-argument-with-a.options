@@ -1,0 +1,4 @@
+rules=standard:context-receiver-wrapping,standard:max-line-length
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ContextReceiverWrappingRuleTest.Issue 3120 - Given a value argument with a context receiver list then do not wrap context receivers to a newline

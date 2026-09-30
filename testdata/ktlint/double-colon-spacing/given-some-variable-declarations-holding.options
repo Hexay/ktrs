@@ -1,0 +1,4 @@
+rules=standard:double-colon-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=SpacingAroundDoubleColonRuleTest.Given some variable declarations holding a class literal reference

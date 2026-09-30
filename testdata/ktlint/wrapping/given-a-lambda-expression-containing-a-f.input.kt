@@ -1,0 +1,3 @@
+val foo = {
+    Foo { "foo" }
+}

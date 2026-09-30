@@ -1,0 +1,5 @@
+1:26	standard:chain-method-continuation	auto	Expected newline before '?.'
+3:3	standard:chain-method-continuation	auto	Expected newline before '?.'
+2:4	standard:chain-method-continuation	auto	Unexpected newline after '?.'
+3:4	standard:chain-method-continuation	auto	Unexpected newline after '?.'
+5:7	standard:chain-method-continuation	auto	Unexpected newline after '?.'

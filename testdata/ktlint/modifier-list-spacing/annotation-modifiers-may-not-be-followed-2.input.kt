@@ -1,0 +1,5 @@
+@Foo1
+
+@Foo2
+
+class Bar {}

@@ -1,0 +1,6 @@
+2:13	standard:expression-operand-wrapping	auto	Newline expected before operand in multiline expression
+3:17	standard:expression-operand-wrapping	auto	Newline expected before operand in multiline expression
+3:25	standard:expression-operand-wrapping	auto	Newline expected before operand in multiline expression
+5:12	standard:expression-operand-wrapping	auto	Newline expected before operand in multiline expression
+6:16	standard:expression-operand-wrapping	auto	Newline expected before operand in multiline expression
+6:23	standard:expression-operand-wrapping	auto	Newline expected before operand in multiline expression

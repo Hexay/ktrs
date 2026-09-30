@@ -1,0 +1,5 @@
+rules=standard:chain-method-continuation,standard:max-line-length,standard:max-line-length
+ec.max_line_length=45
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ChainMethodContinuationRuleTest.Issue 2450 - Given a chained method and a chain contains an EOL comment that causes max line length to be exceeded then only report violation via max-line-length rule

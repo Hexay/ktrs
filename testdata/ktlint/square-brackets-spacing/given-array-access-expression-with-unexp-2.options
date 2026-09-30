@@ -1,0 +1,4 @@
+rules=standard:square-brackets-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=SpacingAroundSquareBracketsRuleTest.Given array access expression with unexpected spacing before RBRACKET

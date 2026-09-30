@@ -1,0 +1,4 @@
+rules=standard:context-parameter-list-wrapping,standard:max-line-length
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ContextParameterListWrappingRuleTest.Issue 3028 - Given some functions with context receiver list on the same line as the fun keyword then only wrap context parameter to a newline

@@ -1,0 +1,5 @@
+1:24	standard:annotation	auto	Expected newline after last annotation
+1:45	standard:modifier-list-spacing	auto	Single newline expected after context receiver list
+1:1	standard:modifier-order	auto	Incorrect modifier order (should be "@Annotation... context(_: Foo) public open")
+1:40	standard:modifier-list-spacing	auto	Single newline expected after context receiver list
+1:47	standard:modifier-list-spacing	auto	Single whitespace expected after modifier

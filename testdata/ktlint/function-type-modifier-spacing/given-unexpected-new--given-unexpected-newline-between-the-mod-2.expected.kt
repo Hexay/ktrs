@@ -1,0 +1,3 @@
+suspend fun bar(
+    baz: suspend () -> Unit
+) = baz()

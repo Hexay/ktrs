@@ -1,0 +1,5 @@
+rules=standard:multiline-expression-wrapping,standard:indent
+ec.ktlint_code_style=ktlint_official
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=MultilineExpressionWrappingRuleTest.Given a function call using a named argument.Given value argument in a function with a multiline combination of a safe access expression and a call expression on the same line as the assignment

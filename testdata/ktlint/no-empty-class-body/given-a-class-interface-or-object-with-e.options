@@ -1,0 +1,4 @@
+rules=standard:no-empty-class-body
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoEmptyClassBodyRuleTest.Given a class, interface, or object with empty body then do return lint errors

@@ -1,0 +1,1 @@
+val foo = "a".let{}.apply{}.also{}

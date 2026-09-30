@@ -1,0 +1,4 @@
+rules=standard:kdoc-wrapping
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=KdocWrappingRuleTest.Given a single line KDoc comment that start starts and end on a separate line then do not reformat

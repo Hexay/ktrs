@@ -1,0 +1,4 @@
+rules=standard:unnecessary-parentheses-before-trailing-lambda
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=UnnecessaryParenthesesBeforeTrailingLambdaRuleTest.Issue 3016 - Given some nested call expressions, and outmost call expression does not have arguments, and ending with a lambda argument then do not remove empty parameter list

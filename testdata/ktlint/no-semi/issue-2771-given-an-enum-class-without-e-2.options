@@ -1,0 +1,4 @@
+rules=standard:no-semi
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoSemicolonsRuleTest.Issue 2771 - Given an enum class without enum entry, and some comment before and some code after the semi then do not report a lint error

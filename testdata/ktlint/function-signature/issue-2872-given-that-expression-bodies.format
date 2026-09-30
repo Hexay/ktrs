@@ -1,0 +1,4 @@
+5:5	standard:function-signature	auto	Newline expected before expression body
+2:35	standard:max-line-length	manual	Exceeded max line length (34)
+6:5	standard:indent	auto	Unexpected indentation (4) (should be 8)
+2:35	standard:max-line-length	manual	Exceeded max line length (34)

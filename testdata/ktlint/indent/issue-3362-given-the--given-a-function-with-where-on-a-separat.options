@@ -1,0 +1,5 @@
+rules=standard:indent
+ec.indent_style=tab
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=IndentationRuleTest.Issue 3362 - Given the WHERE keyword and tab indentation.Given a function with WHERE on a separate line

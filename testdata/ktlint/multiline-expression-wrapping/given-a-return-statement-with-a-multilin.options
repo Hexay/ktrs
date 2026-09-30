@@ -1,0 +1,5 @@
+rules=standard:multiline-expression-wrapping
+ec.ktlint_code_style=ktlint_official
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=MultilineExpressionWrappingRuleTest.Given a return statement with a multiline expression then do not reformat as it would result in a compilation error

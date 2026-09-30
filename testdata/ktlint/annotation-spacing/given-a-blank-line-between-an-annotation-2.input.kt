@@ -1,0 +1,3 @@
+@JvmField
+
+fun foo() {}

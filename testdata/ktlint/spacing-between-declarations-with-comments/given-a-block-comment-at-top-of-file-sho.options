@@ -1,0 +1,4 @@
+rules=standard:spacing-between-declarations-with-comments
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=SpacingBetweenDeclarationsWithCommentsRuleTest.Given a block comment at top of file should do nothing

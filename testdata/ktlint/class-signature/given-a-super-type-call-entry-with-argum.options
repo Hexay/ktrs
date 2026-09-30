@@ -1,0 +1,6 @@
+rules=standard:class-signature,standard:max-line-length,standard:value-argument-comment,standard:argument-list-wrapping,standard:wrapping
+ec.max_line_length=55
+ec.ktlint_class_signature_rule_force_multiline_when_parameter_count_greater_or_equal_than=4
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ClassSignatureRuleTest.Given a super type call entry with arguments which after wrapping to the next line does not fit on that line then keep start of body on same line as end of super type call entry

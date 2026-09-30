@@ -1,0 +1,4 @@
+rules=standard:modifier-list-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ModifierListSpacingRuleTest.Issue 3065 - Given a context parameter on same line as function then wrap to new line after context parameter

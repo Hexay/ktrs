@@ -1,0 +1,2 @@
+class Foo<in // some comment
+Bar>

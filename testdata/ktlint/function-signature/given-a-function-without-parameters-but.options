@@ -1,0 +1,4 @@
+rules=standard:function-signature,standard:max-line-length
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=FunctionSignatureRuleTest.Given a function without parameters but with at least one space between the parenthesis then reformat to a proper single line signature

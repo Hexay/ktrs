@@ -1,0 +1,6 @@
+rules=standard:max-line-length
+ec.max_line_length=37
+ec.ktlint_ignore_back_ticked_identifier=true
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=MaxLineLengthRuleTest.Given a string between backticks.Given some text wrapped between backticks which causes the line length to be exceeded then do not return a lint error for that line

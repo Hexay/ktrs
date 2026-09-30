@@ -1,0 +1,1 @@
+val foo = listOf(1, 2, 3).plus(4).plus(5).plus(6).plus(7).plus(8)

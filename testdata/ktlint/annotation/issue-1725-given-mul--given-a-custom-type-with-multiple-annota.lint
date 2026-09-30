@@ -1,0 +1,19 @@
+1:20	standard:annotation	auto	Expected newline
+1:28	standard:annotation	auto	Expected newline
+1:41	standard:annotation	auto	Expected newline
+1:41	standard:annotation	auto	Expected newline before annotation
+1:51	standard:annotation	auto	Expected newline after last annotation
+1:59	standard:annotation	auto	Expected newline
+1:59	standard:annotation	auto	Expected newline before annotation
+1:71	standard:annotation	auto	Expected newline before annotation
+1:76	standard:annotation	auto	Expected newline after last annotation
+1:83	standard:annotation	auto	Expected newline
+2:20	standard:annotation	auto	Expected newline
+2:28	standard:annotation	auto	Expected newline
+2:41	standard:annotation	auto	Expected newline
+2:41	standard:annotation	auto	Expected newline before annotation
+2:51	standard:annotation	auto	Expected newline after last annotation
+2:59	standard:annotation	auto	Expected newline
+2:59	standard:annotation	auto	Expected newline before annotation
+2:76	standard:annotation	auto	Expected newline after last annotation
+2:83	standard:annotation	auto	Expected newline

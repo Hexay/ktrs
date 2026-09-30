@@ -1,0 +1,4 @@
+rules=standard:function-signature,standard:max-line-length,standard:nullable-type-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=FunctionSignatureRuleTest.CleanUpByRelatedRules.Given a nullable type with a space before the quest then remove this space

@@ -1,0 +1,5 @@
+rules=standard:function-signature,standard:max-line-length
+ec.max_line_length=37
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=FunctionSignatureRuleTest.Issue 3018 - Given a function signature with a context parameter.Issue 2800 - Given context parameter on same line then take the context parameter into account when rewriting the signature

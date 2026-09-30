@@ -1,0 +1,5 @@
+rules=standard:wrapping,standard:max-line-length
+ec.max_line_length=78
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=WrappingRuleTest.Given a block starting and ending on the same line.A single line block on a line which does not exceed the max line length is not wrapped

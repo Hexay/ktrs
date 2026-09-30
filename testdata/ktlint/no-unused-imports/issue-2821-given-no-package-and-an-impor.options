@@ -1,0 +1,5 @@
+rules=standard:no-unused-imports
+ec.ktlint_standard_no-unused-imports=enabled
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoUnusedImportsRuleTest.Issue 2821 - Given no package and an import without fully qualified path then do not remove the imports without fully qualified path as it is identical to the package

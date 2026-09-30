@@ -1,0 +1,4 @@
+rules=standard:indent
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=IndentationRuleTest.Issue 2175 - Given a function using the WHERE keyword.Issue 2175 - Given a function with return type and WHERE on same line

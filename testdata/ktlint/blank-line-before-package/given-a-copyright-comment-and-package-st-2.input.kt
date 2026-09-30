@@ -1,0 +1,6 @@
+/*
+ * Copyright comment
+ */
+
+
+package foo

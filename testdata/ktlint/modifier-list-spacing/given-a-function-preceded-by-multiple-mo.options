@@ -1,0 +1,4 @@
+rules=standard:modifier-list-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ModifierListSpacingRuleTest.Given a function preceded by multiple modifiers separated by newlines then remove redundant spaces

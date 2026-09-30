@@ -1,0 +1,4 @@
+rules=standard:comma-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=SpacingAroundCommaRuleTest.Given some enumeration not having a space after each comma

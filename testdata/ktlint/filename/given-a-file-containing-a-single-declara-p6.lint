@@ -1,0 +1,1 @@
+1:1	standard:filename	manual	File 'UnexpectedFileName.kt' contains a single class, and possibly related top level declarations for that class. The file should be named after the class, 'Foo.kt'

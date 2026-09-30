@@ -1,0 +1,5 @@
+rules=standard:try-catch-finally-spacing
+ec.ktlint_code_style=ktlint_official
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=TryCatchFinallySpacingRuleTest.Given try - catch which is formatted correctly then do not report violation

@@ -1,0 +1,4 @@
+rules=standard:type-parameter-comment
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=TypeParameterCommentRuleTest.Given a comment as last node of type parameter list

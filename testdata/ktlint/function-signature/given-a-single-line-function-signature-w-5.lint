@@ -1,0 +1,8 @@
+2:10	standard:function-signature	auto	Newline expected after opening parenthesis
+2:18	standard:function-signature	auto	Parameter should start on a newline
+2:26	standard:function-signature	auto	Parameter should start on a newline
+2:32	standard:function-signature	auto	Newline expected before closing parenthesis
+2:41	standard:function-signature	auto	Expected a single space before body block
+2:41	standard:function-start-of-body-spacing	auto	Expected a single white space before start of function body
+7:41	standard:function-signature	auto	Expected a single space before body block
+7:41	standard:function-start-of-body-spacing	auto	Expected a single white space before start of function body

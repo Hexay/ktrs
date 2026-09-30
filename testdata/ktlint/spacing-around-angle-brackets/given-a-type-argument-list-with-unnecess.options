@@ -1,0 +1,4 @@
+rules=standard:spacing-around-angle-brackets,standard:indent
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=SpacingAroundAngleBracketsRuleTest.Given a type argument list with unnecessary spaces or newlines before or after the angle brackets

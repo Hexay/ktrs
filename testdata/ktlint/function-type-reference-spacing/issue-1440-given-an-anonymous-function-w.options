@@ -1,0 +1,4 @@
+rules=standard:function-type-reference-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=FunctionTypeReferenceSpacingRuleTest.Issue 1440 - Given an anonymous function without receiver type then do not reformat

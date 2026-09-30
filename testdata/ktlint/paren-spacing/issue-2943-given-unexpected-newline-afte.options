@@ -1,0 +1,4 @@
+rules=standard:paren-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=SpacingAroundParensRuleTest.Issue 2943 - Given unexpected newline after LPAR in condition

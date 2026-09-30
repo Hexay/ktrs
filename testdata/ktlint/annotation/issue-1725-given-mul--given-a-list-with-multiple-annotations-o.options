@@ -1,0 +1,4 @@
+rules=standard:annotation,standard:trailing-comma-on-declaration-site,standard:wrapping
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=AnnotationRuleTest.Issue 1725 - Given multiple annotations on same line as a type parameter.Given a list with multiple annotations on its type

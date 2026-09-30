@@ -1,0 +1,4 @@
+rules=standard:function-expression-body
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=FunctionExpressionBodyRuleTest.Given a function body without any statement

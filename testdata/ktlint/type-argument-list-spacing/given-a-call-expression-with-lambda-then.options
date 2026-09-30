@@ -1,0 +1,4 @@
+rules=standard:type-argument-list-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=TypeArgumentListSpacingRuleTest.Given a call expression with lambda then allow the space after the type argument list

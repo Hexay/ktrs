@@ -1,0 +1,3 @@
+val foobar =
+    foo!!
+        .bar()

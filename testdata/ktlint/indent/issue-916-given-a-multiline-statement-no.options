@@ -1,0 +1,4 @@
+rules=standard:indent
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=IndentationRuleTest.Issue 916 - Given a multiline statement, not wrapped inside a block, as value in when-statement starting on the same line as the arrow

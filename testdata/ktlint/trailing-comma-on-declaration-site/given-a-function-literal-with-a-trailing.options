@@ -1,0 +1,5 @@
+rules=standard:trailing-comma-on-declaration-site,standard:indent
+ec.ij_kotlin_allow_trailing_comma=true
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=TrailingCommaOnDeclarationSiteRuleTest.Given a function literal with a trailing comma in the parameter list and arrow on the next line then do not report a violation

@@ -1,0 +1,2 @@
+3:14	standard:wrapping	auto	Missing newline before """
+3:15	standard:indent	auto	Unexpected indent of multiline string closing quotes

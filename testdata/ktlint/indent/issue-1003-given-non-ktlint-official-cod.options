@@ -1,0 +1,5 @@
+rules=standard:indent
+ec.ktlint_code_style=intellij_idea
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=IndentationRuleTest.Issue 1003 - Given non-ktlint_official code style and multiple interfaces

@@ -1,0 +1,5 @@
+rules=standard:indent
+ec.ktlint_code_style=android_studio
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=IndentationRuleTest.Issue 1217 & 3062 - Given a function parameter with a multiline expression starting on a new line[2]

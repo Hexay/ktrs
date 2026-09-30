@@ -1,0 +1,8 @@
+3:16	standard:statement-wrapping	auto	Missing newline after '{'
+4:11	standard:statement-wrapping	auto	Missing newline before '}'
+4:5	standard:statement-wrapping	auto	Missing newline after ';'
+1:1	standard:statement-wrapping	auto	Missing newline after '{'
+1:1	standard:statement-wrapping	auto	Missing newline before '}'
+1:1	standard:statement-wrapping	auto	Missing newline after ';'
+4:4	standard:no-semi	auto	Unnecessary semicolon
+1:1	standard:no-semi	auto	Unnecessary semicolon

@@ -1,0 +1,4 @@
+rules=standard:multiline-if-else
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=MultiLineIfElseRuleTest.Issue 3088 - Given an if with an empty 'then' block then do not throw an exception

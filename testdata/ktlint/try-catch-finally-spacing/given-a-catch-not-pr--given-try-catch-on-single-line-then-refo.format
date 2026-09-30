@@ -1,0 +1,4 @@
+1:16	standard:try-catch-finally-spacing	auto	Expected a newline after '{'
+1:27	standard:try-catch-finally-spacing	auto	Expected a newline before '}'
+1:59	standard:try-catch-finally-spacing	auto	Expected a newline after '{'
+1:1	standard:try-catch-finally-spacing	auto	Expected a newline before '}'

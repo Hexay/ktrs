@@ -1,0 +1,5 @@
+rules=standard:function-signature,standard:max-line-length
+ec.max_line_length=35
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=FunctionSignatureRuleTest.Given a single line function signature and first parameter is annotated and function signature has a length greater than the max line length then reformat to multiline signature

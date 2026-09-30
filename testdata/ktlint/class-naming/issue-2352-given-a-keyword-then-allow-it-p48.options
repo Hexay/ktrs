@@ -1,0 +1,4 @@
+rules=standard:class-naming
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ClassNamingRuleTest.Issue 2352 - Given a keyword then allow it to be wrapped between backticks[48]

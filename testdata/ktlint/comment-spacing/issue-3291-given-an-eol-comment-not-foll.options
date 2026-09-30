@@ -1,0 +1,4 @@
+rules=standard:comment-spacing,standard:spacing-between-declarations-with-comments
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=CommentSpacingRuleTest.Issue 3291 - Given an EOL comment not followed by space then don't throw nullPointerException in later rule running

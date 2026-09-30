@@ -1,0 +1,4 @@
+rules=standard:property-naming
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=PropertyNamingRuleTest.Given the default constant naming style, and a const property name not in screaming case notation then do emit

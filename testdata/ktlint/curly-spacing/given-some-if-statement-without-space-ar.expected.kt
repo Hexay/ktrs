@@ -1,0 +1,1 @@
+val foo = if(true) { 0 } else { 1 }

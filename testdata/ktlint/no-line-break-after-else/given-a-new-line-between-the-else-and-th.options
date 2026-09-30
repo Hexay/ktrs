@@ -1,0 +1,4 @@
+rules=standard:no-line-break-after-else
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoLineBreakAfterElseRuleTest.Given a new line between the else and the opening brace of the block then do return a lint error

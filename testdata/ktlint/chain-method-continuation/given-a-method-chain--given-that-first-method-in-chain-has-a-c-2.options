@@ -1,0 +1,4 @@
+rules=standard:chain-method-continuation,standard:max-line-length
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ChainMethodContinuationRuleTest.Given a method chain which is incorrectly wrapped with preceding closing element of preceding chain.Given that first method in chain has a closing bracket on a separate line

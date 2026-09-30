@@ -1,0 +1,4 @@
+rules=standard:function-literal,standard:max-line-length
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=FunctionLiteralRuleTest.Issue 2465 - Given a function literal without parameters and with an empty block then do not remove the arrow

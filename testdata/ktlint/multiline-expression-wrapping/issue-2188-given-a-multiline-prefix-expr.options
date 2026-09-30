@@ -1,0 +1,4 @@
+rules=standard:multiline-expression-wrapping,standard:indent
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=MultilineExpressionWrappingRuleTest.Issue 2188 - Given a multiline prefix expression then reformat but do not wrap after prefix operator

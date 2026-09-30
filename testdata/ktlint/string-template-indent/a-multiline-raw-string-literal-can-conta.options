@@ -1,0 +1,4 @@
+rules=standard:string-template-indent
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=StringTemplateIndentRuleTest.A multiline raw string literal can contain text on the same line as the closing quotes

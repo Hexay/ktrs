@@ -1,0 +1,4 @@
+rules=standard:annotation
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=AnnotationRuleTest.Given multiple annotations on the same line without parameter but above the annotated construct

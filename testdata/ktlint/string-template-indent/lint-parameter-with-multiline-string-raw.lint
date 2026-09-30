@@ -1,0 +1,6 @@
+3:34	standard:string-template-indent	auto	Expected newline before multiline string template
+4:34	standard:string-template-indent	auto	Unexpected indent of raw string literal
+5:34	standard:string-template-indent	auto	Unexpected indent of raw string literal
+6:17	standard:string-template-indent	auto	Expected newline before multiline string template
+7:17	standard:string-template-indent	auto	Unexpected indent of raw string literal
+8:17	standard:string-template-indent	auto	Unexpected indent of raw string literal

@@ -1,0 +1,2 @@
+4:6	standard:trailing-comma-on-declaration-site	auto	Missing trailing comma and newline before "->"
+6:11	standard:trailing-comma-on-declaration-site	auto	Missing trailing comma and newline before "->"

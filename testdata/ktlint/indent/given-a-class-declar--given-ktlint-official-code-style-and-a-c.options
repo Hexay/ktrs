@@ -1,0 +1,6 @@
+rules=standard:indent
+ec.indent_style=tab
+ec.ktlint_code_style=ktlint_official
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=IndentationRuleTest.Given a class declaration having a supertype which uses generics.Given ktlint-official code style and a class declaration implementing a super type with generics (tab indentation)

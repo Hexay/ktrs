@@ -1,0 +1,4 @@
+rules=standard:modifier-list-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ModifierListSpacingRuleTest.Annotation modifiers may be followed by a newline or a space

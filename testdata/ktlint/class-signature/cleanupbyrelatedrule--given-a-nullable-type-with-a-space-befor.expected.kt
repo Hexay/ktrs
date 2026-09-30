@@ -1,0 +1,6 @@
+class Foo1<B : Bar?>(b: B)
+class Foo2<B : List<Bar?>>(b: B)
+class Foo3<B : List<Bar>?>(b: B)
+class Foo4(b: B?)
+class Foo5(b: List<B?>)
+class Foo6(b: List<B>?)

@@ -1,0 +1,4 @@
+rules=standard:type-argument-comment
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=TypeArgumentCommentRuleTest.Given a comment after a comma on the same line as an type projection ast node

@@ -1,0 +1,7 @@
+const val foo = "foo"
+const val FOO = "foo"
+const val FOO_BAR_2 = "foo-bar-2"
+const val ŸÈŠ_THÎS_IS_ALLOWED_123 = "Yes this is allowed"
+const val Foo = "foo"
+const val FooBar2 = "foo-bar-2"
+const val ŸèšThîsIsAllowed123 = "Yes this is allowed"

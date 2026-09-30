@@ -1,0 +1,4 @@
+rules=standard:no-multi-spaces
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoMultipleSpacesRuleTest.Given a line having one or more trailing spaces followed by an indented line should not remove the newline and indentation

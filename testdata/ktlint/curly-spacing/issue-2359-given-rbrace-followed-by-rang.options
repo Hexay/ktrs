@@ -1,0 +1,4 @@
+rules=standard:curly-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=SpacingAroundCurlyRuleTest.Issue 2359 - Given RBRACE followed by range until operator then do not emit

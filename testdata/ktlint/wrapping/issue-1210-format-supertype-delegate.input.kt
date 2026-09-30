@@ -1,0 +1,2 @@
+object ApplicationComponentFactory : ApplicationComponent.Factory
+by DaggerApplicationComponent.factory()

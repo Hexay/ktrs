@@ -1,0 +1,5 @@
+rules=standard:import-ordering
+ec.ij_kotlin_imports_layout=kotlin.io.Closeable.*,kotlin.**,*
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ImportOrderingRuleCustomTest.Given some import layout which matches a complete import and imports in correct order

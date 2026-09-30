@@ -1,0 +1,4 @@
+rules=standard:when-entry-bracing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=WhenEntryBracingTest.Given a when-statement for which no entry has a block body then do not reformat

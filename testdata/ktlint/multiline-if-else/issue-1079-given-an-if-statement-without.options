@@ -1,0 +1,4 @@
+rules=standard:multiline-if-else
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=MultiLineIfElseRuleTest.Issue 1079 - Given an if-statement without curly braces a function call argument

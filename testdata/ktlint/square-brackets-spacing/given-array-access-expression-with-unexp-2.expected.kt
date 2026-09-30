@@ -1,0 +1,1 @@
+val foo = bar[1]

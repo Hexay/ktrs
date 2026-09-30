@@ -1,0 +1,4 @@
+rules=standard:function-start-of-body-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=FunctionStartOfBodySpacingRuleTest.Given a function signature followed by an expression body.Given that the signature contains required spacing then do not reformat

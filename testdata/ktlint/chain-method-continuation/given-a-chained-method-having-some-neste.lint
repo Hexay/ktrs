@@ -1,0 +1,15 @@
+2:31	standard:chain-method-continuation	auto	Expected newline before '.'
+2:37	standard:chain-method-continuation	auto	Expected newline before '.'
+2:41	standard:chain-method-continuation	auto	Expected newline before '.'
+2:51	standard:chain-method-continuation	auto	Expected newline before '.'
+2:52	standard:max-line-length	manual	Exceeded max line length (51)
+3:31	standard:chain-method-continuation	auto	Expected newline before '.'
+3:37	standard:chain-method-continuation	auto	Expected newline before '.'
+3:45	standard:chain-method-continuation	auto	Expected newline before '.'
+3:52	standard:max-line-length	manual	Exceeded max line length (51)
+3:55	standard:chain-method-continuation	auto	Expected newline before '.'
+4:31	standard:chain-method-continuation	auto	Expected newline before '.'
+4:37	standard:chain-method-continuation	auto	Expected newline before '.'
+4:49	standard:chain-method-continuation	auto	Expected newline before '.'
+4:52	standard:max-line-length	manual	Exceeded max line length (51)
+4:59	standard:chain-method-continuation	auto	Expected newline before '.'

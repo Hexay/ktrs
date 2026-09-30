@@ -1,0 +1,2 @@
+2:12	standard:parameter-list-wrapping	auto	Expected new line before function type as it does not fit on a single line
+2:58	standard:parameter-list-wrapping	auto	Expected new line after function type as it does not fit on a single line

@@ -1,0 +1,4 @@
+rules=standard:statement-wrapping
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=StatementWrappingRuleTest.Issue 1078 - Given multiple expression separated with semi in a single line.Given enum class.Given a enum with ending semi with comment

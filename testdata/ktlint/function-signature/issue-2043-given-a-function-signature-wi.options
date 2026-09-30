@@ -1,0 +1,6 @@
+rules=standard:function-signature,standard:max-line-length
+ec.max_line_length=79
+ec.ktlint_function_signature_body_expression_wrapping=default
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=FunctionSignatureRuleTest.Issue 2043 - Given a function signature with an expression body that is an annotated expression then do not reformat to single line function signature

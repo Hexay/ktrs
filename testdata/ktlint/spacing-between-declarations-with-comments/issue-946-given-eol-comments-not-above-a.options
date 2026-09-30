@@ -1,0 +1,4 @@
+rules=standard:spacing-between-declarations-with-comments
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=SpacingBetweenDeclarationsWithCommentsRuleTest.Issue 946 - Given EOL comments not above a declaration should do nothing

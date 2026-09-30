@@ -1,0 +1,5 @@
+4:21	standard:argument-list-wrapping	auto	Argument should be on a separate line (unless all arguments can fit a single line)
+8:12	standard:argument-list-wrapping	auto	Missing newline before ")"
+5:14	standard:indent	auto	Unexpected indentation (12) (should be 16)
+7:1	standard:indent	auto	Unexpected indentation (12) (should be 16)
+8:11	standard:indent	auto	Unexpected indentation (8) (should be 12)

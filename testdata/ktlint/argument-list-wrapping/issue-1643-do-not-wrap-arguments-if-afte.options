@@ -1,0 +1,5 @@
+rules=standard:argument-list-wrapping,standard:max-line-length,standard:wrapping
+ec.max_line_length=78
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ArgumentListWrappingRuleTest.Issue 1643 - do not wrap arguments if after wrapping rule the max line is no longer exceeded

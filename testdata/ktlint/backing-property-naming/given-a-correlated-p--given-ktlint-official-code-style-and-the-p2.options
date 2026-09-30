@@ -1,0 +1,5 @@
+rules=standard:backing-property-naming
+ec.ktlint_code_style=ktlint_official
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=BackingPropertyNamingRuleTest.Given a backing property defined in a private companion object.Given a correlated property.Given ktlint_official code style, and the correlated property is non-public then emit[2]

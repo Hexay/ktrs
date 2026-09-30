@@ -1,0 +1,5 @@
+rules=standard:max-line-length
+ec.max_line_length=65
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=MaxLineLengthRuleTest.Given a line containing a string template followed by comma then do not report it

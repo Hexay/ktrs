@@ -1,0 +1,1 @@
+@file:JvmName("FooClass") package foo.bar

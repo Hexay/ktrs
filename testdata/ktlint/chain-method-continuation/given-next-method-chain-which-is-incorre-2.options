@@ -1,0 +1,4 @@
+rules=standard:chain-method-continuation,standard:max-line-length
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ChainMethodContinuationRuleTest.Given next method chain which is incorrectly wrapped with safe dot operator

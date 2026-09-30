@@ -1,0 +1,4 @@
+rules=standard:unary-op-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=SpacingAroundUnaryOperatorRuleTest.Given some calculation using multiple unary operators

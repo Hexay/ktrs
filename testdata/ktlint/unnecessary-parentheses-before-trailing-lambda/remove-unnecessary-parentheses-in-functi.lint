@@ -1,0 +1,1 @@
+2:24	standard:unnecessary-parentheses-before-trailing-lambda	auto	Empty parentheses in function call followed by lambda are unnecessary

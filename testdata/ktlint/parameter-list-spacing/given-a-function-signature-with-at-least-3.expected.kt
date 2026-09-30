@@ -1,0 +1,1 @@
+fun foo(a: Any) = "some-result"

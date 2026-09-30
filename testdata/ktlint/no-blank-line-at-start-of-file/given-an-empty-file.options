@@ -1,0 +1,4 @@
+rules=standard:no-blank-line-at-start-of-file
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoBlankLineAtStartOfFileRuleTest.Given an empty file

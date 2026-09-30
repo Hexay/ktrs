@@ -1,0 +1,5 @@
+rules=standard:binary-expression-wrapping,standard:max-line-length
+ec.max_line_length=62
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=BinaryExpressionWrappingRuleTest.Given an if-statement with a nested binary expression condition, and it exceeds the max line length then wrap the expression at the operator

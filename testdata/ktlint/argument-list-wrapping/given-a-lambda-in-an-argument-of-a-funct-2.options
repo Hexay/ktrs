@@ -1,0 +1,4 @@
+rules=standard:argument-list-wrapping,standard:max-line-length,standard:indent
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ArgumentListWrappingRuleTest.Given a lambda in an argument of a function call which also contains a line break outside of the lambda

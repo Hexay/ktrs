@@ -1,0 +1,4 @@
+rules=standard:lambda-return
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=LambdaReturnRuleTest.Given some nested lambda arguments then only remove return when it refers to the inner most lambda

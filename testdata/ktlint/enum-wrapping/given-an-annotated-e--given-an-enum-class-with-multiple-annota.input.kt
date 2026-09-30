@@ -1,0 +1,1 @@
+enum class Foo { A, @Bar1 B, @Bar1 @Bar2 C, @Bar3("bar3") @Bar1 D }

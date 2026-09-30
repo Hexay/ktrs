@@ -1,0 +1,2 @@
+3:1	standard:import-ordering	auto	Duplicate 'import android.view.View' found
+6:1	standard:import-ordering	auto	Duplicate 'import android.content.Context as Ctx1' found

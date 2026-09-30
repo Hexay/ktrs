@@ -1,0 +1,4 @@
+rules=standard:kdoc-wrapping
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=KdocWrappingRuleTest.A KDoc comment containing a newline should start on a new line but is not autocorrected

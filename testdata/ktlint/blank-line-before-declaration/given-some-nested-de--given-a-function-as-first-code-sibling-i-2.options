@@ -1,0 +1,4 @@
+rules=standard:blank-line-before-declaration,standard:no-consecutive-blank-lines
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=BlankLineBeforeDeclarationRuleTest.Given some nested declaration.Given a function as first code sibling inside a function literal without parameters then do not insert a blank line the declaration

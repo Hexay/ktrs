@@ -1,0 +1,12 @@
+2:49	standard:max-line-length	manual	Exceeded max line length (48)
+3:49	standard:max-line-length	manual	Exceeded max line length (48)
+4:49	standard:max-line-length	manual	Exceeded max line length (48)
+5:18	standard:value-parameter-comment	manual	A comment inside or on same line after a 'value_parameter' is not allowed. It may be placed on a separate line above.
+5:49	standard:max-line-length	manual	Exceeded max line length (48)
+6:19	standard:value-parameter-comment	manual	A comment inside or on same line after a 'value_parameter' is not allowed. It may be placed on a separate line above.
+6:49	standard:max-line-length	manual	Exceeded max line length (48)
+7:23	standard:value-parameter-comment	manual	A comment inside or on same line after a 'value_parameter' is not allowed. It may be placed on a separate line above.
+7:49	standard:max-line-length	manual	Exceeded max line length (48)
+8:49	standard:max-line-length	manual	Exceeded max line length (48)
+9:49	standard:max-line-length	manual	Exceeded max line length (48)
+10:49	standard:max-line-length	manual	Exceeded max line length (48)

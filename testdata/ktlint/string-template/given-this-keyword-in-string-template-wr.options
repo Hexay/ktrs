@@ -1,0 +1,4 @@
+rules=standard:string-template
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=StringTemplateRuleTest.Given 'this' keyword in string-template wrapped in curly braces

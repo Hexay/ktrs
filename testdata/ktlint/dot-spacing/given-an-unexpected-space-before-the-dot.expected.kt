@@ -1,0 +1,1 @@
+val foo = (2..10).map { it * 2 }.toSet()

@@ -1,0 +1,4 @@
+rules=standard:kdoc-wrapping
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=KdocWrappingRuleTest.Given a KDoc comment followed by a code element on the same line as the KDoc comment ended then split the elements with a new line

@@ -1,0 +1,6 @@
+rules=standard:function-signature,standard:max-line-length
+ec.max_line_length=46
+ec.ktlint_function_signature_rule_force_multiline_when_parameter_count_greater_or_equal_than=unset
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=FunctionSignatureRuleTest.Issue 1690 - Given a function preceded by an annotation array

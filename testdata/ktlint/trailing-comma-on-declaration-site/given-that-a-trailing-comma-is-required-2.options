@@ -1,0 +1,5 @@
+rules=standard:trailing-comma-on-declaration-site,standard:indent
+ec.ij_kotlin_allow_trailing_comma=true
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=TrailingCommaOnDeclarationSiteRuleTest.Given that a trailing comma is required on declaration site then still it should not be added to the setter

@@ -1,0 +1,8 @@
+2:29	standard:function-signature	auto	Newline expected before expression body
+2:41	standard:argument-list-wrapping	auto	Argument should be on a separate line (unless all arguments can fit a single line)
+2:82	standard:argument-list-wrapping	auto	Argument should be on a separate line (unless all arguments can fit a single line)
+1:1	standard:argument-list-wrapping	auto	Missing newline before ")"
+2:78	standard:max-line-length	manual	Exceeded max line length (36)
+1:1	standard:max-line-length	manual	Exceeded max line length (36)
+2:78	standard:max-line-length	manual	Exceeded max line length (36)
+1:1	standard:max-line-length	manual	Exceeded max line length (36)

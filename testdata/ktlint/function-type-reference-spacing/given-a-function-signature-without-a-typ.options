@@ -1,0 +1,4 @@
+rules=standard:function-type-reference-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=FunctionTypeReferenceSpacingRuleTest.Given a function signature without a type reference before the function name then do not change the signature

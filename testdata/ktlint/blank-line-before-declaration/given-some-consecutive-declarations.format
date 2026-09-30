@@ -1,0 +1,5 @@
+2:1	standard:blank-line-before-declaration	auto	Expected a blank line for this declaration
+5:6	standard:blank-line-before-declaration	auto	Expected a blank line for this declaration
+9:7	standard:blank-line-before-declaration	auto	Expected a blank line for this declaration
+10:8	standard:blank-line-before-declaration	auto	Expected a blank line for this declaration
+12:9	standard:blank-line-before-declaration	auto	Expected a blank line for this declaration

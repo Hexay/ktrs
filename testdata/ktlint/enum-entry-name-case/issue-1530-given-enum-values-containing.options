@@ -1,0 +1,4 @@
+rules=standard:enum-entry-name-case
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=EnumEntryNameCaseRuleTest.Issue 1530 - Given enum values containing diacritics are allowed

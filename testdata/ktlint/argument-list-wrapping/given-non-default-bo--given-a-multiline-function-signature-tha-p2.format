@@ -1,0 +1,10 @@
+3:5	standard:function-signature	auto	No whitespace expected between opening parenthesis and first parameter name
+3:11	standard:function-signature	auto	No whitespace expected between last parameter and closing parenthesis
+4:4	standard:function-signature	auto	Newline expected before expression body
+4:17	standard:indent	auto	Unexpected indentation (4) (should be 8)
+5:34	standard:max-line-length	manual	Exceeded max line length (35)
+6:3	standard:indent	auto	Unexpected indentation (4) (should be 8)
+1:1	standard:max-line-length	manual	Exceeded max line length (35)
+1:1	standard:indent	auto	Unexpected indentation (0) (should be 4)
+5:34	standard:max-line-length	manual	Exceeded max line length (35)
+1:1	standard:max-line-length	manual	Exceeded max line length (35)

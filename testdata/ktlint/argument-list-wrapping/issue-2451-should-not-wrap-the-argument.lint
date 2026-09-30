@@ -1,0 +1,12 @@
+2:14	standard:chain-method-continuation	auto	Expected newline before '.'
+2:54	standard:chain-method-continuation	auto	Expected newline before '.'
+2:61	standard:chain-method-continuation	auto	Expected newline before '.'
+2:61	standard:max-line-length	manual	Exceeded max line length (60)
+2:67	standard:call-expression-wrapping	auto	Expected new line after '('
+2:68	standard:call-expression-wrapping	auto	Expected new line before ')'
+4:55	standard:call-expression-wrapping	auto	Expected new line after '{'
+4:60	standard:max-line-length	manual	Exceeded max line length (60)
+4:72	standard:call-expression-wrapping	auto	Expected new line before '}'
+5:56	standard:call-expression-wrapping	auto	Expected new line after '{'
+5:61	standard:max-line-length	manual	Exceeded max line length (60)
+5:73	standard:call-expression-wrapping	auto	Expected new line before '}'

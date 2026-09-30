@@ -1,0 +1,5 @@
+rules=standard:function-literal,standard:max-line-length,standard:multiline-expression-wrapping
+ec.max_line_length=42
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=FunctionLiteralRuleTest.Given a multiline code block starting on same line a arrow

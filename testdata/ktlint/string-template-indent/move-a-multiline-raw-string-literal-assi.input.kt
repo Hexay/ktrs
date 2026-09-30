@@ -1,0 +1,3 @@
+val someVar = """
+              someText
+              """.trimIndent()

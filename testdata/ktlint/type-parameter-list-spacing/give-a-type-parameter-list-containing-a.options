@@ -1,0 +1,4 @@
+rules=standard:type-parameter-list-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=TypeParameterListSpacingRuleTest.Give a type parameter list containing a space after the opening angle bracket then remove it

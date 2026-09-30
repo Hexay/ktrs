@@ -1,0 +1,5 @@
+rules=standard:no-unused-imports
+ec.ktlint_standard_no-unused-imports=enabled
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoUnusedImportsRuleTest.Issue 1243 - Given imports for the same class but with different aliases then the imports should not be removed when used

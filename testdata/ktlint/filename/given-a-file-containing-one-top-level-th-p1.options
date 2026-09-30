@@ -1,0 +1,5 @@
+rules=standard:filename
+path=/project/nonPascalCaseName.kt
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=FilenameRuleTest.Given a file containing one top level then the file should conform to PascalCase[1]

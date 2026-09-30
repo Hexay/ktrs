@@ -1,0 +1,4 @@
+rules=standard:spacing-between-declarations-with-annotations
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=SpacingBetweenDeclarationsWithAnnotationsRuleTest.Issue 2901 - Given a variable with property accessors not separated by a blank line, and the second accessor is annotated then add a blank in between

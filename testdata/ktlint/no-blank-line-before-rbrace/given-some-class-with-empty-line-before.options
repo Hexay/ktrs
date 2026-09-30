@@ -1,0 +1,4 @@
+rules=standard:no-blank-line-before-rbrace
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoBlankLineBeforeRbraceRuleTest.Given some class with empty line before closing brace then do return lint errors

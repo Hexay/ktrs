@@ -1,0 +1,5 @@
+rules=standard:function-literal,standard:max-line-length,standard:multiline-expression-wrapping,standard:chain-method-continuation,standard:indent,standard:argument-list-wrapping
+ec.max_line_length=31
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=FunctionLiteralRuleTest.Given a single line function literal without parameters that exceeds the maximum line length

@@ -1,0 +1,1 @@
+val fooBar: FooBar<String, String> = emptyList()

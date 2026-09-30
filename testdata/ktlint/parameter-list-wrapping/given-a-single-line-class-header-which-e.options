@@ -1,0 +1,5 @@
+rules=standard:parameter-list-wrapping,standard:max-line-length,standard:indent
+ec.max_line_length=59
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ParameterListWrappingRuleTest.Given a single line class header which exceeds the maximum line length

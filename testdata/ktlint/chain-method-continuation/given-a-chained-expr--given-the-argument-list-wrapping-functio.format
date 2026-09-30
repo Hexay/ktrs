@@ -1,0 +1,16 @@
+2:27	standard:argument-list-wrapping	auto	Argument should be on a separate line (unless all arguments can fit a single line)
+2:58	standard:argument-list-wrapping	auto	Missing newline before ")"
+3:33	standard:argument-list-wrapping	auto	Argument should be on a separate line (unless all arguments can fit a single line)
+3:65	standard:argument-list-wrapping	auto	Missing newline before ")"
+3:50	standard:function-literal	auto	Newline expected after opening brace
+3:72	standard:function-literal	auto	Newline expected before closing brace
+2:12	standard:multiline-expression-wrapping	auto	A multiline expression should start on a new line
+3:22	standard:multiline-expression-wrapping	auto	A multiline expression should start on a new line
+2:32	standard:indent	auto	Unexpected indentation (4) (should be 8)
+2:51	standard:function-literal	auto	Newline expected after opening brace
+3:4	standard:function-literal	auto	Newline expected before closing brace
+3:14	standard:indent	auto	Unexpected indentation (0) (should be 4)
+3:70	standard:indent	auto	Unexpected indentation (4) (should be 8)
+1:1	standard:indent	auto	Unexpected indentation (8) (should be 12)
+1:1	standard:indent	auto	Unexpected indentation (4) (should be 8)
+1:1	standard:indent	auto	Unexpected indentation (0) (should be 4)

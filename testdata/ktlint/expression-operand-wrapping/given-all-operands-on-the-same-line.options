@@ -1,0 +1,4 @@
+rules=standard:expression-operand-wrapping,standard:indent
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ExpressionOperandWrappingRuleTest.Given all operands on the same line

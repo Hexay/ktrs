@@ -1,0 +1,4 @@
+/*
+ * Copyright comment
+ */
+import foo

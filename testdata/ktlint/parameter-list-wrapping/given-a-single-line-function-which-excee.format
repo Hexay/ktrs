@@ -1,0 +1,4 @@
+2:10	standard:parameter-list-wrapping	auto	Parameter should start on a newline
+2:23	standard:parameter-list-wrapping	auto	Parameter should start on a newline
+2:35	standard:parameter-list-wrapping	auto	Parameter should start on a newline
+5:7	standard:parameter-list-wrapping	auto	Missing newline before ")"

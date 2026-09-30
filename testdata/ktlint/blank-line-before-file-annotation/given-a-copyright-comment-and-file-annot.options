@@ -1,0 +1,4 @@
+rules=standard:blank-line-before-file-annotation,standard:no-consecutive-blank-lines
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=BlankLineBeforeFileAnnotationTest.Given a copyright comment and file annotation separated by too many blank lines then remove redundant blank lines

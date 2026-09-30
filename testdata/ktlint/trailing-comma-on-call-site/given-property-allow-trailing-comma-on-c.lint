@@ -1,0 +1,5 @@
+1:27	standard:trailing-comma-on-call-site	auto	Unnecessary trailing comma before ")"
+3:21	standard:trailing-comma-on-call-site	auto	Unnecessary trailing comma before ")"
+5:22	standard:trailing-comma-on-call-site	auto	Unnecessary trailing comma before ">"
+8:18	standard:trailing-comma-on-call-site	auto	Unnecessary trailing comma before "]"
+11:12	standard:trailing-comma-on-call-site	auto	Unnecessary trailing comma before "]"
