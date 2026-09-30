@@ -2,6 +2,7 @@
 //! only runs the action under ktlint's `FormatPomModel` (no reformat, no whitespace merging); what
 //! survives of it is the NPE when the changed element is in no file.
 
+use ktrs_parser::token_set::TokenSet;
 use ktrs_syntax::SyntaxKind;
 
 use crate::arena::{Ast, NONE, NodeId};
@@ -28,6 +29,17 @@ impl Ast {
         }
     }
 
+    /// `getChildren(filter)` with a non-null filter, appended to `out`.
+    pub fn get_children_filtered(&self, n: NodeId, filter: TokenSet, out: &mut Vec<NodeId>) {
+        let mut child = self.first_child_node(n);
+        while let Some(c) = child {
+            if filter.contains(self.element_type(c)) {
+                out.push(c);
+            }
+            child = self.tree_next(c);
+        }
+    }
+
     pub(crate) fn set_first_child_node(&mut self, n: NodeId, first_child: u32) {
         self.node_mut(n).first = first_child;
         self.clear_relative_offsets(first_child);
@@ -51,6 +63,15 @@ impl Ast {
             Some(anchor_before) => self.insert_before(anchor_before, first),
             None => self.add(this, first),
         }
+    }
+
+    /// `addLeaf(leafType, leafText, anchorBefore)`: a new leaf, first parked in its own dummy holder,
+    /// then moved in by `addChild`.
+    pub fn add_leaf(&mut self, this: NodeId, leaf_type: SyntaxKind, leaf_text: &str, anchor_before: Option<NodeId>) {
+        let holder = self.new_dummy_holder();
+        let leaf = self.new_leaf(leaf_type, leaf_text);
+        self.raw_add_children(holder, leaf);
+        self.add_child(this, leaf, anchor_before);
     }
 
     pub fn remove_child(&mut self, _this: NodeId, child: NodeId) {

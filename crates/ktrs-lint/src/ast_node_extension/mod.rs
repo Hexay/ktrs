@@ -1,13 +1,25 @@
-//! Port of ktlint-rule-engine-core `ASTNodeExtension.kt`, the queries the ported rules use, in file order
-//! (the edits are in `ast_node_edit.rs`).
-//! Kotlin extension properties/functions become methods of [`AstNodeExtension`] on [`Ast`]; an
-//! overload taking a predicate gets a `_matching` suffix (`nextLeaf { }` -> `next_leaf_matching`), and a
-//! nullable receiver (`ASTNode?.isWhiteSpace`) takes `impl Into<Option<NodeId>>`.
+//! Port of ktlint-rule-engine-core `ASTNodeExtension.kt`. Kotlin extension properties/functions become
+//! methods on [`Ast`], split over three traits by upstream file position (`use crate::ast_node_extension::*`):
+//! - [`AstNodeExtension`] (this file): leaf and sibling walks, parents, whitespace/comment predicates,
+//!   `children`, up to `recursiveChildren`; plus `indent` and `hasModifier`, which predate the split;
+//! - [`AstNodeLines`] (`lines.rs`): `column` through `lineLength`;
+//! - [`AstNodeQueries`] (`queries.rs`): `afterCodeSibling` through `hasNoMaxLineLengthSuppression`.
+//!
+//! The edits (`upsertWhitespace*`, `replaceTextWith`, `replaceWith`, `remove`) are in `ast_node_edit.rs`.
+//! An overload taking a predicate gets a `_matching` suffix (`nextLeaf { }` -> `next_leaf_matching`), a
+//! nullable receiver (`ASTNode?.isWhiteSpace`) takes `impl Into<Option<NodeId>>`, and a `Sequence` result is
+//! a lazy iterator over the live tree.
 
-use ktrs_ast::{Ast, NodeId};
+mod lines;
+mod queries;
+
+pub use lines::AstNodeLines;
+pub use queries::AstNodeQueries;
+
+use ktrs_ast::{Ast, NodeId, Preorder};
 use ktrs_parser::kt_tokens::COMMENTS;
 use ktrs_parser::token_set::TokenSet;
-use ktrs_syntax::SyntaxKind::{self, MODIFIER_LIST, STRING_TEMPLATE, WHITE_SPACE};
+use ktrs_syntax::SyntaxKind::{self, FILE, MODIFIER_LIST, STRING_TEMPLATE, WHITE_SPACE};
 
 pub trait AstNodeExtension {
     fn next_leaf(&self, n: NodeId) -> Option<NodeId>;
@@ -34,9 +46,12 @@ pub trait AstNodeExtension {
     fn is_white_space(&self, n: impl Into<Option<NodeId>>) -> bool;
     fn is_white_space_with_newline(&self, n: impl Into<Option<NodeId>>) -> bool;
     fn is_white_space_without_newline(&self, n: impl Into<Option<NodeId>>) -> bool;
+    fn is_white_space_without_newline_or_null(&self, n: impl Into<Option<NodeId>>) -> bool;
+    fn is_root(&self, n: NodeId) -> bool;
     fn is_leaf(&self, n: NodeId) -> bool;
     fn is_part_of_comment(&self, n: NodeId) -> bool;
     fn children(&self, n: NodeId) -> impl Iterator<Item = NodeId> + '_;
+    fn recursive_children(&self, n: NodeId) -> std::iter::Skip<Preorder<'_>>;
     fn indent(&self, n: NodeId) -> String;
     fn has_modifier(&self, n: NodeId, element_type: SyntaxKind) -> bool;
 }
@@ -188,6 +203,14 @@ impl AstNodeExtension for Ast {
         n.into().is_some_and(|n| self.is_white_space(n) && !self.text_contains(n, '\n'))
     }
 
+    fn is_white_space_without_newline_or_null(&self, n: impl Into<Option<NodeId>>) -> bool {
+        n.into().is_none_or(|n| self.is_white_space_without_newline(n))
+    }
+
+    fn is_root(&self, n: NodeId) -> bool {
+        self.element_type(n) == FILE
+    }
+
     fn is_leaf(&self, n: NodeId) -> bool {
         self.first_child_node(n).is_none()
     }
@@ -198,6 +221,11 @@ impl AstNodeExtension for Ast {
 
     fn children(&self, n: NodeId) -> impl Iterator<Item = NodeId> + '_ {
         std::iter::successors(self.first_child_node(n), |&node| self.next_sibling(node))
+    }
+
+    /// Preorder, `n` excluded.
+    fn recursive_children(&self, n: NodeId) -> std::iter::Skip<Preorder<'_>> {
+        self.preorder(n).skip(1)
     }
 
     fn indent(&self, n: NodeId) -> String {

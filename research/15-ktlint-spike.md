@@ -120,15 +120,22 @@ oracle already existed.
    - Offsets use IntelliJ's lazy offset-in-parent cache, with the valid-prefix invariant.
    - Lengths are kept eagerly (propagated in `set_tree_parent`), so `text_length` is O(1).
    - `utf16_offset` is O(1) on all-ASCII trees. Otherwise it walks the leaves, only on emit.
+8. **Take IntelliJ/PSI semantics from the ALPHA-4 fat jar (Kotlin 2.4.10), not 2.4.20 sources** (testbox
+   `~/work/ktlint-probe/lib`; `tools/ktlint-oracle/{Edit,Extension}Oracle.java` run on it). `KtElement.delete()` is
+   `deleteSemicolon()` + `ASTDelegatePsiElement.delete` there (2.4.20 routes it to `KtPsiMutationService`), and
+   `BLOCK`/`LAMBDA_EXPRESSION` are lazy types, so `isKtAnnotated` throws on them.
+9. **`psi.delete()` rewrites whitespace.** `CodeEditUtil.needToForceReformat` is true unless the removed node starts
+   its parent, so the neighbours of a deleted node are merged into, or replaced by, new whitespace leaves
+   (`crates/ktrs-ast/tests/data/edit_cases.jvm.txt`). `KtModifierList` deletes itself once emptied.
 
 ## Missing (TODO pointers in code)
 
 - `SuppressionLocator`, `KtlintSuppressionRule`, `EditorConfigLoader`/rule-execution properties (defaults of
   `ktlint_official` hard-wired), `stopTraversalOfAST`, and `KtLintRuleException` line/col wrapping (rule panics
   propagate; the probe reports `crash`).
-- `CodeEditUtil.removeChild`/`makePlaceHolderBetweenTokens` (for the one `psi.delete()` site); `addLeaf`.
-- About half of the `ASTNodeExtension` functions; the rest of `IndentConfig`; the typed-PSI accessors of
-  research/11 §5.
+- Done (1B): `CodeEditUtil.removeChild` path + `psi.delete()` (`ktrs_ast::code_edit_util`, `psi::delete`), `addLeaf`.
+- Done (1B): all of `ASTNodeExtension.kt` (`ast_node_extension/`), `IndentConfig`, `ElementType`, `TokenSets`.
+- Done (1B): typed PSI of research/11 §5 (`ktrs_ast::psi`). Coverage of the rules' API: research/16.
 - `psi_to_string` picks the PSI class from the type. Only an explicit `LeafPsiElement(WHITE_SPACE, …)` would print
   differently, and no rule builds one.
 
