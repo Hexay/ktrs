@@ -7,6 +7,8 @@ use std::{
 mod codegen;
 mod corpus_diff;
 mod fmt_diff;
+mod lint_diff;
+mod lint_oracle;
 
 #[global_allocator]
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
@@ -17,7 +19,9 @@ fn main() -> ExitCode {
         Some("codegen") => codegen::run(&project_root()),
         Some("corpus-diff") => corpus_diff::run(&project_root(), &args[1..]),
         Some("fmt-diff") => fmt_diff::run(&project_root(), &args[1..]),
-        _ => Err("usage: cargo xtask codegen | corpus-diff [dir] | fmt-diff [style] [dir]".to_string()),
+        Some("lint-diff") => lint_diff::run(&project_root(), &args[1..]),
+        _ => Err("usage: cargo xtask codegen | corpus-diff [dir] | fmt-diff [style] [dir] | lint-diff [style] [--oracle DIR] [--counts]"
+            .to_string()),
     };
     match result {
         Ok(()) => ExitCode::SUCCESS,

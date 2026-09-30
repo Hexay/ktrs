@@ -223,6 +223,7 @@ name = "xtask"
 version = "0.2.0"
 dependencies = [
  "ktrs-fmt",
+ "ktrs-lint",
  "ktrs-parser",
  "ktrs-syntax",
  "mimalloc",

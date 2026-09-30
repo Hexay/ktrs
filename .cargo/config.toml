@@ -2,4 +2,5 @@
 xtask = "run --package xtask --quiet --"
 corpus-diff = "run --package xtask --release --quiet -- corpus-diff"
 fmt-diff = "run --package xtask --release --quiet -- fmt-diff"
+lint-diff = "run --package xtask --release --quiet -- lint-diff"
 ktlint-probe = "run --package ktrs-lint --release --quiet --example ktlint_probe --"

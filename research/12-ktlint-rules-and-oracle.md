@@ -95,6 +95,8 @@ The rule-specific properties are:
 
 ## 2. Port order
 
+Measured 2.0.0-ALPHA-4 violation counts per rule on the corpus: research/17-ktlint-corpus-counts.md.
+
 **Measure first (one testbox run per style, from the §4 API oracle):**
 1. **Firing sets.** For each file, record `F(file)` = the set of rule ids that emitted anything during *format* (all runs). Use format
    rather than lint because format also catches cascades, where a rule fires only after another rule's fix.

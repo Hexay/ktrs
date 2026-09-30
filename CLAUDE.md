@@ -28,8 +28,8 @@ Milestone 1: the parser's tree must be identical to the Kotlin compiler's PSI (`
   tests: `java/gradlew -p java :ktrs-gradle-plugin:test` (TestKit, slow: background it).
 - `crates/ktrs-ast` — mutable arena AST with IntelliJ `TreeElement` semantics, seeded from `Tree` (for ktlint);
   conventions in `src/lib.rs`. `crates/ktrs-lint` — ktlint 2.0.0-ALPHA-4 engine + ported rules; status
-  research/15-ktlint-spike.md. `crates/ktrs-editorconfig` — ec4j 1.2.0 port (ktlint's `.editorconfig` semantics;
-  ktfmt still uses ec4rs). Upstream rule tests: `tools/ktlint-tests/extract-rule-tests.py` -> `testdata/ktlint/`.
+  research/15-ktlint-spike.md; corpus counts per rule research/17-ktlint-corpus-counts.md.
+  `crates/ktrs-editorconfig` — ec4j 1.2.0 port (ktlint's `.editorconfig` semantics; ktfmt still uses ec4rs).
 - `tools/psi-accessors/psi-accessors.sh` — JVM oracle for ktrs-psi (`one|hashes|dump <dir> [--fixture] [--script]`);
   Rust mirror: `cargo run -p ktrs-psi --release --example psi_accessors -- one|hashes|compare|dump ...`.
 - `xtask` — `cargo xtask codegen` regenerates `ktrs-syntax/src/generated/kinds.rs` from `kinds.tsv`.
@@ -56,8 +56,14 @@ Milestone 1: the parser's tree must be identical to the Kotlin compiler's PSI (`
 - `cargo fmt-diff [meta|google|kotlinlang]` (repo root) — byte diff vs real ktfmt on the corpus; oracle built
   in the background by `tools/ktfmt-oracle/ktfmt-oracle.sh <style> corpus target/ktfmt-oracle/<style>`.
 
-- `cargo test -p ktrs-ast -p ktrs-lint --release` — primitives, seeded dump == `psi_dump`, ktlint's rule tests,
-  allocation counts. Corpus vs the JVM ktlint oracle: `tools/ktlint-tests/oracle-diff.sh` (`cargo ktlint-probe`).
+- `cargo test -p ktrs-ast -p ktrs-lint --release` — primitives, seeded dump == `psi_dump`, allocation counts, and
+  `--test golden`: ktlint's rule tests in `testdata/ktlint/<rule-id>/` (lint rows, format rows, text from the real
+  engine), ratchet `tests/golden-passing.txt`; unported rules are skipped and counted. Regenerate (JVM, testbox,
+  background): `tools/ktlint-tests/extract-goldens.sh`.
+- `cargo lint-diff [ktlint_official|intellij_idea|android_studio]` (repo root) — ktrs-lint vs ktlint on the corpus: lint
+  rows of the ported rules; format too with a `--rules <ported>` oracle (`--oracle DIR`); `--counts` = per-rule
+  totals. Oracle (JVM, testbox, background): `KTLINT_CODE_STYLE=<style> tools/ktlint-oracle/ktlint-probe.sh corpus
+  target/ktlint-oracle/<style>`. Pass-by-pass tree diff: `tools/ktlint-tests/oracle-diff.sh` (`cargo ktlint-probe`).
 - `cargo test -p ktrs-cli` — ktfmt's CLI tests, ported. `tools/ktfmt-oracle/cli-diff.sh` (JVM, ~2 min) — the
   `ktfmt` binary vs the ktfmt jar on stdout/stderr/exit code/files (`ONLY=<regex>`, `KEEP=1`).
 
