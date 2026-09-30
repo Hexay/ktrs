@@ -2,7 +2,6 @@
 //! `Doc.Break` ([`DocBreak`]) and `Doc.Tok` ([`DocTok`]).
 
 use std::borrow::Cow;
-use std::rc::Rc;
 
 use super::comments_helper::{CommentsHelper, reformat_parameter_comment};
 use super::doc::{FillMode, MAX_LINE_WIDTH, State};
@@ -29,16 +28,17 @@ impl RealOrImaginary {
 
 /// A leaf `Doc` for a token.
 #[derive(Debug)]
-pub struct DocToken {
-    token: Rc<dyn Token>,
+pub struct DocToken<'a> {
+    token: &'a Token<'a>,
     real_or_imaginary: RealOrImaginary,
     plus_indent_comments_before: Indent,
     break_and_indent_trailing_comment: Option<Indent>,
 }
 
-impl DocToken {
-    fn tok(&self) -> &dyn Tok {
-        &**self.token.get_tok()
+impl<'a> DocToken<'a> {
+    #[inline]
+    fn tok(&self) -> &'a Tok<'a> {
+        self.token.get_tok()
     }
 
     /// How much extra to indent comments before the token.
@@ -52,11 +52,11 @@ impl DocToken {
     }
 
     pub fn make(
-        token: Rc<dyn Token>,
+        token: &'a Token<'a>,
         real_or_imaginary: RealOrImaginary,
         plus_indent_comments_before: Indent,
         break_and_indent_trailing_comment: Option<Indent>,
-    ) -> Op {
+    ) -> Op<'a> {
         Op::Token(DocToken {
             token,
             real_or_imaginary,
@@ -65,8 +65,8 @@ impl DocToken {
         })
     }
 
-    pub fn get_token(&self) -> &Rc<dyn Token> {
-        &self.token
+    pub fn get_token(&self) -> &'a Token<'a> {
+        self.token
     }
 
     pub fn real_or_imaginary(&self) -> RealOrImaginary {
@@ -201,22 +201,22 @@ impl DocBreak {
 
 /// A leaf node in a `Doc` for a non-token.
 #[derive(Debug)]
-pub struct DocTok {
-    tok: Rc<dyn Tok>,
+pub struct DocTok<'a> {
+    tok: &'a Tok<'a>,
     text: Option<String>,
 }
 
-impl DocTok {
-    pub fn make(tok: Rc<dyn Tok>) -> DocTok {
+impl<'a> DocTok<'a> {
+    pub fn make(tok: &'a Tok<'a>) -> DocTok<'a> {
         DocTok { tok, text: None }
     }
 
-    pub fn tok(&self) -> &Rc<dyn Tok> {
-        &self.tok
+    pub fn tok(&self) -> &'a Tok<'a> {
+        self.tok
     }
 
     pub(crate) fn compute_width(&self) -> i32 {
-        let tok = &*self.tok;
+        let tok = self.tok;
         let original = tok.get_original_text();
         let idx = newlines::first_break(original);
         // only count the first line of multi-line block comments
@@ -238,7 +238,7 @@ impl DocTok {
     }
 
     pub(crate) fn compute_flat(&self, out: &mut String) {
-        let tok = &*self.tok;
+        let tok = self.tok;
         let original = tok.get_original_text();
         if tok.is_slash_slash_comment() && !original.starts_with("// ") {
             out.push_str("// ");
@@ -261,7 +261,7 @@ impl DocTok {
         max_width: i32,
         state: State,
     ) -> State {
-        let text = comments_helper.rewrite(&*self.tok, max_width, state.column);
+        let text = comments_helper.rewrite(self.tok, max_width, state.column);
         let last_line_start = newlines::line_offset_iterator(&text).last().unwrap_or(0);
         let first_line_length = utf16_len(&text[last_line_start..]);
         self.text = Some(text);

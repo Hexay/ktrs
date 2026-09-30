@@ -102,10 +102,10 @@ fn pretty_print(file: &KtFile, options: &FormattingOptions, line_separator: &str
     )))
 }
 
-fn create_ast_visitor<'b, 'a>(
+fn create_ast_visitor<'b, 'a, 'o>(
     options: &FormattingOptions,
-    builder: &'b mut OpsBuilder<'a>,
-) -> KotlinInputAstVisitor<'b, 'a> {
+    builder: &'b mut OpsBuilder<'a, 'o>,
+) -> KotlinInputAstVisitor<'b, 'a, 'o> {
     KotlinInputAstVisitor::new(*options, builder)
 }
 
@@ -169,7 +169,7 @@ fn sorted_and_distinct_imports(file: &KtFile) -> Result<String, FormatError> {
 /// ktfmt's `KDocCommentsHelper` behind gjf's `CommentsHelper` interface.
 struct KDocCommentsHelperAdapter(KDocCommentsHelper);
 
-struct CommentTokAdapter<'t>(&'t dyn Tok);
+struct CommentTokAdapter<'t>(&'t Tok<'t>);
 
 impl CommentTok for CommentTokAdapter<'_> {
     fn is_comment(&self) -> bool {
@@ -190,7 +190,7 @@ impl CommentTok for CommentTokAdapter<'_> {
 }
 
 impl CommentsHelper for KDocCommentsHelperAdapter {
-    fn rewrite(&self, tok: &dyn Tok, max_width: i32, column0: i32) -> String {
+    fn rewrite(&self, tok: &Tok<'_>, max_width: i32, column0: i32) -> String {
         self.0.rewrite(&CommentTokAdapter(tok), max_width, column0)
     }
 }

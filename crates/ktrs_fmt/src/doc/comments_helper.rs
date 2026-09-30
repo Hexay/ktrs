@@ -6,11 +6,11 @@ use super::java_identifier_tables::{JAVA_IDENTIFIER_PART, JAVA_IDENTIFIER_START}
 /// Rewrites comments; ktfmt's implementation is `KDocCommentsHelper`.
 pub trait CommentsHelper {
     /// Returns the comment text to emit when starting at `column0` (UTF-16 units).
-    fn rewrite(&self, tok: &dyn Tok, max_width: i32, column0: i32) -> String;
+    fn rewrite(&self, tok: &Tok<'_>, max_width: i32, column0: i32) -> String;
 }
 
 /// `/* name = */` becomes `/* name= */`.
-pub fn reformat_parameter_comment(tok: &dyn Tok) -> Option<String> {
+pub fn reformat_parameter_comment(tok: &Tok<'_>) -> Option<String> {
     if !tok.is_slash_star_comment() {
         return None;
     }

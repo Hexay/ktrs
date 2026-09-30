@@ -10,8 +10,8 @@ use super::indent::Indent;
 use super::level::Level;
 use super::op::Op;
 
-pub struct DocBuilder {
-    levels: Vec<Level>,
+pub struct DocBuilder<'a> {
+    levels: Vec<Level<'a>>,
     /// Where each closed level goes: its parent and the index of its placeholder there.
     slots: Vec<Option<(usize, usize)>>,
     stack: Vec<usize>,
@@ -20,16 +20,16 @@ pub struct DocBuilder {
     child_counts: Vec<u32>,
 }
 
-impl Default for DocBuilder {
+impl Default for DocBuilder<'_> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl DocBuilder {
+impl<'a> DocBuilder<'a> {
     const BASE: usize = 0;
 
-    pub fn new() -> DocBuilder {
+    pub fn new() -> DocBuilder<'a> {
         DocBuilder {
             levels: vec![Level::make(Indent::ZERO)],
             slots: vec![None],
@@ -39,7 +39,7 @@ impl DocBuilder {
         }
     }
 
-    pub fn with_ops(mut self, ops: Vec<Op>) -> DocBuilder {
+    pub fn with_ops(mut self, ops: Vec<Op<'a>>) -> DocBuilder<'a> {
         self.child_counts = Self::child_counts(&ops);
         let opens = self.child_counts.len() - 1;
         self.levels.reserve(opens);
@@ -53,7 +53,7 @@ impl DocBuilder {
 
     /// How many docs each level (by creation order) will receive: a dry run of `open`/`close`/
     /// `add`/`break_doc`, so each level's Vec is allocated once at its final size.
-    fn child_counts(ops: &[Op]) -> Vec<u32> {
+    fn child_counts(ops: &[Op<'_>]) -> Vec<u32> {
         let mut counts = vec![0u32];
         let mut stack = vec![Self::BASE];
         let mut append_level = Self::BASE;
@@ -92,17 +92,17 @@ impl DocBuilder {
         self.levels[parent].add(Doc::new(DocKind::Space));
     }
 
-    pub(crate) fn add(&mut self, doc: Doc) {
+    pub(crate) fn add(&mut self, doc: Doc<'a>) {
         self.levels[self.append_level].add(doc);
     }
 
-    pub(crate) fn break_doc(&mut self, break_doc: Doc) {
+    pub(crate) fn break_doc(&mut self, break_doc: Doc<'a>) {
         self.append_level = *self.stack.last().unwrap();
         self.levels[self.append_level].add(break_doc);
     }
 
-    pub fn build(self) -> Doc {
-        let mut levels: Vec<Option<Level>> = self.levels.into_iter().map(Some).collect();
+    pub fn build(self) -> Doc<'a> {
+        let mut levels: Vec<Option<Level<'a>>> = self.levels.into_iter().map(Some).collect();
         // A level's children were opened after it, so they have higher indices.
         for i in (Self::BASE + 1..levels.len()).rev() {
             let Some((parent, index)) = self.slots[i] else { continue };

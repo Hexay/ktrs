@@ -7,20 +7,16 @@
 //! The walk is over tree indices: the tokenizer only needs kinds, offsets and each comment's
 //! enclosing nodes.
 
-use std::rc::Rc;
-
 use ktrs_psi::PsiElement;
 use ktrs_syntax::{ElementId, SyntaxKind, Tree};
 
-use super::kotlin_tok::KotlinTok;
+use super::KotlinTok;
 use super::parse_error::ParseError;
 use super::whitespace_tombstones::{has_trailing_whitespace, replace_trailing_whitespace_with_tombstone};
 
 pub struct Tokenizer<'a> {
     file_text: &'a str,
-    /// `file_text`, shared by the toks.
-    pub source: Rc<str>,
-    pub toks: Vec<KotlinTok>,
+    pub toks: Vec<KotlinTok<'a>>,
     index: i32,
 }
 
@@ -28,7 +24,6 @@ impl<'a> Tokenizer<'a> {
     pub fn new(file_text: &'a str) -> Tokenizer<'a> {
         Tokenizer {
             file_text,
-            source: file_text.into(),
             // Roughly one tok per 3-4 bytes of typical code.
             toks: Vec::with_capacity(file_text.len() / 3),
             index: 0,
@@ -58,7 +53,8 @@ impl<'a> Tokenizer<'a> {
         let is_leaf = tree.is_token(e);
         let range = tree.text_range(e);
         let (start, end): (usize, usize) = (range.start().into(), range.end().into());
-        let original_text = &self.file_text[start..end];
+        let file_text = self.file_text;
+        let original_text = &file_text[start..end];
         if is_psi_comment(kind) {
             // For a leaf or KDoc, `element.text` is the source text.
             let element_text = original_text;
@@ -80,35 +76,30 @@ impl<'a> Tokenizer<'a> {
             let body_has_no_statements =
                 parent_block.is_some_and(|b| tree.children(b).all(|c| tree.is_token(c)));
             let treat_as_token = is_block_comment && is_in_lambda_body && body_has_no_statements;
-            self.push(KotlinTok::from_source(self.index, &self.source, start..end, None, 0, treat_as_token));
+            self.push(KotlinTok::new(self.index, None, original_text, start as i32, 0, treat_as_token));
             return Ok(false);
         }
         if kind == SyntaxKind::STRING_TEMPLATE {
-            let tok = if has_trailing_whitespace(original_text) {
-                let text = replace_trailing_whitespace_with_tombstone(original_text);
-                KotlinTok::new(self.index, text, original_text.to_string(), start as i32, 0, true)
-            } else {
-                KotlinTok::from_source(self.index, &self.source, start..end, None, 0, true)
-            };
-            self.push(tok);
+            let tombstoned = has_trailing_whitespace(original_text)
+                .then(|| replace_trailing_whitespace_with_tombstone(original_text));
+            self.push(KotlinTok::new(self.index, tombstoned, original_text, start as i32, 0, true));
             return Ok(false);
         }
         if is_leaf {
             if kind == SyntaxKind::WHITE_SPACE {
                 for (offset, text) in split_whitespace_newlines(original_text) {
-                    let range = start + offset..start + offset + text.len();
-                    let tok = KotlinTok::from_source(-1, &self.source, range, None, 0, false);
-                    self.toks.push(tok);
+                    let position = (start + offset) as i32;
+                    self.toks.push(KotlinTok::new(-1, None, text, position, 0, false));
                 }
             } else {
-                self.push(KotlinTok::from_source(self.index, &self.source, start..end, None, 0, true));
+                self.push(KotlinTok::new(self.index, None, original_text, start as i32, 0, true));
             }
         }
         Ok(true)
     }
 
     /// Adds a numbered tok.
-    fn push(&mut self, tok: KotlinTok) {
+    fn push(&mut self, tok: KotlinTok<'a>) {
         self.toks.push(tok);
         self.index += 1;
     }

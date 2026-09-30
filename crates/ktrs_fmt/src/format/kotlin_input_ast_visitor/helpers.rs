@@ -10,7 +10,7 @@ use super::super::FormatError;
 use super::super::input::ParseError;
 use super::KotlinInputAstVisitor;
 
-impl KotlinInputAstVisitor<'_, '_> {
+impl KotlinInputAstVisitor<'_, '_, '_> {
     pub(super) fn block_indent(&self) -> Indent {
         self.block_indent.clone()
     }

@@ -2,11 +2,10 @@
 
 use ktrs_parser::FileKind;
 
-use crate::doc::Tok;
 use crate::format::input::whitespace_tombstones::SPACE_TOMBSTONE;
 use crate::format::input::{KotlinTok, ParseError, Tokenizer};
 
-fn tokenize(code: &str) -> Result<Vec<KotlinTok>, ParseError> {
+fn tokenize(code: &str) -> Result<Vec<KotlinTok<'_>>, ParseError> {
     let parse = ktrs_parser::parse_file(code, FileKind::Script);
     assert!(
         !parse.has_errors(),
@@ -18,11 +17,11 @@ fn tokenize(code: &str) -> Result<Vec<KotlinTok>, ParseError> {
     Ok(tokenizer.toks)
 }
 
-fn texts(toks: &[KotlinTok]) -> Vec<&str> {
+fn texts<'t>(toks: &'t [KotlinTok<'_>]) -> Vec<&'t str> {
     toks.iter().map(|t| t.get_original_text()).collect()
 }
 
-fn indices(toks: &[KotlinTok]) -> Vec<i32> {
+fn indices(toks: &[KotlinTok<'_>]) -> Vec<i32> {
     toks.iter().map(|t| t.get_index()).collect()
 }
 

@@ -1,7 +1,5 @@
 //! `OpsBuilder.build()`: splices each token's comments into the op stream.
 
-use std::rc::Rc;
-
 use super::blank_line_wanted::BlankLineWanted;
 use super::doc::FillMode;
 use super::doc_leaves::{DocBreak, DocTok};
@@ -11,9 +9,9 @@ use super::input::Tok;
 use super::op::Op;
 use super::ops_builder::OpsBuilder;
 
-impl OpsBuilder<'_> {
+impl<'a> OpsBuilder<'a, '_> {
     /// Build the list of `Op`s, or the first `FormattingError` Java would have thrown.
-    pub fn build(mut self) -> Result<Vec<Op>, FormattingError> {
+    pub fn build(mut self) -> Result<Vec<Op<'a>>, FormattingError> {
         self.mark_for_partial_format();
         if let Some(error) = self.error.take() {
             return Err(error);
@@ -121,10 +119,10 @@ impl OpsBuilder<'_> {
                     if last_was_comment && newlines > 0 {
                         tok_ops.push(j,Op::Break(DocBreak::make_forced()));
                     }
-                    tok_ops.push(j,Op::Tok(DocTok::make(tok_before.clone())));
+                    tok_ops.push(j,Op::Tok(DocTok::make(tok_before)));
                 }
                 for tok_after in token.get_toks_after() {
-                    tok_ops.push(k + 1,Op::Tok(DocTok::make(tok_after.clone())));
+                    tok_ops.push(k + 1,Op::Tok(DocTok::make(tok_after)));
                 }
             }
         }
@@ -162,8 +160,8 @@ impl OpsBuilder<'_> {
     }
 
     /// `makeComment(comment)`, its ops pushed to `tok_ops` at `i` instead of returned as a list.
-    fn make_comment(tok_ops: &mut TokOps, i: usize, comment: &Rc<dyn Tok>) {
-        tok_ops.push(i, Op::Tok(DocTok::make(comment.clone())));
+    fn make_comment(tok_ops: &mut TokOps<'a>, i: usize, comment: &'a Tok<'a>) {
+        tok_ops.push(i, Op::Tok(DocTok::make(comment)));
         if !comment.is_slash_star_comment() {
             tok_ops.push(i, Op::Break(DocBreak::make_forced()));
         }
@@ -172,15 +170,15 @@ impl OpsBuilder<'_> {
 
 /// Upstream's `tokOps` multimap (ops to insert before op `i`), kept sparse: most ops get none.
 #[derive(Default)]
-struct TokOps(Vec<(usize, Op)>);
+struct TokOps<'a>(Vec<(usize, Op<'a>)>);
 
-impl TokOps {
-    fn push(&mut self, i: usize, op: Op) {
+impl<'a> TokOps<'a> {
+    fn push(&mut self, i: usize, op: Op<'a>) {
         self.0.push((i, op));
     }
 
     /// Stable, so ops inserted at the same index keep their order.
-    fn into_sorted(mut self) -> std::vec::IntoIter<(usize, Op)> {
+    fn into_sorted(mut self) -> std::vec::IntoIter<(usize, Op<'a>)> {
         self.0.sort_by_key(|(i, _)| *i);
         self.0.into_iter()
     }
