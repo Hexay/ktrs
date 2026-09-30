@@ -53,6 +53,39 @@ ktfmt --kotlinlang-style --set-exit-if-changed src/   # drop-in: ktfmt's own fla
 The `ktfmt` binary accepts ktfmt's CLI exactly (flags, `@argfile`, `-` for stdin, exit codes,
 `--enable-editorconfig`), so anything that runs the ktfmt jar can run it instead.
 
+### Editors
+
+Editors format the buffer through stdin; `--stdin-name` passes its path so `.editorconfig` applies
+(add `--style google` or `--style kotlinlang` as needed). Formatting a file takes ~15 ms.
+
+- **Neovim** ([conform.nvim](https://github.com/stevearc/conform.nvim)):
+  ```lua
+  formatters_by_ft = { kotlin = { "ktrs" } },
+  formatters = { ktrs = { command = "ktrs", args = { "fmt", "--editorconfig", "--stdin-name", "$FILENAME", "-" } } },
+  ```
+- **Helix** (`languages.toml`):
+  ```toml
+  [[language]]
+  name = "kotlin"
+  formatter = { command = "ktrs", args = ["fmt", "-"] }
+  auto-format = true
+  ```
+- **Zed** (`settings.json`):
+  ```json
+  "languages": { "Kotlin": { "formatter": { "external": {
+    "command": "ktrs", "arguments": ["fmt", "--editorconfig", "--stdin-name", "{buffer_path}", "-"] } } } }
+  ```
+- **Emacs** ([apheleia](https://github.com/radian-software/apheleia)):
+  ```elisp
+  (push '(ktrs . ("ktrs" "fmt" "--editorconfig" "--stdin-name" filepath "-")) apheleia-formatters)
+  (setf (alist-get 'kotlin-mode apheleia-mode-alist) 'ktrs)
+  ```
+- **VS Code** ([Custom Local Formatters](https://marketplace.visualstudio.com/items?itemName=jkillian.custom-local-formatters)):
+  ```json
+  "customLocalFormatters.formatters": [
+    { "command": "ktrs fmt --editorconfig --stdin-name \"${file}\" -", "languages": ["kotlin"] } ]
+  ```
+
 ### Gradle (Spotless) and the JVM
 
 `io.github.hexay:ktrs` is a small jar with the native binaries for Linux, macOS and Windows (x86-64
