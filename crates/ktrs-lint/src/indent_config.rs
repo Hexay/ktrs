@@ -3,7 +3,8 @@
 use ktrs_ast::{Ast, NodeId};
 
 use crate::ast_node_extension::AstNodeExtension;
-use crate::rule::{EditorConfig, IndentStyle};
+use crate::editorconfig::{INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY};
+use crate::rule::IndentStyle;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct IndentConfig {
@@ -27,8 +28,7 @@ impl IndentConfig {
     }
 
     pub fn default_indent_config() -> IndentConfig {
-        let defaults = EditorConfig::default();
-        IndentConfig::new(defaults.indent_style, defaults.indent_size)
+        IndentConfig::new(INDENT_STYLE_PROPERTY.default_value, INDENT_SIZE_PROPERTY.default_value)
     }
 
     pub fn disabled(&self) -> bool {

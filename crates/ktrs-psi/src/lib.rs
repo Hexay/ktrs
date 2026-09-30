@@ -142,6 +142,7 @@ mod visitor;
 
 pub use cast::PsiType;
 pub use class_names::psi_class_name;
+pub use classes::{is_declaration, is_expression, is_function, is_modifier_list_owner};
 pub use element::{AstNode, PsiElement};
 pub use kt::*;
 pub use tokens::*;

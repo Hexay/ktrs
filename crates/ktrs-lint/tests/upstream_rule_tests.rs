@@ -51,7 +51,7 @@ fn parse_cases(data: &str) -> Vec<Case> {
 fn run(test_class: &str, rule_id: &str) {
     let path = Path::new(env!("CARGO_MANIFEST_DIR")).join(format!("../../testdata/ktlint/{test_class}.txt"));
     let data = fs::read_to_string(&path).unwrap().replace("\r\n", "\n");
-    let engine = KtLintRuleEngine { rule_providers: vec![standard_rule_provider(rule_id).unwrap()] };
+    let engine = KtLintRuleEngine::new(vec![standard_rule_provider(rule_id).unwrap()]);
     let mut failures = Vec::new();
     let mut ran = 0;
     for case in parse_cases(&data) {

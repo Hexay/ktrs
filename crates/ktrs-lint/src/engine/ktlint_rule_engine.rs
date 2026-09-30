@@ -1,68 +1,93 @@
-//! Port of ktlint-rule-engine's API types: `KtLintRuleEngine` (lint/format), `Code`, `LintError`,
-//! `KtLintParseException`.
+//! Port of ktlint-rule-engine `api/KtLintRuleEngine.kt`.
+
+use std::path::Path;
 
 use ktrs_ast::Ast;
 
+use crate::engine::code::{Code, KtLintException, LintError};
 use crate::engine::code_formatter::{AutocorrectHandler, format};
-use crate::rule::{AutocorrectDecision, RuleId, RuleV2Provider};
+use crate::engine::editor_config_cache::THREAD_SAFE_EDITOR_CONFIG_CACHE;
+use crate::engine::editor_config_defaults::{EditorConfigDefaults, EditorConfigOverride};
+use crate::engine::editor_config_loader::{EditorConfigLoader, EditorConfigLoaderEc4j};
+use crate::engine::rule_execution_context::create_rule_execution_context;
+use crate::rule::AutocorrectDecision;
+use crate::rule_provider::{RuleV2Provider, property_types};
 
 pub const MAX_FORMAT_RUNS_PER_FILE: usize = 3;
 pub const UTF8_BOM: char = '\u{FEFF}';
 
-/// `Code`: the content plus what the engine derives the PSI file name and script-ness from.
-#[derive(Clone, Debug)]
-pub struct Code {
-    pub content: String,
-    /// `filePath.pathString`; `None` for a snippet.
-    pub file_path: Option<String>,
-    pub script: bool,
-}
-
-impl Code {
-    pub fn from_snippet(content: &str, script: bool) -> Code {
-        Code { content: content.to_owned(), file_path: None, script }
-    }
-
-    /// `Code.fromFile(file)` with the file already read.
-    pub fn from_file(path: &str, content: String) -> Code {
-        let script = path.to_ascii_lowercase().ends_with(".kts");
-        Code { content, file_path: Some(path.to_owned()), script }
-    }
-
-    pub(crate) fn psi_file_name(&self) -> String {
-        match &self.file_path {
-            Some(path) => path.clone(),
-            None if self.script => "File.kts".to_owned(),
-            None => "File.kt".to_owned(),
-        }
-    }
-}
-
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub struct LintError {
-    pub line: usize,
-    pub col: usize,
-    pub rule_id: RuleId,
-    pub detail: String,
-    pub can_be_auto_corrected: bool,
-}
-
-/// `KtLintParseException`: the file has a `PsiErrorElement`; no rule ran.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct KtLintParseException {
-    pub line: usize,
-    pub col: usize,
-    pub message: String,
-}
-
 pub struct KtLintRuleEngine {
-    pub rule_providers: Vec<RuleV2Provider>,
+    /// The rules to run; each provider creates a fresh rule per traversal.
+    pub(crate) rule_providers: Vec<RuleV2Provider>,
+    /// Values for properties that no `.editorconfig` on the file's path sets (above ktlint's defaults).
+    editor_config_defaults: EditorConfigDefaults,
+    /// Values that win over every `.editorconfig`.
+    editor_config_override: EditorConfigOverride,
+    editor_config_loader: EditorConfigLoader,
 }
 
 impl KtLintRuleEngine {
+    pub fn new(rule_providers: Vec<RuleV2Provider>) -> KtLintRuleEngine {
+        KtLintRuleEngine::with_editor_config(
+            rule_providers,
+            EditorConfigDefaults::empty(),
+            EditorConfigOverride::empty(),
+        )
+    }
+
+    pub fn with_editor_config(
+        rule_providers: Vec<RuleV2Provider>,
+        editor_config_defaults: EditorConfigDefaults,
+        editor_config_override: EditorConfigOverride,
+    ) -> KtLintRuleEngine {
+        assert!(
+            !rule_providers.is_empty(),
+            "IllegalArgumentException: A non-empty set of 'ruleProviders' need to be provided"
+        );
+        let editor_config_loader = EditorConfigLoader::new(
+            EditorConfigLoaderEc4j::new(&property_types(&rule_providers)),
+            editor_config_defaults.clone(),
+            editor_config_override.clone(),
+        );
+        KtLintRuleEngine {
+            rule_providers,
+            editor_config_defaults,
+            editor_config_override,
+            editor_config_loader,
+        }
+    }
+
+    pub(crate) fn editor_config_loader(&self) -> &EditorConfigLoader {
+        &self.editor_config_loader
+    }
+
+    pub fn rule_providers(&self) -> &[RuleV2Provider] {
+        &self.rule_providers
+    }
+
+    pub fn editor_config_defaults(&self) -> &EditorConfigDefaults {
+        &self.editor_config_defaults
+    }
+
+    pub fn editor_config_override(&self) -> &EditorConfigOverride {
+        &self.editor_config_override
+    }
+
     /// `lint(code, callback)`: one pass, no autocorrect; errors sorted by (line, col), duplicates dropped.
-    pub fn lint(&self, code: &Code, callback: &mut dyn FnMut(&LintError)) -> Result<(), KtLintParseException> {
-        format(self, code, AutocorrectHandler::None, &mut |e, _| callback(e), 1, &mut |_| {}).map(drop)
+    pub fn lint(
+        &self,
+        code: &Code,
+        callback: &mut dyn FnMut(&LintError),
+    ) -> Result<(), KtLintException> {
+        format(
+            self,
+            code,
+            AutocorrectHandler::None,
+            &mut |e, _| callback(e),
+            1,
+            &mut |_| {},
+        )
+        .map(drop)
     }
 
     /// `format(code, callback)`: up to [`MAX_FORMAT_RUNS_PER_FILE`] passes; `callback` is asked for every
@@ -71,19 +96,68 @@ impl KtLintRuleEngine {
         &self,
         code: &Code,
         callback: &mut dyn FnMut(&LintError) -> AutocorrectDecision,
-    ) -> Result<String, KtLintParseException> {
-        self.format_observed(code, callback, &mut |_| {})
+    ) -> Result<String, KtLintException> {
+        self.format_with(code, true, callback)
     }
 
-    /// [`Self::format`], calling `after_pass` with the tree at the end of every rule traversal (what a
-    /// last-sorted probe rule sees in `afterLastNode`, lint-after-format included).
+    /// `format(code, rerunAfterAutocorrect, callback)`: without rerun, a single pass (for consumers that
+    /// let a user decide per error).
+    pub fn format_with(
+        &self,
+        code: &Code,
+        rerun_after_autocorrect: bool,
+        callback: &mut dyn FnMut(&LintError) -> AutocorrectDecision,
+    ) -> Result<String, KtLintException> {
+        let max_format_runs_per_file = if rerun_after_autocorrect {
+            MAX_FORMAT_RUNS_PER_FILE
+        } else {
+            1
+        };
+        let handler = AutocorrectHandler::LintErrorAutocorrectHandler(callback);
+        format(
+            self,
+            code,
+            handler,
+            &mut |_, _| {},
+            max_format_runs_per_file,
+            &mut |_| {},
+        )
+    }
+
+    /// [`Self::format`], calling `after_pass` with the tree at the end of every pass (what a last-sorted
+    /// probe rule sees in `afterLastNode`, lint-after-format included).
     pub fn format_observed(
         &self,
         code: &Code,
         callback: &mut dyn FnMut(&LintError) -> AutocorrectDecision,
         after_pass: &mut dyn FnMut(&Ast),
-    ) -> Result<String, KtLintParseException> {
+    ) -> Result<String, KtLintException> {
         let handler = AutocorrectHandler::LintErrorAutocorrectHandler(callback);
-        format(self, code, handler, &mut |_, _| {}, MAX_FORMAT_RUNS_PER_FILE, after_pass)
+        format(
+            self,
+            code,
+            handler,
+            &mut |_, _| {},
+            MAX_FORMAT_RUNS_PER_FILE,
+            after_pass,
+        )
+    }
+
+    /// `transformToAst(code)`: the parsed tree (after the parse-error check and `.editorconfig` load).
+    pub fn transform_to_ast(&self, code: &Code) -> Result<Ast, KtLintException> {
+        create_rule_execution_context(self, code).map(|context| context.ast)
+    }
+
+    /// `trimMemory()`: drops the cached `.editorconfig` files.
+    pub fn trim_memory(&self) {
+        THREAD_SAFE_EDITOR_CONFIG_CACHE.clear();
+    }
+
+    /// `reloadEditorConfigFile(path)`: re-reads a cached `.editorconfig` file.
+    pub fn reload_editor_config_file(
+        &self,
+        path: &Path,
+    ) -> Result<(), ktrs_editorconfig::ParseException> {
+        THREAD_SAFE_EDITOR_CONFIG_CACHE.reload_if_exists(path)
     }
 }

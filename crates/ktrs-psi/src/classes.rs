@@ -107,11 +107,13 @@ fn in_window(kind: SyntaxKind, mask: u128) -> bool {
     offset < 128 && mask >> offset & 1 != 0
 }
 
-pub(crate) fn is_declaration(kind: SyntaxKind) -> bool {
+/// `psi is KtDeclaration` for a composite of this type.
+pub fn is_declaration(kind: SyntaxKind) -> bool {
     in_window(kind, DECLARATION_MASK)
 }
 
-pub(crate) fn is_expression(kind: SyntaxKind) -> bool {
+/// `psi is KtExpression` for a composite of this type.
+pub fn is_expression(kind: SyntaxKind) -> bool {
     in_window(kind, EXPRESSION_MASK)
 }
 
@@ -142,7 +144,8 @@ pub(crate) fn is_callable_declaration(kind: SyntaxKind) -> bool {
     )
 }
 
-pub(crate) fn is_function(kind: SyntaxKind) -> bool {
+/// `psi is KtFunction` for a composite of this type.
+pub fn is_function(kind: SyntaxKind) -> bool {
     matches!(kind, FUN | FUNCTION_LITERAL | PRIMARY_CONSTRUCTOR | SECONDARY_CONSTRUCTOR)
 }
 
@@ -150,7 +153,8 @@ pub(crate) fn is_type_parameter_list_owner(kind: SyntaxKind) -> bool {
     is_callable_declaration(kind) || matches!(kind, CLASS | OBJECT_DECLARATION | ENUM_ENTRY | TYPEALIAS)
 }
 
-pub(crate) fn is_modifier_list_owner(kind: SyntaxKind) -> bool {
+/// `psi is KtModifierListOwner` for a composite of this type.
+pub fn is_modifier_list_owner(kind: SyntaxKind) -> bool {
     is_declaration(kind) || matches!(kind, TYPE_REFERENCE | PACKAGE_DIRECTIVE | TYPE_PROJECTION)
 }
 

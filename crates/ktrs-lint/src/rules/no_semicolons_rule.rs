@@ -8,13 +8,18 @@ use ktrs_syntax::SyntaxKind::{
 
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::AstNodeExtension;
-use crate::rule::{Emit, RuleId, RuleV2};
+use crate::rule::{About, Emit, RuleId, RuleV2};
+use crate::rules::STANDARD_RULE_ABOUT;
 
 pub struct NoSemicolonsRule;
 
 impl RuleV2 for NoSemicolonsRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:no-semi")
+    }
+
+    fn about(&self) -> About {
+        STANDARD_RULE_ABOUT
     }
 
     fn before_visit_child_nodes(&mut self, ast: &mut Ast, node: NodeId, emit: &mut Emit<'_>) {
