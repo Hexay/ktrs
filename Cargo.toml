@@ -3,25 +3,26 @@ resolver = "3"
 members = ["crates/*", "xtask"]
 
 [workspace.package]
-version = "0.0.1"
+version = "0.1.0"
 edition = "2024"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/Hexay/ktrs"
 rust-version = "1.90"
 
 [workspace.dependencies]
-ktrs_syntax = { path = "crates/ktrs_syntax" }
-ktrs_lexer = { path = "crates/ktrs_lexer" }
-ktrs_parser = { path = "crates/ktrs_parser" }
-ktrs_psi = { path = "crates/ktrs_psi" }
-ktrs_fmt = { path = "crates/ktrs_fmt" }
-ktrs_cli = { path = "crates/ktrs_cli" }
+# crates.io requires a version on each; keep in step with workspace.package.version.
+ktrs-syntax = { path = "crates/ktrs-syntax", version = "0.1.0" }
+ktrs-lexer = { path = "crates/ktrs-lexer", version = "0.1.0" }
+ktrs-parser = { path = "crates/ktrs-parser", version = "0.1.0" }
+ktrs-psi = { path = "crates/ktrs-psi", version = "0.1.0" }
+ktrs-fmt = { path = "crates/ktrs-fmt", version = "0.1.0" }
+ktrs-cli = { path = "crates/ktrs-cli", version = "0.1.0" }
 text-size = "1.1"
 expect-test = "1.5"
 mimalloc = { version = "0.1", default-features = false }
 
-# The root package only owns the binaries, so `cargo install --path .` (and pre-commit's rust
-# hooks, which run exactly that) work; the code is in crates/ktrs_cli.
+# The root package only owns the binaries (src/bin), so `cargo install --path .` (and pre-commit's
+# rust hooks, which run exactly that) work; the code is in crates/ktrs-cli.
 [package]
 name = "ktrs"
 description = "Fast Kotlin tooling: a ktfmt-identical formatter (`ktrs fmt`, drop-in `ktfmt`)"
@@ -33,19 +34,10 @@ edition.workspace = true
 license.workspace = true
 repository.workspace = true
 rust-version.workspace = true
-autobins = false
-include = ["/crates/ktrs_cli/src/bin", "/README.md", "/LICENSE-*", "/NOTICE"]
-
-[[bin]]
-name = "ktrs"
-path = "crates/ktrs_cli/src/bin/ktrs.rs"
-
-[[bin]]
-name = "ktfmt"
-path = "crates/ktrs_cli/src/bin/ktfmt.rs"
+include = ["/src", "/README.md", "/LICENSE-*", "/NOTICE"]
 
 [dependencies]
-ktrs_cli.workspace = true
+ktrs-cli.workspace = true
 mimalloc.workspace = true
 
 [profile.release]

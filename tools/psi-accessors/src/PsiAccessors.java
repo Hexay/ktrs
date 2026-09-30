@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.psi.KtFile;
 import org.jetbrains.kotlin.psi.KtPsiFactory;
 
 /**
- * Differential oracle for crates/ktrs_psi: for every PSI element prints the class, type tests, visitor dispatch
+ * Differential oracle for crates/ktrs-psi: for every PSI element prints the class, type tests, visitor dispatch
  * chain, navigation, and every accessor ktfmt uses; then the full KtTreeVisitorVoid walk.
  *
  *   PsiAccessors one <file> [--fixture] [--script]          print the report

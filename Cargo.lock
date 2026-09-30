@@ -42,62 +42,62 @@ checksum = "aedcfb3409746eddb02b9e19ebda1c3394f759a152e48ee875a0844d1b955484"
 
 [[package]]
 name = "ktrs"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
- "ktrs_cli",
+ "ktrs-cli",
  "mimalloc",
 ]
 
 [[package]]
-name = "ktrs_cli"
-version = "0.0.1"
+name = "ktrs-cli"
+version = "0.1.0"
 dependencies = [
  "ec4rs",
- "ktrs_fmt",
+ "ktrs-fmt",
 ]
 
 [[package]]
-name = "ktrs_fmt"
-version = "0.0.1"
+name = "ktrs-fmt"
+version = "0.1.0"
 dependencies = [
  "expect-test",
- "ktrs_lexer",
- "ktrs_parser",
- "ktrs_psi",
- "ktrs_syntax",
+ "ktrs-lexer",
+ "ktrs-parser",
+ "ktrs-psi",
+ "ktrs-syntax",
  "mimalloc",
 ]
 
 [[package]]
-name = "ktrs_lexer"
-version = "0.0.1"
+name = "ktrs-lexer"
+version = "0.1.0"
 dependencies = [
  "expect-test",
- "ktrs_syntax",
+ "ktrs-syntax",
 ]
 
 [[package]]
-name = "ktrs_parser"
-version = "0.0.1"
+name = "ktrs-parser"
+version = "0.1.0"
 dependencies = [
  "expect-test",
- "ktrs_lexer",
- "ktrs_syntax",
+ "ktrs-lexer",
+ "ktrs-syntax",
  "mimalloc",
 ]
 
 [[package]]
-name = "ktrs_psi"
-version = "0.0.1"
+name = "ktrs-psi"
+version = "0.1.0"
 dependencies = [
  "expect-test",
- "ktrs_parser",
- "ktrs_syntax",
+ "ktrs-parser",
+ "ktrs-syntax",
 ]
 
 [[package]]
-name = "ktrs_syntax"
-version = "0.0.1"
+name = "ktrs-syntax"
+version = "0.1.0"
 dependencies = [
  "text-size",
 ]
@@ -140,10 +140,10 @@ checksum = "f18aa187839b2bdb1ad2fa35ead8c4c2976b64e4363c386d45ac0f7ee85c9233"
 
 [[package]]
 name = "xtask"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
- "ktrs_fmt",
- "ktrs_parser",
- "ktrs_syntax",
+ "ktrs-fmt",
+ "ktrs-parser",
+ "ktrs-syntax",
  "mimalloc",
 ]

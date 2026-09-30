@@ -1,7 +1,7 @@
-diff --git a/crates/ktrs_parser/src/builder/chameleon_cache.rs b/crates/ktrs_parser/src/builder/chameleon_cache.rs
+diff --git a/crates/ktrs-parser/src/builder/chameleon_cache.rs b/crates/ktrs-parser/src/builder/chameleon_cache.rs
 index 83138d8..65dfbb0 100644
---- a/crates/ktrs_parser/src/builder/chameleon_cache.rs
-+++ b/crates/ktrs_parser/src/builder/chameleon_cache.rs
+--- a/crates/ktrs-parser/src/builder/chameleon_cache.rs
++++ b/crates/ktrs-parser/src/builder/chameleon_cache.rs
 @@ -10,10 +10,15 @@ use std::collections::HashMap;
  
  use ktrs_syntax::{SyntaxKind, Tree};
@@ -38,10 +38,10 @@ index 83138d8..65dfbb0 100644
  }
  
  /// FxHash-style multiply-rotate over 8-byte words.
-diff --git a/crates/ktrs_parser/src/builder/layers.rs b/crates/ktrs_parser/src/builder/layers.rs
+diff --git a/crates/ktrs-parser/src/builder/layers.rs b/crates/ktrs-parser/src/builder/layers.rs
 index 8ae1816..5775679 100644
---- a/crates/ktrs_parser/src/builder/layers.rs
-+++ b/crates/ktrs_parser/src/builder/layers.rs
+--- a/crates/ktrs-parser/src/builder/layers.rs
++++ b/crates/ktrs-parser/src/builder/layers.rs
 @@ -92,8 +92,9 @@ impl SemanticWhitespaceAwarePsiBuilder {
              return None;
          }
@@ -67,10 +67,10 @@ index 8ae1816..5775679 100644
              }
  
              steps -= 1;
-diff --git a/crates/ktrs_parser/src/builder/mod.rs b/crates/ktrs_parser/src/builder/mod.rs
+diff --git a/crates/ktrs-parser/src/builder/mod.rs b/crates/ktrs-parser/src/builder/mod.rs
 index 9efb1a8..81fa8eb 100644
---- a/crates/ktrs_parser/src/builder/mod.rs
-+++ b/crates/ktrs_parser/src/builder/mod.rs
+--- a/crates/ktrs-parser/src/builder/mod.rs
++++ b/crates/ktrs-parser/src/builder/mod.rs
 @@ -33,6 +33,7 @@ mod marker;
  mod pool;
  mod production;
@@ -88,10 +88,10 @@ index 9efb1a8..81fa8eb 100644
  pub use semantic::SemanticWhitespaceAwarePsiBuilder;
  pub use sink::TreeSink;
  pub use tree::{LazyLeaf, LazyReparse};
-diff --git a/crates/ktrs_parser/src/builder/pool.rs b/crates/ktrs_parser/src/builder/pool.rs
+diff --git a/crates/ktrs-parser/src/builder/pool.rs b/crates/ktrs-parser/src/builder/pool.rs
 index 1bb7b53..75eeb4a 100644
---- a/crates/ktrs_parser/src/builder/pool.rs
-+++ b/crates/ktrs_parser/src/builder/pool.rs
+--- a/crates/ktrs-parser/src/builder/pool.rs
++++ b/crates/ktrs-parser/src/builder/pool.rs
 @@ -103,6 +103,7 @@ impl PsiBuilder {
              token_type_checked: false,
              production: Production::from_vecs(markers, list),
@@ -100,10 +100,10 @@ index 1bb7b53..75eeb4a 100644
          }
      }
  }
-diff --git a/crates/ktrs_parser/src/builder/production.rs b/crates/ktrs_parser/src/builder/production.rs
+diff --git a/crates/ktrs-parser/src/builder/production.rs b/crates/ktrs-parser/src/builder/production.rs
 index dec5273..96e5219 100644
---- a/crates/ktrs_parser/src/builder/production.rs
-+++ b/crates/ktrs_parser/src/builder/production.rs
+--- a/crates/ktrs-parser/src/builder/production.rs
++++ b/crates/ktrs-parser/src/builder/production.rs
 @@ -10,7 +10,7 @@ use ktrs_syntax::SyntaxKind;
  
  use super::binders::EdgeBinder;
@@ -153,10 +153,10 @@ index dec5273..96e5219 100644
      pub(crate) fn take_vecs(&mut self) -> (Vec<MarkerData>, Vec<i32>) {
          (std::mem::take(&mut self.markers), std::mem::take(&mut self.list))
      }
-diff --git a/crates/ktrs_parser/src/builder/psi_builder.rs b/crates/ktrs_parser/src/builder/psi_builder.rs
+diff --git a/crates/ktrs-parser/src/builder/psi_builder.rs b/crates/ktrs-parser/src/builder/psi_builder.rs
 index 4345d55..d512604 100644
---- a/crates/ktrs_parser/src/builder/psi_builder.rs
-+++ b/crates/ktrs_parser/src/builder/psi_builder.rs
+--- a/crates/ktrs-parser/src/builder/psi_builder.rs
++++ b/crates/ktrs-parser/src/builder/psi_builder.rs
 @@ -5,6 +5,7 @@ use ktrs_syntax::SyntaxKind;
  
  use super::marker::Marker;
@@ -222,11 +222,11 @@ index 4345d55..d512604 100644
          self.current_lexeme as i32
      }
  
-diff --git a/crates/ktrs_parser/src/builder/replay.rs b/crates/ktrs_parser/src/builder/replay.rs
+diff --git a/crates/ktrs-parser/src/builder/replay.rs b/crates/ktrs-parser/src/builder/replay.rs
 new file mode 100644
 index 0000000..5c99e5c
 --- /dev/null
-+++ b/crates/ktrs_parser/src/builder/replay.rs
++++ b/crates/ktrs-parser/src/builder/replay.rs
 @@ -0,0 +1,291 @@
 +//! Replaying a chameleon's parse on whitespace-changed text (see research/09-replay-reparse.md).
 +//!
@@ -519,10 +519,10 @@ index 0000000..5c99e5c
 +        self.0 ^ self.0 >> 29
 +    }
 +}
-diff --git a/crates/ktrs_parser/src/builder/semantic.rs b/crates/ktrs_parser/src/builder/semantic.rs
+diff --git a/crates/ktrs-parser/src/builder/semantic.rs b/crates/ktrs-parser/src/builder/semantic.rs
 index 9daace0..7ca6a62 100644
---- a/crates/ktrs_parser/src/builder/semantic.rs
-+++ b/crates/ktrs_parser/src/builder/semantic.rs
+--- a/crates/ktrs-parser/src/builder/semantic.rs
++++ b/crates/ktrs-parser/src/builder/semantic.rs
 @@ -82,30 +82,13 @@ impl SemanticWhitespaceAwarePsiBuilder {
              return true;
          }
@@ -609,10 +609,10 @@ index 9daace0..7ca6a62 100644
          self.psi.raw_token_index()
      }
  
-diff --git a/crates/ktrs_parser/src/builder/sink.rs b/crates/ktrs_parser/src/builder/sink.rs
+diff --git a/crates/ktrs-parser/src/builder/sink.rs b/crates/ktrs-parser/src/builder/sink.rs
 index 91cc6ea..56db7f7 100644
---- a/crates/ktrs_parser/src/builder/sink.rs
-+++ b/crates/ktrs_parser/src/builder/sink.rs
+--- a/crates/ktrs-parser/src/builder/sink.rs
++++ b/crates/ktrs-parser/src/builder/sink.rs
 @@ -4,6 +4,8 @@
  use ktrs_syntax::{Parse, SyntaxKind, TreeBuilder};
  
@@ -655,10 +655,10 @@ index 91cc6ea..56db7f7 100644
      pub(super) fn token(&mut self, kind: SyntaxKind, text: &str) {
          self.tree.token(kind, text);
      }
-diff --git a/crates/ktrs_parser/src/lib.rs b/crates/ktrs_parser/src/lib.rs
+diff --git a/crates/ktrs-parser/src/lib.rs b/crates/ktrs-parser/src/lib.rs
 index df2cf82..b7b3909 100644
---- a/crates/ktrs_parser/src/lib.rs
-+++ b/crates/ktrs_parser/src/lib.rs
+--- a/crates/ktrs-parser/src/lib.rs
++++ b/crates/ktrs-parser/src/lib.rs
 @@ -44,4 +44,4 @@ pub fn parse_file(text: &str, kind: FileKind) -> Parse {
  /// lambdas and KDoc whose text was already seen with `cache` are reused instead of re-parsed.
  pub fn parse_file_cached(text: &str, kind: FileKind, cache: &mut ChameleonCache) -> Parse {
@@ -666,10 +666,10 @@ index df2cf82..b7b3909 100644
 -}
 +}
 \ No newline at end of file
-diff --git a/crates/ktrs_parser/src/parsing/abstract_kotlin_parsing.rs b/crates/ktrs_parser/src/parsing/abstract_kotlin_parsing.rs
+diff --git a/crates/ktrs-parser/src/parsing/abstract_kotlin_parsing.rs b/crates/ktrs-parser/src/parsing/abstract_kotlin_parsing.rs
 index 75d53f4..1e62d00 100644
---- a/crates/ktrs_parser/src/parsing/abstract_kotlin_parsing.rs
-+++ b/crates/ktrs_parser/src/parsing/abstract_kotlin_parsing.rs
+--- a/crates/ktrs-parser/src/parsing/abstract_kotlin_parsing.rs
++++ b/crates/ktrs-parser/src/parsing/abstract_kotlin_parsing.rs
 @@ -8,13 +8,14 @@ use crate::kt_tokens::{self, WHITE_SPACE_OR_COMMENT_BIT_SET};
  use crate::token_set::TokenSet;
  
@@ -687,10 +687,10 @@ index 75d53f4..1e62d00 100644
      }
  
      pub(crate) fn expect_2(&mut self, expectation: SyntaxKind, message: &str) -> bool {
-diff --git a/crates/ktrs_parser/src/parsing/declarations/annotations.rs b/crates/ktrs_parser/src/parsing/declarations/annotations.rs
+diff --git a/crates/ktrs-parser/src/parsing/declarations/annotations.rs b/crates/ktrs-parser/src/parsing/declarations/annotations.rs
 index 141adfa..961651d 100644
---- a/crates/ktrs_parser/src/parsing/declarations/annotations.rs
-+++ b/crates/ktrs_parser/src/parsing/declarations/annotations.rs
+--- a/crates/ktrs-parser/src/parsing/declarations/annotations.rs
++++ b/crates/ktrs-parser/src/parsing/declarations/annotations.rs
 @@ -218,7 +218,7 @@ impl Parser {
  
          if self.at(LPAR)
@@ -700,10 +700,10 @@ index 141adfa..961651d 100644
                  && mode.with_significant_whitespace_before_arguments())
          {
              self.parse_value_argument_list();
-diff --git a/crates/ktrs_parser/src/parsing/declarations/types.rs b/crates/ktrs_parser/src/parsing/declarations/types.rs
+diff --git a/crates/ktrs-parser/src/parsing/declarations/types.rs b/crates/ktrs-parser/src/parsing/declarations/types.rs
 index 4ddf9f2..d29c597 100644
---- a/crates/ktrs_parser/src/parsing/declarations/types.rs
-+++ b/crates/ktrs_parser/src/parsing/declarations/types.rs
+--- a/crates/ktrs-parser/src/parsing/declarations/types.rs
++++ b/crates/ktrs-parser/src/parsing/declarations/types.rs
 @@ -173,7 +173,7 @@ impl Parser {
      fn parse_nullable_type_suffix(&mut self, type_element_marker: Marker) -> Marker {
          let mut type_element_marker = type_element_marker;
@@ -713,10 +713,10 @@ index 4ddf9f2..d29c597 100644
              let precede = type_element_marker.precede(self);
              self.advance(); // QUEST
              type_element_marker.done(self, NULLABLE_TYPE);
-diff --git a/crates/ktrs_parser/src/parsing/expressions/calls.rs b/crates/ktrs_parser/src/parsing/expressions/calls.rs
+diff --git a/crates/ktrs-parser/src/parsing/expressions/calls.rs b/crates/ktrs-parser/src/parsing/expressions/calls.rs
 index 036690b..c3773bd 100644
---- a/crates/ktrs_parser/src/parsing/expressions/calls.rs
-+++ b/crates/ktrs_parser/src/parsing/expressions/calls.rs
+--- a/crates/ktrs-parser/src/parsing/expressions/calls.rs
++++ b/crates/ktrs-parser/src/parsing/expressions/calls.rs
 @@ -183,6 +183,6 @@ impl Parser {
      }
  
@@ -725,10 +725,10 @@ index 036690b..c3773bd 100644
 +        (self.at(IDENTIFIER) && self.my_builder.raw_is(1, AT)) || self.at(AT)
      }
  }
-diff --git a/crates/ktrs_parser/src/parsing/expressions/control.rs b/crates/ktrs_parser/src/parsing/expressions/control.rs
+diff --git a/crates/ktrs-parser/src/parsing/expressions/control.rs b/crates/ktrs-parser/src/parsing/expressions/control.rs
 index c67a908..4c47bb6 100644
---- a/crates/ktrs_parser/src/parsing/expressions/control.rs
-+++ b/crates/ktrs_parser/src/parsing/expressions/control.rs
+--- a/crates/ktrs-parser/src/parsing/expressions/control.rs
++++ b/crates/ktrs-parser/src/parsing/expressions/control.rs
 @@ -3,7 +3,6 @@
  use ktrs_syntax::SyntaxKind::{self, *};
  
@@ -746,10 +746,10 @@ index c67a908..4c47bb6 100644
                  self.error("There should be no space or comments before '@' in label reference");
              }
              self.parse_label_reference();
-diff --git a/crates/ktrs_parser/src/parsing/kotlin_parser.rs b/crates/ktrs_parser/src/parsing/kotlin_parser.rs
+diff --git a/crates/ktrs-parser/src/parsing/kotlin_parser.rs b/crates/ktrs-parser/src/parsing/kotlin_parser.rs
 index c28b5db..d00a87a 100644
---- a/crates/ktrs_parser/src/parsing/kotlin_parser.rs
-+++ b/crates/ktrs_parser/src/parsing/kotlin_parser.rs
+--- a/crates/ktrs-parser/src/parsing/kotlin_parser.rs
++++ b/crates/ktrs-parser/src/parsing/kotlin_parser.rs
 @@ -5,7 +5,7 @@ use ktrs_syntax::{Parse, SyntaxKind};
  
  use super::Parser;

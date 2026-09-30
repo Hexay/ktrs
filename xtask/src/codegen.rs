@@ -1,4 +1,4 @@
-//! Generates `ktrs_syntax/src/generated/kinds.rs` from `ktrs_syntax/kinds.tsv`,
+//! Generates `ktrs-syntax/src/generated/kinds.rs` from `ktrs-syntax/kinds.tsv`,
 //! which `tools/psi-dump/psi-dump.sh kinds` extracts from the pinned Kotlin compiler.
 
 use std::{collections::HashSet, fmt::Write, fs, path::Path};
@@ -11,7 +11,7 @@ struct Kind {
 }
 
 pub(crate) fn run(root: &Path) -> Result<(), String> {
-    let crate_dir = root.join("crates/ktrs_syntax");
+    let crate_dir = root.join("crates/ktrs-syntax");
     let tsv = fs::read_to_string(crate_dir.join("kinds.tsv")).map_err(|e| format!("kinds.tsv: {e}"))?;
     let kinds = parse_tsv(&tsv)?;
     let out = render(&kinds);

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# JVM oracle for crates/ktrs_psi (see src/PsiAccessors.java). Reuses the compiler jars fetched by psi-dump.sh.
+# JVM oracle for crates/ktrs-psi (see src/PsiAccessors.java). Reuses the compiler jars fetched by psi-dump.sh.
 # Usage: tools/psi-accessors/psi-accessors.sh one|hashes|dump ... [--fixture] [--script]
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"

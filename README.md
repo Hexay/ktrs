@@ -58,13 +58,20 @@ laptop (Intel Core Ultra, 22 threads, JDK 21):
 |---|---|---|---|
 | Seven open-source projects (6,123 files, 31 MB), format in place | 3.69 s | 24.55 s | **7x** |
 | One project (okhttp, 617 files), format in place | 465 ms | 9.58 s | **21x** |
-| okhttp, format in place, 1 core | 1.29 s | 40.08 s | **31x** |
+| okhttp, format in place, 1 core | 1.48 s | 40.79 s | **28x** |
 | okhttp, CI check (`-n --set-exit-if-changed`) | 316 ms | 9.08 s | **29x** |
 | Pre-commit: 10 changed files | 26 ms | 2.57 s | **99x** |
 | Editor: one 8 KB file on stdin | 16 ms | 1.49 s | **96x** |
 
 Small runs are dominated by JVM startup; large ones by formatting work, where ktrs is still several
-times faster per core and uses all of them. The binary is 1.6 MB with no runtime; the jar is 71 MB plus
+times faster per core and uses all of them.
+
+- **1 core**: both processes are restricted to one CPU from launch (the affinity mask is inherited, so
+  the JVM also sizes its GC and JIT threads for one CPU, as in a 1-CPU container). The JVM's JIT
+  compiler then competes with the formatting for that core, which is why it slows down more than ktrs.
+- **Identical output** means byte-identical files on 6,121 of the 6,123. The other two are Exposed's
+  code-generator templates (`package {{packageName}}`), which are not valid Kotlin: both tools reject
+  them with the same error, `Package name must be a '.'-separated identifier list` at 1:8. The binary is 1.6 MB with no runtime; the jar is 71 MB plus
 a JRE. Reproduce with `python3 tools/bench/e2e.py` (needs the corpus from `tools/fetch-corpus.sh` and
 the jar, which `tools/ktfmt-oracle/extract-goldens.sh` downloads).
 
@@ -73,7 +80,7 @@ the jar, which `tools/ktfmt-oracle/extract-goldens.sh` downloads).
 ```sh
 tools/sync-kotlin.sh                  # pinned upstream sources + vendored fixtures
 tools/psi-dump/psi-dump.sh one X.kt   # reference PSI tree from the real compiler (needs a JDK)
-cargo xtask codegen                   # regenerate SyntaxKind from crates/ktrs_syntax/kinds.tsv
+cargo xtask codegen                   # regenerate SyntaxKind from crates/ktrs-syntax/kinds.tsv
 cargo test
 ```
 

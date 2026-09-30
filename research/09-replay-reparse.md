@@ -3,7 +3,7 @@
 Idea: after a whitespace-only (and comment-text) edit, re-lex, then run only `balance_white_spaces` +
 `bind` (`builder/tree.rs`) on the old parse's production. Exact iff every recursive-descent decision
 that observed trivia/offsets/raw indices answers the same on the new lexing. Audit of
-`crates/ktrs_parser/src/parsing/**` + the builder code it calls, at commit 8482a62.
+`crates/ktrs-parser/src/parsing/**` + the builder code it calls, at commit 8482a62.
 
 Notation: *k* = ordinal of a non-trivia token; *gap(k)* = the trivia run (WHITE_SPACE + comments)
 right before token *k*. Classes: **(a)** newline in gap, **(b)** gap empty (adjacency) / raw kind

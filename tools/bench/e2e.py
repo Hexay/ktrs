@@ -1,6 +1,6 @@
 """End-to-end: the `ktfmt` binary vs the ktfmt 0.64 jar, run the way users run them. Linux, macOS, Windows.
 
-    py -3 tools/bench/e2e.py [--runs N] [--no-build]     (repo root; corpus from tools/fetch-corpus.sh)
+    python3 tools/bench/e2e.py [--runs N] [--no-build] [--only TEXT]   (corpus: tools/fetch-corpus.sh)
 
 Each scenario alternates the two tools `runs` times and reports the median wall time as a Markdown table.
 Needs psutil for the 1-core scenario (skipped without it on Windows).
@@ -40,25 +40,31 @@ def copy_files(src_root, files, dst):
 
 
 def pin_to_one_core():
-    """A preexec/after-start hook restricting a child to CPU 0, or None if unsupported."""
+    """How to start a child already restricted to CPU 0, or None if unsupported. The mask must be in
+    place at launch: the JVM sizes its GC and JIT thread pools from the CPUs it sees at startup."""
     if hasattr(os, "sched_setaffinity"):
         return lambda: os.sched_setaffinity(0, {0})
     try:
         import psutil  # noqa: F401
     except ImportError:
         return None
-    return "psutil"
+    return "inherit"
 
 
 def run_once(cmd, stdin_path, one_core):
     stdin = open(stdin_path, "rb") if stdin_path else subprocess.DEVNULL
     preexec = one_core if callable(one_core) else None
+    parent, parent_mask = None, None
+    if one_core == "inherit":
+        # Windows: a child inherits its parent's affinity mask at creation.
+        import psutil
+        parent = psutil.Process()
+        parent_mask = parent.cpu_affinity()
+        parent.cpu_affinity([0])
     start = time.perf_counter()
     proc = subprocess.Popen(cmd, stdin=stdin, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, preexec_fn=preexec)
-    if one_core == "psutil":
-        # Windows: the process mask applies to threads started later, i.e. all the JVM's and ours.
-        import psutil
-        psutil.Process(proc.pid).cpu_affinity([0])
+    if parent:
+        parent.cpu_affinity(parent_mask)
     proc.wait()
     elapsed = time.perf_counter() - start
     if stdin_path:
@@ -66,7 +72,12 @@ def run_once(cmd, stdin_path, one_core):
     return elapsed
 
 
+ONLY = None
+
+
 def scenario(label, tools, runs, setup, args, stdin_path=None, one_core=None):
+    if ONLY and ONLY not in label:
+        return
     # One copy and an untimed warm-up per tool: fresh files cost a virus scan on first open (Windows),
     # which would dominate. After the warm-up, "format in place" re-formats already formatted files.
     setup()
@@ -88,7 +99,10 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--runs", type=int, default=5)
     parser.add_argument("--no-build", action="store_true")
+    parser.add_argument("--only", help="run only the scenarios whose label contains this text")
     opts = parser.parse_args()
+    global ONLY
+    ONLY = opts.only
     os.chdir(Path(__file__).resolve().parents[2])
 
     if not opts.no_build:
