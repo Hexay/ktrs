@@ -1,0 +1,38 @@
+# The browser playground at https://hexay.github.io/ktrs/, rebuilt from master whenever the
+# formatter or the page changes. It shares the gh-pages branch with the release's Maven repo
+# (maven/), which it leaves alone; the concurrency group serializes the two writers.
+name: pages
+
+on:
+  push:
+    branches: [master]
+    paths: [site/**, crates/**, Cargo.toml, Cargo.lock, tools/release/build-site.sh, .github/workflows/pages.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gh-pages
+  cancel-in-progress: false
+
+jobs:
+  site:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        run: rustup toolchain install stable --profile minimal --target wasm32-unknown-unknown && rustup default stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Build and publish
+        run: |
+          if git fetch -q origin gh-pages:gh-pages; then git worktree add pages gh-pages; else git worktree add --orphan -b gh-pages pages; fi
+          find pages -mindepth 1 -maxdepth 1 ! -name .git ! -name maven -exec rm -rf {} +
+          bash tools/release/build-site.sh pages
+          touch pages/.nojekyll
+          cd pages
+          git add -A
+          git diff --cached --quiet && exit 0
+          git -c user.name=github-actions[bot] -c user.email=41898282+github-actions[bot]@users.noreply.github.com \
+            commit -q -m "playground: ${GITHUB_SHA::7}"
+          git push -q origin gh-pages

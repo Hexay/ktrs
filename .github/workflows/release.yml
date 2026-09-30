@@ -71,6 +71,10 @@ jobs:
   java:
     needs: build
     runs-on: ubuntu-24.04
+    # Shares the gh-pages branch with the playground (pages.yml).
+    concurrency:
+      group: gh-pages
+      cancel-in-progress: false
     env:
       ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
       ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
@@ -122,28 +126,6 @@ jobs:
         with:
           name: java
           path: java/build/libs/ktrs-*[0-9].jar
-
-  # The browser playground at the root of the Pages site (the Maven repo stays under maven/). After
-  # `java`, so the two pushes to gh-pages don't race.
-  site:
-    needs: java
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install Rust
-        run: rustup toolchain install stable --profile minimal --target wasm32-unknown-unknown && rustup default stable
-      - name: Build and publish
-        run: |
-          git fetch -q origin gh-pages:gh-pages
-          git worktree add pages gh-pages
-          find pages -mindepth 1 -maxdepth 1 ! -name .git ! -name maven ! -name .nojekyll -exec rm -rf {} +
-          bash tools/release/build-site.sh pages
-          cd pages
-          git add -A
-          git diff --cached --quiet && exit 0
-          git -c user.name=github-actions[bot] -c user.email=41898282+github-actions[bot]@users.noreply.github.com \
-            commit -q -m "playground: $GITHUB_REF_NAME"
-          git push -q origin gh-pages
 
   release:
     needs: [build, java]
