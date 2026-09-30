@@ -1,0 +1,1 @@
+fun `expect`() = "foo"

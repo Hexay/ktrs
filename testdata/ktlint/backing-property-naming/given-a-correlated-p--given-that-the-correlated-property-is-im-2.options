@@ -1,0 +1,4 @@
+rules=standard:backing-property-naming
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=BackingPropertyNamingRuleTest.Given a backing property defined as normal class member.Given a correlated property.Given that the correlated property is implicitly public then do not emit

@@ -1,0 +1,4 @@
+rules=standard:kdoc
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=KdocRuleTest.A KDoc comment in between code elements on the same line should start and end on a new line but is not autocorrected

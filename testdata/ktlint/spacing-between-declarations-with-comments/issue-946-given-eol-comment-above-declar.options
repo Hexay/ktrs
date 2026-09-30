@@ -1,0 +1,4 @@
+rules=standard:spacing-between-declarations-with-comments
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=SpacingBetweenDeclarationsWithCommentsRuleTest.Issue 946 - Given EOL comment above declarations then precede the comment above the second and later declarations with a blank line

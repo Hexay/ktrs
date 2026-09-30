@@ -1,0 +1,3 @@
+@file:bar
+
+import foo

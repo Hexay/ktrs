@@ -1,0 +1,1 @@
+val foo = { bar: String -> "bar" }

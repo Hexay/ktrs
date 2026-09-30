@@ -1,0 +1,5 @@
+rules=standard:indent
+ec.indent_style=tab
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=IndentationRuleTest.Given a class declaration having multiple supertypes.Given a class declaration implementing multiple super types (tab indentation)

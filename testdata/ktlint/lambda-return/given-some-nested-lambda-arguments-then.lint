@@ -1,0 +1,4 @@
+8:24	standard:lambda-return	auto	Unnecessary return
+13:21	standard:lambda-return	auto	Unnecessary return
+16:13	standard:lambda-return	auto	Unnecessary return
+17:17	standard:lambda-return	auto	Unnecessary return

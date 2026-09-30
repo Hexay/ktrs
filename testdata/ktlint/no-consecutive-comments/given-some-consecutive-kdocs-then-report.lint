@@ -1,0 +1,6 @@
+2:1	standard:no-consecutive-comments	manual	a KDoc may not be preceded by a KDoc
+4:1	standard:no-consecutive-comments	manual	a KDoc may not be preceded by a KDoc
+5:1	standard:no-consecutive-comments	manual	a KDoc may not be preceded by a KDoc
+5:15	standard:no-consecutive-comments	manual	a KDoc may not be preceded by a KDoc
+6:1	standard:no-consecutive-comments	manual	a KDoc may not be preceded by a KDoc
+6:14	standard:no-consecutive-comments	manual	a KDoc may not be preceded by a KDoc

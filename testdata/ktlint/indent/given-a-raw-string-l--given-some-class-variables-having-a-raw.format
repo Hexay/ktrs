@@ -1,0 +1,4 @@
+7:1	standard:indent	auto	Unexpected indentation (4) (should be 8)
+10:5	standard:indent	auto	Unexpected indent of multiline string closing quotes
+13:1	standard:indent	auto	Unexpected indentation (4) (should be 8)
+15:13	standard:indent	auto	Unexpected indent of multiline string closing quotes

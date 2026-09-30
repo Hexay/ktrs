@@ -1,0 +1,5 @@
+2:50	standard:property-wrapping	auto	Missing newline after "="
+2:49	standard:max-line-length	manual	Exceeded max line length (48)
+3:53	standard:property-wrapping	auto	Missing newline before "TypeWithALongName(123)"
+2:50	standard:property-wrapping	auto	Missing newline after "="
+2:49	standard:max-line-length	manual	Exceeded max line length (48)

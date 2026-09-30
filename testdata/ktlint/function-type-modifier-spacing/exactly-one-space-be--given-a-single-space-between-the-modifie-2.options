@@ -1,0 +1,4 @@
+rules=standard:function-type-modifier-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=FunctionTypeModifierSpacingRuleTest.Exactly one space before the function type.Given a single space between the modifier list and the function property type

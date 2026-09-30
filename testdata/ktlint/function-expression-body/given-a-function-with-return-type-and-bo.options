@@ -1,0 +1,4 @@
+rules=standard:function-expression-body
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=FunctionExpressionBodyRuleTest.Given a function with return type and body with throws expression as only statement then convert to body expression and keep original return type

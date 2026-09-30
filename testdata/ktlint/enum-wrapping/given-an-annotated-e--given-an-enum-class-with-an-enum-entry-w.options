@@ -1,0 +1,4 @@
+rules=standard:enum-wrapping,standard:annotation
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=EnumWrappingRuleTest.Given an annotated enum entry.Given an enum class with an enum entry with a single annotation

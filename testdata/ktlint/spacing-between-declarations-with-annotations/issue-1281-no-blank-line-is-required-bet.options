@@ -1,0 +1,4 @@
+rules=standard:spacing-between-declarations-with-annotations
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=SpacingBetweenDeclarationsWithAnnotationsRuleTest.Issue 1281 - No blank line is required between comment and an annotated declaration when previous declaration ends with a comment

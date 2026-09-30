@@ -1,0 +1,5 @@
+rules=standard:context-parameter-list-wrapping,standard:max-line-length
+ec.max_line_length=32
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ContextParameterListWrappingRuleTest.Given a function with a context parameter with a single argument and the context receiver line exceeds the maximum line length, then wrap the context receiver entry to a separate line

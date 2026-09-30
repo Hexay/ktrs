@@ -1,0 +1,4 @@
+rules=standard:comma-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=SpacingAroundCommaRuleTest.Given some parameter list not having a parameter after the comma

@@ -1,0 +1,1 @@
+fun `init`() = "foo"

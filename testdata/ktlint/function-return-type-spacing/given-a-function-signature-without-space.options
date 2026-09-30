@@ -1,0 +1,4 @@
+rules=standard:function-return-type-spacing,standard:max-line-length
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=FunctionReturnTypeSpacingRuleTest.Given a function signature without space between the colon and the return type then reformat

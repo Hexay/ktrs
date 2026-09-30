@@ -1,0 +1,5 @@
+val foo1 = "${bar}length"
+val foo2 = "${bar.length}.hello"
+val foo3 = "bar.length is ${bar.length}"
+val foo4 = "$9.99"
+val foo5 = "Found: ${if (bar > 0) "yes" else "no"}"

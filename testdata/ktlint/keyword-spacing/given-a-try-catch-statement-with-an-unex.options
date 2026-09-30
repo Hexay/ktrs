@@ -1,0 +1,4 @@
+rules=standard:keyword-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=SpacingAroundKeywordRuleTest.Given a try-catch-statement with an unexpected newline before the catch

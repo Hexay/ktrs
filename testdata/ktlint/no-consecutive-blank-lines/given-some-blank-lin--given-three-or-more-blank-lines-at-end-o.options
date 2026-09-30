@@ -1,0 +1,4 @@
+rules=standard:no-consecutive-blank-lines
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoConsecutiveBlankLinesRuleTest.Given some blank lines at the end of the file.Given three or more blank lines at end of file then do return lint errors

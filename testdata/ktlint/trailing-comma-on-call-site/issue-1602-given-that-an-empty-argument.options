@@ -1,0 +1,5 @@
+rules=standard:trailing-comma-on-call-site,standard:indent
+ec.ij_kotlin_allow_trailing_comma_on_call_site=true
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=TrailingCommaOnCallSiteRuleTest.Issue 1602 - Given that an empty argument list with a comment, dot add a trailing comma

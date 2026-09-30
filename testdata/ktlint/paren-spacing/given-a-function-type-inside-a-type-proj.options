@@ -1,0 +1,4 @@
+rules=standard:paren-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=SpacingAroundParensRuleTest.Given a function type inside a type projection then do not remove space before the opening parenthesis

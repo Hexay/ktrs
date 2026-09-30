@@ -1,0 +1,4 @@
+rules=standard:property-naming
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=PropertyNamingRuleTest.Issue 2352 - Given a keyword then allow it to be wrapped between backticks[8]

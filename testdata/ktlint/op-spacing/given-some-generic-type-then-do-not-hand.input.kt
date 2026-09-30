@@ -1,0 +1,1 @@
+val foo = fn(arrayOfNulls<Any>(0))

@@ -1,0 +1,6 @@
+2:1	standard:indent	auto	Unexpected indentation (0) (should be 4)
+2:9	standard:wrapping	auto	Missing newline after "("
+2:9	standard:string-template-indent	auto	Expected newline before multiline string template
+6:1	standard:string-template-indent	auto	Unexpected indent of raw string literal
+6:1	standard:indent	auto	Unexpected indent of multiline string closing quotes
+6:30	standard:wrapping	auto	Missing newline before ")"

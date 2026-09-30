@@ -1,0 +1,4 @@
+rules=standard:dot-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=SpacingAroundDotRuleTest.Given an extension function with an unexpected space before the dot

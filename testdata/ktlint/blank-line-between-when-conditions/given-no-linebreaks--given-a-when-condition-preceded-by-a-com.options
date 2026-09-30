@@ -1,0 +1,5 @@
+rules=standard:blank-line-between-when-conditions
+ec.ij_kotlin_line_break_after_multiline_when_entry=false
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=BlankLineBetweenWhenConditionsTest.Given when statement with multiline when-condition.Given no linebreaks may be added after when-condition.Given a when-condition preceded by a comment and the when-condition needs to be preceded by blank line then add this line before the comment

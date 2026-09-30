@@ -1,0 +1,3 @@
+3:9	standard:value-parameter-comment	manual	A comment inside or on same line after a 'value_parameter' is not allowed. It may be placed on a separate line above.
+7:14	standard:value-parameter-comment	manual	A comment inside or on same line after a 'value_parameter' is not allowed. It may be placed on a separate line above.
+10:14	standard:value-parameter-comment	manual	A comment inside or on same line after a 'value_parameter' is not allowed. It may be placed on a separate line above.

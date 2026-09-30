@@ -1,0 +1,4 @@
+rules=standard:chain-method-continuation,standard:max-line-length,standard:indent
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ChainMethodContinuationRuleTest.Given a chained expression as function argument.Issue 2452 - Given that the argument-list-wrapping rule is not loaded or not enabled

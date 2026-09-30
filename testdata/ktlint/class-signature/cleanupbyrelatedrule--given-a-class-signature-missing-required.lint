@@ -1,0 +1,10 @@
+1:14	standard:colon-spacing	auto	Missing spacing after ":"
+2:19	standard:class-signature	auto	Single whitespace expected before parameter
+2:19	standard:comma-spacing	auto	Missing spacing after ","
+3:11	standard:colon-spacing	auto	Missing spacing before ":"
+4:13	standard:class-signature	auto	Expected single space before the super type
+4:13	standard:colon-spacing	auto	Missing spacing after ":"
+5:13	standard:colon-spacing	auto	Missing spacing before ":"
+6:15	standard:colon-spacing	auto	Missing spacing after ":"
+7:16	standard:comma-spacing	auto	Missing spacing after ","
+8:24	standard:comma-spacing	auto	Missing spacing after ","

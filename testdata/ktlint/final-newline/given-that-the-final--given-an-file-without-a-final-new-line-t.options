@@ -1,0 +1,5 @@
+rules=standard:final-newline
+ec.insert_final_newline=false
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=FinalNewlineRuleTest.Given that the final new line is not required.Given an file without a final new line then do not return lint errors

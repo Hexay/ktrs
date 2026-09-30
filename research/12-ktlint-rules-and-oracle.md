@@ -95,6 +95,8 @@ The rule-specific properties are:
 
 ## 2. Port order
 
+Measured 2.0.0-ALPHA-4 violation counts per rule on the corpus: research/18-ktlint-corpus-counts.md.
+
 **Measure first (one testbox run per style, from the §4 API oracle):**
 1. **Firing sets.** For each file, record `F(file)` = the set of rule ids that emitted anything during *format* (all runs). Use format
    rather than lint because format also catches cascades, where a rule fires only after another rule's fix.
@@ -139,6 +141,11 @@ coverage over the 4 other repos.
 | max-line-length | 176 / 12 | Lint-only, but it judges the *final* text after every LATE rule, so its parity lags everything else. |
 
 ## 3. Test extraction (mirror `tools/ktfmt-oracle/extract-goldens.sh`)
+
+Built for 2.0.0-ALPHA-4 as `tools/ktlint-tests/extract-goldens.sh`: 2,324 cases from 2,362 passing upstream tests. It
+differs from the plan below in three ways. `.options` carries the engine's full override, including the forced properties.
+`.lint`/`.format` use `line:col\trule\tauto|manual\tdetail`. There is no `.upstream` file: the upstream assertions stay live
+instead. Runner: `crates/ktrs-lint/tests/golden/`.
 
 **How tests are written (1.8.0 counts):**
 - `val xAssertThat = assertThatRule { XRule() }`, or `assertThatRuleBuilder { … }.addAdditionalRuleProvider { … }.assertThat()`.

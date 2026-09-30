@@ -1,0 +1,5 @@
+rules=standard:function-naming
+ec.ktlint_function_naming_ignore_when_annotated_with=Composable, Foo
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=FunctionNamingRuleTest.Issue 2259 - Given a fun which is to be ignored because it is annotated with a blacklisted annotation using annotation array

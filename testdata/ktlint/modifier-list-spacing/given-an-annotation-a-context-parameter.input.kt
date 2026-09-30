@@ -1,0 +1,1 @@
+@Suppress("DEPRECATED") open context(_: Foo) public fun foo() {}

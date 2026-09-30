@@ -1,0 +1,4 @@
+rules=standard:blank-line-before-declaration,standard:no-consecutive-blank-lines
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=BlankLineBeforeDeclarationRuleTest.Given some consecutive properties not separated by a blank line then do not insert a blank line in between

@@ -1,0 +1,2 @@
+4:1	standard:blank-line-between-when-conditions	auto	Add a blank line between all when-conditions in case at least one multiline when-condition is found in the statement
+5:1	standard:blank-line-between-when-conditions	auto	Add a blank line between all when-conditions in case at least one multiline when-condition is found in the statement

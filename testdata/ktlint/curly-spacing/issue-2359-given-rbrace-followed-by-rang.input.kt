@@ -1,0 +1,1 @@
+val foo = emptyList<String>().count { true }..<2

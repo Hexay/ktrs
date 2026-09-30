@@ -1,0 +1,4 @@
+rules=standard:no-trailing-spaces
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoTrailingSpacesRuleTest.Given some trailing spaces inside EOL comments then do return lint errors

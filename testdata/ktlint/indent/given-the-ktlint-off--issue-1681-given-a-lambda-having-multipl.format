@@ -1,0 +1,3 @@
+2:20	standard:parameter-list-wrapping	auto	Parameter should start on a newline
+3:9	standard:indent	auto	Unexpected indentation (19) (should be 8)
+3:25	standard:indent	auto	Unexpected indentation (19) (should be 8)

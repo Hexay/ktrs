@@ -1,0 +1,4 @@
+rules=standard:type-argument-comment
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=TypeArgumentCommentRuleTest.Given a comment on separate line before type projection ast node

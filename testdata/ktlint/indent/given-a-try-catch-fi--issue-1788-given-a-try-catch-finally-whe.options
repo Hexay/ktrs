@@ -1,0 +1,4 @@
+rules=standard:indent
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=IndentationRuleTest.Given a try-catch-finally.Issue 1788 - Given a try catch finally where catch and finally starts on a new line

@@ -1,0 +1,5 @@
+rules=standard:trailing-comma-on-declaration-site,standard:indent
+ec.ij_kotlin_allow_trailing_comma=true
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=TrailingCommaOnDeclarationSiteRuleTest.Given that the trailing comma is required on declaration site and that the trailing comma exists but is not followed by a newline then add the newline before the arrow

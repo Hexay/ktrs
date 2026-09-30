@@ -1,0 +1,4 @@
+rules=standard:type-argument-list-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=TypeArgumentListSpacingRuleTest.Given a type argument list inside a type reference then allow space after the argument list

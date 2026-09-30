@@ -1,0 +1,4 @@
+rules=standard:indent
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=IndentationRuleTest.Given an EOL comment start at position 0 of the line.Given an EOL comment starting at position 0 is not fixed

@@ -1,0 +1,13 @@
+2:19	standard:argument-list-wrapping	auto	Argument should be on a separate line (unless all arguments can fit a single line)
+3:4	standard:argument-list-wrapping	auto	Missing newline before ")"
+3:25	standard:argument-list-wrapping	auto	Argument should be on a separate line (unless all arguments can fit a single line)
+4:10	standard:argument-list-wrapping	auto	Missing newline before ")"
+4:31	standard:argument-list-wrapping	auto	Argument should be on a separate line (unless all arguments can fit a single line)
+5:16	standard:argument-list-wrapping	auto	Missing newline before ")"
+4:40	standard:argument-list-wrapping	auto	Argument should be on a separate line (unless all arguments can fit a single line)
+5:24	standard:argument-list-wrapping	auto	Missing newline before ")"
+6:2	standard:argument-list-wrapping	auto	Argument should be on a separate line (unless all arguments can fit a single line)
+6:36	standard:argument-list-wrapping	auto	Missing newline before ")"
+6:11	standard:argument-list-wrapping	auto	Argument should be on a separate line (unless all arguments can fit a single line)
+6:44	standard:argument-list-wrapping	auto	Missing newline before ")"
+6:27	standard:binary-expression-wrapping	auto	Line is exceeding max line length. Break line after '+' in binary expression

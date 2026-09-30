@@ -1,0 +1,4 @@
+rules=standard:blank-line-between-when-conditions
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=BlankLineBetweenWhenConditionsTest.Issue 3209 - Given a when-statement with single line when-conditions followed by EOL comments, and one multiline when-entry then add blank lines but keep EOL comments on same line

@@ -1,0 +1,1 @@
+val foo = find { true}?.bar

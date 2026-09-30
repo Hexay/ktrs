@@ -1,0 +1,7 @@
+fun <
+    Foo,
+
+     
+		
+    Bar,
+    > foobar()

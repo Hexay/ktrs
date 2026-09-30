@@ -1,0 +1,4 @@
+rules=standard:no-line-break-before-assignment
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoLineBreakBeforeAssignmentRuleTest.Issue 693 - Given a function declaration without space after the equals sign

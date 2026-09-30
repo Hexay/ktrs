@@ -1,0 +1,5 @@
+2:15	standard:multiline-expression-wrapping	auto	A multiline expression should start on a new line
+3:9	standard:indent	auto	Unexpected indentation (18) (should be 8)
+3:28	standard:indent	auto	Unexpected indentation (18) (should be 8)
+3:9	standard:indent	auto	Unexpected indentation (8) (should be 12)
+4:3	standard:indent	auto	Unexpected indentation (8) (should be 12)

@@ -1,0 +1,1 @@
+val foo: Map<Foo, (Foo) -> Foo> = emptyMap()

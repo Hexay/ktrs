@@ -1,0 +1,5 @@
+rules=standard:parameter-list-wrapping,standard:max-line-length,standard:indent
+ec.max_line_length=49
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ParameterListWrappingRuleTest.Issue 1255 - Given a variable declaration for nullable function type.Given a function containing a nullable function type for which the function type fits does not fit on a single line after wrapping the nullable type

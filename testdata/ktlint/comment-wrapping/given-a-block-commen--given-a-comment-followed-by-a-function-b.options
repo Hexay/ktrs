@@ -1,0 +1,4 @@
+rules=standard:comment-wrapping
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=CommentWrappingRuleTest.Given a block comment followed by a code element on the same line.Given a comment followed by a function but not separated with space

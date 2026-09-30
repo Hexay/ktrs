@@ -1,0 +1,5 @@
+rules=standard:import-ordering
+ec.ij_kotlin_imports_layout=^,|,*
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ImportOrderingRuleCustomTest.Given some imports with an empty line between imports and aliases as is required then do not return lint errors

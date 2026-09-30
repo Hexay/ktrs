@@ -1,0 +1,5 @@
+rules=standard:parameter-list-wrapping,standard:max-line-length,standard:indent
+ec.ktlint_code_style=ktlint_official
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ParameterListWrappingRuleTest.Given a multiline reference expression with trailing lambda having a multiline parameter list and the first parameter starts on same line as LBRACE[3]

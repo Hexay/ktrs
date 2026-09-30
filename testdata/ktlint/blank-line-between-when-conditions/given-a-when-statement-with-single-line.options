@@ -1,0 +1,4 @@
+rules=standard:blank-line-between-when-conditions
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=BlankLineBetweenWhenConditionsTest.Given a when-statement with single line when-conditions only then do no reformat

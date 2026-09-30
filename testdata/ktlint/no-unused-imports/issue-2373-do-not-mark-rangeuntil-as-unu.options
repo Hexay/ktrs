@@ -1,0 +1,5 @@
+rules=standard:no-unused-imports
+ec.ktlint_standard_no-unused-imports=enabled
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoUnusedImportsRuleTest.Issue 2373 - Do not mark rangeUntil as unused import

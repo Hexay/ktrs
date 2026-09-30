@@ -1,0 +1,5 @@
+rules=standard:function-signature,standard:max-line-length
+ec.ktlint_code_style=android_studio
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=FunctionSignatureRuleTest.Given a single line function signature with an annotated parameter.Given non-ktlint_official code style[1]

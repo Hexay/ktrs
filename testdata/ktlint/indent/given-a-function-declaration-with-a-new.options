@@ -1,0 +1,4 @@
+rules=standard:indent
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=IndentationRuleTest.Given a function declaration with a new line after the equality sign then do no return any lint errors

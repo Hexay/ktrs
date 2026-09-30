@@ -1,0 +1,4 @@
+rules=standard:colon-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=SpacingAroundColonRuleTest.Given a generic function type parameter without space before the colon

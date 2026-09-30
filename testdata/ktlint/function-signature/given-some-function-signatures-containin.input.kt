@@ -1,0 +1,10 @@
+// Max line length marker:                     #
+private /* some comment */ fun f1(a: Any, b: Any): String = "some-result"
+private fun /* some comment */ f2(a: Any, b: Any): String = "some-result"
+private fun f3 /* some comment */ (a: Any, b: Any): String = "some-result"
+private fun f5(a /* some comment */: Any, b: Any): String = "some-result"
+private fun f6(a: /* some comment */ Any, b: Any): String = "some-result"
+private fun f7(a: Any /* some comment */, b: Any): String = "some-result"
+private fun f8(a: Any, b: Any) /* some comment */: String = "some-result"
+private fun f9(a: Any, b: Any): /* some comment */ String = "some-result"
+private fun f10(a: Any, b: Any): String /* some comment */ = "some-result"

@@ -1,0 +1,1 @@
+fun <T> max(a: T, b: T) where T : Comparable<T>

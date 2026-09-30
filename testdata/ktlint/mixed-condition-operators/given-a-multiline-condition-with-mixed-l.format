@@ -1,0 +1,1 @@
+1:11	standard:mixed-condition-operators	manual	A condition with mixed usage of '&&' and '||' is hard to read. Use parenthesis to clarify the (sub)condition.

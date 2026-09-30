@@ -1,0 +1,4 @@
+rules=standard:chain-method-continuation,standard:max-line-length
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ChainMethodContinuationRuleTest.Given that no maximum line length is set, and a single line method chain does not exceed the maximum number of chain operators then do not wrap

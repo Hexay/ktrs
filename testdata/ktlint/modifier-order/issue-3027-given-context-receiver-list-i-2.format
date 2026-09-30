@@ -1,0 +1,4 @@
+2:1	standard:modifier-order	auto	Incorrect modifier order (should be "@Annotation... context(Foo) private")
+3:1	standard:modifier-order	auto	Incorrect modifier order (should be "@Annotation... context(Foo) private")
+5:1	standard:modifier-order	auto	Incorrect modifier order (should be "@Annotation... context(_: Foo) private")
+6:1	standard:modifier-order	auto	Incorrect modifier order (should be "@Annotation... context(_: Foo) private")

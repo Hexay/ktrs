@@ -1,0 +1,4 @@
+3:34	standard:max-line-length	manual	Exceeded max line length (33)
+3:35	standard:parameter-wrapping	auto	Missing newline after ":"
+12:34	standard:max-line-length	manual	Exceeded max line length (33)
+12:35	standard:parameter-wrapping	auto	Missing newline after ":"

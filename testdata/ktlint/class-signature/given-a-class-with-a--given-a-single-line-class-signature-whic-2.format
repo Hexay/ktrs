@@ -1,0 +1,6 @@
+2:34	standard:class-signature	auto	Expected a single space before class body
+2:35	standard:max-line-length	manual	Exceeded max line length (34)
+2:11	standard:class-signature	auto	Newline expected after opening parenthesis
+2:24	standard:class-signature	auto	Parameter should start on a newline
+3:1	standard:class-signature	auto	Parameter should start on a newline
+3:11	standard:class-signature	auto	Newline expected before closing parenthesis

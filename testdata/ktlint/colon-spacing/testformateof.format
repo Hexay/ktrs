@@ -1,0 +1,6 @@
+1:8	standard:colon-spacing	auto	Unexpected newline before ":"
+4:19	standard:colon-spacing	auto	Unexpected newline before ":"
+4:8	standard:colon-spacing	auto	Missing spacing before ":"
+8:3	standard:colon-spacing	auto	Unexpected newline before ":"
+6:8	standard:colon-spacing	auto	Missing spacing before ":"
+10:17	standard:colon-spacing	auto	Unexpected newline before ":"

@@ -1,0 +1,5 @@
+rules=standard:argument-list-wrapping,standard:max-line-length,standard:max-line-length,standard:value-parameter-comment,standard:value-argument-comment
+ec.max_line_length=44
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ArgumentListWrappingRuleTest.Issue 2450 - Given a statement followed by an EOL comment that causes the max line length to be exceeded then only report a violation via max-line-length rule

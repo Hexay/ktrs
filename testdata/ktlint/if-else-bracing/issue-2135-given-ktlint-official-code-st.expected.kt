@@ -1,0 +1,1 @@
+val foo = if (false) {} else { bar() }

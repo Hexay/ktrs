@@ -1,0 +1,4 @@
+rules=standard:type-parameter-list-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=TypeParameterListSpacingRuleTest.Given a class or interface definition with a type parameter list followed by multiple spaces then the redundant spaces are removed

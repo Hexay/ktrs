@@ -1,0 +1,1 @@
+fun foo(): List<String?> = listOf("some-result", null)

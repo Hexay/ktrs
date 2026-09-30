@@ -1,0 +1,1 @@
+val foo = Foo(1 , 2)

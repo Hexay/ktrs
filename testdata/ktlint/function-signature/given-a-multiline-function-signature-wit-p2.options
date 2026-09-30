@@ -1,0 +1,6 @@
+rules=standard:function-signature,standard:max-line-length,standard:indent
+ec.max_line_length=34
+ec.ktlint_function_signature_body_expression_wrapping=multiline
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=FunctionSignatureRuleTest.Given a multiline function signature without explicit return type and start of body expression on next line then keep first line of body expression body on the same line as the last line of the function signature[2]

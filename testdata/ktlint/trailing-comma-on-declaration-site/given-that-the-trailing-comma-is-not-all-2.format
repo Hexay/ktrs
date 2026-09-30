@@ -1,0 +1,3 @@
+2:9	standard:trailing-comma-on-declaration-site	auto	Unnecessary trailing comma before "->"
+3:8	standard:trailing-comma-on-declaration-site	auto	Unnecessary trailing comma before "->"
+6:4	standard:trailing-comma-on-declaration-site	auto	Unnecessary trailing comma before "->"

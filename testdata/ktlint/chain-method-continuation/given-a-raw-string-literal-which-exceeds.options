@@ -1,0 +1,5 @@
+rules=standard:chain-method-continuation,standard:max-line-length
+ec.max_line_length=29
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ChainMethodContinuationRuleTest.Given a raw string literal which exceeds the maximum line length and contains a dot qualified expression

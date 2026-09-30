@@ -1,0 +1,2 @@
+2:35	standard:max-line-length	manual	Exceeded max line length (34)
+5:4	standard:function-signature	auto	First line of body expression fits on same line as function signature

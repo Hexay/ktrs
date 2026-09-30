@@ -1,0 +1,3 @@
+3:5	standard:function-signature	auto	No whitespace expected between opening parenthesis and first parameter name
+3:12	standard:function-signature	auto	Single whitespace expected before parameter
+4:2	standard:function-signature	auto	No whitespace expected between last parameter and closing parenthesis

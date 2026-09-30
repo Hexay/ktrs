@@ -1,0 +1,1 @@
+fun <T> Generics(action: () -> T): Generics<T> = Generics(action())

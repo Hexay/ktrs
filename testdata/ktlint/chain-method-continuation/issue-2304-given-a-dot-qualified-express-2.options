@@ -1,0 +1,4 @@
+rules=standard:chain-method-continuation,standard:max-line-length
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ChainMethodContinuationRuleTest.Issue 2304 - Given a dot qualified expression in which the call expression returns a function which is called with value argument

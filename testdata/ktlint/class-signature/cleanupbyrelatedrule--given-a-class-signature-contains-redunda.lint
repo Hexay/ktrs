@@ -1,0 +1,43 @@
+1:9	standard:no-multi-spaces	auto	Unnecessary long whitespace
+2:11	standard:paren-spacing	auto	Unexpected spacing before "("
+2:12	standard:no-multi-spaces	auto	Unnecessary long whitespace
+3:12	standard:paren-spacing	auto	Unexpected spacing after "("
+3:13	standard:no-multi-spaces	auto	Unnecessary long whitespace
+3:14	standard:class-signature	auto	No whitespace expected between opening parenthesis and first parameter name
+4:14	standard:no-multi-spaces	auto	Unnecessary long whitespace
+4:15	standard:colon-spacing	auto	Unexpected spacing before ":"
+5:15	standard:no-multi-spaces	auto	Unnecessary long whitespace
+6:18	standard:comma-spacing	auto	Unexpected spacing before ","
+6:19	standard:no-multi-spaces	auto	Unnecessary long whitespace
+7:20	standard:no-multi-spaces	auto	Unnecessary long whitespace
+7:21	standard:class-signature	auto	Single whitespace expected before parameter
+8:26	standard:class-signature	auto	No whitespace expected between last parameter and closing parenthesis
+8:26	standard:paren-spacing	auto	Unexpected spacing before ")"
+8:27	standard:no-multi-spaces	auto	Unnecessary long whitespace
+9:12	standard:paren-spacing	auto	Unexpected spacing after "("
+9:13	standard:no-multi-spaces	auto	Unnecessary long whitespace
+9:14	standard:class-signature	auto	No whitespace expected between opening parenthesis and first parameter name
+10:20	standard:no-multi-spaces	auto	Unnecessary long whitespace
+11:13	standard:no-multi-spaces	auto	Unnecessary long whitespace
+11:14	standard:class-signature	auto	Expected a single space before class body
+12:13	standard:no-multi-spaces	auto	Unnecessary long whitespace
+13:15	standard:no-multi-spaces	auto	Unnecessary long whitespace
+13:16	standard:class-signature	auto	Expected single space before the super type
+14:13	standard:spacing-around-angle-brackets	auto	Unexpected spacing after "<"
+14:14	standard:no-multi-spaces	auto	Unnecessary long whitespace
+15:16	standard:spacing-around-angle-brackets	auto	Unexpected spacing before ">"
+15:17	standard:no-multi-spaces	auto	Unnecessary long whitespace
+16:15	standard:no-multi-spaces	auto	Unnecessary long whitespace
+17:17	standard:no-multi-spaces	auto	Unnecessary long whitespace
+18:16	standard:comma-spacing	auto	Unexpected spacing before ","
+18:17	standard:no-multi-spaces	auto	Unnecessary long whitespace
+19:18	standard:no-multi-spaces	auto	Unnecessary long whitespace
+20:21	standard:spacing-around-angle-brackets	auto	Unexpected spacing before ">"
+20:22	standard:no-multi-spaces	auto	Unnecessary long whitespace
+21:21	standard:spacing-around-angle-brackets	auto	Unexpected spacing after "<"
+21:22	standard:no-multi-spaces	auto	Unnecessary long whitespace
+22:24	standard:comma-spacing	auto	Unexpected spacing before ","
+22:25	standard:no-multi-spaces	auto	Unnecessary long whitespace
+23:26	standard:no-multi-spaces	auto	Unnecessary long whitespace
+24:29	standard:spacing-around-angle-brackets	auto	Unexpected spacing before ">"
+24:30	standard:no-multi-spaces	auto	Unnecessary long whitespace

@@ -1,0 +1,3 @@
+var foo: (
+    () -> Unit
+)? = null

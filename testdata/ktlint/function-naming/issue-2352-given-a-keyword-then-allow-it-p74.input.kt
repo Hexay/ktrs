@@ -1,0 +1,1 @@
+fun `infix`() = "foo"

@@ -1,0 +1,5 @@
+rules=standard:argument-list-wrapping,standard:max-line-length
+ec.max_line_length=20
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ArgumentListWrappingRuleTest.Issue 1010 - Given a lambda containing a line break and a line in that lambda exceeds the max line limit 

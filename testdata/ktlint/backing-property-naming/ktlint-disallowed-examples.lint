@@ -1,0 +1,3 @@
+3:17	standard:backing-property-naming	manual	Backing property is only allowed when a matching property or function exists
+7:9	standard:backing-property-naming	manual	Backing property not allowed when 'private' modifier is missing
+14:17	standard:backing-property-naming	manual	Backing property is only allowed when the matching property or function is public

@@ -1,0 +1,4 @@
+rules=standard:blank-line-before-imports,standard:no-consecutive-blank-lines
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=BlankLineBeforeImportsTest.Given too many blank lines between package and import then emit and autocorrect

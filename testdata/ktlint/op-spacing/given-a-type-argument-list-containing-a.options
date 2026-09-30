@@ -1,0 +1,4 @@
+rules=standard:op-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=SpacingAroundOperatorsRuleTest.Given a type argument list, containing a wildcard type then do not require space around the wildcard

@@ -1,0 +1,4 @@
+rules=standard:argument-list-wrapping,standard:max-line-length
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ArgumentListWrappingRuleTest.Issue 929 - Given a do-while-statement with a function call

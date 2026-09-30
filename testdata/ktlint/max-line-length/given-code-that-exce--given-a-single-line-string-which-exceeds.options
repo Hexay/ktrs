@@ -1,0 +1,5 @@
+rules=standard:max-line-length
+ec.max_line_length=37
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=MaxLineLengthRuleTest.Given code that exceeds the max line length but for which no lint error should be returned.Given a single line string which exceeds the max line length, and which has no other non-whitespace elements on the same line then do not return a lint error

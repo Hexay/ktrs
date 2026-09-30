@@ -1,0 +1,5 @@
+2:14	standard:then-spacing	auto	Expected a whitespace before 'then' block
+3:14	standard:then-spacing	auto	Expected a whitespace before 'then' block
+3:17	standard:then-spacing	auto	Expected a whitespace after 'then' block
+4:14	standard:then-spacing	auto	Expected a whitespace before 'then' block
+4:22	standard:then-spacing	auto	Expected a whitespace after 'then' block

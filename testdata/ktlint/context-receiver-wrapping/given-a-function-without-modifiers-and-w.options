@@ -1,0 +1,4 @@
+rules=standard:context-receiver-wrapping,standard:max-line-length
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ContextReceiverWrappingRuleTest.Given a function without modifiers and with a context receiver followed by a block comment and the fun keyword on the same line then wrap the fun keyword to a newline

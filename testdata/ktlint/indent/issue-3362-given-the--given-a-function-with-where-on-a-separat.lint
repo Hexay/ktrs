@@ -1,0 +1,6 @@
+6:1	standard:indent	auto	Unexpected space character(s)
+6:1	standard:indent	auto	Unexpected indentation (4) (should be 1)
+7:1	standard:indent	auto	Unexpected space character(s)
+7:1	standard:indent	auto	Unexpected indentation (10) (should be 7)
+8:1	standard:indent	auto	Unexpected space character(s)
+8:1	standard:indent	auto	Unexpected indentation (4) (should be 1)

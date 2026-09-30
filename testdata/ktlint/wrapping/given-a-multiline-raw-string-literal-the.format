@@ -1,0 +1,8 @@
+2:13	standard:wrapping	auto	Missing newline after "("
+4:7	standard:wrapping	auto	Missing newline before ")"
+5:11	standard:wrapping	auto	Missing newline after "("
+7:5	standard:wrapping	auto	Missing newline before ")"
+1:1	standard:wrapping	auto	Missing newline after "("
+1:1	standard:wrapping	auto	Missing newline before ")"
+6:2	standard:indent	auto	Unexpected indent of multiline string closing quotes
+1:1	standard:indent	auto	Unexpected indent of multiline string closing quotes

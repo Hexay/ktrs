@@ -1,0 +1,2 @@
+1:26	standard:annotation	auto	Expected newline after last annotation
+1:27	standard:annotation	auto	File annotations should be separated from file contents with a blank line

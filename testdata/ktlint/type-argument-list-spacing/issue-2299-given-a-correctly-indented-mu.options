@@ -1,0 +1,4 @@
+rules=standard:type-argument-list-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=TypeArgumentListSpacingRuleTest.Issue 2299 - Given a correctly indented multiline type argument list then do not report violations

@@ -1,0 +1,4 @@
+rules=standard:kdoc-wrapping
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=KdocWrappingRuleTest.Given a KDoc comment which is indented then keep that indent when wrapping the line

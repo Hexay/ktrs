@@ -1,0 +1,4 @@
+rules=standard:unnecessary-parentheses-before-trailing-lambda
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=UnnecessaryParenthesesBeforeTrailingLambdaRuleTest.Remove unnecessary parentheses in function call followed by lambda

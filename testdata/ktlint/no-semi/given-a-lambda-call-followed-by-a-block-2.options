@@ -1,0 +1,4 @@
+rules=standard:no-semi
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoSemicolonsRuleTest.Given a lambda call followed by a block preceded with a KDoc then do not return a lint error

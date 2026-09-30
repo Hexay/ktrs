@@ -1,0 +1,1 @@
+fun foo(): Foo = throw IllegalArgumentException("some message")

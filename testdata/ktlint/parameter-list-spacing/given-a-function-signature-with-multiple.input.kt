@@ -1,0 +1,1 @@
+fun foo(c :Any, d :   Any,   b :  Any ,  vararg  a :  Any ) = "some-result"

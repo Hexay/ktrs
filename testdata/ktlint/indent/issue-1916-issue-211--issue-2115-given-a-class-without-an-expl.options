@@ -1,0 +1,5 @@
+rules=standard:indent
+ec.ktlint_code_style=ktlint_official
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=IndentationRuleTest.Issue 1916, issue 2115 - Given the ktlint_official code style and a class declaration with an annotated constructor.Issue 2115 - Given a class without an explicit constructor and with a long super type list then do not indent the class body

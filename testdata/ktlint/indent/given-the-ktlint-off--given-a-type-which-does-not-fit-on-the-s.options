@@ -1,0 +1,6 @@
+rules=standard:indent,standard:parameter-wrapping,standard:max-line-length
+ec.ktlint_code_style=ktlint_official
+ec.max_line_length=38
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=IndentationRuleTest.Given the ktlint_official code style is enabled.Given a type which does not fit on the same line as the variable name

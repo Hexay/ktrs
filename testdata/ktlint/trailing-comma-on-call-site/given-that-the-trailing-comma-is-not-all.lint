@@ -1,0 +1,4 @@
+1:23	standard:trailing-comma-on-call-site	auto	Unnecessary trailing comma before ">"
+3:11	standard:trailing-comma-on-call-site	auto	Unnecessary trailing comma before ">"
+6:11	standard:trailing-comma-on-call-site	auto	Unnecessary trailing comma before ">"
+7:1	standard:indent	auto	Unexpected indentation (4) (should be 0)

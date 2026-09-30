@@ -1,0 +1,5 @@
+rules=standard:context-receiver-wrapping,standard:max-line-length
+ec.max_line_length=29
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ContextReceiverWrappingRuleTest.Given a function with a context receiver having a generic type and the context receiver line (including it projection types) is exceeding the max line length then wrap the type projections to separate lines

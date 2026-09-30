@@ -1,0 +1,4 @@
+rules=standard:context-receiver-wrapping,standard:max-line-length
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ContextReceiverWrappingRuleTest.Given a function with a context receiver on the same line as the first modifier (annotation) the wrap the first modifier to a newline

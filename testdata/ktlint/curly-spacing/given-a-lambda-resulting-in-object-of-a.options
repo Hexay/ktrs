@@ -1,0 +1,4 @@
+rules=standard:curly-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=SpacingAroundCurlyRuleTest.Given a lambda resulting in object of a class having an invoke function which is called then no space is allowed before call of the invoke function

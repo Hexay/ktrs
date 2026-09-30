@@ -1,0 +1,3 @@
+fun someFunction() = """
+				someText
+				""".trimIndent()

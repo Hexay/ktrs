@@ -1,0 +1,1 @@
+1:1	standard:import-ordering	auto	Imports must be ordered in lexicographic order without any empty lines in-between with "java", "javax", "kotlin" and aliases in the end

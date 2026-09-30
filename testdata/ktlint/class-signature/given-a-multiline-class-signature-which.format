@@ -1,0 +1,4 @@
+3:5	standard:class-signature	auto	No whitespace expected between opening parenthesis and first parameter name
+3:12	standard:class-signature	auto	Single whitespace expected before parameter
+4:8	standard:class-signature	auto	Single whitespace expected before parameter
+4:10	standard:class-signature	auto	No whitespace expected between last parameter and closing parenthesis

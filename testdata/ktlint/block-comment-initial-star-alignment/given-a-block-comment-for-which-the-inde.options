@@ -1,0 +1,4 @@
+rules=standard:block-comment-initial-star-alignment
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=BlockCommentInitialStarAlignmentRuleTest.Given a block comment for which the indentation followed by the star already aligns with the star in the first line of the block comment then do not reformat

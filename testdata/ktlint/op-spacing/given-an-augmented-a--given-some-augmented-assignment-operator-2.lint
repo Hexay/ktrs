@@ -1,0 +1,4 @@
+3:6	standard:op-spacing	auto	Missing spacing around "+="
+4:6	standard:op-spacing	auto	Missing spacing around "-="
+5:6	standard:op-spacing	auto	Missing spacing around "/="
+6:6	standard:op-spacing	auto	Missing spacing around "*="

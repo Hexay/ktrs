@@ -1,0 +1,8 @@
+3:9	standard:multiline-if-else	auto	Missing { ... }
+3:3	standard:indent	auto	Unexpected indentation (8) (should be 12)
+4:7	standard:indent	auto	Unexpected indentation (4) (should be 8)
+5:21	standard:multiline-if-else	auto	Missing { ... }
+3:3	standard:indent	auto	Unexpected indentation (12) (should be 8)
+4:3	standard:indent	auto	Unexpected indentation (8) (should be 4)
+5:7	standard:indent	auto	Unexpected indentation (12) (should be 8)
+1:1	standard:indent	auto	Unexpected indentation (8) (should be 4)

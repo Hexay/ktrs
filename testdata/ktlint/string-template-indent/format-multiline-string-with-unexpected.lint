@@ -1,0 +1,4 @@
+1:11	standard:string-template-indent	auto	Expected newline before multiline string template
+2:1	standard:string-template-indent	auto	Unexpected 'tab' character(s) in margin of multiline string
+3:1	standard:string-template-indent	auto	Unexpected 'tab' character(s) in margin of multiline string
+4:1	standard:string-template-indent	auto	Unexpected indent of raw string literal

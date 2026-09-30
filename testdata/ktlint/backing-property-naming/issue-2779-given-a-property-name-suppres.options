@@ -1,0 +1,4 @@
+rules=standard:backing-property-naming
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=BackingPropertyNamingRuleTest.Issue 2779 - Given a property name suppressed via 'LocalVariableName' then also suppress the ktlint violation

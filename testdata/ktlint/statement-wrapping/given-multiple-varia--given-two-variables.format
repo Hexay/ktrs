@@ -1,0 +1,4 @@
+2:18	standard:statement-wrapping	auto	Missing newline after ';'
+3:34	standard:statement-wrapping	auto	Missing newline after ';'
+2:17	standard:no-semi	auto	Unnecessary semicolon
+3:32	standard:no-semi	auto	Unnecessary semicolon

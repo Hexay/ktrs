@@ -1,0 +1,1 @@
+fun `const`() = "foo"

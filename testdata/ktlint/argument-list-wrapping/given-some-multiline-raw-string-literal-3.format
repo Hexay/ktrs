@@ -1,0 +1,2 @@
+4:15	standard:argument-list-wrapping	auto	Argument should be on a separate line (unless all arguments can fit a single line)
+5:7	standard:argument-list-wrapping	auto	Missing newline before ")"

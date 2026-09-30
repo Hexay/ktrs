@@ -1,0 +1,4 @@
+rules=standard:modifier-list-spacing,standard:modifier-order,standard:annotation
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ModifierListSpacingRuleTest.Given an annotation, a context parameter, and other modifiers on a single line in incorrect order

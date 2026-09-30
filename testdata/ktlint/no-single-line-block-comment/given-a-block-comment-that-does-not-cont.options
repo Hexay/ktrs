@@ -1,0 +1,4 @@
+rules=standard:no-single-line-block-comment
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoSingleLineBlockCommentRuleTest.Given a block comment that does not contain a newline and which is after some code om the same line is changed to an EOL comment

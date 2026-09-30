@@ -1,0 +1,5 @@
+2:5	standard:modifier-order	auto	Incorrect modifier order (should be "public override")
+3:5	standard:modifier-order	auto	Incorrect modifier order (should be "override suspend")
+4:5	standard:modifier-order	auto	Incorrect modifier order (should be "override tailrec")
+5:5	standard:modifier-order	auto	Incorrect modifier order (should be "@Annotation... override")
+6:5	standard:modifier-order	auto	Incorrect modifier order (should be "@Annotation... public override suspend")

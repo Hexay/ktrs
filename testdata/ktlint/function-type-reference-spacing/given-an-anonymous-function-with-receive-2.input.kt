@@ -1,0 +1,1 @@
+val anonymousFunction = fun Boolean.(): String? = if (this) "Test string" else null

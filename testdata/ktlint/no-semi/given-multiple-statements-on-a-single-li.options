@@ -1,0 +1,4 @@
+rules=standard:no-semi
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoSemicolonsRuleTest.Given multiple statements on a single line and semicolon not followed by space then do return a lint error

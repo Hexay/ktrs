@@ -1,0 +1,4 @@
+rules=standard:wrapping,standard:max-line-length
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=WrappingRuleTest.Issue 1578 - Given a destructuring declaration followed by a trailing comma then do not require it to be followed by a newline as no other value parameter follows

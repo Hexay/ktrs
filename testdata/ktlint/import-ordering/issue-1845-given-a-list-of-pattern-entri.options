@@ -1,0 +1,5 @@
+rules=standard:import-ordering
+ec.ij_kotlin_imports_layout=*, |, javax.**, java.**, |, kotlinx.**, kotlin.**
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ImportOrderingRuleCustomTest.Issue 1845 - Given a list of pattern entries including a '|' pattern but no import exists that match any pattern before the first '|'

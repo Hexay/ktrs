@@ -1,0 +1,4 @@
+rules=standard:blank-line-before-package,standard:no-consecutive-blank-lines
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=BlankLineBeforePackageTest.Given a copyright comment and package statement separated by too many blank line then do remove the redundant blank lines

@@ -1,0 +1,5 @@
+rules=standard:call-expression-wrapping,standard:max-line-length
+ec.max_line_length=34
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=CallExpressionWrappingRuleTest.Given a single line call expression with argument in the reference expression which does not fits on the line then wrap after opening parenthesis of the reference expression

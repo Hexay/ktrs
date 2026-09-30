@@ -1,0 +1,4 @@
+rules=standard:lambda-return
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=LambdaReturnRuleTest.Given a lambda with an unnecessary return statement and some comments then remove the return but keep the comments

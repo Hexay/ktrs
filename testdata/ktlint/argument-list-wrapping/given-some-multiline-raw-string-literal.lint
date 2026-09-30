@@ -1,0 +1,3 @@
+8:23	standard:argument-list-wrapping	auto	Argument should be on a separate line (unless all arguments can fit a single line)
+8:33	standard:max-line-length	manual	Exceeded max line length (33)
+8:34	standard:argument-list-wrapping	auto	Missing newline before ")"

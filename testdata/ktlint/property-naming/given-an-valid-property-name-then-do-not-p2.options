@@ -1,0 +1,4 @@
+rules=standard:property-naming
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=PropertyNamingRuleTest.Given an valid property name then do not emit[2]

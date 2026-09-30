@@ -1,0 +1,4 @@
+rules=standard:paren-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=SpacingAroundParensRuleTest.Given an annotated function type then allow a space before the opening parenthesis

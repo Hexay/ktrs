@@ -1,0 +1,6 @@
+val foo1 = listOf(1, 2, 3)
+    .bar().foo()?.fooBar()
+val foo2 = listOf(1, 2, 3).bar()
+    .foo()?.fooBar()
+val foo3 = listOf(1, 2, 3).bar().foo()
+    ?.fooBar()

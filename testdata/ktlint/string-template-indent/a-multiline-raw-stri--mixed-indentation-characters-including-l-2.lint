@@ -1,0 +1,2 @@
+1:11	standard:string-template-indent	auto	Expected newline before multiline string template
+1:11	standard:string-template-indent	manual	Indentation of multiline raw string literal should not contain both tab(s) and space(s)

@@ -1,0 +1,2 @@
+fun
+foo() = "some-result"

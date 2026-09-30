@@ -1,0 +1,2 @@
+3:12	standard:binary-expression-wrapping	auto	Newline expected after '{'
+3:59	standard:binary-expression-wrapping	auto	Newline expected before '}'
