@@ -8,8 +8,18 @@ plugins {
 group = "io.github.hexay"
 version = providers.gradleProperty("ktrsVersion").getOrElse("0.2.0")
 
-// `publishToMavenCentral` needs mavenCentralUsername/Password and signingInMemoryKey[Password]
-// (ORG_GRADLE_PROJECT_* in CI); see .github/workflows/release.yml.
+// Two destinations (see .github/workflows/release.yml): the Maven repo served by GitHub Pages
+// (`publishAllPublicationsToGithubPagesRepository -PpagesRepo=<checkout of gh-pages>/maven`), and
+// Maven Central, which needs mavenCentralUsername/Password and signingInMemoryKey[Password].
+publishing {
+    repositories {
+        maven {
+            name = "githubPages"
+            url = uri(providers.gradleProperty("pagesRepo").getOrElse(layout.buildDirectory.dir("pages-repo").get().asFile.path))
+        }
+    }
+}
+
 mavenPublishing {
     publishToMavenCentral()
     if (providers.gradleProperty("signingInMemoryKey").isPresent) {

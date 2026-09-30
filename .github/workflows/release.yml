@@ -54,8 +54,8 @@ jobs:
             ktrs-*.tar.gz
             ktrs-*.zip
 
-  # The JVM wrapper (io.github.hexay:ktrs) with all six binaries bundled. Maven Central publishing
-  # runs only when the MAVEN_CENTRAL_* and SIGNING_* secrets exist.
+  # The JVM wrapper (io.github.hexay:ktrs) with all six binaries bundled, published to the GitHub
+  # Pages Maven repo, and to Maven Central only when the MAVEN_CENTRAL_* and SIGNING_* secrets exist.
   java:
     needs: build
     runs-on: ubuntu-24.04
@@ -89,6 +89,19 @@ jobs:
       - name: Test and build
         working-directory: java
         run: ./gradlew --console=plain test jar -PktrsVersion=${GITHUB_REF_NAME#v} -PktrsExecutable=native/linux-x86_64/ktrs
+      # Served at https://hexay.github.io/ktrs/maven once Pages serves the gh-pages branch.
+      - name: Publish to the GitHub Pages Maven repo
+        shell: bash
+        run: |
+          if git fetch -q origin gh-pages:gh-pages; then git worktree add pages gh-pages; else git worktree add --orphan -b gh-pages pages; fi
+          (cd java && ./gradlew --console=plain publishAllPublicationsToGithubPagesRepository \
+            -PktrsVersion=${GITHUB_REF_NAME#v} -PpagesRepo="$GITHUB_WORKSPACE/pages/maven")
+          cd pages
+          touch .nojekyll
+          git add -A
+          git -c user.name=github-actions[bot] -c user.email=41898282+github-actions[bot]@users.noreply.github.com \
+            commit -q -m "maven: io.github.hexay:ktrs:${GITHUB_REF_NAME#v}"
+          git push -q origin gh-pages
       - name: Publish to Maven Central
         if: env.ORG_GRADLE_PROJECT_mavenCentralUsername != ''
         working-directory: java
