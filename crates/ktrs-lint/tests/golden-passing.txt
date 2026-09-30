@@ -108,6 +108,7 @@ argument-list-wrapping/issue-1081-given
 argument-list-wrapping/issue-1112-given-an-argument-list-in-lam
 argument-list-wrapping/issue-1198-given-a-parameter-list-with-a
 argument-list-wrapping/issue-1643-do-not-wrap-arguments-if-afte
+argument-list-wrapping/issue-2450-given-a-statement-followed-by
 argument-list-wrapping/issue-2499-given-a-function-signature-wi
 argument-list-wrapping/issue-927-allow-inline-block-comment-bef
 argument-list-wrapping/issue-928-given-a-lambda-argument-contai
@@ -473,6 +474,7 @@ class-signature/given-a-single-line-class-signature-havi
 class-signature/given-a-single-line-class-signature-with
 class-signature/given-a-single-line-class-signature-with-2
 class-signature/given-a-single-line-primary-constructor
+class-signature/given-a-super-type-call-entry-with-argum
 class-signature/given-an-abstract-class-declaration
 class-signature/given-that-the-primary-constructor-param
 class-signature/issue-2425-given-an-expected-annotation
@@ -1256,6 +1258,7 @@ kdoc-wrapping/given-a-kdoc-comment-followed-by-a-code
 kdoc-wrapping/given-a-kdoc-comment-which-is-indented-t
 kdoc-wrapping/given-a-multi-line-kdoc-comment-that-sta
 kdoc-wrapping/given-a-single-line-kdoc-comment-that-st
+kdoc-wrapping/issue-2535-given-a-class-with-a-kdoc-on
 keyword-spacing/given-a-do-while-statement-without-space
 keyword-spacing/given-a-do-while-statement-without-space-2
 keyword-spacing/given-a-getter-with-an-unexpected-space
@@ -1655,6 +1658,7 @@ parameter-list-wrapping/issue-1255-given-a-v--given-a-function-containing-a-null
 parameter-list-wrapping/issue-1255-given-a-v--given-a-nullable-function-type-for-which
 parameter-list-wrapping/issue-1255-given-a-v--given-a-nullable-function-type-for-which-2
 parameter-list-wrapping/issue-2450-given-a-variable-declaration
+parameter-list-wrapping/issue-2535-given-a-class-with-a-kdoc-on
 parameter-list-wrapping/issue-680-multiline-type-parameter-list
 parameter-list-wrapping/multiline-type-argument-list-in-function
 parameter-list-wrapping/testcommentsareignored
