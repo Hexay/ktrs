@@ -1,4 +1,4 @@
-# 17 — ktlint 2.0.0-ALPHA-4 on the corpus: violations per rule (phase-2 port order input) (2026-09-30)
+# 18 — ktlint 2.0.0-ALPHA-4 on the corpus: violations per rule (phase-2 port order input) (2026-09-30)
 
 Oracle: `KtlintProbe` (tools/ktlint-oracle) with all standard rules, `ktlint_code_style = ktlint_official`, on the 6,123
 corpus files at `corpus/REVISIONS` (testbox). Regenerate:
