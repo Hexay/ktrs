@@ -1,9 +1,13 @@
 //! The ported standard rules (`ktlint-ruleset-standard`), registered like `StandardRuleSetProvider`.
 
+mod annotation;
+mod annotation_spacing_rule;
 mod backing_property_naming_rule;
+mod blank_line_between_when_conditions;
 mod class_naming_rule;
 pub mod class_signature;
 mod enum_entry_name_case_rule;
+mod enum_wrapping_rule;
 mod filename_rule;
 mod final_newline_rule;
 mod fun_keyword_spacing_rule;
@@ -14,6 +18,8 @@ pub mod function_signature;
 mod function_start_of_body_spacing_rule;
 mod function_type_modifier_spacing_rule;
 mod function_type_reference_spacing_rule;
+mod if_else_bracing_rule;
+mod if_else_wrapping_rule;
 mod import_ordering_rule;
 mod indentation;
 pub mod internal;
@@ -22,8 +28,10 @@ mod mixed_condition_operators_rule;
 mod modifier_list_spacing_rule;
 mod modifier_order_rule;
 mod multi_line_if_else_rule;
+mod multiline_loop_rule;
 mod no_blank_line_at_start_of_file_rule;
 mod no_empty_file_rule;
+mod no_line_break_after_else_rule;
 mod no_multiple_spaces_rule;
 mod no_semicolons_rule;
 mod no_trailing_spaces_rule;
@@ -49,14 +57,22 @@ mod spacing_around_unary_operator_rule;
 mod spacing_between_function_name_and_opening_parenthesis_rule;
 mod string_template_indent;
 mod string_template_rule;
+mod then_spacing_rule;
+mod trailing_comma_on_call_site_rule;
+mod trailing_comma_on_declaration_site;
 mod try_catch_finally_spacing_rule;
 mod type_argument_list_spacing_rule;
 mod type_parameter_list_spacing_rule;
+mod when_entry_bracing;
 
+pub use annotation::{ANNOTATIONS_WITH_PARAMETERS_NOT_TO_BE_WRAPPED_PROPERTY, AnnotationRule};
+pub use annotation_spacing_rule::AnnotationSpacingRule;
 pub use backing_property_naming_rule::BackingPropertyNamingRule;
+pub use blank_line_between_when_conditions::{BlankLineBetweenWhenConditions, LINE_BREAK_AFTER_WHEN_CONDITION_PROPERTY};
 pub use class_naming_rule::ClassNamingRule;
 pub use class_signature::ClassSignatureRule;
 pub use enum_entry_name_case_rule::EnumEntryNameCaseRule;
+pub use enum_wrapping_rule::EnumWrappingRule;
 pub use filename_rule::FilenameRule;
 pub use final_newline_rule::FinalNewlineRule;
 pub use fun_keyword_spacing_rule::FunKeywordSpacingRule;
@@ -67,6 +83,8 @@ pub use function_signature::FunctionSignatureRule;
 pub use function_start_of_body_spacing_rule::FunctionStartOfBodySpacingRule;
 pub use function_type_modifier_spacing_rule::FunctionTypeModifierSpacingRule;
 pub use function_type_reference_spacing_rule::FunctionTypeReferenceSpacingRule;
+pub use if_else_bracing_rule::IfElseBracingRule;
+pub use if_else_wrapping_rule::IfElseWrappingRule;
 pub use import_ordering_rule::ImportOrderingRule;
 pub use indentation::{INDENT_WHEN_ARROW_ON_NEW_LINE, IndentationRule};
 pub use max_line_length_rule::MaxLineLengthRule;
@@ -74,8 +92,10 @@ pub use mixed_condition_operators_rule::MixedConditionOperatorsRule;
 pub use modifier_list_spacing_rule::ModifierListSpacingRule;
 pub use modifier_order_rule::ModifierOrderRule;
 pub use multi_line_if_else_rule::MultiLineIfElseRule;
+pub use multiline_loop_rule::MultilineLoopRule;
 pub use no_blank_line_at_start_of_file_rule::NoBlankLineAtStartOfFileRule;
 pub use no_empty_file_rule::NoEmptyFileRule;
+pub use no_line_break_after_else_rule::NoLineBreakAfterElseRule;
 pub use no_multiple_spaces_rule::NoMultipleSpacesRule;
 pub use no_semicolons_rule::NoSemicolonsRule;
 pub use no_trailing_spaces_rule::NoTrailingSpacesRule;
@@ -101,9 +121,13 @@ pub use spacing_around_unary_operator_rule::SpacingAroundUnaryOperatorRule;
 pub use spacing_between_function_name_and_opening_parenthesis_rule::SpacingBetweenFunctionNameAndOpeningParenthesisRule;
 pub use string_template_indent::StringTemplateIndentRule;
 pub use string_template_rule::StringTemplateRule;
+pub use then_spacing_rule::ThenSpacingRule;
+pub use trailing_comma_on_call_site_rule::{TRAILING_COMMA_ON_CALL_SITE_PROPERTY, TrailingCommaOnCallSiteRule};
+pub use trailing_comma_on_declaration_site::{TRAILING_COMMA_ON_DECLARATION_SITE_PROPERTY, TrailingCommaOnDeclarationSiteRule};
 pub use try_catch_finally_spacing_rule::TryCatchFinallySpacingRule;
 pub use type_argument_list_spacing_rule::TypeArgumentListSpacingRule;
 pub use type_parameter_list_spacing_rule::TypeParameterListSpacingRule;
+pub use when_entry_bracing::WhenEntryBracing;
 
 use crate::rule::{About, RuleV2};
 use crate::rule_provider::RuleV2Provider;
@@ -118,11 +142,16 @@ pub const STANDARD_RULE_ABOUT: About = About {
 /// The ported slice of `StandardRuleSetProvider().getRuleProviders()`, in its order.
 pub fn standard_rule_providers() -> Vec<RuleV2Provider> {
     vec![
+        RuleV2Provider::new(|| Box::new(AnnotationRule::new())),
+        RuleV2Provider::new(|| Box::new(AnnotationSpacingRule)),
         RuleV2Provider::new(|| Box::new(BackingPropertyNamingRule::new()) as Box<dyn RuleV2>),
+        RuleV2Provider::new(|| Box::new(BlankLineBetweenWhenConditions::new())),
         RuleV2Provider::new(|| Box::new(ClassNamingRule::default())),
         RuleV2Provider::new(|| Box::new(ClassSignatureRule::new())),
         RuleV2Provider::new(|| Box::new(EnumEntryNameCaseRule::default())),
+        RuleV2Provider::new(|| Box::new(EnumWrappingRule::new())),
         RuleV2Provider::new(|| Box::new(FilenameRule::default())),
+        RuleV2Provider::new(|| Box::new(SpacingAroundCommaRule) as Box<dyn RuleV2>),
         RuleV2Provider::new(|| Box::new(FinalNewlineRule::new())),
         RuleV2Provider::new(|| Box::new(FunKeywordSpacingRule)),
         RuleV2Provider::new(|| Box::new(FunctionExpressionBodyRule::new())),
@@ -132,6 +161,8 @@ pub fn standard_rule_providers() -> Vec<RuleV2Provider> {
         RuleV2Provider::new(|| Box::new(FunctionStartOfBodySpacingRule)),
         RuleV2Provider::new(|| Box::new(FunctionTypeModifierSpacingRule)),
         RuleV2Provider::new(|| Box::new(FunctionTypeReferenceSpacingRule)),
+        RuleV2Provider::new(|| Box::new(IfElseBracingRule::new())),
+        RuleV2Provider::new(|| Box::new(IfElseWrappingRule::new())),
         RuleV2Provider::new(|| Box::new(ImportOrderingRule::new())),
         RuleV2Provider::new(|| Box::new(IndentationRule::new())),
         RuleV2Provider::new(|| Box::new(MaxLineLengthRule::new())),
@@ -139,8 +170,10 @@ pub fn standard_rule_providers() -> Vec<RuleV2Provider> {
         RuleV2Provider::new(|| Box::new(ModifierListSpacingRule::new())),
         RuleV2Provider::new(|| Box::new(ModifierOrderRule)),
         RuleV2Provider::new(|| Box::new(MultiLineIfElseRule::new())),
+        RuleV2Provider::new(|| Box::new(MultilineLoopRule::new())),
         RuleV2Provider::new(|| Box::new(NoBlankLineAtStartOfFileRule::default())),
         RuleV2Provider::new(|| Box::new(NoEmptyFileRule)),
+        RuleV2Provider::new(|| Box::new(NoLineBreakAfterElseRule)),
         RuleV2Provider::new(|| Box::new(NoMultipleSpacesRule)),
         RuleV2Provider::new(|| Box::new(NoSemicolonsRule)),
         RuleV2Provider::new(|| Box::new(NoTrailingSpacesRule)),
@@ -166,9 +199,13 @@ pub fn standard_rule_providers() -> Vec<RuleV2Provider> {
         RuleV2Provider::new(|| Box::new(SpacingBetweenFunctionNameAndOpeningParenthesisRule)),
         RuleV2Provider::new(|| Box::new(StringTemplateIndentRule::new())),
         RuleV2Provider::new(|| Box::new(StringTemplateRule)),
+        RuleV2Provider::new(|| Box::new(ThenSpacingRule)),
+        RuleV2Provider::new(|| Box::new(TrailingCommaOnCallSiteRule::new())),
+        RuleV2Provider::new(|| Box::new(TrailingCommaOnDeclarationSiteRule::new())),
         RuleV2Provider::new(|| Box::new(TryCatchFinallySpacingRule::new())),
         RuleV2Provider::new(|| Box::new(TypeArgumentListSpacingRule::new())),
         RuleV2Provider::new(|| Box::new(TypeParameterListSpacingRule::new())),
+        RuleV2Provider::new(|| Box::new(WhenEntryBracing::new())),
     ]
 }
 
