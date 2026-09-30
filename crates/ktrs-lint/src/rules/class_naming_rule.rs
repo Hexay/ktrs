@@ -54,16 +54,16 @@ impl ClassNamingRule {
 }
 
 fn is_valid_function_name(ast: &Ast, node: NodeId) -> bool {
-    VALID_CLASS_NAME_REGEXP.matches(&ast.text(node))
+    VALID_CLASS_NAME_REGEXP.matches(ast.leaf_text(node))
 }
 
 fn has_back_ticked_identifier(ast: &Ast, node: NodeId) -> bool {
-    BACK_TICKED_FUNCTION_NAME_REGEXP.matches(&ast.text(node))
+    BACK_TICKED_FUNCTION_NAME_REGEXP.matches(ast.leaf_text(node))
 }
 
 fn is_token_keyword_between_backticks(ast: &Ast, node: NodeId) -> bool {
-    let text = if ast.element_type(node) == IDENTIFIER { ast.text(node) } else { String::new() };
-    is_keyword(remove_surrounding(&text, "`", "`"))
+    let text = if ast.element_type(node) == IDENTIFIER { ast.leaf_text(node) } else { "" };
+    is_keyword(remove_surrounding(text, "`", "`"))
 }
 
 static VALID_CLASS_NAME_REGEXP: LazyLock<KotlinRegex> =
