@@ -22,6 +22,22 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - run: cargo test --locked --release --workspace
 
+  # The GitHub Action (action.yml + install.sh) against the latest release.
+  action:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, ubuntu-24.04-arm, macos-14, windows-2022]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./
+      - name: Format a snippet
+        shell: bash
+        run: |
+          ktrs --version
+          test "$(printf 'fun  f( ) = 1\n' | ktfmt -)" = "fun f() = 1"
+
   java:
     runs-on: ubuntu-24.04
     steps:

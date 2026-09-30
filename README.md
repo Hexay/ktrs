@@ -14,11 +14,20 @@ lossless Kotlin parser whose tree matches the Kotlin compiler's PSI node for nod
 Output is byte-identical to ktfmt 0.64. One install gives two binaries, `ktrs` and `ktfmt`:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/Hexay/ktrs/master/install.sh | sh   # prebuilt, Linux/macOS
+curl -fsSL https://raw.githubusercontent.com/Hexay/ktrs/master/install.sh | sh   # prebuilt
 cargo install ktrs                                                                # from source (crates.io)
+brew tap hexay/ktrs https://github.com/Hexay/ktrs && brew install hexay/ktrs/ktrs  # Homebrew
 ```
 
-Windows: unzip a release from the GitHub releases page. As a [pre-commit](https://pre-commit.com) hook:
+The script also works on Windows under Git Bash; otherwise unzip a release from the releases page.
+In GitHub Actions:
+
+```yaml
+- uses: Hexay/ktrs@v0.2.0          # installs ktrs and ktfmt on PATH (Linux, macOS, Windows)
+- run: ktrs fmt --check --style kotlinlang
+```
+
+As a [pre-commit](https://pre-commit.com) hook:
 
 ```yaml
 - repo: https://github.com/Hexay/ktrs

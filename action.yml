@@ -1,0 +1,24 @@
+name: Setup ktrs
+description: Install ktrs and its drop-in `ktfmt` binary (formats Kotlin exactly like ktfmt 0.64)
+branding:
+  icon: check-square
+  color: purple
+
+inputs:
+  version:
+    description: Release tag to install, e.g. v0.2.0 (default the latest)
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Install ktrs
+      shell: bash
+      env:
+        KTRS_VERSION: ${{ inputs.version }}
+        KTRS_INSTALL_DIR: ${{ runner.tool_cache }}/ktrs/bin
+        KTRS_ARCH: ${{ runner.arch }}
+      run: |
+        sh "$GITHUB_ACTION_PATH/install.sh"
+        echo "$KTRS_INSTALL_DIR" >> "$GITHUB_PATH"
