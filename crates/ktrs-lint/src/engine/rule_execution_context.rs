@@ -355,7 +355,8 @@ pub(crate) fn create_rule_execution_context(
     let position_in_text_locator = PositionInTextLocator::new(&normalized_text);
     let psi_file_name = code.psi_file_name();
     let parse = parse_file(&normalized_text, FileKind::from_file_name(&psi_file_name));
-    let ast = Ast::from_parse(&parse);
+    let mut ast = Ast::from_parse(&parse);
+    ast.set_psi_file_name(&psi_file_name);
     if let Some(error_element) = find_error_element(&ast, ast.root()) {
         let (line, col) = position_in_text_locator
             .locate(ast.utf16_offset(error_element, ast.start_offset(error_element)));
