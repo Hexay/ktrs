@@ -56,7 +56,8 @@
 //!   `package_name_expression`, `package_names`, `qualified_name`, `fq_name`; KtImportList `imports`;
 //!   KtImportDirective `imported_reference`, `alias`, `alias_name`, `is_all_under`, `imported_fq_name`,
 //!   `import_path`, `is_valid_import`; KtImportAlias `name`; [`FqName`] `as_string`, `short_name`,
-//!   `parent`, `child`; [`ImportPath`] `imported_name`.
+//!   `parent`, `child`, `path_segments`, `render`; [`ImportPath`] `imported_name`, `path_str`, `has_alias`,
+//!   `Display` (`toString`); [`render_name`].
 //! - KtProperty `val_or_var_keyword`, `delegate`, `delegate_expression`, `initializer`, `accessors`,
 //!   `getter`, `setter`, `field_declaration`, `is_var`; KtPropertyAccessor `is_getter`, `is_setter`,
 //!   `parameter_list`, `parameter`, `name_placeholder`, `type_reference`, `return_type_reference`,
@@ -131,7 +132,7 @@
 mod ast_node;
 mod cast;
 mod class_names;
-mod classes;
+pub mod classes;
 mod element;
 mod element_text;
 mod kt;

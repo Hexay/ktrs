@@ -1,0 +1,461 @@
+=== leaf_delete
+KtFile: File.kt
+  PACKAGE_DIRECTIVE
+    <empty list>
+  IMPORT_LIST
+    <empty list>
+  FUN
+    PsiElement(fun)('fun')
+    PsiWhiteSpace(' ')
+    PsiElement(IDENTIFIER)('f')
+    VALUE_PARAMETER_LIST
+      PsiElement(LPAR)('(')
+      PsiElement(RPAR)(')')
+    PsiWhiteSpace(' ')
+    BLOCK
+      PsiElement(LBRACE)('{')
+      PsiWhiteSpace(' ')
+      CALL_EXPRESSION
+        REFERENCE_EXPRESSION
+          PsiElement(IDENTIFIER)('a')
+        VALUE_ARGUMENT_LIST
+          PsiElement(LPAR)('(')
+          VALUE_ARGUMENT
+            INTEGER_CONSTANT
+              PsiElement(INTEGER_LITERAL)('1')
+          PsiElement(COMMA)(',')
+          VALUE_ARGUMENT
+            INTEGER_CONSTANT
+              PsiElement(INTEGER_LITERAL)('2')
+          PsiElement(RPAR)(')')
+      PsiWhiteSpace(' ')
+      PsiElement(RBRACE)('}')
+=== two_keywords
+KtFile: File.kt
+  PACKAGE_DIRECTIVE
+    <empty list>
+  IMPORT_LIST
+    <empty list>
+  FUN
+    MODIFIER_LIST
+      PsiElement(private)('private')
+    PsiWhiteSpace(' ')
+    PsiElement(fun)('fun')
+    PsiWhiteSpace(' ')
+    PsiElement(IDENTIFIER)('f')
+    VALUE_PARAMETER_LIST
+      PsiElement(LPAR)('(')
+      PsiElement(RPAR)(')')
+    PsiWhiteSpace(' ')
+    BLOCK
+      PsiElement(LBRACE)('{')
+      PsiElement(RBRACE)('}')
+=== get_keyword
+KtFile: File.kt
+  PACKAGE_DIRECTIVE
+    <empty list>
+  IMPORT_LIST
+    <empty list>
+  PROPERTY
+    PsiElement(val)('val')
+    PsiWhiteSpace(' ')
+    PsiElement(IDENTIFIER)('x')
+    PsiElement(COLON)(':')
+    PsiWhiteSpace(' ')
+    TYPE_REFERENCE
+      USER_TYPE
+        REFERENCE_EXPRESSION
+          PsiElement(IDENTIFIER)('Int')
+    PsiWhiteSpace('\n')
+    PROPERTY_ACCESSOR
+      PsiElement(get)('get')
+      VALUE_PARAMETER_LIST
+        PsiElement(LPAR)('(')
+        PsiElement(RPAR)(')')
+      PsiWhiteSpace(' ')
+      PsiElement(EQ)('=')
+      PsiWhiteSpace(' ')
+      INTEGER_CONSTANT
+        PsiElement(INTEGER_LITERAL)('1')
+=== ws_ws
+KtFile: File.kt
+  PACKAGE_DIRECTIVE
+    <empty list>
+  IMPORT_LIST
+    <empty list>
+  FUN
+    PsiElement(fun)('fun')
+    PsiWhiteSpace(' ')
+    PsiElement(IDENTIFIER)('f')
+    VALUE_PARAMETER_LIST
+      PsiElement(LPAR)('(')
+      PsiElement(RPAR)(')')
+    PsiWhiteSpace(' ')
+    BLOCK
+      PsiElement(LBRACE)('{')
+      CALL_EXPRESSION
+        REFERENCE_EXPRESSION
+          PsiElement(IDENTIFIER)('a')
+        VALUE_ARGUMENT_LIST
+          PsiElement(LPAR)('(')
+          PsiElement(RPAR)(')')
+      PsiWhiteSpace('  ')
+      CALL_EXPRESSION
+        REFERENCE_EXPRESSION
+          PsiElement(IDENTIFIER)('b')
+        VALUE_ARGUMENT_LIST
+          PsiElement(LPAR)('(')
+          PsiElement(RPAR)(')')
+      PsiElement(RBRACE)('}')
+=== blank_lines
+KtFile: File.kt
+  PACKAGE_DIRECTIVE
+    <empty list>
+  IMPORT_LIST
+    <empty list>
+  FUN
+    PsiElement(fun)('fun')
+    PsiWhiteSpace(' ')
+    PsiElement(IDENTIFIER)('f')
+    VALUE_PARAMETER_LIST
+      PsiElement(LPAR)('(')
+      PsiElement(RPAR)(')')
+    PsiWhiteSpace(' ')
+    BLOCK
+      PsiElement(LBRACE)('{')
+      PsiWhiteSpace('\n  ')
+      CALL_EXPRESSION
+        REFERENCE_EXPRESSION
+          PsiElement(IDENTIFIER)('a')
+        VALUE_ARGUMENT_LIST
+          PsiElement(LPAR)('(')
+          PsiElement(RPAR)(')')
+      PsiWhiteSpace('\n\n  ')
+      CALL_EXPRESSION
+        REFERENCE_EXPRESSION
+          PsiElement(IDENTIFIER)('b')
+        VALUE_ARGUMENT_LIST
+          PsiElement(LPAR)('(')
+          PsiElement(RPAR)(')')
+      PsiWhiteSpace('\n')
+      PsiElement(RBRACE)('}')
+=== ws_recreated
+KtFile: File.kt
+  PACKAGE_DIRECTIVE
+    <empty list>
+  IMPORT_LIST
+    <empty list>
+  PROPERTY
+    PsiElement(val)('val')
+    PsiWhiteSpace(' ')
+    PsiElement(IDENTIFIER)('v')
+    PsiWhiteSpace(' ')
+    PsiElement(EQ)('=')
+    PsiWhiteSpace(' ')
+    CALL_EXPRESSION
+      REFERENCE_EXPRESSION
+        PsiElement(IDENTIFIER)('foo')
+      VALUE_ARGUMENT_LIST
+        PsiElement(LPAR)('(')
+        VALUE_ARGUMENT
+          REFERENCE_EXPRESSION
+            PsiElement(IDENTIFIER)('a')
+        PsiElement(COMMA)(',')
+        PsiWhiteSpace(' ')
+        PsiElement(RPAR)(')')
+=== trailing
+KtFile: File.kt
+  PACKAGE_DIRECTIVE
+    <empty list>
+  IMPORT_LIST
+    <empty list>
+  FUN
+    MODIFIER_LIST
+      ANNOTATION_ENTRY
+        PsiElement(AT)('@')
+        CONSTRUCTOR_CALLEE
+          TYPE_REFERENCE
+            USER_TYPE
+              REFERENCE_EXPRESSION
+                PsiElement(IDENTIFIER)('A')
+    PsiWhiteSpace(' ')
+    PsiElement(fun)('fun')
+    PsiWhiteSpace(' ')
+    PsiElement(IDENTIFIER)('f')
+    VALUE_PARAMETER_LIST
+      PsiElement(LPAR)('(')
+      PsiElement(RPAR)(')')
+    PsiWhiteSpace(' ')
+    BLOCK
+      PsiElement(LBRACE)('{')
+      PsiElement(RBRACE)('}')
+=== modifier_list
+KtFile: File.kt
+  PACKAGE_DIRECTIVE
+    <empty list>
+  IMPORT_LIST
+    <empty list>
+  FUN
+    PsiWhiteSpace(' ')
+    PsiElement(fun)('fun')
+    PsiWhiteSpace(' ')
+    PsiElement(IDENTIFIER)('f')
+    VALUE_PARAMETER_LIST
+      PsiElement(LPAR)('(')
+      PsiElement(RPAR)(')')
+    PsiWhiteSpace(' ')
+    BLOCK
+      PsiElement(LBRACE)('{')
+      PsiElement(RBRACE)('}')
+=== semicolon
+KtFile: File.kt
+  PACKAGE_DIRECTIVE
+    <empty list>
+  IMPORT_LIST
+    <empty list>
+  FUN
+    PsiElement(fun)('fun')
+    PsiWhiteSpace(' ')
+    PsiElement(IDENTIFIER)('f')
+    VALUE_PARAMETER_LIST
+      PsiElement(LPAR)('(')
+      PsiElement(RPAR)(')')
+    PsiWhiteSpace(' ')
+    BLOCK
+      PsiElement(LBRACE)('{')
+      PsiWhiteSpace(' ')
+      PROPERTY
+        PsiElement(val)('val')
+        PsiWhiteSpace(' ')
+        PsiElement(IDENTIFIER)('b')
+        PsiWhiteSpace(' ')
+        PsiElement(EQ)('=')
+        PsiWhiteSpace(' ')
+        INTEGER_CONSTANT
+          PsiElement(INTEGER_LITERAL)('2')
+      PsiWhiteSpace(' ')
+      PsiElement(RBRACE)('}')
+=== import
+KtFile: File.kt
+  PACKAGE_DIRECTIVE
+    <empty list>
+  IMPORT_LIST
+    PsiWhiteSpace('\n')
+    IMPORT_DIRECTIVE
+      PsiElement(import)('import')
+      PsiWhiteSpace(' ')
+      DOT_QUALIFIED_EXPRESSION
+        REFERENCE_EXPRESSION
+          PsiElement(IDENTIFIER)('c')
+        PsiElement(DOT)('.')
+        REFERENCE_EXPRESSION
+          PsiElement(IDENTIFIER)('d')
+  PsiWhiteSpace('\n\n')
+  FUN
+    PsiElement(fun)('fun')
+    PsiWhiteSpace(' ')
+    PsiElement(IDENTIFIER)('f')
+    VALUE_PARAMETER_LIST
+      PsiElement(LPAR)('(')
+      PsiElement(RPAR)(')')
+    PsiWhiteSpace(' ')
+    BLOCK
+      PsiElement(LBRACE)('{')
+      PsiElement(RBRACE)('}')
+=== import_semicolon
+KtFile: File.kt
+  PACKAGE_DIRECTIVE
+    <empty list>
+  IMPORT_LIST
+    PsiWhiteSpace('\n')
+    IMPORT_DIRECTIVE
+      PsiElement(import)('import')
+      PsiWhiteSpace(' ')
+      DOT_QUALIFIED_EXPRESSION
+        REFERENCE_EXPRESSION
+          PsiElement(IDENTIFIER)('c')
+        PsiElement(DOT)('.')
+        REFERENCE_EXPRESSION
+          PsiElement(IDENTIFIER)('d')
+  PsiWhiteSpace('\n\n')
+  FUN
+    PsiElement(fun)('fun')
+    PsiWhiteSpace(' ')
+    PsiElement(IDENTIFIER)('f')
+    VALUE_PARAMETER_LIST
+      PsiElement(LPAR)('(')
+      PsiElement(RPAR)(')')
+    PsiWhiteSpace(' ')
+    BLOCK
+      PsiElement(LBRACE)('{')
+      PsiElement(RBRACE)('}')
+=== when_entries
+KtFile: File.kt
+  PACKAGE_DIRECTIVE
+    <empty list>
+  IMPORT_LIST
+    <empty list>
+  FUN
+    PsiElement(fun)('fun')
+    PsiWhiteSpace(' ')
+    PsiElement(IDENTIFIER)('f')
+    VALUE_PARAMETER_LIST
+      PsiElement(LPAR)('(')
+      PsiElement(RPAR)(')')
+    PsiWhiteSpace(' ')
+    PsiElement(EQ)('=')
+    PsiWhiteSpace(' ')
+    WHEN
+      PsiElement(when)('when')
+      PsiWhiteSpace(' ')
+      PsiElement(LPAR)('(')
+      REFERENCE_EXPRESSION
+        PsiElement(IDENTIFIER)('x')
+      PsiElement(RPAR)(')')
+      PsiWhiteSpace(' ')
+      PsiElement(LBRACE)('{')
+      PsiWhiteSpace('\n  ')
+      WHEN_ENTRY
+        WHEN_CONDITION_WITH_EXPRESSION
+          INTEGER_CONSTANT
+            PsiElement(INTEGER_LITERAL)('1')
+        PsiWhiteSpace(' ')
+        PsiElement(ARROW)('->')
+        PsiWhiteSpace(' ')
+        REFERENCE_EXPRESSION
+          PsiElement(IDENTIFIER)('a')
+      PsiWhiteSpace('  ')
+      WHEN_ENTRY
+        WHEN_CONDITION_WITH_EXPRESSION
+          INTEGER_CONSTANT
+            PsiElement(INTEGER_LITERAL)('2')
+        PsiWhiteSpace(' ')
+        PsiElement(ARROW)('->')
+        PsiWhiteSpace(' ')
+        REFERENCE_EXPRESSION
+          PsiElement(IDENTIFIER)('b')
+      PsiWhiteSpace('\n')
+      PsiElement(RBRACE)('}')
+=== whole_file
+KtFile: File.kt
+  PACKAGE_DIRECTIVE
+    <empty list>
+  IMPORT_LIST
+    <empty list>
+=== first_in_block
+KtFile: File.kt
+  PACKAGE_DIRECTIVE
+    <empty list>
+  IMPORT_LIST
+    <empty list>
+  FUN
+    PsiElement(fun)('fun')
+    PsiWhiteSpace(' ')
+    PsiElement(IDENTIFIER)('f')
+    VALUE_PARAMETER_LIST
+      PsiElement(LPAR)('(')
+      PsiElement(RPAR)(')')
+    PsiWhiteSpace(' ')
+    BLOCK
+      PsiElement(LBRACE)('{')
+      PsiWhiteSpace('\n    ')
+      CALL_EXPRESSION
+        REFERENCE_EXPRESSION
+          PsiElement(IDENTIFIER)('b')
+        VALUE_ARGUMENT_LIST
+          PsiElement(LPAR)('(')
+          PsiElement(RPAR)(')')
+      PsiWhiteSpace('\n')
+      PsiElement(RBRACE)('}')
+=== last_in_block
+KtFile: File.kt
+  PACKAGE_DIRECTIVE
+    <empty list>
+  IMPORT_LIST
+    <empty list>
+  FUN
+    PsiElement(fun)('fun')
+    PsiWhiteSpace(' ')
+    PsiElement(IDENTIFIER)('f')
+    VALUE_PARAMETER_LIST
+      PsiElement(LPAR)('(')
+      PsiElement(RPAR)(')')
+    PsiWhiteSpace(' ')
+    BLOCK
+      PsiElement(LBRACE)('{')
+      PsiWhiteSpace('\n    ')
+      CALL_EXPRESSION
+        REFERENCE_EXPRESSION
+          PsiElement(IDENTIFIER)('a')
+        VALUE_ARGUMENT_LIST
+          PsiElement(LPAR)('(')
+          PsiElement(RPAR)(')')
+      PsiWhiteSpace('\n    ')
+      PsiElement(RBRACE)('}')
+=== comment_between_keywords
+KtFile: File.kt
+  PACKAGE_DIRECTIVE
+    <empty list>
+  IMPORT_LIST
+    <empty list>
+  FUN
+    MODIFIER_LIST
+      PsiElement(private)('private')
+    PsiWhiteSpace(' ')
+    PsiElement(fun)('fun')
+    PsiWhiteSpace(' ')
+    PsiElement(IDENTIFIER)('f')
+    VALUE_PARAMETER_LIST
+      PsiElement(LPAR)('(')
+      PsiElement(RPAR)(')')
+    PsiWhiteSpace(' ')
+    BLOCK
+      PsiElement(LBRACE)('{')
+      PsiElement(RBRACE)('}')
+=== when_entry_join
+KtFile: File.kt
+  PACKAGE_DIRECTIVE
+    <empty list>
+  IMPORT_LIST
+    <empty list>
+  FUN
+    PsiElement(fun)('fun')
+    PsiWhiteSpace(' ')
+    PsiElement(IDENTIFIER)('f')
+    VALUE_PARAMETER_LIST
+      PsiElement(LPAR)('(')
+      PsiElement(RPAR)(')')
+    PsiWhiteSpace(' ')
+    PsiElement(EQ)('=')
+    PsiWhiteSpace(' ')
+    WHEN
+      PsiElement(when)('when')
+      PsiWhiteSpace(' ')
+      PsiElement(LPAR)('(')
+      REFERENCE_EXPRESSION
+        PsiElement(IDENTIFIER)('x')
+      PsiElement(RPAR)(')')
+      PsiWhiteSpace(' ')
+      PsiElement(LBRACE)('{')
+      PsiWhiteSpace('\n  ')
+      WHEN_ENTRY
+        WHEN_CONDITION_WITH_EXPRESSION
+          INTEGER_CONSTANT
+            PsiElement(INTEGER_LITERAL)('1')
+        PsiWhiteSpace(' ')
+        PsiElement(ARROW)('->')
+        PsiWhiteSpace(' ')
+        REFERENCE_EXPRESSION
+          PsiElement(IDENTIFIER)('a')
+      PsiWhiteSpace('\n')
+      WHEN_ENTRY
+        WHEN_CONDITION_WITH_EXPRESSION
+          INTEGER_CONSTANT
+            PsiElement(INTEGER_LITERAL)('2')
+        PsiWhiteSpace(' ')
+        PsiElement(ARROW)('->')
+        PsiWhiteSpace(' ')
+        REFERENCE_EXPRESSION
+          PsiElement(IDENTIFIER)('b')
+      PsiWhiteSpace('\n')
+      PsiElement(RBRACE)('}')

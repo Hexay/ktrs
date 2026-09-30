@@ -2,43 +2,11 @@
 //! kotlin-compiler-embeddable-2.4.20.jar (decompiled `org.jetbrains.kotlin.com.intellij.psi.impl.source.tree.*`;
 //! the method named in each test is the cite).
 
-use ktrs_ast::{Ast, NodeId, tree_util};
-use ktrs_parser::{FileKind, parse_file};
-use ktrs_syntax::SyntaxKind::{self, *};
+mod common;
 
-fn ast(text: &str) -> Ast {
-    Ast::from_parse(&parse_file(text, FileKind::Source))
-}
-
-/// The `nth` node of `kind` in preorder.
-fn find(ast: &Ast, kind: SyntaxKind, nth: usize) -> NodeId {
-    let mut found = Vec::new();
-    walk(ast, ast.root(), &mut |n| {
-        if ast.element_type(n) == kind {
-            found.push(n)
-        }
-    });
-    found[nth]
-}
-
-fn walk(ast: &Ast, n: NodeId, f: &mut impl FnMut(NodeId)) {
-    f(n);
-    let mut c = ast.first_child_node(n);
-    while let Some(child) = c {
-        walk(ast, child, f);
-        c = ast.tree_next(child);
-    }
-}
-
-fn kinds(ast: &Ast, parent: NodeId) -> Vec<SyntaxKind> {
-    let mut out = Vec::new();
-    ast.get_children(parent, &mut out);
-    out.into_iter().map(|c| ast.element_type(c)).collect()
-}
-
-fn root_text(ast: &Ast) -> String {
-    ast.text(ast.root())
-}
+use common::{ast, find, kinds, root_text};
+use ktrs_ast::tree_util;
+use ktrs_syntax::SyntaxKind::*;
 
 #[test]
 fn remove_child_parks_the_child_in_a_dummy_holder_and_keeps_both_whitespaces() {
@@ -207,4 +175,63 @@ fn create_ast_node_from_text_returns_the_script_initializer() {
     let prop = find(&a, PROPERTY, 0);
     a.add_child(prop, call, None);
     assert_eq!(root_text(&a), "val x = 1foo(1)");
+}
+
+#[test]
+fn get_children_with_a_filter_keeps_order() {
+    // CompositeElement.getChildren(filter): countChildren(filter), then the matching children in order.
+    let a = ast("fun f() { a(1, 2) }");
+    let list = find(&a, VALUE_ARGUMENT_LIST, 0);
+    let mut out = Vec::new();
+    a.get_children_filtered(list, ktrs_parser::token_set::TokenSet::create(&[COMMA, RPAR]), &mut out);
+    assert_eq!(out.iter().map(|&n| a.element_type(n)).collect::<Vec<_>>(), [COMMA, RPAR]);
+}
+
+#[test]
+fn add_leaf_parks_the_leaf_in_a_holder_then_moves_it() {
+    // CompositeElement.addLeaf: DummyHolder + ASTFactory.leaf + holder.rawAddChildren, then addChild.
+    let mut a = ast("fun f() { a(1) }");
+    let list = find(&a, VALUE_ARGUMENT_LIST, 0);
+    let rpar = a.find_child_by_type(list, RPAR).unwrap();
+    a.add_leaf(list, COMMA, ",", Some(rpar));
+    let comma = a.find_child_by_type(list, COMMA).unwrap();
+    assert_eq!(a.tree_next(comma), Some(rpar));
+    assert_eq!(root_text(&a), "fun f() { a(1,) }");
+    assert_eq!(a.start_offset(rpar), 14);
+}
+
+#[test]
+fn psi_util_parents_and_siblings() {
+    // psiUtils.kt: parents() = generateSequence(treeParent); siblings(forward) = generateSequence(treeNext/treePrev).
+    let a = ast("fun f() { a(1, 2) }");
+    let comma = find(&a, COMMA, 0);
+    let parents: Vec<_> = a.parents(comma).map(|n| a.element_type(n)).collect();
+    assert_eq!(parents, [VALUE_ARGUMENT_LIST, CALL_EXPRESSION, BLOCK, FUN, FILE]);
+    let after: Vec<_> = a.siblings(comma, true).map(|n| a.element_type(n)).collect();
+    assert_eq!(after, [WHITE_SPACE, VALUE_ARGUMENT, RPAR]);
+    let before: Vec<_> = a.siblings(comma, false).map(|n| a.element_type(n)).collect();
+    assert_eq!(before, [VALUE_ARGUMENT, LPAR]);
+    assert_eq!(a.children(a.parents(comma).next().unwrap()).count(), 6);
+}
+
+#[test]
+fn tree_util_prev_leaf_records_the_branch_start() {
+    // TreeUtil.prevLeaf(start, commonParent): nextLeafBranchStart = the ancestor-or-self whose treePrev chain
+    // holds the leaf; startLeafBranchStart = that previous sibling.
+    let a = ast("val x: Int get() = 1");
+    let get = find(&a, GET_KEYWORD, 0);
+    let mut state = tree_util::CommonParentState::default();
+    let leaf = tree_util::prev_leaf_with_state(&a, get, &mut state).unwrap();
+    assert_eq!(a.element_type(leaf), WHITE_SPACE);
+    assert_eq!(state.next_leaf_branch_start.map(|n| a.element_type(n)), Some(PROPERTY_ACCESSOR));
+    assert_eq!(state.start_leaf_branch_start, Some(leaf));
+}
+
+#[test]
+fn utf16_lengths_count_code_units() {
+    // JVM String.length: 'é' is 1 unit (2 UTF-8 bytes), '𝄞' is 2 units (4 bytes).
+    let a = ast("val s = \"é𝄞\"");
+    let template = find(&a, STRING_TEMPLATE, 0);
+    assert_eq!(a.text_length(template), 8);
+    assert_eq!(a.text_length_utf16(template), 5);
 }

@@ -1,9 +1,10 @@
-//! Text queries (`getText`, `textContains`, `textMatches`) and the UTF-16 conversion for emits.
+//! Text queries (`getText`, `textContains`, `textMatches`), the preorder walk, and the UTF-16
+//! conversions for emits and lengths.
 
 use crate::arena::{Ast, NodeId};
 
 /// Preorder over `root`'s subtree, `root` included.
-pub(crate) struct Preorder<'a> {
+pub struct Preorder<'a> {
     ast: &'a Ast,
     root: NodeId,
     next: Option<NodeId>,
@@ -31,8 +32,17 @@ impl Iterator for Preorder<'_> {
 }
 
 impl Ast {
-    pub(crate) fn preorder(&self, root: NodeId) -> Preorder<'_> {
+    /// `root` and its descendants in preorder (lazy over the live tree, like a Kotlin `sequence {}`).
+    pub fn preorder(&self, root: NodeId) -> Preorder<'_> {
         Preorder { ast: self, root, next: Some(root) }
+    }
+
+    /// `getTextLength()` in UTF-16 units, the JVM's `String.length`: what columns and line lengths count.
+    pub fn text_length_utf16(&self, n: NodeId) -> usize {
+        if self.is_ascii() {
+            return self.text_length(n);
+        }
+        self.text_chunks(n).map(|chunk| chunk.encode_utf16().count()).sum()
     }
 
     /// The leaf texts of `n`'s subtree in order.
