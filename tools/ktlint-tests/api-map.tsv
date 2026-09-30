@@ -1,0 +1,170 @@
+# upstream symbol (as api-coverage.py shortens it) -> Rust name. Probe: regex over crates/*/src (empty: a definition of
+# the Rust name's last segment). Rust "TODO" = not ported yet; "n/a ..." = deliberately none (the note says why).
+# ktlint core API (ktlint-rule-engine-core)
+ElementType.*	element_type::*	WHEN_CONDITION_WITH_EXPRESSION: SyntaxKind	SyntaxKind::X; 4 renamed consts
+ElementType	element_type
+parent	parent / parent_matching
+prevLeaf	prev_leaf / prev_leaf_matching
+nextLeaf	next_leaf / next_leaf_matching
+isWhiteSpace	is_white_space
+isWhiteSpaceWithNewline	is_white_space_with_newline
+isWhiteSpaceWithoutNewline	is_white_space_without_newline
+isWhiteSpaceWithoutNewlineOrNull	is_white_space_without_newline_or_null
+nextSibling	next_sibling / next_sibling_matching
+prevSibling	prev_sibling / prev_sibling_matching
+children	children
+remove	AstNodeEdit::remove	fn remove\(&mut self
+upsertWhitespaceBeforeMe	upsert_whitespace_before_me
+upsertWhitespaceAfterMe	upsert_whitespace_after_me
+replaceTextWith	replace_text_with
+isPartOfComment	is_part_of_comment
+isPartOf	is_part_of / is_part_of_set
+isPartOfString	is_part_of_string
+lastChildLeafOrSelf	last_child_leaf_or_self
+firstChildLeafOrSelf	first_child_leaf_or_self
+prevCodeLeaf	prev_code_leaf
+nextCodeLeaf	next_code_leaf
+prevCodeSibling	prev_code_sibling
+nextCodeSibling	next_code_sibling
+indent	indent
+indentWithoutNewlinePrefix	indent_without_newline_prefix
+isCode	is_code
+hasNoMaxLineLengthSuppression	has_no_max_line_length_suppression
+lineLength	line_length		counts UTF-16 units
+findParentByType	find_parent_by_type
+hasModifier	has_modifier
+leavesOnLine	leaves_on_line
+dropTrailingEolComment	drop_trailing_eol_comment
+leavesForwardsIncludingSelf	leaves_forwards_including_self
+leavesBackwardsIncludingSelf	leaves_backwards_including_self
+hasNewLineInClosedRange	has_new_line_in_closed_range
+noNewLineInClosedRange	no_new_line_in_closed_range
+leavesInClosedRange	leaves_in_closed_range
+isRoot	is_root
+isDeclaration	is_declaration
+isLeaf	is_leaf
+column	column		counts UTF-16 units
+betweenCodeSiblings	between_code_siblings
+endOffset	end_offset
+IndentConfig	IndentConfig
+IndentConfig.Companion.DEFAULT_INDENT_CONFIG	IndentConfig::default_indent_config
+IndentConfig.IndentStyle.SPACE	IndentStyle::Space	enum IndentStyle
+IndentConfig.IndentStyle.TAB	IndentStyle::Tab	enum IndentStyle
+KtlintKotlinCompiler	Ast::create_ast_node_from_text		createASTNodeFromText
+TokenSets	token_sets
+AutocorrectDecision	AutocorrectDecision
+AutocorrectDecision.NO_AUTOCORRECT	AutocorrectDecision::NoAutocorrect	NoAutocorrect,
+ifAutocorrectAllowed	if_autocorrect_allowed
+RuleId	RuleId
+RuleV2	RuleV2
+RuleV2Provider	RuleV2Provider
+RuleSetId	TODO		engine (1A)
+RuleV2.OnlyWhenEnabledInEditorconfig	TODO		engine (1A)
+IgnoreKtlintSuppressions	TODO		engine (1A)
+SinceKtlint	n/a		rule metadata annotation
+SinceKtlint.Status.STABLE	n/a		rule metadata annotation
+SinceKtlint.Status.EXPERIMENTAL	n/a		rule metadata annotation
+util.cast	n/a (psi::KtX::of)		cast helper
+editorconfig.EditorConfig	EditorConfig		engine (1A): fields, no property lookup yet
+editorconfig.INDENT_SIZE_PROPERTY	EditorConfig.indent_size	pub indent_size	engine (1A)
+editorconfig.INDENT_STYLE_PROPERTY	EditorConfig.indent_style	pub indent_style	engine (1A)
+editorconfig.MAX_LINE_LENGTH_PROPERTY	TODO		engine (1A)
+editorconfig.MAX_LINE_LENGTH_PROPERTY_OFF	TODO		engine (1A)
+editorconfig.EditorConfigProperty	TODO		engine (1A)
+editorconfig.CODE_STYLE_PROPERTY	TODO		engine (1A)
+editorconfig.CodeStyleValue	TODO		engine (1A)
+editorconfig.CodeStyleValue.ktlint_official	TODO		engine (1A)
+editorconfig.CodeStyleValue.android_studio	TODO		engine (1A)
+editorconfig.INSERT_FINAL_NEWLINE_PROPERTY	TODO		engine (1A)
+editorconfig.CommaSeparatedListValueParser	TODO		engine (1A)
+editorconfig.SafeEnumValueParser	TODO		engine (1A)
+editorconfig.RULE_EXECUTION_PROPERTY_TYPE	TODO		engine (1A)
+editorconfig.RuleExecution	TODO		engine (1A)
+editorconfig.ktLintRuleExecutionPropertyName	TODO		engine (1A)
+# IntelliJ platform
+lang.ASTNode	NodeId + Ast	pub struct NodeId	node.foo -> ast.foo(node)
+lang.FileASTNode	Ast::is_file_element
+psi.impl.source.tree.LeafPsiElement	Ast::new_leaf
+psi.impl.source.tree.PsiWhiteSpaceImpl	Ast::new_leaf(WHITE_SPACE, _)	fn new_leaf
+psi.impl.source.tree.PsiCommentImpl	Ast::new_leaf(kind, _)	fn new_leaf
+psi.impl.source.tree.LeafElement	Ast::is_leaf_element
+psi.impl.source.tree.CompositeElement	!Ast::is_leaf_element	fn is_leaf_element
+psi.tree.TokenSet	TokenSet	pub struct TokenSet	ktrs_parser::token_set
+psi.tree.TokenSet.create	TokenSet::create	const fn create
+psi.tree.IElementType	SyntaxKind	pub enum SyntaxKind
+psi.PsiWhiteSpace	psi::PsiWhiteSpace
+# Kotlin compiler
+psi.psiUtil.leaves	Ast::leaves
+psi.psiUtil.siblings	Ast::siblings
+psi.psiUtil.children	Ast::children
+psi.psiUtil.parents	Ast::parents
+lexer.KtTokens	kt_tokens	pub mod kt_tokens	ktrs_parser::kt_tokens (KEYWORDS, SOFT_KEYWORDS, OPERATIONS, ...)
+lexer.KtSingleValueToken	psi::single_value	fn single_value	.value
+KtNodeTypes.WHEN_ENTRY_GUARD	SyntaxKind::WHEN_ENTRY_GUARD	WHEN_ENTRY_GUARD,
+kdoc.lexer.KDocTokens.MARKDOWN_LINK	SyntaxKind::KDOC_MARKDOWN_LINK	KDOC_MARKDOWN_LINK,
+psi.KtImportDirective	psi::KtImportDirective
+psi.KtPackageDirective	psi::KtPackageDirective
+psi.KtFile	psi::KtFile
+psi.KtFunction	psi::KtFunction
+psi.KtBlockExpression	psi::KtBlockExpression		KtBlockExpression(null) -> ast.new_composite(BLOCK)
+psi.KtStringTemplateExpression	psi::KtStringTemplateExpression
+psi.KtDotQualifiedExpression	psi::KtDotQualifiedExpression
+psi.KtSuperTypeList	psi::KtSuperTypeList
+psi.KtWhenEntry	psi::KtWhenEntry
+psi.KtWhenExpression	psi::KtWhenExpression
+psi.KtPsiUtil	psi::unquote_identifier	fn unquote_identifier	unquoteIdentifier
+resolve.ImportPath	psi::ImportPath	pub struct ImportPath
+descriptors.annotations.AnnotationUseSiteTarget	psi::AnnotationUseSiteTarget	pub enum AnnotationUseSiteTarget
+utils.addToStdlib.applyIf	n/a		if c { f(x) } else { x }
+utils.addToStdlib.ifTrue	n/a		bool::then
+# ASTNode / PSI members
+.elementType	element_type
+.startOffset	start_offset		UTF-8; utf16_offset for reporting
+.text	text / leaf_text	fn text\(
+.findChildByType	find_child_by_type
+.firstChildNode	first_child_node
+.lastChildNode	last_child_node
+.treeParent	tree_parent
+.treeNext	tree_next
+.treePrev	tree_prev
+.textLength	text_length / text_length_utf16	fn text_length_utf16	UTF-8 vs JVM's UTF-16
+.textContains	text_contains
+.textMatches	text_matches
+.addChild	add_child
+.addChildren	add_children
+.replaceChild	replace_child
+.removeRange	remove_range
+.getChildren	get_children / get_children_filtered	fn get_children_filtered
+.clone	Ast::clone	fn clone\(&mut self
+.rawInsertBeforeMe	raw_insert_before_me
+.rawInsertAfterMe	raw_insert_after_me
+.rawRemove	raw_remove
+.psi	psi::KtX::of / cast / is	pub mod psi
+.node	KtX::node	pub fn node\(self\)
+.delete	psi::delete	pub fn delete\(ast	CodeEditUtil.removeChild path
+.firstChild	first_child_node		PSI getFirstChild (StringTemplateRule, commented out)
+.containingFile	psi::KtFile	fn virtual_file_name	containingFile.virtualFile.name
+.virtualFile	KtFile::virtual_file_name
+.virtualFilePath	KtFile::virtual_file_path
+.importPath	KtImportDirective::import_path
+.importedName	ImportPath::imported_name
+.aliasName	KtImportDirective::alias_name
+.pathStr	ImportPath::path_str
+.hasAlias	ImportPath::has_alias
+.isAllUnder	ImportPath.is_all_under	pub is_all_under
+.qualifiedName	KtPackageDirective::qualified_name
+.selectorExpression	KtDotQualifiedExpression::selector_expression
+.isElse	KtWhenEntry::is_else
+.leftParenthesis	KtWhenExpression::left_parenthesis
+.hasDeclaredReturnType	KtFunction::has_declared_return_type
+.typeReference	KtFunction::type_reference
+.bodyExpression	KtFunction::body_expression
+.renderName	AnnotationUseSiteTarget::render_name
+.createASTNodeFromText	Ast::create_ast_node_from_text
+.unquoteIdentifier	psi::unquote_identifier
+# Other libraries
+org.ec4j.core.model.PropertyType	TODO		engine (1A): editorconfig
+org.ec4j.core.model.PropertyType.PropertyValueParser	TODO		engine (1A): editorconfig
+org.ec4j.core.model.PropertyType.PropertyValueParser.EnumValueParser	TODO		engine (1A): editorconfig
+io.github.ktlint.core.logger.api.initKtLintKLogger	n/a		logging
+io.github.ktlint.core.cli.ruleset.core.api.RuleSetV2Provider	rules::STANDARD_RULE_PROVIDERS	STANDARD_RULE_PROVIDERS

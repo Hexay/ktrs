@@ -4,7 +4,9 @@
 //! # Porting conventions (Kotlin -> Rust)
 //! - A rule is a struct implementing [`RuleV2`]; its body is the upstream one line for line. `node.foo`
 //!   ASTNode members and `ASTNodeExtension.kt` helpers are methods on the `Ast` (`ast.prev_leaf(node)`,
-//!   via [`AstNodeExtension`]); `?.` chains become `Option` combinators.
+//!   via `use crate::ast_node_extension::*` and [`AstNodeEdit`]); `?.` chains become `Option` combinators.
+//!   `ElementType.X` -> [`element_type`], `TokenSets` -> [`token_sets`], `node.psi as KtX` -> `ktrs_ast::psi`.
+//!   Upstream symbol -> Rust name, with status: research/16-ktlint-api-coverage.md.
 //! - `emit(offset, message, canBeAutoCorrected)` -> `emit(ast, offset, message, can_be_auto_corrected)`
 //!   with the UTF-8 offset of the current tree; the engine converts it to UTF-16 and maps it through the
 //!   line table of the *original* text, as ktlint does (stale after earlier edits by design).
@@ -12,12 +14,14 @@
 
 pub mod ast_node_edit;
 pub mod ast_node_extension;
+pub mod element_type;
 pub mod engine;
 pub mod indent_config;
 pub mod rule;
 pub mod rules;
+pub mod token_sets;
 
 pub use ast_node_edit::AstNodeEdit;
-pub use ast_node_extension::AstNodeExtension;
+pub use ast_node_extension::{AstNodeExtension, AstNodeLines, AstNodeQueries};
 pub use engine::ktlint_rule_engine::{Code, KtLintParseException, KtLintRuleEngine, LintError};
 pub use rule::{AutocorrectDecision, EditorConfig, Emit, RuleId, RuleV2, RuleV2Provider};

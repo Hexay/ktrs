@@ -38,6 +38,7 @@ pub struct Ast {
     errors: Vec<String>,
     root: NodeId,
     ascii: bool,
+    psi_file_name: String,
 }
 
 pub(crate) fn opt(raw: u32) -> Option<NodeId> {
@@ -57,6 +58,7 @@ impl Ast {
             errors: Vec::new(),
             root: NodeId(0),
             ascii: true,
+            psi_file_name: "File.kt".to_owned(),
         };
         ast.root = ast.seed(parse);
         ast
@@ -120,6 +122,16 @@ impl Ast {
         self.root
     }
 
+    /// The `psiFileName` of `createPsiFileFromText(psiFileName, text)`: the file's path, or `File.kt`/`File.kts`.
+    /// It is the root's `LightVirtualFile` name ([`crate::psi::KtFile::virtual_file_path`]).
+    pub fn psi_file_name(&self) -> &str {
+        &self.psi_file_name
+    }
+
+    pub fn set_psi_file_name(&mut self, psi_file_name: &str) {
+        psi_file_name.clone_into(&mut self.psi_file_name);
+    }
+
     /// Number of nodes ever allocated (attached or not).
     pub fn node_count(&self) -> usize {
         self.nodes.len()
@@ -162,7 +174,8 @@ impl Ast {
         self.node(n).flags & LEAF != 0
     }
 
-    pub(crate) fn is_file_element(&self, n: NodeId) -> bool {
+    /// `node instanceof FileElement` (`FileASTNode`): the file root or a dummy holder.
+    pub fn is_file_element(&self, n: NodeId) -> bool {
         self.node(n).flags & FILE_ELEMENT != 0
     }
 
@@ -186,8 +199,8 @@ impl Ast {
         }
     }
 
-    /// Whether every leaf's text is ASCII, so byte offsets equal UTF-16 offsets.
-    pub(crate) fn is_ascii(&self) -> bool {
+    /// Whether every leaf's text is ASCII, so byte offsets and lengths equal UTF-16 ones.
+    pub fn is_ascii(&self) -> bool {
         self.ascii
     }
 

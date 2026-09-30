@@ -1,5 +1,6 @@
 //! Element type -> PSI class membership (`instanceof` of the abstract classes and interfaces), from the
-//! factories in `KtNodeTypes`, `KtStubBasedElementTypes` and `KDocElementTypes`.
+//! factories in `KtNodeTypes`, `KtStubBasedElementTypes` and `KDocElementTypes`. Public so `ktrs_ast::psi`
+//! (the same classes over the mutable AST) shares the tables.
 
 use ktrs_syntax::SyntaxKind::{self, *};
 
@@ -15,7 +16,7 @@ pub(crate) fn node_is_psi(kind: SyntaxKind) -> bool {
     matches!(kind, BLOCK | LAMBDA_EXPRESSION | DOC_COMMENT | ERROR_ELEMENT)
 }
 
-pub(crate) fn is_kt_element(e: &PsiElement) -> bool {
+pub fn is_kt_element(e: &PsiElement) -> bool {
     !e.is_leaf() && !matches!(e.kind(), DOC_COMMENT | KDOC_SECTION | KDOC_TAG | ERROR_ELEMENT)
 }
 
@@ -107,15 +108,15 @@ fn in_window(kind: SyntaxKind, mask: u128) -> bool {
     offset < 128 && mask >> offset & 1 != 0
 }
 
-pub(crate) fn is_declaration(kind: SyntaxKind) -> bool {
+pub fn is_declaration(kind: SyntaxKind) -> bool {
     in_window(kind, DECLARATION_MASK)
 }
 
-pub(crate) fn is_expression(kind: SyntaxKind) -> bool {
+pub fn is_expression(kind: SyntaxKind) -> bool {
     in_window(kind, EXPRESSION_MASK)
 }
 
-pub(crate) fn is_named_declaration(kind: SyntaxKind) -> bool {
+pub fn is_named_declaration(kind: SyntaxKind) -> bool {
     matches!(
         kind,
         CLASS
@@ -134,7 +135,7 @@ pub(crate) fn is_named_declaration(kind: SyntaxKind) -> bool {
     )
 }
 
-pub(crate) fn is_callable_declaration(kind: SyntaxKind) -> bool {
+pub fn is_callable_declaration(kind: SyntaxKind) -> bool {
     matches!(
         kind,
         FUN | PROPERTY | VALUE_PARAMETER | DESTRUCTURING_DECLARATION_ENTRY | PRIMARY_CONSTRUCTOR | SECONDARY_CONSTRUCTOR
@@ -142,19 +143,19 @@ pub(crate) fn is_callable_declaration(kind: SyntaxKind) -> bool {
     )
 }
 
-pub(crate) fn is_function(kind: SyntaxKind) -> bool {
+pub fn is_function(kind: SyntaxKind) -> bool {
     matches!(kind, FUN | FUNCTION_LITERAL | PRIMARY_CONSTRUCTOR | SECONDARY_CONSTRUCTOR)
 }
 
-pub(crate) fn is_type_parameter_list_owner(kind: SyntaxKind) -> bool {
+pub fn is_type_parameter_list_owner(kind: SyntaxKind) -> bool {
     is_callable_declaration(kind) || matches!(kind, CLASS | OBJECT_DECLARATION | ENUM_ENTRY | TYPEALIAS)
 }
 
-pub(crate) fn is_modifier_list_owner(kind: SyntaxKind) -> bool {
+pub fn is_modifier_list_owner(kind: SyntaxKind) -> bool {
     is_declaration(kind) || matches!(kind, TYPE_REFERENCE | PACKAGE_DIRECTIVE | TYPE_PROJECTION)
 }
 
-pub(crate) fn is_reference_expression(kind: SyntaxKind) -> bool {
+pub fn is_reference_expression(kind: SyntaxKind) -> bool {
     is_simple_name_expression(kind)
         || matches!(
             kind,
@@ -162,6 +163,6 @@ pub(crate) fn is_reference_expression(kind: SyntaxKind) -> bool {
         )
 }
 
-pub(crate) fn is_simple_name_expression(kind: SyntaxKind) -> bool {
+pub fn is_simple_name_expression(kind: SyntaxKind) -> bool {
     matches!(kind, REFERENCE_EXPRESSION | ENUM_ENTRY_SUPERCLASS_REFERENCE_EXPRESSION | OPERATION_REFERENCE | LABEL)
 }
