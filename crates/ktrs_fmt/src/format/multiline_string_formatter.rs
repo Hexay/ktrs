@@ -1,6 +1,8 @@
 //! Port of `MultilineStringFormatter.kt` (lines 26-246): re-indents `"""..."""` strings followed by
 //! `.trimIndent()` / `.trimMargin()`.
 
+use std::cell::OnceCell;
+
 use ktrs_psi::{KtFile, KtQualifiedExpression, KtStringTemplateExpression, KtVisitorVoid, PsiComment, PsiElement, kt_tree_visitor_void, kt_visitor_void};
 
 use super::kotlin_text::{LineIndex, is_blank, trim_start};
@@ -37,7 +39,6 @@ impl MultilineStringFormatter {
             let continuation_indentation = " ".repeat(self.continuation_indent_size.max(0) as usize);
 
             let mut multiline = String::new();
-            // Open string
             if multiline_string.is_dollar_string {
                 multiline.push_str("$$");
             }
@@ -45,8 +46,6 @@ impl MultilineStringFormatter {
             multiline.push('\n');
 
             let mut is_last_line_empty = true;
-
-            // String content
             for line_content in multiline_string.get_string_content() {
                 if multiline_string.uses_trim_margin || !line_content.is_empty() {
                     multiline.push_str(&indentation);
@@ -254,6 +253,7 @@ impl MultilineTrimmedString {
     }
 
     pub fn get_string_content(&self) -> Vec<String> {
+        let minimal_indent = OnceCell::new();
         let mut out = Vec::new();
         for (i, line) in self.lines.iter().enumerate() {
             if i == 0 || i == self.last_string_line_index {
@@ -264,20 +264,21 @@ impl MultilineTrimmedString {
                 };
                 // Ignores first and last line content if they are blank
                 if !is_blank(string_content) {
-                    out.push(self.trimmed(string_content));
+                    out.push(self.trimmed(string_content, &minimal_indent));
                 }
             } else if i > self.last_string_line_index {
                 // No longer part of the string template, so we can ignore it
             } else {
-                out.push(self.trimmed(line));
+                out.push(self.trimmed(line, &minimal_indent));
             }
         }
         out
     }
 
-    fn trimmed(&self, s: &str) -> String {
+    /// `minimal_indent` caches [Self::minimal_indent] (upstream recomputes it per line).
+    fn trimmed(&self, s: &str, minimal_indent: &OnceCell<usize>) -> String {
         if self.uses_trim_indent() {
-            return s.chars().skip(self.minimal_indent()).collect();
+            return s.chars().skip(*minimal_indent.get_or_init(|| self.minimal_indent())).collect();
         }
 
         if trim_start(s).starts_with('|') {

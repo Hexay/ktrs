@@ -162,7 +162,11 @@ impl KtImportDirective {
 
     /// `getImportedFqName()`; upstream throws for references that aren't names (None here).
     pub fn imported_fq_name(&self) -> Option<FqName> {
-        fq_name_from_expression(self.imported_reference())
+        let reference = self.imported_reference();
+        if let Some(name) = reference.as_ref().and_then(|r| plain_dotted_name(r)) {
+            return Some(FqName::new(name));
+        }
+        fq_name_from_expression(reference)
     }
 
     pub fn import_path(&self) -> Option<ImportPath> {
@@ -183,6 +187,36 @@ fn fq_name_from_expression(expression: Option<KtExpression>) -> Option<FqName> {
         return Some(parent_fqn?.into_child(child));
     }
     Some(FqName::root().into_child(expression.cast::<KtSimpleNameExpression>()?.referenced_name()))
+}
+
+/// The text of `a.b.c` parsed as the usual left-nested chain of plain identifiers (no backticks,
+/// whitespace or comments): then [`fq_name_from_expression`] builds the same name (by string, parent
+/// and short name) from one segment at a time.
+fn plain_dotted_name(e: &PsiElement) -> Option<&str> {
+    let tree = e.tree();
+    let (start, end) = (e.id(), tree.subtree_end(e.id()));
+    // Preorder: k qualified expressions, then `REF IDENT`, then k times `DOT REF IDENT`.
+    let len = end - start;
+    if len < 2 || (len - 2) % 4 != 0 {
+        return None;
+    }
+    let k = (len - 2) / 4;
+    let shape_ok = (start..end).all(|id| {
+        let i = id - start;
+        let (kind, token) = if i < k {
+            (DOT_QUALIFIED_EXPRESSION, false)
+        } else {
+            match (i - k) % 3 {
+                0 => (REFERENCE_EXPRESSION, false),
+                1 => (IDENTIFIER, true),
+                _ => (DOT, true),
+            }
+        };
+        let nested = if i < k { tree.subtree_end(id) == end - 3 * i } else { kind != REFERENCE_EXPRESSION || tree.subtree_end(id) == id + 2 };
+        tree.kind(id) == kind && tree.is_token(id) == token && nested
+    });
+    let text = tree.text_of(start);
+    (shape_ok && !text.contains('`')).then_some(text)
 }
 
 fn name_from_expression(expression: Option<KtExpression>) -> Option<String> {

@@ -5,7 +5,7 @@ use std::ops::ControlFlow::{Break, Continue};
 
 use ktrs_psi::*;
 
-use crate::doc::{FillMode, Indent, utf16_len};
+use crate::doc::{FillMode, Indent};
 use crate::format::psi_utils::is_lambda;
 
 use super::KotlinInputAstVisitor;
@@ -27,13 +27,10 @@ fn first_unit_is_upper_case(element: &PsiElement) -> bool {
 /// `element.text.length < limit`, reading no further than `limit` UTF-16 units.
 fn text_shorter_than(element: &PsiElement, limit: i32) -> bool {
     let mut length = 0;
-    limit > 0
-        && element
-        .try_for_each_text_chunk(|chunk| {
-            length += utf16_len(chunk);
-            if length >= limit { Break(()) } else { Continue(()) }
-        })
-        .is_continue()
+    limit > 0 && element.text_slice().chars().all(|c| {
+        length += c.len_utf16() as i32;
+        length < limit
+    })
 }
 
 impl KotlinInputAstVisitor<'_, '_> {
