@@ -1,9 +1,10 @@
-# pre-commit builds the root package (`cargo install --path .`) once per hook version.
+# pre-commit pip-installs this repo (pyproject.toml); its launcher downloads the release binaries
+# for the pinned rev on first run, so no Rust toolchain is needed.
 - id: ktfmt
   name: ktfmt (ktrs)
   description: Format Kotlin exactly like ktfmt 0.64. Pass ktfmt's own flags in `args`.
   entry: ktfmt
-  language: rust
+  language: python
   files: \.kts?$
   types: [text]
 
@@ -11,7 +12,7 @@
   name: ktrs fmt
   description: Format Kotlin exactly like ktfmt 0.64. Pass e.g. `--style kotlinlang` in `args`.
   entry: ktrs fmt
-  language: rust
+  language: python
   files: \.kts?$
   types: [text]
 
@@ -19,6 +20,6 @@
   name: ktrs fmt --check
   description: Fail if any Kotlin file isn't formatted, without changing it.
   entry: ktrs fmt --check
-  language: rust
+  language: python
   files: \.kts?$
   types: [text]

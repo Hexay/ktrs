@@ -27,7 +27,8 @@ In GitHub Actions:
 - run: ktrs fmt --check --style kotlinlang
 ```
 
-As a [pre-commit](https://pre-commit.com) hook:
+As a [pre-commit](https://pre-commit.com) hook (no Rust needed: the hook downloads the release
+binaries for its `rev` on first run):
 
 ```yaml
 - repo: https://github.com/Hexay/ktrs
