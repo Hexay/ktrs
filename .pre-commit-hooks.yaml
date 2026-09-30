@@ -23,3 +23,27 @@
   language: python
   files: \.kts?$
   types: [text]
+
+- id: ktlint
+  name: ktlint (ktrs)
+  description: Lint Kotlin like ktlint 2.0 (ported rules; see `ktrs lint --list-rules`). Pass ktlint's own flags in `args`.
+  entry: ktlint --relative
+  language: python
+  files: \.kts?$
+  types: [text]
+
+- id: ktrs-lint
+  name: ktrs lint
+  description: Lint Kotlin like ktlint 2.0 (ported rules), failing on violations.
+  entry: ktrs lint
+  language: python
+  files: \.kts?$
+  types: [text]
+
+- id: ktrs-lint-format
+  name: ktrs lint --format
+  description: Fix what ktlint 2.0's (ported) rules can autocorrect, failing on what remains.
+  entry: ktrs lint --format
+  language: python
+  files: \.kts?$
+  types: [text]
