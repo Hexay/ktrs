@@ -5,23 +5,23 @@ Milestone 1: the parser's tree must be identical to the Kotlin compiler's PSI (`
 
 ## Layout
 
-- `crates/ktrs_syntax` — `SyntaxKind` (generated), the flat preorder `Tree` (element = index; see
+- `crates/ktrs-syntax` — `SyntaxKind` (generated), the flat preorder `Tree` (element = index; see
   research/06-tree-library.md for why not rowan), `psi_dump` printer.
-- `crates/ktrs_lexer` — ports of `Kotlin.flex` / `KDoc.flex`.
-- `crates/ktrs_parser` — `PsiBuilder` semantics + port of `KotlinParsing`/`KotlinExpressionParsing`/`KDocParser`.
-  Throughput: `cargo run -p ktrs_parser --release --example bench [dir] [reps]` (CPU-cycle based, robust
+- `crates/ktrs-lexer` — ports of `Kotlin.flex` / `KDoc.flex`.
+- `crates/ktrs-parser` — `PsiBuilder` semantics + port of `KotlinParsing`/`KotlinExpressionParsing`/`KDocParser`.
+  Throughput: `cargo run -p ktrs-parser --release --example bench [dir] [reps]` (CPU-cycle based, robust
   to a busy machine; `corpus-diff`'s MB/s sums wall time across all cores and swings with load).
-- `crates/ktrs_psi` — typed PSI views with the compiler's accessor semantics (scope: what ktfmt calls).
-  Porting conventions and the full API list: `crates/ktrs_psi/src/lib.rs` docs.
-- `crates/ktrs_fmt` — ktfmt port. Throughput: `cargo run -p ktrs_fmt --release --example bench [dir] [reps] [filter]
+- `crates/ktrs-psi` — typed PSI views with the compiler's accessor semantics (scope: what ktfmt calls).
+  Porting conventions and the full API list: `crates/ktrs-psi/src/lib.rs` docs.
+- `crates/ktrs-fmt` — ktfmt port. Throughput: `cargo run -p ktrs-fmt --release --example bench [dir] [reps] [filter]
   [threads]`; compare runs by its "format = N parses" line (stable under machine load), not MB/s.
-- `crates/ktrs_cli` — `ktrs fmt` and the `ktfmt` drop-in (1:1 port of ktfmt's `cli/`: flags, messages, exit
+- `crates/ktrs-cli` — `ktrs fmt` and the `ktfmt` drop-in (1:1 port of ktfmt's `cli/`: flags, messages, exit
   codes). The root package `ktrs` owns the two binaries (so `cargo install --path .` and pre-commit work);
   releases build `--profile dist` (`.github/workflows/release.yml`).
   Adoption gaps and integrations: research/08-drop-in-replacement.md.
-- `tools/psi-accessors/psi-accessors.sh` — JVM oracle for ktrs_psi (`one|hashes|dump <dir> [--fixture] [--script]`);
-  Rust mirror: `cargo run -p ktrs_psi --release --example psi_accessors -- one|hashes|compare|dump ...`.
-- `xtask` — `cargo xtask codegen` regenerates `ktrs_syntax/src/generated/kinds.rs` from `kinds.tsv`.
+- `tools/psi-accessors/psi-accessors.sh` — JVM oracle for ktrs-psi (`one|hashes|dump <dir> [--fixture] [--script]`);
+  Rust mirror: `cargo run -p ktrs-psi --release --example psi_accessors -- one|hashes|compare|dump ...`.
+- `xtask` — `cargo xtask codegen` regenerates `ktrs-syntax/src/generated/kinds.rs` from `kinds.tsv`.
 - `tools/psi-dump/psi-dump.sh` — JVM oracle on the pinned compiler: `one <file>`, `tree <in> <out>`, `kinds`,
   `bench <dir> <warmup> <reps>` (warm single-thread baseline to compare with the ktrs `bench` example).
 - `tools/sync-kotlin.sh` — sparse-checks-out the pinned Kotlin sources to `third_party/kotlin` (gitignored)
@@ -32,26 +32,26 @@ Milestone 1: the parser's tree must be identical to the Kotlin compiler's PSI (`
 
 ## Parity gates (all must stay green)
 
-- `cargo test -p ktrs_parser --release` — fixture ratchet `tests/passing.txt` (`UPDATE_PASSING=1` rewrites).
+- `cargo test -p ktrs-parser --release` — fixture ratchet `tests/passing.txt` (`UPDATE_PASSING=1` rewrites).
 - `cargo corpus-diff` (run from repo root) — our dump vs the compiler's for every corpus file; also
   prints MB/s and the slowest files. Oracle dumps are built once, in the background:
   `tools/psi-dump/psi-dump.sh tree corpus target/oracle/corpus`.
-- `cargo test -p ktrs_psi --release` — PSI accessor reports vs the JVM on the fixtures (hashes in
-  `crates/ktrs_psi/tests/data`; regeneration commands in `tests/fixtures.rs`). Corpus, in the background:
+- `cargo test -p ktrs-psi --release` — PSI accessor reports vs the JVM on the fixtures (hashes in
+  `crates/ktrs-psi/tests/data`; regeneration commands in `tests/fixtures.rs`). Corpus, in the background:
   `psi-accessors.sh hashes corpus [--script] > target/psi-accessors/corpus[-script].jvm.hashes`, then
   `psi_accessors compare corpus target/psi-accessors/corpus[-script].jvm.hashes [--script]`.
-- `cargo test -p ktrs_fmt --test golden` — ktfmt's own test cases in `testdata/ktfmt/<suite>/`, ratchet
+- `cargo test -p ktrs-fmt --test golden` — ktfmt's own test cases in `testdata/ktfmt/<suite>/`, ratchet
   `tests/golden-passing.txt`. Regenerate (JVM, background): `tools/ktfmt-oracle/extract-goldens.sh`.
 - `cargo fmt-diff [meta|google|kotlinlang]` (repo root) — byte diff vs real ktfmt on the corpus; oracle built
   in the background by `tools/ktfmt-oracle/ktfmt-oracle.sh <style> corpus target/ktfmt-oracle/<style>`.
 
-- `cargo test -p ktrs_cli` — ktfmt's CLI tests, ported. `tools/ktfmt-oracle/cli-diff.sh` (JVM, ~2 min) — the
+- `cargo test -p ktrs-cli` — ktfmt's CLI tests, ported. `tools/ktfmt-oracle/cli-diff.sh` (JVM, ~2 min) — the
   `ktfmt` binary vs the ktfmt jar on stdout/stderr/exit code/files (`ONLY=<regex>`, `KEEP=1`).
 
 ## Rules
 
 - **Kotlin pin is `v2.4.20` everywhere** (psi-dump.sh, sync-kotlin.sh). Bump them together, then rerun
-  `psi-dump.sh kinds > crates/ktrs_syntax/kinds.tsv` and `cargo xtask codegen`.
+  `psi-dump.sh kinds > crates/ktrs-syntax/kinds.tsv` and `cargo xtask codegen`.
 - Never hand-edit `generated/`. Kind names = compiler field names (`KtTokens.FUN_KEYWORD` -> `FUN_KEYWORD`).
 - Port 1:1: one Rust fn per Java method, `snake_case` of the Java name, same order within the file, so
   upstream diffs map onto our code. Keep upstream control flow even where it looks odd.

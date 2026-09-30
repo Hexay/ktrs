@@ -1,0 +1,15 @@
+[package]
+name = "ktrs-psi"
+description = "Typed Kotlin PSI accessors over the ktrs syntax tree, mirroring the compiler's psi-impl"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+ktrs-syntax.workspace = true
+ktrs-parser.workspace = true
+
+[dev-dependencies]
+expect-test.workspace = true

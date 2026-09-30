@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Differential test of the `ktfmt` drop-in (crates/ktrs_cli) against the real ktfmt CLI jar.
+# Differential test of the `ktfmt` drop-in (crates/ktrs-cli) against the real ktfmt CLI jar.
 #   cli-diff.sh [path/to/ktfmt-binary]   (default: target/debug/ktfmt[.exe])
 # Each scenario runs both tools on a fresh copy of the same fixture tree, from inside it, and
 # compares stdout (bytes), stderr (sorted lines: files are formatted in parallel), the exit code

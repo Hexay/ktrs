@@ -1,7 +1,7 @@
 # Syntax tree library: rowan 0.16 vs cstree vs own flat tree (2026-09-26, commit 5ae7b34)
 
 Source-reading and crate-docs only; no builds run. Profile numbers are from `05-parser-profile.md`
-and the `alloc_count` example (`crates/ktrs_fmt/examples/alloc_count.rs`).
+and the `alloc_count` example (`crates/ktrs-fmt/examples/alloc_count.rs`).
 
 ## Verdict
 
@@ -22,9 +22,9 @@ and the `alloc_count` example (`crates/ktrs_fmt/examples/alloc_count.rs`).
 
 Wrapper layers localize everything:
 - `ktrs_syntax` re-exports `GreenNode/TextRange/TextSize` and aliases `SyntaxNode/Token/Element`
-  (`crates/ktrs_syntax/src/lib.rs:11,28-30`).
-- `ktrs_psi::PsiElement(SyntaxElement)` (`crates/ktrs_psi/src/element.rs:13`) and `AstNode(PsiElement)`
-  (`element.rs:197`). Every typed PSI class is a newtype over `PsiElement` (`crates/ktrs_psi/src/cast.rs:35-69`).
+  (`crates/ktrs-syntax/src/lib.rs:11,28-30`).
+- `ktrs_psi::PsiElement(SyntaxElement)` (`crates/ktrs-psi/src/element.rs:13`) and `AstNode(PsiElement)`
+  (`element.rs:197`). Every typed PSI class is a newtype over `PsiElement` (`crates/ktrs-psi/src/cast.rs:35-69`).
 - The roughly 300 navigation calls in psi and fmt (`first_child` 30, `next_sibling` 38, `parent` 31,
   `prev_sibling` 32, `last_child` 26, `.kind()` 63, `.text()` 102) are `PsiElement` methods, not rowan.
   They do not change.
@@ -231,7 +231,7 @@ child-by-kind lookup per node. The walk checksums match on all 6123 files.
 1. In `ktrs_syntax/examples/tree_bench.rs` (or a scratch crate), take `Parse.green` from
    `parse_file` over `corpus/`.
 2. Convert it to (a) a flat `Tree` and (b) a cstree green tree (`GreenNode::new` + `TokenInterner`).
-3. Time these with the parser bench's cycle clock (`crates/ktrs_parser/examples/bench.rs`):
+3. Time these with the parser bench's cycle clock (`crates/ktrs-parser/examples/bench.rs`):
    - **Build:** flat pushes vs rowan `GreenNode::new` vs cstree, replaying the same start/token/finish
      event stream recorded once.
    - **Drop.**

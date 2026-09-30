@@ -1,0 +1,18 @@
+[package]
+name = "ktrs-fmt"
+description = "Kotlin formatter producing byte-identical output to ktfmt"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+ktrs-syntax.workspace = true
+ktrs-lexer.workspace = true
+ktrs-parser.workspace = true
+ktrs-psi.workspace = true
+
+[dev-dependencies]
+expect-test.workspace = true
+mimalloc.workspace = true

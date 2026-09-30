@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# JVM oracles for ktrs_fmt's gjf engine port (crates/ktrs_fmt/src/doc) and input layer
-# (crates/ktrs_fmt/src/format/input), run against the real ktfmt jar.
-#   engine-oracle.sh cases                  regenerate crates/ktrs_fmt/src/doc/tests/cases.expected
+# JVM oracles for ktrs_fmt's gjf engine port (crates/ktrs-fmt/src/doc) and input layer
+# (crates/ktrs-fmt/src/format/input), run against the real ktfmt jar.
+#   engine-oracle.sh cases                  regenerate crates/ktrs-fmt/src/doc/tests/cases.expected
 #   engine-oracle.sh tokens <src> <out>     dump KotlinInput tokens of every .kt under <src> into <out>
 #                                           (then: KTRS_INPUT_ORACLE=<out> KTRS_INPUT_CORPUS=<src>
-#                                            cargo test -p ktrs_fmt input_oracle -- --ignored)
+#                                            cargo test -p ktrs-fmt input_oracle -- --ignored)
 #   engine-oracle.sh idtables <out.rs>      regenerate doc/java_identifier_tables.rs (header re-added by hand)
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
@@ -24,7 +24,7 @@ mkdir -p "$classes"
 run() { "$java" -Xss64m -cp "$jar$sep$classes" "$@" 2>&1 | { grep -v '^WARN' || true; }; }
 
 case ${1:-} in
-  cases) d="$root/crates/ktrs_fmt/src/doc/tests"; run DocScript "$d/cases.txt" "$d/cases.expected" ;;
+  cases) d="$root/crates/ktrs-fmt/src/doc/tests"; run DocScript "$d/cases.txt" "$d/cases.expected" ;;
   tokens) run InputDump "$2" "$3" ;;
   idtables) "$java" -cp "$classes" IdTables > "$2" ;;
   *) echo "usage: $0 cases | tokens <src> <out> | idtables <out.rs>" >&2; exit 2 ;;

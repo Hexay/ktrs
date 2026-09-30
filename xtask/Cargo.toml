@@ -6,7 +6,7 @@ license.workspace = true
 publish = false
 
 [dependencies]
-ktrs_fmt.workspace = true
-ktrs_parser.workspace = true
-ktrs_syntax.workspace = true
+ktrs-fmt.workspace = true
+ktrs-parser.workspace = true
+ktrs-syntax.workspace = true
 mimalloc.workspace = true

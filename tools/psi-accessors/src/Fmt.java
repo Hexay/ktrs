@@ -5,7 +5,7 @@ import org.jetbrains.kotlin.com.intellij.psi.PsiElement;
 import org.jetbrains.kotlin.com.intellij.psi.PsiFile;
 import org.jetbrains.kotlin.com.intellij.psi.tree.IElementType;
 
-/** Canonical value rendering shared by every accessor line; crates/ktrs_psi/examples/psi_accessors mirrors it. */
+/** Canonical value rendering shared by every accessor line; crates/ktrs-psi/examples/psi_accessors mirrors it. */
 final class Fmt {
     private Fmt() {}
 

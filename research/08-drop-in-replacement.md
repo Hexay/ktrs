@@ -1,6 +1,6 @@
 # 08 — Drop-in replacement gap analysis (ktfmt first, then ktlint)
 
-Researched 2026-09-27. Local facts come from `third_party/ktfmt` (v0.64) and `crates/ktrs_fmt`. Web facts have
+Researched 2026-09-27. Local facts come from `third_party/ktfmt` (v0.64) and `crates/ktrs-fmt`. Web facts have
 inline URLs. Scope, LOC and popularity figures are in `research/04-parity-scope.md` and are not repeated here.
 
 ## TL;DR
@@ -210,7 +210,7 @@ ids plus 7 experimental (https://github.com/ktlint/ktlint/blob/master/documentat
 
 | # | Step | Effort |
 |---|---|---|
-| A1 | `crates/ktrs_cli`, a 1:1 port of `ParsedArgs`/`Main`: flags, `@argfile`, stdin, messages, exit codes 0/1, change-only writes, BOM, rayon parallelism, per-file `catch_unwind` (the build profile keeps panics from aborting the batch). Binary name `ktrs`, with a `ktfmt`-compatible argument surface. | S |
+| A1 | `crates/ktrs-cli`, a 1:1 port of `ParsedArgs`/`Main`: flags, `@argfile`, stdin, messages, exit codes 0/1, change-only writes, BOM, rayon parallelism, per-file `catch_unwind` (the build profile keeps panics from aborting the batch). Binary name `ktrs`, with a `ktfmt`-compatible argument surface. | S |
 | A2 | Port `MainTest`/`ParsedArgsTest` (≈50 cases) as Rust integration tests, plus a differential test running the JVM `ktfmt-0.64-with-dependencies.jar` against `ktrs` on the corpus with `-n --set-exit-if-changed` (stdout and exit code identical). | S |
 | A3 | `.editorconfig` resolver (ec4j glob plus cascade, 4 keys + `--enable-editorconfig`), with `EditorConfigResolverTest` ported. Also honour `--stdin-name` for the lookup (ktfmt Unreleased). | M (glob exactness) |
 | A4 | Close the last 2/6123 corpus diffs, or document them. | S–M |
