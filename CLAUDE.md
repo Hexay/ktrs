@@ -28,7 +28,7 @@ Milestone 1: the parser's tree must be identical to the Kotlin compiler's PSI (`
   tests: `java/gradlew -p java :ktrs-gradle-plugin:test` (TestKit, slow: background it).
 - `crates/ktrs-ast` — mutable arena AST with IntelliJ `TreeElement` semantics, seeded from `Tree` (for ktlint);
   conventions in `src/lib.rs`. `crates/ktrs-lint` — ktlint 2.0.0-ALPHA-4 engine + ported rules; status
-  research/15-ktlint-spike.md; corpus counts per rule research/17-ktlint-corpus-counts.md.
+  research/15-ktlint-spike.md; corpus counts per rule research/18-ktlint-corpus-counts.md.
   `crates/ktrs-editorconfig` — ec4j 1.2.0 port (ktlint's `.editorconfig` semantics; ktfmt still uses ec4rs).
 - `tools/psi-accessors/psi-accessors.sh` — JVM oracle for ktrs-psi (`one|hashes|dump <dir> [--fixture] [--script]`);
   Rust mirror: `cargo run -p ktrs-psi --release --example psi_accessors -- one|hashes|compare|dump ...`.

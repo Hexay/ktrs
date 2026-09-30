@@ -76,7 +76,7 @@ pub(crate) fn run(root: &Path, args: &[String]) -> Result<(), String> {
     let ported: HashSet<&str> = providers.iter().map(|p| p.rule_id().value()).collect();
     let oracle = lint_oracle::load(&args.oracle).map_err(|e| {
         format!(
-            "no oracle ({e}); build it first (JVM, slow; see research/17-ktlint-corpus-counts.md):\n  \
+            "no oracle ({e}); build it first (JVM, slow; see research/18-ktlint-corpus-counts.md):\n  \
              KTLINT_CODE_STYLE={} tools/ktlint-oracle/ktlint-probe.sh corpus {}",
             args.style,
             args.oracle.display()
