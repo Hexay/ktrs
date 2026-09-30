@@ -33,6 +33,20 @@ fn is_blank(s: &str) -> bool {
     s.chars().all(char::is_whitespace)
 }
 
+/// Kotlin `Char.isWhitespace()`: Java `isWhitespace` (incl. U+001C..U+001F) or `isSpaceChar` (Zs, Zl, Zp).
+pub(crate) fn is_kotlin_whitespace(c: char) -> bool {
+    matches!(
+        c,
+        '\t' | '\n' | '\u{0B}' | '\u{0C}' | '\r' | '\u{1C}'..='\u{1F}' | ' ' | '\u{A0}' | '\u{1680}'
+            | '\u{2000}'..='\u{200A}' | '\u{2028}' | '\u{2029}' | '\u{202F}' | '\u{205F}' | '\u{3000}'
+    )
+}
+
+/// Kotlin `CharSequence.isBlank()`.
+pub(crate) fn is_kotlin_blank(s: &str) -> bool {
+    s.chars().all(is_kotlin_whitespace)
+}
+
 /// `reindent`: drops a blank first and last line, cuts the others (a `None` cut keeps the line).
 fn reindent(lines: &[&str], cut: impl Fn(&str) -> Option<String>) -> String {
     let last_index = lines.len().saturating_sub(1);

@@ -8,7 +8,7 @@ pub mod editor_config_defaults;
 pub mod editor_config_loader;
 mod formatter_tags;
 pub mod internal_rules;
-mod kotlin_text;
+pub(crate) mod kotlin_text;
 pub mod ktlint_rule_engine;
 mod ktlint_rule_engine_suppression;
 mod ktlint_suppression;
