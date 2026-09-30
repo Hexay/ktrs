@@ -139,7 +139,8 @@ fn write_tables(opts: &Options, results: &[FileResult], wall: f64) {
         for p in &r.passes {
             passes.push_str(&format!("{}\t{}\t{}\t{}\n", r.rel, p.pass, u8::from(p.changed), u8::from(p.diverged)));
             if let Some(mutated) = p.mutated.as_ref().filter(|_| p.changed && opts.dumps) {
-                write(&out.join(format!("mut/{}.p{}.txt", r.rel, p.pass)), mutated);
+                // `psiToString` ends every line with '\n'; `psi_to_string` trims the last one, like `psi_dump`.
+                write(&out.join(format!("mut/{}.p{}.txt", r.rel, p.pass)), &format!("{mutated}\n"));
             }
             if let (true, Some(mutated), Some(reparsed)) = (p.diverged, &p.mutated, &p.reparsed) {
                 write(&out.join(format!("diff/{}.p{}.diff", r.rel, p.pass)), &compare::hunk(mutated, reparsed, 40));
