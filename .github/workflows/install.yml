@@ -1,0 +1,38 @@
+# The install paths that use released binaries (action.yml + install.sh, the pre-commit launcher),
+# against the latest release; only when they change, since other commits can't affect them.
+name: install
+
+on:
+  push:
+    branches: [master, main]
+    paths: [action.yml, install.sh, pyproject.toml, tools/pre-commit/**, .github/workflows/install.yml]
+  pull_request:
+    paths: [action.yml, install.sh, pyproject.toml, tools/pre-commit/**, .github/workflows/install.yml]
+  workflow_dispatch:
+
+jobs:
+  install:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, ubuntu-24.04-arm, macos-14, windows-2022]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./
+      - name: Format a snippet
+        shell: bash
+        run: |
+          ktrs --version
+          test "$(printf 'fun  f( ) = 1\n' | ktfmt -)" = "fun f() = 1"
+      # Pinned to the latest release: master's own version is usually not released yet.
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: pre-commit launcher
+        shell: bash
+        run: |
+          python -m venv "$RUNNER_TEMP/venv"
+          venv_bin="$RUNNER_TEMP/venv/bin"; [ -d "$venv_bin" ] || venv_bin="$RUNNER_TEMP/venv/Scripts"
+          "$venv_bin/python" -m pip install -q .
+          export KTRS_VERSION=$(curl -fsSLI -o /dev/null -w '%{url_effective}' https://github.com/Hexay/ktrs/releases/latest | sed 's|.*/tag/||')
+          test "$(printf 'fun  f( ) = 1\n' | "$venv_bin/ktfmt" -)" = "fun f() = 1"

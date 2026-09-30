@@ -54,6 +54,12 @@ panic = "unwind"
 inherits = "release"
 strip = true
 
+# CI's test builds: release speed for the suites without fat LTO's minute-long link.
+[profile.ci]
+inherits = "release"
+lto = false
+codegen-units = 16
+
 # The browser playground (crates/ktrs-wasm): wasm32-unknown-unknown can't unwind.
 [profile.wasm]
 inherits = "release"
