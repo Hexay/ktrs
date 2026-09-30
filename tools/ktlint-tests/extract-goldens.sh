@@ -61,10 +61,11 @@ echo "compiling upstream tests..."
   -cp "$(cp_of "${deps[@]}")" -d "$(to_host "$work/classes")" "$(to_host "$work/src")"
 
 echo "running upstream tests with the recorder..."
+# One class path, not `-jar ... --class-path`: JUnit's Kotlin assertAll must see kotlin-stdlib (in the fat jar).
 "$java" -Xss64m -Xmx4g -Dgolden.out="$(to_host "$work/cases")" -Djunit.jupiter.extensions.autodetection.enabled=true \
   -Dlogback.configurationFile="$(to_host "$root/tools/ktlint-oracle/logback.xml")" \
-  -jar "$(to_host "$lib/junit-platform-console-standalone-6.1.3.jar")" execute \
-  --class-path "$(cp_of "$work/classes" "${deps[@]}")" --select-package io.github.ktlint.core.ruleset.standard.rules \
+  -cp "$(cp_of "$work/classes" "${deps[@]}")" org.junit.platform.console.ConsoleLauncher execute \
+  --select-package io.github.ktlint.core.ruleset.standard.rules \
   --details=summary --disable-banner > "$work/junit.log" 2>&1 || true
 grep -aE '^\[ +[0-9]+ (tests|containers) (successful|failed|aborted|skipped)' "$work/junit.log" || tail -20 "$work/junit.log"
 
