@@ -45,3 +45,9 @@ fun <R> R.ext(block: R.() -> Unit): R where R : Any = apply(block)
 val lambda = @Suppress("x") { y: Int ->
     y + 1
 }
+
+fun destructuring() {
+    val (a, b) = 1 to 2
+    @Suppress("x")
+    val c = a + b
+}
