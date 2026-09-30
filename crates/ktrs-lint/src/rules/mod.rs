@@ -4,6 +4,7 @@ mod annotation;
 mod annotation_spacing_rule;
 mod argument_list_wrapping_rule;
 mod backing_property_naming_rule;
+mod binary_expression_wrapping_rule;
 mod blank_line_before_declaration_rule;
 mod blank_line_before_file_annotation;
 mod blank_line_before_imports;
@@ -11,6 +12,8 @@ mod blank_line_before_package;
 mod blank_line_between_when_conditions;
 mod block_comment_initial_star_alignment_rule;
 mod call_expression_wrapping_rule;
+pub mod chain_method_continuation;
+mod chain_wrapping_rule;
 mod class_naming_rule;
 pub mod class_signature;
 mod comment_spacing_rule;
@@ -19,10 +22,12 @@ mod context_parameter_list_wrapping_rule;
 mod context_receiver_wrapping_rule;
 mod enum_entry_name_case_rule;
 mod enum_wrapping_rule;
+mod expression_operand_wrapping_rule;
 mod filename_rule;
 mod final_newline_rule;
 mod fun_keyword_spacing_rule;
 mod function_expression_body_rule;
+mod function_literal;
 mod function_naming_rule;
 mod function_return_type_spacing_rule;
 pub mod function_signature;
@@ -36,11 +41,13 @@ mod indentation;
 pub mod internal;
 mod kdoc_rule;
 mod kdoc_wrapping_rule;
+mod lambda_return_rule;
 pub mod max_line_length_rule;
 mod mixed_condition_operators_rule;
 mod modifier_list_spacing_rule;
 mod modifier_order_rule;
 mod multi_line_if_else_rule;
+mod multiline_expression_wrapping_rule;
 mod multiline_loop_rule;
 mod no_blank_line_at_start_of_file_rule;
 mod no_blank_line_before_rbrace_rule;
@@ -83,6 +90,7 @@ mod spacing_around_unary_operator_rule;
 mod spacing_between_declarations_with_annotations_rule;
 mod spacing_between_declarations_with_comments_rule;
 mod spacing_between_function_name_and_opening_parenthesis_rule;
+mod statement_wrapping_rule;
 mod string_template_indent;
 mod string_template_rule;
 mod then_spacing_rule;
@@ -93,6 +101,7 @@ mod type_argument_comment_rule;
 mod type_argument_list_spacing_rule;
 mod type_parameter_comment_rule;
 mod type_parameter_list_spacing_rule;
+mod unnecessary_parentheses_before_trailing_lambda_rule;
 mod value_argument_comment_rule;
 mod value_parameter_comment_rule;
 mod when_entry_bracing;
@@ -102,6 +111,7 @@ pub use annotation::{ANNOTATIONS_WITH_PARAMETERS_NOT_TO_BE_WRAPPED_PROPERTY, Ann
 pub use annotation_spacing_rule::AnnotationSpacingRule;
 pub use argument_list_wrapping_rule::{ArgumentListWrappingRule, IGNORE_WHEN_PARAMETER_COUNT_GREATER_OR_EQUAL_THAN_PROPERTY};
 pub use backing_property_naming_rule::BackingPropertyNamingRule;
+pub use binary_expression_wrapping_rule::BinaryExpressionWrappingRule;
 pub use blank_line_before_declaration_rule::BlankLineBeforeDeclarationRule;
 pub use blank_line_before_file_annotation::BlankLineBeforeFileAnnotation;
 pub use blank_line_before_imports::BlankLineBeforeImports;
@@ -109,6 +119,8 @@ pub use blank_line_before_package::BlankLineBeforePackage;
 pub use blank_line_between_when_conditions::{BlankLineBetweenWhenConditions, LINE_BREAK_AFTER_WHEN_CONDITION_PROPERTY};
 pub use block_comment_initial_star_alignment_rule::BlockCommentInitialStarAlignmentRule;
 pub use call_expression_wrapping_rule::CallExpressionWrappingRule;
+pub use chain_method_continuation::ChainMethodContinuationRule;
+pub use chain_wrapping_rule::ChainWrappingRule;
 pub use class_naming_rule::ClassNamingRule;
 pub use class_signature::ClassSignatureRule;
 pub use comment_spacing_rule::CommentSpacingRule;
@@ -117,10 +129,12 @@ pub use context_parameter_list_wrapping_rule::ContextParameterListWrappingRule;
 pub use context_receiver_wrapping_rule::ContextReceiverWrappingRule;
 pub use enum_entry_name_case_rule::EnumEntryNameCaseRule;
 pub use enum_wrapping_rule::EnumWrappingRule;
+pub use expression_operand_wrapping_rule::ExpressionOperandWrappingRule;
 pub use filename_rule::FilenameRule;
 pub use final_newline_rule::FinalNewlineRule;
 pub use fun_keyword_spacing_rule::FunKeywordSpacingRule;
 pub use function_expression_body_rule::FunctionExpressionBodyRule;
+pub use function_literal::FunctionLiteralRule;
 pub use function_naming_rule::FunctionNamingRule;
 pub use function_return_type_spacing_rule::FunctionReturnTypeSpacingRule;
 pub use function_signature::FunctionSignatureRule;
@@ -133,11 +147,13 @@ pub use import_ordering_rule::ImportOrderingRule;
 pub use indentation::{INDENT_WHEN_ARROW_ON_NEW_LINE, IndentationRule};
 pub use kdoc_rule::KdocRule;
 pub use kdoc_wrapping_rule::KdocWrappingRule;
+pub use lambda_return_rule::LambdaReturnRule;
 pub use max_line_length_rule::MaxLineLengthRule;
 pub use mixed_condition_operators_rule::MixedConditionOperatorsRule;
 pub use modifier_list_spacing_rule::ModifierListSpacingRule;
 pub use modifier_order_rule::ModifierOrderRule;
 pub use multi_line_if_else_rule::MultiLineIfElseRule;
+pub use multiline_expression_wrapping_rule::MultilineExpressionWrappingRule;
 pub use multiline_loop_rule::MultilineLoopRule;
 pub use no_blank_line_at_start_of_file_rule::NoBlankLineAtStartOfFileRule;
 pub use no_blank_line_before_rbrace_rule::NoBlankLineBeforeRbraceRule;
@@ -180,6 +196,7 @@ pub use spacing_around_unary_operator_rule::SpacingAroundUnaryOperatorRule;
 pub use spacing_between_declarations_with_annotations_rule::SpacingBetweenDeclarationsWithAnnotationsRule;
 pub use spacing_between_declarations_with_comments_rule::SpacingBetweenDeclarationsWithCommentsRule;
 pub use spacing_between_function_name_and_opening_parenthesis_rule::SpacingBetweenFunctionNameAndOpeningParenthesisRule;
+pub use statement_wrapping_rule::StatementWrappingRule;
 pub use string_template_indent::StringTemplateIndentRule;
 pub use string_template_rule::StringTemplateRule;
 pub use then_spacing_rule::ThenSpacingRule;
@@ -190,6 +207,7 @@ pub use type_argument_comment_rule::TypeArgumentCommentRule;
 pub use type_argument_list_spacing_rule::TypeArgumentListSpacingRule;
 pub use type_parameter_comment_rule::TypeParameterCommentRule;
 pub use type_parameter_list_spacing_rule::TypeParameterListSpacingRule;
+pub use unnecessary_parentheses_before_trailing_lambda_rule::UnnecessaryParenthesesBeforeTrailingLambdaRule;
 pub use value_argument_comment_rule::ValueArgumentCommentRule;
 pub use value_parameter_comment_rule::ValueParameterCommentRule;
 pub use when_entry_bracing::WhenEntryBracing;
@@ -212,6 +230,7 @@ pub fn standard_rule_providers() -> Vec<RuleV2Provider> {
         RuleV2Provider::new(|| Box::new(AnnotationSpacingRule)),
         RuleV2Provider::new(|| Box::new(ArgumentListWrappingRule::new())),
         RuleV2Provider::new(|| Box::new(BackingPropertyNamingRule::new()) as Box<dyn RuleV2>),
+        RuleV2Provider::new(|| Box::new(BinaryExpressionWrappingRule::new())),
         RuleV2Provider::new(|| Box::new(BlankLineBeforeDeclarationRule::default())),
         RuleV2Provider::new(|| Box::new(BlankLineBeforeFileAnnotation::default())),
         RuleV2Provider::new(|| Box::new(BlankLineBeforeImports::default())),
@@ -219,6 +238,8 @@ pub fn standard_rule_providers() -> Vec<RuleV2Provider> {
         RuleV2Provider::new(|| Box::new(BlankLineBetweenWhenConditions::new())),
         RuleV2Provider::new(|| Box::new(BlockCommentInitialStarAlignmentRule)),
         RuleV2Provider::new(|| Box::new(CallExpressionWrappingRule::new())),
+        RuleV2Provider::new(|| Box::new(ChainMethodContinuationRule::new())),
+        RuleV2Provider::new(|| Box::new(ChainWrappingRule::new())),
         RuleV2Provider::new(|| Box::new(ClassNamingRule::default())),
         RuleV2Provider::new(|| Box::new(ClassSignatureRule::new())),
         RuleV2Provider::new(|| Box::new(CommentSpacingRule)),
@@ -227,11 +248,13 @@ pub fn standard_rule_providers() -> Vec<RuleV2Provider> {
         RuleV2Provider::new(|| Box::new(ContextReceiverWrappingRule::new())),
         RuleV2Provider::new(|| Box::new(EnumEntryNameCaseRule::default())),
         RuleV2Provider::new(|| Box::new(EnumWrappingRule::new())),
+        RuleV2Provider::new(|| Box::new(ExpressionOperandWrappingRule::new())),
         RuleV2Provider::new(|| Box::new(FilenameRule::default())),
         RuleV2Provider::new(|| Box::new(SpacingAroundCommaRule) as Box<dyn RuleV2>),
         RuleV2Provider::new(|| Box::new(FinalNewlineRule::new())),
         RuleV2Provider::new(|| Box::new(FunKeywordSpacingRule)),
         RuleV2Provider::new(|| Box::new(FunctionExpressionBodyRule::new())),
+        RuleV2Provider::new(|| Box::new(FunctionLiteralRule::new())),
         RuleV2Provider::new(|| Box::new(FunctionNamingRule::new())),
         RuleV2Provider::new(|| Box::new(FunctionReturnTypeSpacingRule::new())),
         RuleV2Provider::new(|| Box::new(FunctionSignatureRule::new())),
@@ -244,11 +267,13 @@ pub fn standard_rule_providers() -> Vec<RuleV2Provider> {
         RuleV2Provider::new(|| Box::new(IndentationRule::new())),
         RuleV2Provider::new(|| Box::new(KdocRule)),
         RuleV2Provider::new(|| Box::new(KdocWrappingRule)),
+        RuleV2Provider::new(|| Box::new(LambdaReturnRule)),
         RuleV2Provider::new(|| Box::new(MaxLineLengthRule::new())),
         RuleV2Provider::new(|| Box::new(MixedConditionOperatorsRule)),
         RuleV2Provider::new(|| Box::new(ModifierListSpacingRule::new())),
         RuleV2Provider::new(|| Box::new(ModifierOrderRule)),
         RuleV2Provider::new(|| Box::new(MultiLineIfElseRule::new())),
+        RuleV2Provider::new(|| Box::new(MultilineExpressionWrappingRule::new())),
         RuleV2Provider::new(|| Box::new(MultilineLoopRule::new())),
         RuleV2Provider::new(|| Box::new(NoBlankLineAtStartOfFileRule::default())),
         RuleV2Provider::new(|| Box::new(NoBlankLineBeforeRbraceRule)),
@@ -291,6 +316,7 @@ pub fn standard_rule_providers() -> Vec<RuleV2Provider> {
         RuleV2Provider::new(|| Box::new(SpacingBetweenDeclarationsWithAnnotationsRule)),
         RuleV2Provider::new(|| Box::new(SpacingBetweenDeclarationsWithCommentsRule)),
         RuleV2Provider::new(|| Box::new(SpacingBetweenFunctionNameAndOpeningParenthesisRule)),
+        RuleV2Provider::new(|| Box::new(StatementWrappingRule::new())),
         RuleV2Provider::new(|| Box::new(StringTemplateIndentRule::new())),
         RuleV2Provider::new(|| Box::new(StringTemplateRule)),
         RuleV2Provider::new(|| Box::new(ThenSpacingRule)),
@@ -301,6 +327,7 @@ pub fn standard_rule_providers() -> Vec<RuleV2Provider> {
         RuleV2Provider::new(|| Box::new(TypeArgumentListSpacingRule::new())),
         RuleV2Provider::new(|| Box::new(TypeParameterCommentRule)),
         RuleV2Provider::new(|| Box::new(TypeParameterListSpacingRule::new())),
+        RuleV2Provider::new(|| Box::new(UnnecessaryParenthesesBeforeTrailingLambdaRule)),
         RuleV2Provider::new(|| Box::new(ValueArgumentCommentRule)),
         RuleV2Provider::new(|| Box::new(ValueParameterCommentRule)),
         RuleV2Provider::new(|| Box::new(WhenEntryBracing::new())),
