@@ -250,7 +250,6 @@ pub fn standard_rule_providers() -> Vec<RuleV2Provider> {
         RuleV2Provider::new(|| Box::new(EnumWrappingRule::new())),
         RuleV2Provider::new(|| Box::new(ExpressionOperandWrappingRule::new())),
         RuleV2Provider::new(|| Box::new(FilenameRule::default())),
-        RuleV2Provider::new(|| Box::new(SpacingAroundCommaRule) as Box<dyn RuleV2>),
         RuleV2Provider::new(|| Box::new(FinalNewlineRule::new())),
         RuleV2Provider::new(|| Box::new(FunKeywordSpacingRule)),
         RuleV2Provider::new(|| Box::new(FunctionExpressionBodyRule::new())),
