@@ -12,7 +12,7 @@ cargo lint-diff ktlint_official --counts
 - 210,933 lint violations from 73 of the rules, in 5,145 files. Format changed 4,817 files.
 - 427 files do not converge in 3 format runs. 97 files end with a mutated tree that differs from a fresh parse.
 - **`standard:indent` crashes on 64 files** (`IllegalArgumentException: Stack should be empty`, mostly `.gradle.kts`). The
-  engine then reports no result for the file. `lint-diff` skips these files (`oracle-crash`); a port has to reproduce the crash,
+  engine then reports no result for the file. `lint-diff` checks that ours throws the same (`oracle-crash`, research/19); a port has to reproduce the crash,
   not fix it.
 - 2 parse failures: the Exposed `sourceFiles/*.kt` templates.
 
