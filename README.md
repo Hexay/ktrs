@@ -22,7 +22,7 @@ Windows: unzip a release from the GitHub releases page. As a [pre-commit](https:
 
 ```yaml
 - repo: https://github.com/Hexay/ktrs
-  rev: v0.1.0
+  rev: v0.2.0
   hooks:
     - id: ktrs-fmt          # or `ktrs-fmt-check`, or `ktfmt` with ktfmt's flags in `args`
       args: [--style, kotlinlang]
@@ -41,12 +41,32 @@ ktfmt --kotlinlang-style --set-exit-if-changed src/   # drop-in: ktfmt's own fla
 ```
 
 The `ktfmt` binary accepts ktfmt's CLI exactly (flags, `@argfile`, `-` for stdin, exit codes,
-`--enable-editorconfig`), so anything that runs the ktfmt jar can run it instead, for example
-Spotless's generic step:
+`--enable-editorconfig`), so anything that runs the ktfmt jar can run it instead.
+
+### Gradle (Spotless) and the JVM
+
+`io.github.hexay:ktrs` is a small jar with the native binaries for Linux, macOS and Windows (x86-64
+and ARM) bundled in it, and no dependencies. Its Spotless step (Spotless 7+) replaces `ktfmt()`:
 
 ```kotlin
-spotless { kotlin { nativeCmd("ktfmt", "/path/to/ktfmt", listOf("--kotlinlang-style", "-")) } }
+// build.gradle.kts
+buildscript { dependencies { classpath("io.github.hexay:ktrs:0.2.0") } }
+
+spotless {
+    kotlin {
+        addStep(io.github.hexay.ktrs.spotless.KtrsStep.create(io.github.hexay.ktrs.KtrsOptions.kotlinlang()))
+    }
+}
 ```
+
+`KtrsOptions` mirrors ktfmt's options (`meta()`, `google()`, `kotlinlang()`, then `withMaxWidth`,
+`withBlockIndent`, `withContinuationIndent`, `withRemoveUnusedImports`, `withTrailingCommas`, and
+`withEditorConfig(true)` to honour `.editorconfig`). From other JVM code, `Ktrs.create()` gives a
+thread-safe formatter: `ktrs.format(code, KtrsOptions.google())`. Both keep long-lived `ktrs serve`
+processes, so a build starts the binary once, not once per file.
+
+Without the jar, Spotless's generic step runs the binary once per file:
+`nativeCmd("ktfmt", "/path/to/ktfmt", listOf("--kotlinlang-style", "-"))`.
 
 ## Performance
 
@@ -65,6 +85,17 @@ laptop (Intel Core Ultra, 22 threads, JDK 21):
 
 Small runs are dominated by JVM startup; large ones by formatting work, where ktrs is still several
 times faster per core and uses all of them.
+
+Through Spotless (`spotlessApply` on okhttp's 573 files, identical output), the formatter's share
+after subtracting a Spotless run that only trims whitespace (54 s cold, 2.6-5 s warm on this machine):
+
+| Spotless step | ktrs (`KtrsStep`) | ktfmt 0.64 (`ktfmt()`) |
+|---|---|---|
+| Fresh Gradle daemon, as in CI | ~4 s (58 s total) | ~52 s (106 s total) |
+| Warm daemon, repeated runs | ~2 s (6.5 s total) | ~6 s (10 s total) |
+
+Spotless formats one file at a time, and a warm JVM has already compiled ktfmt, so the gap is
+widest in CI, where every build starts cold.
 
 - **1 core**: both processes are restricted to one CPU from launch (the affinity mask is inherited, so
   the JVM also sizes its GC and JIT threads for one CPU, as in a 1-CPU container). The JVM's JIT

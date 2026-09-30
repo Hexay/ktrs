@@ -18,7 +18,10 @@ Milestone 1: the parser's tree must be identical to the Kotlin compiler's PSI (`
 - `crates/ktrs-cli` — `ktrs fmt` and the `ktfmt` drop-in (1:1 port of ktfmt's `cli/`: flags, messages, exit
   codes). The root package `ktrs` owns the two binaries (so `cargo install --path .` and pre-commit work);
   releases build `--profile dist` (`.github/workflows/release.yml`).
-  Adoption gaps and integrations: research/08-drop-in-replacement.md.
+  Adoption gaps and integrations: research/08-drop-in-replacement.md. `ktrs serve` is the build-tool
+  server (protocol in `crates/ktrs-cli/src/serve.rs`).
+- `java/` — `io.github.hexay:ktrs`: JVM wrapper around `ktrs serve` (bundled binaries, Spotless `KtrsStep`).
+  Tests: `cargo build --bins`, then `java/gradlew -p java test` (JAVA_HOME = tools/jdk/*).
 - `tools/psi-accessors/psi-accessors.sh` — JVM oracle for ktrs-psi (`one|hashes|dump <dir> [--fixture] [--script]`);
   Rust mirror: `cargo run -p ktrs-psi --release --example psi_accessors -- one|hashes|compare|dump ...`.
 - `xtask` — `cargo xtask codegen` regenerates `ktrs-syntax/src/generated/kinds.rs` from `kinds.tsv`.
