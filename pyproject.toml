@@ -1,5 +1,5 @@
 # Only for the pre-commit hooks (.pre-commit-hooks.yaml, `language: python`): pre-commit pip-installs
-# this repository, which gives it `ktrs` and `ktfmt` launchers (tools/pre-commit/ktrs_launcher.py).
+# this repository, which gives it `ktrs`, `ktfmt` and `ktlint` launchers (tools/pre-commit/ktrs_launcher.py).
 # Keep `version` in step with Cargo.toml: the launcher downloads the release tagged v<version>.
 [build-system]
 requires = ["setuptools>=61"]
@@ -15,6 +15,7 @@ license = { text = "MIT OR Apache-2.0" }
 [project.scripts]
 ktrs = "ktrs_launcher:ktrs"
 ktfmt = "ktrs_launcher:ktfmt"
+ktlint = "ktrs_launcher:ktlint"
 
 [tool.setuptools]
 package-dir = { "" = "tools/pre-commit" }

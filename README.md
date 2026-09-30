@@ -7,7 +7,7 @@ linting without starting a JVM.
 (the other two are rejected by both), 7-100x faster than the ktfmt jar end to end ([numbers](#performance)).
 Underneath is a
 lossless Kotlin parser whose tree matches the Kotlin compiler's PSI node for node. Linting
-(ktlint-compatible) is next.
+(ktlint-compatible) is in progress ([status](#linting)).
 
 ## Formatting
 
@@ -146,6 +146,25 @@ long-lived `ktrs` processes shared by the whole build. `useClassloaderIsolation`
 `processIsolationJvmArgs` and `ktfmtClasspath` are accepted and ignored, and
 `debuggingPrintOpsAfterFormatting` only logs a warning. To use another binary than the bundled one,
 set the Gradle property `ktrs.executable` to its path.
+
+## Linting
+
+In progress: a port of ktlint 2.0 (pinned at 2.0.0-ALPHA-4) with its engine, reporters and CLI.
+Not all standard rules are ported yet; `ktrs lint --list-rules` prints the ones that are, and each
+of them reports and fixes exactly what ktlint does. The same install adds a `ktlint` binary:
+
+```sh
+ktrs lint                             # check every .kt/.kts under the current directory
+ktrs lint --format src/               # fix what can be autocorrected, report the rest
+ktrs lint --reporter json - < Foo.kt  # stdin; reporters: plain, json, checkstyle, sarif, html, ...
+
+ktlint --relative "src/**/*.kt" "!src/**/generated/**"   # drop-in: ktlint's own flags and messages
+```
+
+The `ktlint` binary accepts ktlint's CLI exactly (patterns with `!` negation, `-F`, `--stdin`,
+`--patterns-from-stdin`, `--baseline`, `--editorconfig`, every built-in reporter, exit codes and
+the git hook subcommands). JVM rule sets and reporters (`-R`, `artifact=`) can't be loaded. As
+pre-commit hooks: `id: ktrs-lint` (or `ktrs-lint-format`, or `ktlint` with ktlint's flags in `args`).
 
 ## Performance
 

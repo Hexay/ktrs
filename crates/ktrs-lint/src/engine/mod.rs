@@ -5,6 +5,7 @@ pub mod code;
 mod code_formatter;
 mod editor_config_cache;
 pub mod editor_config_defaults;
+mod editor_config_generator;
 pub mod editor_config_loader;
 mod formatter_tags;
 pub mod internal_rules;

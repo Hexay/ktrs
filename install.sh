@@ -39,5 +39,8 @@ else actual=$(shasum -a 256 "$tmp/$name.$ext" | cut -d' ' -f1); fi
 if [ "$ext" = zip ]; then unzip -q "$tmp/$name.zip" -d "$tmp"; else tar xzf "$tmp/$name.tar.gz" -C "$tmp"; fi
 mkdir -p "$dir"
 cp "$tmp/$name/ktrs$exe" "$tmp/$name/ktfmt$exe" "$dir/"
-echo "installed ktrs and ktfmt $version to $dir"
+# Releases before the ktlint drop-in don't ship it.
+installed="ktrs and ktfmt"
+if [ -f "$tmp/$name/ktlint$exe" ]; then cp "$tmp/$name/ktlint$exe" "$dir/"; installed="ktrs, ktfmt and ktlint"; fi
+echo "installed $installed $version to $dir"
 case ":$PATH:" in *":$dir:"*) ;; *) echo "note: $dir is not on your PATH" ;; esac

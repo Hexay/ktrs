@@ -1,0 +1,6 @@
+Usage: ktlint installGitPreCommitHook [<options>]
+
+  Install git hook to automatically check files for style violations on commit
+
+Options:
+  -h, --help  Show this message and exit
