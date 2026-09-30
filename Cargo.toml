@@ -17,6 +17,8 @@ ktrs-parser = { path = "crates/ktrs-parser", version = "0.2.0" }
 ktrs-psi = { path = "crates/ktrs-psi", version = "0.2.0" }
 ktrs-fmt = { path = "crates/ktrs-fmt", version = "0.2.0" }
 ktrs-cli = { path = "crates/ktrs-cli", version = "0.2.0" }
+ktrs-ast = { path = "crates/ktrs-ast", version = "0.2.0" }
+ktrs-lint = { path = "crates/ktrs-lint", version = "0.2.0" }
 text-size = "1.1"
 expect-test = "1.5"
 mimalloc = { version = "0.1", default-features = false }

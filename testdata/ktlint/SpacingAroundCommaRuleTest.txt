@@ -1,0 +1,100 @@
+#### case Given some parameter list not having a parameter after the comma
+#### code
+val foo1 = Foo(1,3)
+val foo2 = Foo(1, 3)
+#### formatted
+val foo1 = Foo(1, 3)
+val foo2 = Foo(1, 3)
+#### violations
+1:18	auto	Missing spacing after ","
+#### case Given some string containing a comma not followed by a space
+#### flag no-violations
+#### code
+val foo = "bar1,bar2"
+#### violations
+#### case Given some enumeration not having a space after each comma
+#### code
+enum class E {
+    A, B,C
+}
+#### formatted
+enum class E {
+    A, B, C
+}
+#### violations
+2:10	auto	Missing spacing after ","
+#### case Given some parameter list with an unexpected space before the comma
+#### code
+val foo = Foo(1 , 2)
+#### formatted
+val foo = Foo(1, 2)
+#### violations
+1:16	auto	Unexpected spacing before ","
+#### case Given some parameter list with an unexpected newline before the comma
+#### code
+fun fn(
+    arg1: Int ,
+    arg2: Int
+    ,
+
+    arg3: Int
+) = Unit
+#### formatted
+fun fn(
+    arg1: Int,
+    arg2: Int,
+
+    arg3: Int
+) = Unit
+#### violations
+2:14	auto	Unexpected spacing before ","
+3:14	auto	Unexpected spacing before ","
+#### case Given some parameter list with an EOL comment followed by comma on next line
+#### code
+fun fn(
+    arg1: Int ,
+    arg2: Int // some comment
+    , arg3: Int
+    // other comment
+    , arg4: Int
+) = Unit
+#### formatted
+fun fn(
+    arg1: Int,
+    arg2: Int, // some comment
+    arg3: Int,
+    // other comment
+    arg4: Int
+) = Unit
+#### violations
+2:14	auto	Unexpected spacing before ","
+3:30	auto	Unexpected spacing before ","
+5:21	auto	Unexpected spacing before ","
+#### case Given a parameter list with a space between a block comment and the comma
+#### code
+val foo1 = Foo(1 /* comment */ , 3)
+val foo2 = Foo(1 /* comment */, 3)
+#### formatted
+val foo1 = Foo(1 /* comment */, 3)
+val foo2 = Foo(1 /* comment */, 3)
+#### violations
+1:31	auto	Unexpected spacing before ","
+#### case Given an annotation parameter list with a trailing comma not followed by a space
+#### flag no-violations
+#### code
+@file:Suppress("unused", "UNUSED_PARAMETER", "UNUSED_VARIABLE",)
+#### violations
+#### case Given an annotation parameter array with a trailing comma not followed by a space
+#### flag no-violations
+#### code
+@file:Suppress(["unused", "UNUSED_PARAMETER", "UNUSED_VARIABLE",])
+#### violations
+#### case Given a generic type parameter list with a trailing comma not followed by a space
+#### flag no-violations
+#### code
+fun <T, R,> test() = Unit
+
+fun foo() {
+    test<Int, Double,>()
+}
+#### violations
