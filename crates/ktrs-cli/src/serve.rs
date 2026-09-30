@@ -13,7 +13,7 @@
 //! | `max-width`, `block-indent`, `continuation-indent` | positive integers | the style's |
 //! | `remove-unused-imports` | `true`, `false` | `true` |
 //! | `trailing-commas` | `none`, `only_add`, `complete` | the style's |
-//! | `path` | the file's path, for `.editorconfig` and messages | `<stdin>` |
+//! | `path` | the file's path, for `.editorconfig` and to prefix messages | none |
 //! | `editorconfig` | `true`, `false`: apply `.editorconfig` at `path` over the above | `false` |
 //!
 //! A response is `status=ok` or `status=error`, `changed=true|false` (ok only), an empty line, then
@@ -92,14 +92,14 @@ fn format_request(request: &str) -> Result<(String, bool), String> {
         Some(path) if request.editorconfig => editor_config_resolver::resolve_formatting_options(Path::new(path), &request.options),
         _ => request.options,
     };
-    let name = request.path.as_deref().unwrap_or("<stdin>");
+    let name = request.path.as_deref();
     match catch_unwind(AssertUnwindSafe(|| ktrs_fmt::format(code, &options))) {
         Ok(Ok(formatted)) => {
             let changed = formatted != code;
             Ok((formatted, changed))
         }
         Ok(Err(e)) => Err(error_message(name, &e)),
-        Err(_) => Err(format!("{name}: internal error in ktrs (please report it with this file)")),
+        Err(_) => Err(located(name, " internal error in ktrs (please report it with this file)")),
     }
 }
 
@@ -153,11 +153,19 @@ fn trailing_commas(value: &str) -> Result<TrailingCommaManagementStrategy, Strin
     }
 }
 
-/// ktfmt's CLI wording (`Main.format`'s catch blocks), without the stack trace.
-fn error_message(name: &str, error: &FormatError) -> String {
+/// ktfmt's CLI wording (`Main.format`'s catch blocks), without the stack trace. Without a `path`
+/// the message is ktfmt's exception text alone, as callers like Spotless add the file name.
+fn error_message(name: Option<&str>, error: &FormatError) -> String {
     match error {
-        FormatError::Parse(e) => format!("{name}:{e}"),
-        FormatError::Formatting(e) => e.diagnostics().iter().map(|d| format!("{name}:{d}")).collect::<Vec<_>>().join("\n"),
-        FormatError::Formatter(_) | FormatError::Runtime(_) => format!("{name}: {error}"),
+        FormatError::Parse(e) => located(name, &e.to_string()),
+        FormatError::Formatting(e) => e.diagnostics().iter().map(|d| located(name, &d.to_string())).collect::<Vec<_>>().join("\n"),
+        FormatError::Formatter(_) | FormatError::Runtime(_) => located(name, &format!(" {error}")),
+    }
+}
+
+fn located(name: Option<&str>, message: &str) -> String {
+    match name {
+        Some(name) => format!("{name}:{message}"),
+        None => message.trim_start().to_string(),
     }
 }

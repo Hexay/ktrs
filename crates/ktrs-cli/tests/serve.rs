@@ -62,6 +62,12 @@ fn errors_answer_the_request_and_the_server_carries_on() {
 }
 
 #[test]
+fn errors_without_a_path_are_ktfmts_message_alone() {
+    let (_, responses) = session(&["\nfun f( {\n"]);
+    assert!(responses[1].starts_with("status=error\n\n1:"), "{}", responses[1]);
+}
+
+#[test]
 fn editorconfig_applies_at_the_path_when_asked() {
     let dir = TempDir::new("serve-editorconfig");
     write_text(&dir.path().join(".editorconfig"), "root = true\n[*.kt]\nindent_size = 8\n");

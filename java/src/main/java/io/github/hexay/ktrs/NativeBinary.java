@@ -16,6 +16,8 @@ import java.util.Locale;
  * current platform, extracted once to a cache directory keyed by its hash.
  */
 final class NativeBinary {
+    private static volatile Path bundled;
+
     private NativeBinary() {}
 
     static Path locate() {
@@ -23,6 +25,20 @@ final class NativeBinary {
         if (override != null) {
             return Paths.get(override);
         }
+        Path path = bundled;
+        if (path == null) {
+            synchronized (NativeBinary.class) {
+                path = bundled;
+                if (path == null) {
+                    path = extractBundled();
+                    bundled = path;
+                }
+            }
+        }
+        return path;
+    }
+
+    private static Path extractBundled() {
         String platform = platform();
         String name = platform.startsWith("windows") ? "ktrs.exe" : "ktrs";
         byte[] bytes;
