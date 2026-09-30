@@ -14,6 +14,8 @@ pub trait AstNodeQueries {
     fn find_child_by_type_recursively(&self, n: NodeId, element_type: SyntaxKind) -> Option<NodeId>;
     fn end_offset(&self, n: NodeId) -> usize;
     fn is_kt_annotated(&self, n: NodeId) -> bool;
+    /// The jar's (Kotlin 2.4.10) `KtTokenSets.DECLARATION_TYPES` lacks the `DESTRUCTURING_DECLARATION` of our 2.4.20 pin
+    /// (`tests/data/extension.jvm.txt`).
     fn is_declaration(&self, n: impl Into<Option<NodeId>>) -> bool;
     fn has_no_max_line_length_suppression(&self, n: NodeId) -> bool;
 }
@@ -45,7 +47,7 @@ impl AstNodeQueries for Ast {
     }
 
     fn is_declaration(&self, n: impl Into<Option<NodeId>>) -> bool {
-        n.into().is_some_and(|n| DECLARATION_TYPES.contains(self.element_type(n)))
+        n.into().is_some_and(|n| DECLARATION_TYPES.contains(self.element_type(n)) && self.element_type(n) != DESTRUCTURING_DECLARATION)
     }
 
     fn has_no_max_line_length_suppression(&self, n: NodeId) -> bool {
