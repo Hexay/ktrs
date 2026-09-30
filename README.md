@@ -46,11 +46,15 @@ The `ktfmt` binary accepts ktfmt's CLI exactly (flags, `@argfile`, `-` for stdin
 ### Gradle (Spotless) and the JVM
 
 `io.github.hexay:ktrs` is a small jar with the native binaries for Linux, macOS and Windows (x86-64
-and ARM) bundled in it, and no dependencies. Its Spotless step (Spotless 7+) replaces `ktfmt()`:
+and ARM) bundled in it, and no dependencies, served from this repository's Maven repo on GitHub Pages.
+Its Spotless step (Spotless 7+) replaces `ktfmt()`:
 
 ```kotlin
 // build.gradle.kts
-buildscript { dependencies { classpath("io.github.hexay:ktrs:0.2.0") } }
+buildscript {
+    repositories { maven("https://hexay.github.io/ktrs/maven") }
+    dependencies { classpath("io.github.hexay:ktrs:0.2.0") }
+}
 
 spotless {
     kotlin {
