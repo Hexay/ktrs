@@ -87,19 +87,7 @@ jobs:
           path: dist
           merge-multiple: true
       - name: Bundle the binaries
-        shell: bash
-        run: |
-          for pair in x86_64-unknown-linux-musl:linux-x86_64 aarch64-unknown-linux-musl:linux-aarch64 \
-                      x86_64-apple-darwin:macos-x86_64 aarch64-apple-darwin:macos-aarch64 \
-                      x86_64-pc-windows-msvc:windows-x86_64 aarch64-pc-windows-msvc:windows-aarch64; do
-            target=${pair%%:*} dir=java/native/${pair##*:}
-            mkdir -p "$dir"
-            case $target in
-              *windows*) unzip -j -q dist/ktrs-*-$target.zip '*/ktrs.exe' -d "$dir" ;;
-              *) tar -xzf dist/ktrs-*-$target.tar.gz -C "$dir" --strip-components=1 --wildcards '*/ktrs' ;;
-            esac
-          done
-          find java/native -type f
+        run: bash tools/release/bundle-natives.sh dist java/native
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: 21, cache: gradle }
       - name: Test and build

@@ -32,13 +32,18 @@ mavenPublishing {
         url = "https://github.com/Hexay/ktrs"
         licenses {
             license {
-                name = "MIT OR Apache-2.0"
-                url = "https://github.com/Hexay/ktrs#license"
+                name = "MIT"
+                url = "https://github.com/Hexay/ktrs/blob/master/LICENSE-MIT"
+            }
+            license {
+                name = "Apache-2.0"
+                url = "https://github.com/Hexay/ktrs/blob/master/LICENSE-APACHE"
             }
         }
         developers {
             developer {
                 id = "Hexay"
+                name = "Hexay"
                 url = "https://github.com/Hexay"
             }
         }
