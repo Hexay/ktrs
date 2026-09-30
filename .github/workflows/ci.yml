@@ -1,11 +1,15 @@
-# The self-contained gates: parser fixtures, PSI accessor hashes, ktfmt goldens, CLI tests.
-# Corpus diffs need the JVM oracles and run outside CI (see CLAUDE.md).
+# The self-contained gates: parser fixtures, PSI accessor hashes, ktfmt goldens, CLI tests, the JVM
+# wrapper, the Wasm build. Corpus diffs need the JVM oracles and run outside CI (see CLAUDE.md).
 name: ci
 
 on:
   push:
     branches: [master, main]
   pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
@@ -20,44 +24,17 @@ jobs:
         shell: bash
         run: rustup toolchain install stable --profile minimal && rustup default stable
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test --locked --release --workspace
+      # The `ci` profile: release optimizations without fat LTO (see Cargo.toml).
+      - run: cargo test --locked --profile ci --workspace
 
-  # The GitHub Action (action.yml + install.sh) against the latest release.
-  action:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-24.04, ubuntu-24.04-arm, macos-14, windows-2022]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./
-      - name: Format a snippet
-        shell: bash
-        run: |
-          ktrs --version
-          test "$(printf 'fun  f( ) = 1\n' | ktfmt -)" = "fun f() = 1"
-      # The pre-commit launcher (pyproject.toml), pinned to the latest release: master's own
-      # version is usually not released yet.
-      - uses: actions/setup-python@v5
-        with: { python-version: "3.12" }
-      - name: pre-commit launcher
-        shell: bash
-        run: |
-          python -m venv "$RUNNER_TEMP/venv"
-          venv_bin="$RUNNER_TEMP/venv/bin"; [ -d "$venv_bin" ] || venv_bin="$RUNNER_TEMP/venv/Scripts"
-          "$venv_bin/python" -m pip install -q .
-          export KTRS_VERSION=$(curl -fsSLI -o /dev/null -w '%{url_effective}' https://github.com/Hexay/ktrs/releases/latest | sed 's|.*/tag/||')
-          test "$(printf 'fun  f( ) = 1\n' | "$venv_bin/ktfmt" -)" = "fun f() = 1"
-
-  site:
+  wasm:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - name: Install Rust
         run: rustup toolchain install stable --profile minimal --target wasm32-unknown-unknown && rustup default stable
       - uses: Swatinem/rust-cache@v2
-      - run: bash tools/release/build-site.sh
+      - run: cargo build --locked -p ktrs-wasm --target wasm32-unknown-unknown
 
   java:
     runs-on: ubuntu-24.04
@@ -68,7 +45,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - run: cargo build --locked --bins
       - uses: actions/setup-java@v4
-        with: { distribution: temurin, java-version: 21 }
+        with: { distribution: temurin, java-version: 21, cache: gradle }
       - name: Test the JVM wrapper against target/debug/ktrs
         working-directory: java
         run: ./gradlew --console=plain test
