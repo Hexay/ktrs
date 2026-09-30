@@ -1,11 +1,13 @@
-//! `cargo lint-diff [ktlint_official|intellij_idea|android_studio] [--oracle DIR] [--counts] [--corpus DIR]`:
+//! `cargo lint-diff [ktlint_official|intellij_idea|android_studio] [--experimental] [--oracle DIR] [--counts] [--corpus DIR]`:
 //! lints (and, when the oracle ran exactly the ported rules, formats) every corpus file with ktrs-lint and diffs
 //! against the real ktlint engine, pre-built on the JVM by (background, testbox):
 //!   KTLINT_CODE_STYLE=<style> tools/ktlint-oracle/ktlint-probe.sh corpus target/ktlint-oracle/<style> [--rules <ported>]
 //! Lint rows are compared per file as a multiset over the ported rules (lint is per-rule independent, so an
 //! all-rules oracle filters down). An oracle run with exactly the ported rules (`--rules`) also compares the
-//! engine's suppression rule, format rows (emit order) and formatted bytes. Both sides run on a staged LF copy under
-//! one root `.editorconfig` (target/lint-diff/<style>). Mismatches go to target/lint-diff-<style>.txt; `--counts`
+//! engine's suppression rule, format rows (emit order) and formatted bytes. Where the oracle's format threw
+//! (failed.tsv), ours must throw the same exception; lint rows are still compared there. Both sides run on a staged LF copy under
+//! one root `.editorconfig` (target/lint-diff/<style>); `--experimental` adds `ktlint_experimental = enabled` there,
+//! matching an oracle built with `KTLINT_EXPERIMENTAL=enabled` into target/ktlint-oracle/<style>-experimental. Mismatches go to target/lint-diff-<style>.txt; `--counts`
 //! prints the oracle's per-rule violation counts instead.
 
 use std::collections::{HashMap, HashSet};
@@ -15,7 +17,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::{fs, thread};
 
 use ktrs_lint::rules::standard_rule_providers;
-use ktrs_lint::{AutocorrectDecision, Code, KtLintRuleEngine, LintError};
+use ktrs_lint::{AutocorrectDecision, Code, KtLintException, KtLintRuleEngine, LintError};
 
 use crate::corpus_diff::collect;
 use crate::lint_oracle::{self, Oracle, Row, SUPPRESSION_RULE, rule_of};
@@ -25,13 +27,22 @@ const STYLES: [&str; 3] = ["ktlint_official", "intellij_idea", "android_studio"]
 
 struct Args {
     style: String,
+    experimental: bool,
     oracle: PathBuf,
     corpus: PathBuf,
     counts: bool,
 }
 
+impl Args {
+    /// Names the default oracle dir, the staged copy and the report: `<style>[-experimental]`.
+    fn run_name(&self) -> String {
+        if self.experimental { format!("{}-experimental", self.style) } else { self.style.clone() }
+    }
+}
+
 fn parse_args(root: &Path, args: &[String]) -> Result<Args, String> {
-    let mut parsed = Args { style: STYLES[0].to_owned(), oracle: PathBuf::new(), corpus: root.join("corpus"), counts: false };
+    let mut parsed =
+        Args { style: STYLES[0].to_owned(), experimental: false, oracle: PathBuf::new(), corpus: root.join("corpus"), counts: false };
     let mut oracle = None;
     let mut rest = args.iter();
     while let Some(arg) = rest.next() {
@@ -39,22 +50,31 @@ fn parse_args(root: &Path, args: &[String]) -> Result<Args, String> {
             "--oracle" => oracle = rest.next().map(PathBuf::from),
             "--corpus" => parsed.corpus = rest.next().map(PathBuf::from).ok_or("--corpus needs a dir")?,
             "--counts" => parsed.counts = true,
+            "--experimental" => parsed.experimental = true,
             s if STYLES.contains(&s) => parsed.style = s.to_owned(),
-            s => return Err(format!("unknown argument {s}; expected one of {STYLES:?}, --oracle DIR, --corpus DIR, --counts")),
+            s => {
+                return Err(format!(
+                    "unknown argument {s}; expected one of {STYLES:?}, --experimental, --oracle DIR, --corpus DIR, --counts"
+                ));
+            }
         }
     }
-    parsed.oracle = oracle.unwrap_or_else(|| root.join("target/ktlint-oracle").join(&parsed.style));
+    parsed.oracle = oracle.unwrap_or_else(|| root.join("target/ktlint-oracle").join(parsed.run_name()));
     Ok(parsed)
 }
 
 /// Copies the corpus sources to `<staged>/` under one root `.editorconfig`, as ktlint-probe.sh stages them for the
 /// oracle, so the corpus repos' own `.editorconfig` files apply to neither side. Returns the staged root and files.
-fn stage(corpus: &Path, files: &[PathBuf], staged: &Path, style: &str) -> Result<(PathBuf, Vec<PathBuf>), String> {
+fn stage(corpus: &Path, files: &[PathBuf], staged: &Path, args: &Args) -> Result<(PathBuf, Vec<PathBuf>), String> {
     let _ = fs::remove_dir_all(staged);
     let io = |e: std::io::Error| format!("{}: {e}", staged.display());
     fs::create_dir_all(staged).map_err(io)?;
     let staged = fs::canonicalize(staged).map_err(io)?;
-    fs::write(staged.join(".editorconfig"), format!("root = true\n\n[*.{{kt,kts}}]\nktlint_code_style = {style}\n")).map_err(io)?;
+    let mut editorconfig = format!("root = true\n\n[*.{{kt,kts}}]\nktlint_code_style = {}\n", args.style);
+    if args.experimental {
+        editorconfig.push_str("ktlint_experimental = enabled\n");
+    }
+    fs::write(staged.join(".editorconfig"), editorconfig).map_err(io)?;
     let files = files
         .iter()
         .map(|file| {
@@ -91,7 +111,7 @@ pub(crate) fn run(root: &Path, args: &[String]) -> Result<(), String> {
     let mut sources = Vec::new();
     collect(&corpus, &mut sources);
     sources.sort();
-    let (corpus, files) = stage(&corpus, &sources, &root.join("target/lint-diff").join(&args.style), &args.style)?;
+    let (corpus, files) = stage(&corpus, &sources, &root.join("target/lint-diff").join(args.run_name()), &args)?;
     let engine = KtLintRuleEngine::new(providers.clone());
 
     let next = AtomicUsize::new(0);
@@ -107,9 +127,7 @@ pub(crate) fn run(root: &Path, args: &[String]) -> Result<(), String> {
                         let mut out = Vec::new();
                         while let Some(file) = files.get(next.fetch_add(1, Ordering::Relaxed)) {
                             let rel = file.strip_prefix(&corpus).unwrap().to_string_lossy().replace('\\', "/");
-                            if !oracle.crashed.contains(&rel) {
-                                out.push(check(&engine, &oracle, &ported, same_rules, file, rel));
-                            }
+                            out.push(check(&engine, &oracle, &ported, same_rules, file, rel));
                         }
                         out
                     })
@@ -120,13 +138,12 @@ pub(crate) fn run(root: &Path, args: &[String]) -> Result<(), String> {
     });
     panic::set_hook(previous_hook);
     results.sort_by(|a, b| a.rel.cmp(&b.rel));
-    report(root, &args.style, &results, &oracle, &ported, same_rules, files.len())
+    report(root, &args.run_name(), &results, &oracle, &ported, same_rules, files.len())
 }
 
 fn row(e: &LintError) -> Row {
     let auto = if e.can_be_auto_corrected { "auto" } else { "manual" };
-    let detail = e.detail.replace('\\', "\\\\").replace('\t', "\\t").replace('\n', "\\n");
-    format!("{}\t{}\t{}\t{auto}\t{detail}", e.line, e.col, e.rule_id.value())
+    format!("{}\t{}\t{}\t{auto}\t{}", e.line, e.col, e.rule_id.value(), escape(&e.detail))
 }
 
 fn check(engine: &KtLintRuleEngine, oracle: &Oracle, ported: &HashSet<&str>, same_rules: bool, file: &Path, rel: String) -> FileResult {
@@ -136,7 +153,7 @@ fn check(engine: &KtLintRuleEngine, oracle: &Oracle, ported: &HashSet<&str>, sam
     let run = panic::catch_unwind(AssertUnwindSafe(|| {
         let mut lint = Vec::new();
         let linted = engine.lint(&code, &mut |e| lint.push(row(e)));
-        let formatted = same_rules.then(|| {
+        let formatted = (same_rules || oracle.crashed.contains_key(&result.rel)).then(|| {
             let mut rows = Vec::new();
             let text = engine.format(&code, &mut |e| {
                 rows.push(row(e));
@@ -179,18 +196,40 @@ fn check(engine: &KtLintRuleEngine, oracle: &Oracle, ported: &HashSet<&str>, sam
         let line_of = |r: &Row| r.split('\t').next().and_then(|l| l.parse::<usize>().ok()).unwrap_or(0);
         result.kdoc_only = result.missing.iter().chain(&result.extra).all(|r| kdoc.contains(&line_of(r)));
     }
-    if let Some(Ok((rows, text))) = formatted {
-        let expected_rows = oracle.format.get(&result.rel).cloned().unwrap_or_default();
-        let expected_text = fs::read_to_string(oracle.dir.join("fmt").join(&result.rel)).unwrap_or_else(|_| content.clone());
-        result.format_diff = if rows != expected_rows {
-            Some(format!("format rows\n  expected: {expected_rows:?}\n  actual:   {rows:?}"))
-        } else if text != expected_text {
-            Some(first_difference(&expected_text, &text))
-        } else {
-            None
-        };
+    match (oracle.crashed.get(&result.rel), formatted) {
+        (Some(failure), Some(formatted)) => result.crash = Some(crash_diff(failure, formatted.err())),
+        (None, Some(Ok((rows, text)))) => {
+            let expected_rows = oracle.format.get(&result.rel).cloned().unwrap_or_default();
+            let expected_text =
+                fs::read_to_string(oracle.dir.join("fmt").join(&result.rel)).unwrap_or_else(|_| content.clone());
+            result.format_diff = if rows != expected_rows {
+                Some(format!("format rows\n  expected: {expected_rows:?}\n  actual:   {rows:?}"))
+            } else if text != expected_text {
+                Some(first_difference(&expected_text, &text))
+            } else {
+                None
+            };
+        }
+        (None, Some(Err(e))) => result.format_diff = Some(format!("format threw, ktlint did not: {e}")),
+        (_, None) => {}
     }
     result
+}
+
+/// The oracle's format threw on this file (failed.tsv `rule\t<id> <exception>`); ours must throw the same. Java prints
+/// the exception class qualified, our panics name it unqualified.
+fn crash_diff(failure: &str, ours: Option<KtLintException>) -> Option<String> {
+    let expected = failure.replacen(" java.lang.", " ", 1);
+    let actual = match ours {
+        Some(KtLintException::Rule(e)) => format!("rule\t{} {}", e.rule_id, escape(&e.cause)),
+        Some(e) => format!("other\t{e}"),
+        None => "no exception".to_owned(),
+    };
+    (actual != expected).then(|| format!("format crash differs\n  expected: {expected}\n  actual:   {actual}"))
+}
+
+fn escape(s: &str) -> String {
+    s.replace('\\', "\\\\").replace('\t', "\\t").replace('\n', "\\n")
 }
 
 fn multiset_diff(theirs: &[&Row], ours: &[&Row]) -> (Vec<Row>, Vec<Row>) {

@@ -31,6 +31,7 @@ class FileResult(val rel: String) {
     val format = mutableListOf<String>()
     val lint = mutableListOf<String>()
     var failure: String? = null
+    var lintFailure: String? = null
     var formatNanos = 0L
     var probeNanos = 0L
     var lintNanos = 0L
@@ -54,6 +55,13 @@ fun engineFor(rules: List<String>?): KtLintRuleEngine {
         }
     return KtLintRuleEngine(ruleProviders = chosen + ProbeRule.PROVIDER)
 }
+
+fun failure(e: Throwable): String =
+    when (e) {
+        is KtLintParseException -> "parse\t${e.line}:${e.col} ${esc(e.message.orEmpty())}"
+        is KtLintRuleException -> "rule\t${e.ruleId} ${esc((e.cause ?: e).toString())}"
+        else -> "crash\t${esc(e.toString())}"
+    }
 
 fun write(file: File, text: String) {
     file.parentFile.mkdirs()
@@ -81,14 +89,20 @@ fun process(engine: KtLintRuleEngine, file: File, rel: String, out: File, dumps:
             engine.lint(Code.fromFile(file)) { e -> result.lint += e.row() }
             result.lintNanos = System.nanoTime() - t1
         }
-    } catch (e: KtLintParseException) {
-        result.failure = "parse\t${e.line}:${e.col} ${esc(e.message.orEmpty())}"
-    } catch (e: KtLintRuleException) {
-        result.failure = "rule\t${e.ruleId} ${esc((e.cause ?: e).toString())}"
     } catch (e: Throwable) {
-        result.failure = "crash\t${esc(e.toString())}"
+        result.failure = failure(e)
     } finally {
         FileRun.CURRENT.set(null)
+    }
+    // A format crash hides lint's outcome; record it separately (lint-failed.tsv) so a port can match both.
+    if (lint && result.failure != null && result.failure?.startsWith("parse") == false) {
+        result.lint.clear()
+        try {
+            engine.lint(Code.fromFile(file)) { e -> result.lint += e.row() }
+            result.lintFailure = "none"
+        } catch (e: Throwable) {
+            result.lintFailure = failure(e)
+        }
     }
     result.passes = run.passes
     result.suppressed = run.suppressed
@@ -134,6 +148,9 @@ fun writeTables(out: File, results: List<FileResult>, wallNanos: Long, header: S
             r.failure?.let { w.println("${r.rel}\t$it") }
             if (r.suppressed) w.println("${r.rel}\tsuppressed\tprobe suppressed by @Suppress/ktlint directive")
         }
+    }
+    File(out, "lint-failed.tsv").printWriter().use { w ->
+        for (r in results) r.lintFailure?.let { w.println("${r.rel}\t$it") }
     }
     val ok = results.filter { it.failure == null }
     val changed = ok.filter { r -> r.passes.any { it.changed } }
@@ -217,6 +234,7 @@ fun main(args: Array<String>) {
             .map { it.relativeTo(opts.src).invariantSeparatorsPath }
             .sorted()
             .toList()
+    opts.rules?.let { rules -> println("standard rules not in --rules: ${STANDARD.map { it.ruleId.value }.filter { it !in rules }.sorted()}") }
     val t0 = System.nanoTime()
     val results = runAll(engineFor(opts.rules), opts.src, files, opts.out, opts, opts.lint)
     writeTables(opts.out, results, System.nanoTime() - t0, "ktlint 2.0.0-ALPHA-4 probe, rules=${opts.rules?.joinToString(",") ?: "standard (all)"}")

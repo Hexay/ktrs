@@ -61,6 +61,7 @@ impl IndentationRule {
             child_indent,
             last_child_indent,
             activated: args.activated,
+            node_types: IndentContext::node_types(ast, from_ast_node, to_ast_node),
         });
         StartedIndentContext { from_ast_node }
     }
@@ -82,7 +83,7 @@ impl IndentationRule {
 
     pub(super) fn after_last_node_impl(&mut self) {
         if !self.indent_context_stack.is_empty() {
-            let contexts: Vec<String> = self.indent_context_stack.iter().map(|it| format!("{it:?}")).collect();
+            let contexts: Vec<String> = self.indent_context_stack.iter().map(ToString::to_string).collect();
             panic!("IllegalArgumentException: Stack should be empty:\n\t{}", contexts.join("\n\t"));
         }
     }

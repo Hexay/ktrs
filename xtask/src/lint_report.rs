@@ -17,6 +17,8 @@ pub(crate) struct FileResult {
     pub rejected_mismatch: Option<String>,
     pub both_rejected: bool,
     pub panic: Option<String>,
+    /// The oracle's format threw on this file: `Some(None)` when ours throws the same, `Some(Some(diff))` otherwise.
+    pub crash: Option<Option<String>>,
 }
 
 pub(crate) fn report(
@@ -33,9 +35,14 @@ pub(crate) fn report(
         per_rule.insert(SUPPRESSION_RULE, [0, 0]);
     }
     let (mut lint_same, mut lint_differ, mut kdoc, mut fmt_same, mut fmt_differ) = (0, 0, 0, 0, 0);
-    let (mut panics, mut mismatched, mut both_rejected) = (0, 0, 0);
+    let (mut panics, mut mismatched, mut both_rejected, mut crash_same) = (0, 0, 0, 0);
     let mut text = String::new();
     for r in results {
+        match &r.crash {
+            Some(None) => crash_same += 1,
+            Some(Some(diff)) => text.push_str(&format!("{}\n  {diff}\n\n", r.rel)),
+            None => {}
+        }
         if let Some(message) = &r.panic {
             panics += 1;
             text.push_str(&format!("{}\n  panic: {message}\n\n", r.rel));
@@ -59,7 +66,7 @@ pub(crate) fn report(
         for (i, rows) in [&r.missing, &r.extra].into_iter().enumerate() {
             rows.iter().for_each(|row| per_rule.entry(rule_of(row)).or_default()[i] += 1);
         }
-        if same_rules {
+        if same_rules && r.crash.is_none() {
             if r.format_diff.is_some() { fmt_differ += 1 } else { fmt_same += 1 }
         }
         if lint_ok && r.format_diff.is_none() {
@@ -82,7 +89,7 @@ pub(crate) fn report(
     });
     println!(
         "{style}: lint identical {lint_same}/{total}  differ {lint_differ}  kdoc-pin-suspect {kdoc}  panic {panics}  \
-         rejected-mismatch {mismatched}  both-rejected {both_rejected}/{}  oracle-crash {}",
+         rejected-mismatch {mismatched}  both-rejected {both_rejected}/{}  oracle-crash {} (format throws the same: {crash_same})",
         oracle.parse_failed.len(),
         oracle.crashed.len(),
     );
