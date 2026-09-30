@@ -82,9 +82,12 @@ tasks.processResources {
     from(nativeDir) { into("io/github/hexay/ktrs/native") }
 }
 
+// The binary tests run against (this project's and gradle-plugin's): -PktrsExecutable, else the workspace's debug build.
+val testExecutable: String by extra(file(providers.gradleProperty("ktrsExecutable").getOrElse(
+    rootDir.resolve("../target/debug/" + if (System.getProperty("os.name").startsWith("Windows")) "ktrs.exe" else "ktrs").path
+)).absolutePath)
+
 tasks.test {
     useJUnitPlatform()
-    val exe = if (System.getProperty("os.name").startsWith("Windows")) "ktrs.exe" else "ktrs"
-    val executable = providers.gradleProperty("ktrsExecutable").getOrElse(rootDir.resolve("../target/debug/$exe").path)
-    systemProperty("ktrs.executable", file(executable).absolutePath)
+    systemProperty("ktrs.executable", testExecutable)
 }

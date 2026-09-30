@@ -32,4 +32,4 @@ jobs:
         working-directory: java
         run: |
           v=${{ inputs.tag }}
-          ./gradlew --console=plain test publishAndReleaseToMavenCentral -PktrsVersion=${v#v} -PktrsExecutable=native/linux-x86_64/ktrs
+          ./gradlew --console=plain :test publishAndReleaseToMavenCentral -PktrsVersion=${v#v} -PktrsExecutable=native/linux-x86_64/ktrs

@@ -8,3 +8,7 @@ and Kotlin Programming Language contributors, licensed under the Apache License 
 This product contains code ported from IntelliJ Platform (PsiBuilder semantics)
 (https://github.com/JetBrains/intellij-community), Copyright 2000-2026 JetBrains s.r.o.,
 licensed under the Apache License 2.0.
+
+The Gradle plugin (java/gradle-plugin) contains code and tests ported from ktfmt-gradle
+(https://github.com/cortinico/ktfmt-gradle), Copyright (c) 2020-2022 Nicola Corti,
+licensed under the MIT License.

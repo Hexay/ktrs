@@ -66,8 +66,10 @@ jobs:
             ktrs-*.tar.gz
             ktrs-*.zip
 
-  # The JVM wrapper (io.github.hexay:ktrs) with all six binaries bundled, published to the GitHub
-  # Pages Maven repo, and to Maven Central only when the MAVEN_CENTRAL_* and SIGNING_* secrets exist.
+  # The JVM wrapper (io.github.hexay:ktrs) with all six binaries bundled, and the Gradle plugin
+  # (io.github.hexay.ktrs), published to the GitHub Pages Maven repo; the jar to Maven Central only when
+  # the MAVEN_CENTRAL_* and SIGNING_* secrets exist, the plugin to the Plugin Portal only when the
+  # GRADLE_PUBLISH_* ones do.
   java:
     needs: build
     runs-on: ubuntu-24.04
@@ -80,6 +82,8 @@ jobs:
       ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
       ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
       ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_KEY_PASSWORD }}
+      GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
+      GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
@@ -104,12 +108,19 @@ jobs:
           touch .nojekyll
           git add -A
           git -c user.name=github-actions[bot] -c user.email=41898282+github-actions[bot]@users.noreply.github.com \
-            commit -q -m "maven: io.github.hexay:ktrs:${GITHUB_REF_NAME#v}"
+            commit -q -m "maven: io.github.hexay:ktrs and the io.github.hexay.ktrs plugin ${GITHUB_REF_NAME#v}"
           git push -q origin gh-pages
       - name: Publish to Maven Central
         if: env.ORG_GRADLE_PROJECT_mavenCentralUsername != ''
         working-directory: java
         run: ./gradlew --console=plain publishAndReleaseToMavenCentral -PktrsVersion=${GITHUB_REF_NAME#v}
+      # The Portal resolves the plugin's io.github.hexay:ktrs dependency from Maven Central.
+      - name: Publish the Gradle plugin to the Plugin Portal
+        if: env.GRADLE_PUBLISH_KEY != ''
+        working-directory: java
+        run: |
+          ./gradlew --console=plain :ktrs-gradle-plugin:publishPlugins -PktrsVersion=${GITHUB_REF_NAME#v} \
+            -Pgradle.publish.key="$GRADLE_PUBLISH_KEY" -Pgradle.publish.secret="$GRADLE_PUBLISH_SECRET"
       - uses: actions/upload-artifact@v4
         with:
           name: java
