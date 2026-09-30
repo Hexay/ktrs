@@ -64,6 +64,25 @@ fn dummy_psi_element_type(ast: &Ast, node: NodeId) -> SyntaxKind {
     kind
 }
 
+/// `ASTNode.toString()` as the jar prints it (it shows in rule exception messages): `TreeElement`'s `Element(<type>)`
+/// for composites, but the PSI's own `toString` where node and PSI are one object — the lazy-parseable `BLOCK`,
+/// `LAMBDA_EXPRESSION` and `DOC_COMMENT` (their Kt classes print the bare type) and the leaves.
+pub fn ast_node_to_string(ast: &Ast, node: NodeId) -> String {
+    element_to_string(ast.element_type(node), ast.is_leaf_element(node))
+}
+
+/// [`ast_node_to_string`] from what it depends on, for callers that must render a node after losing the arena.
+pub fn element_to_string(kind: SyntaxKind, is_leaf: bool) -> String {
+    let name = kind.debug_name();
+    match kind {
+        WHITE_SPACE => "PsiWhiteSpace".to_owned(),
+        EOL_COMMENT | BLOCK_COMMENT | SHEBANG_COMMENT => format!("PsiComment({name})"),
+        BLOCK | LAMBDA_EXPRESSION | DOC_COMMENT => name.to_owned(),
+        _ if is_leaf => format!("PsiElement({name})"),
+        _ => format!("Element({name})"),
+    }
+}
+
 /// `PsiElement.getParent()`: the tree parent (`SharedImplUtil.getParent`); `None` for the file root.
 pub fn psi_parent(ast: &Ast, node: NodeId) -> Option<NodeId> {
     ast.tree_parent(node)

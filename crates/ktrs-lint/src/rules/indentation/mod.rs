@@ -283,9 +283,29 @@ struct IndentContext {
     last_child_indent: String,
     /// True when the indentation level of this context is activated
     activated: bool,
+    /// (element type, is leaf) of `from_ast_node` and `to_ast_node`: `afterLastNode`'s exception prints them via
+    /// `ASTNode.toString()` but gets no arena.
+    node_types: [(SyntaxKind, bool); 2],
+}
+
+/// The data class's `toString()`, for the `Stack should be empty` exception.
+impl std::fmt::Display for IndentContext {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let [from, to] = self.node_types.map(|(kind, is_leaf)| ktrs_ast::psi::element_to_string(kind, is_leaf));
+        write!(
+            f,
+            "IndentContext(fromASTNode={from}, toASTNode={to}, nodeIndent={}, firstChildIndent={}, childIndent={}, \
+             lastChildIndent={}, activated={})",
+            self.node_indent, self.first_child_indent, self.child_indent, self.last_child_indent, self.activated
+        )
+    }
 }
 
 impl IndentContext {
+    fn node_types(ast: &Ast, from_ast_node: NodeId, to_ast_node: NodeId) -> [(SyntaxKind, bool); 2] {
+        [from_ast_node, to_ast_node].map(|it| (ast.element_type(it), ast.is_leaf_element(it)))
+    }
+
     fn indent(&self) -> String {
         if self.activated { format!("{}{}", self.node_indent, self.child_indent) } else { self.node_indent.clone() }
     }

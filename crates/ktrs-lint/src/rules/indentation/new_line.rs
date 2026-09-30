@@ -145,14 +145,16 @@ fn acceptable_trailing_spaces(ast: &Ast, this: NodeId) -> &'static str {
 }
 
 pub(super) fn start_no_indent_zone(ast: &Ast, node: NodeId) -> IndentContext {
+    let to_ast_node = ast.last_child_leaf_or_self(node);
     IndentContext {
         from_ast_node: node,
-        to_ast_node: ast.last_child_leaf_or_self(node),
+        to_ast_node,
         node_indent: String::new(),
         first_child_indent: String::new(),
         child_indent: String::new(),
         last_child_indent: String::new(),
         activated: true,
+        node_types: IndentContext::node_types(ast, node, to_ast_node),
     }
 }
 
