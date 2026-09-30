@@ -19,8 +19,9 @@ pub(crate) struct Oracle {
     /// Format-callback rows without the pass column, in emit order.
     pub format: HashMap<String, Vec<Row>>,
     pub parse_failed: HashSet<String>,
-    /// Rule or engine crashes (`rule`/`crash` rows of failed.tsv): the oracle has no result for these files.
-    pub crashed: HashSet<String>,
+    /// Rule or engine crashes (`rule`/`crash` rows of failed.tsv), keyed by file: `<kind>\t<escaped exception>`.
+    /// The oracle has no lint or format result for these files; the port must throw the same.
+    pub crashed: HashMap<String, String>,
 }
 
 pub(crate) fn rule_of(row: &str) -> &str {
@@ -47,14 +48,18 @@ pub(crate) fn load(dir: &Path) -> Result<Oracle, String> {
         .filter(|r| !r.starts_with("standard (all)"))
         .map(|r| r.split(',').map(str::to_owned).collect());
     let failed = fs::read_to_string(dir.join("failed.tsv")).unwrap_or_default();
-    let (mut parse_failed, mut crashed) = (HashSet::new(), HashSet::new());
+    let (mut parse_failed, mut crashed) = (HashSet::new(), HashMap::new());
     for line in failed.lines() {
-        let mut cols = line.split('\t');
-        match (cols.next(), cols.next()) {
-            (Some(file), Some("parse")) => parse_failed.insert(file.to_owned()),
-            (Some(file), Some("rule" | "crash")) => crashed.insert(file.to_owned()),
-            _ => false,
-        };
+        let Some((file, failure)) = line.split_once('\t') else { continue };
+        match failure.split('\t').next() {
+            Some("parse") => {
+                parse_failed.insert(file.to_owned());
+            }
+            Some("rule" | "crash") => {
+                crashed.insert(file.to_owned(), failure.to_owned());
+            }
+            _ => {}
+        }
     }
     Ok(Oracle { dir: dir.to_owned(), rules, lint: by_file(&dir.join("lint.tsv"), 0)?, format: by_file(&dir.join("format.tsv"), 1)?, parse_failed, crashed })
 }

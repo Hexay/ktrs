@@ -2,7 +2,7 @@
 # Mutated-tree census and oracle on the real ktlint engine; output format in research/14-ktlint-probe.md.
 #   ktlint-probe.sh <in-dir> <out-dir> [--rules a,b] [--dumps] [--no-lint] [--isolate] [--threads N]
 # Stages the *.kt/*.kts of <in-dir> into <out-dir>/src under one root .editorconfig (ktlint_code_style =
-# $KTLINT_CODE_STYLE, default ktlint_official), so the corpus repos' own .editorconfig files don't apply, then
+# $KTLINT_CODE_STYLE, default ktlint_official; `ktlint_experimental = $KTLINT_EXPERIMENTAL` when set), so the corpus repos' own .editorconfig files don't apply, then
 # runs KtlintProbe on that copy.
 set -euo pipefail
 in=$1 out=$2
@@ -34,5 +34,6 @@ mkdir -p "$out/src"
 out=$(cd "$out" && pwd)
 (cd "$in" && find . -type f \( -name '*.kt' -o -name '*.kts' \) -print0) | (cd "$in" && xargs -0 cp --parents -t "$out/src")
 printf 'root = true\n\n[*.{kt,kts}]\nktlint_code_style = %s\n' "${KTLINT_CODE_STYLE:-ktlint_official}" > "$out/src/.editorconfig"
+[[ -z ${KTLINT_EXPERIMENTAL:-} ]] || printf 'ktlint_experimental = %s\n' "$KTLINT_EXPERIMENTAL" >> "$out/src/.editorconfig"
 # The fat jar's logback defaults to DEBUG (one line per file and rule order); keep only errors.
 exec "$java" -Xss64m -Xmx8g -Dlogback.configurationFile="$(host "$here/logback.xml")" -cp "$(host "$classes")$sep$(host "$jar")" KtlintProbeKt "$(host "$out/src")" "$(host "$out")" "$@"
