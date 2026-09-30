@@ -50,6 +50,15 @@ jobs:
           export KTRS_VERSION=$(curl -fsSLI -o /dev/null -w '%{url_effective}' https://github.com/Hexay/ktrs/releases/latest | sed 's|.*/tag/||')
           test "$(printf 'fun  f( ) = 1\n' | "$venv_bin/ktfmt" -)" = "fun f() = 1"
 
+  site:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        run: rustup toolchain install stable --profile minimal --target wasm32-unknown-unknown && rustup default stable
+      - uses: Swatinem/rust-cache@v2
+      - run: bash tools/release/build-site.sh
+
   java:
     runs-on: ubuntu-24.04
     steps:

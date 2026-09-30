@@ -1,0 +1,15 @@
+[package]
+name = "ktrs-wasm"
+description = "The ktfmt-identical formatter as a WebAssembly module (the browser playground in site/)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+ktrs-fmt.workspace = true
