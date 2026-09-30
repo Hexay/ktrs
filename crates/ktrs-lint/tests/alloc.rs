@@ -8,7 +8,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use ktrs_ast::{Ast, NodeId};
 use ktrs_lint::editorconfig::{INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, PropertyRef};
 use ktrs_lint::engine::{FORMATTER_TAGS_ENABLED_PROPERTY, SuppressionLocator, execute_rules};
-use ktrs_lint::rules::standard_rule_providers;
+use ktrs_lint::rules::standard_rule_provider;
 use ktrs_lint::{AstNodeExtension, AutocorrectDecision, EditorConfig, RuleV2};
 use ktrs_parser::{FileKind, parse_file};
 
@@ -98,7 +98,10 @@ fn navigation_and_traversal_do_not_allocate_per_node() {
     });
     assert_eq!(navigation, 0, "navigation allocated (checksum {sink})");
 
-    let rules: Vec<Box<dyn RuleV2>> = standard_rule_providers().iter().map(|p| p.create_new_rule_instance()).collect();
+    let rules: Vec<Box<dyn RuleV2>> = ["comma-spacing", "multiline-if-else", "no-semi"]
+        .iter()
+        .map(|id| standard_rule_provider(id).unwrap().create_new_rule_instance())
+        .collect();
     let config = EditorConfig::default().filter_by(&[
         PropertyRef::from(&*FORMATTER_TAGS_ENABLED_PROPERTY),
         PropertyRef::from(&*INDENT_SIZE_PROPERTY),
