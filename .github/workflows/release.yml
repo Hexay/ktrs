@@ -1,5 +1,5 @@
 # On a `v*` tag: build `ktrs` + `ktfmt` for six targets and publish them as a GitHub release,
-# one archive per target plus SHA256SUMS.
+# one archive per target plus SHA256SUMS; then the JVM jar and the Homebrew formula.
 name: release
 
 on:
@@ -11,7 +11,19 @@ permissions:
   contents: write
 
 jobs:
+  # The pre-commit launcher downloads the release tagged v<its version>, so the versions must agree.
+  versions:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tag matches Cargo.toml and pyproject.toml
+        run: |
+          v=${GITHUB_REF_NAME#v}
+          grep -qx "version = \"$v\"" Cargo.toml || { echo "Cargo.toml's version is not $v"; exit 1; }
+          grep -qx "version = \"$v\"" pyproject.toml || { echo "pyproject.toml's version is not $v"; exit 1; }
+
   build:
+    needs: versions
     strategy:
       fail-fast: false
       matrix:

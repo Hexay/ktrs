@@ -60,6 +60,9 @@ Milestone 1: the parser's tree must be identical to the Kotlin compiler's PSI (`
 
 - **Kotlin pin is `v2.4.20` everywhere** (psi-dump.sh, sync-kotlin.sh). Bump them together, then rerun
   `psi-dump.sh kinds > crates/ktrs-syntax/kinds.tsv` and `cargo xtask codegen`.
+- **Release version** lives in `Cargo.toml` (workspace version + every `workspace.dependencies` ktrs
+  entry) and `pyproject.toml` (the pre-commit launcher fetches `v<version>`); the release workflow
+  rejects a tag that doesn't match. The JVM jar takes it from the tag.
 - Never hand-edit `generated/`. Kind names = compiler field names (`KtTokens.FUN_KEYWORD` -> `FUN_KEYWORD`).
 - Port 1:1: one Rust fn per Java method, `snake_case` of the Java name, same order within the file, so
   upstream diffs map onto our code. Keep upstream control flow even where it looks odd.

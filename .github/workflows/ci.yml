@@ -37,6 +37,18 @@ jobs:
         run: |
           ktrs --version
           test "$(printf 'fun  f( ) = 1\n' | ktfmt -)" = "fun f() = 1"
+      # The pre-commit launcher (pyproject.toml), pinned to the latest release: master's own
+      # version is usually not released yet.
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: pre-commit launcher
+        shell: bash
+        run: |
+          python -m venv "$RUNNER_TEMP/venv"
+          venv_bin="$RUNNER_TEMP/venv/bin"; [ -d "$venv_bin" ] || venv_bin="$RUNNER_TEMP/venv/Scripts"
+          "$venv_bin/python" -m pip install -q .
+          export KTRS_VERSION=$(curl -fsSLI -o /dev/null -w '%{url_effective}' https://github.com/Hexay/ktrs/releases/latest | sed 's|.*/tag/||')
+          test "$(printf 'fun  f( ) = 1\n' | "$venv_bin/ktfmt" -)" = "fun f() = 1"
 
   java:
     runs-on: ubuntu-24.04
