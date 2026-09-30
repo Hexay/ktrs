@@ -68,6 +68,27 @@ Next levers named by the agents: concrete `Tok`/`Token` types instead of `dyn` (
 doc); feeding OpsBuilder's spliced ops straight into DocBuilder (deviates from upstream structure);
 `build_tree_into` balancing (~13% of parse self time) and a lexer first-byte dispatch table.
 
+## Round 2 (2026-09-30, merged at cb1ba8e)
+
+Three agents; combined A/B vs fe20719 on the testbox (rounds 2-3; round 1's master run was disturbed):
+format 4.83 -> 4.22 CPU-s (6.38 -> 7.30 MB/s single-thread, ratio 6.01 -> 5.65), `parse_file`
+0.763 -> 0.711 s (40.4 -> 43.4 MB/s).
+
+| Area | Kept | Measured alone |
+|---|---|---|
+| Tokens | concrete `doc::Tok`/`doc::Token` borrowing the input (no `Rc<dyn>`); `OpsBuilder<'a, 'o>` | format ratio -8.0% |
+| Parser | tree reserved from the lexeme count, default-binder balancing fast paths, left-bound-only `is_empty`; direct byte operator matches, identifier table, lazy leaf slices; one capacity check per `TreeBuilder` push; slice walk in `insert_leaves` | `parse_file` about -11% |
+| Passes | `find_kinds` 64 kinds per step (`tree/kind_scan.rs`); trailing-comma skip below two items; KDoc unchanged-comment and ASCII paths; import names from source text; bounded length checks; trimIndent indent once | format -2.3% |
+
+Did not pay: `drop_marker` position hint (instructions -1.3%, cycles flat); skipping the comment-op
+stable sort; in-place comment-op splice (-0.7%, needs ~60 lines of `unsafe`); byte `newlines::count`;
+single-pass `get_expression`; iterative `fq_name_from_expression`; bitset `find_kinds`.
+Build-to-build layout moves lexer throughput 311-404 MB/s and instructions ~4% for identical code:
+trust interleaved runs of binaries built together.
+
+Next levers: `bind` marker reads (~13% of parse), lexer `advance` (~11%), `drop_marker` tombstones
+(~4%), per-part caching in `emit_qualified_expression`, KDoc small allocations (~1.75% spread).
+
 ## Verdict
 
 Rowan accounts for ~45% of the formatter's allocations and ~30% of parse time; everything else
