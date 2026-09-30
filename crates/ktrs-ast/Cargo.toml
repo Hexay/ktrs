@@ -1,0 +1,16 @@
+[package]
+name = "ktrs-ast"
+description = "Mutable Kotlin AST with IntelliJ TreeElement semantics, seeded from the ktrs syntax tree"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+ktrs-syntax.workspace = true
+ktrs-parser.workspace = true
+
+[dev-dependencies]
+mimalloc.workspace = true

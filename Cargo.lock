@@ -49,6 +49,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "ktrs-ast"
+version = "0.1.0"
+dependencies = [
+ "ktrs-parser",
+ "ktrs-syntax",
+ "mimalloc",
+]
+
+[[package]]
 name = "ktrs-cli"
 version = "0.2.0"
 dependencies = [
@@ -74,6 +83,16 @@ version = "0.2.0"
 dependencies = [
  "expect-test",
  "ktrs-syntax",
+]
+
+[[package]]
+name = "ktrs-lint"
+version = "0.1.0"
+dependencies = [
+ "ktrs-ast",
+ "ktrs-parser",
+ "ktrs-syntax",
+ "mimalloc",
 ]
 
 [[package]]
