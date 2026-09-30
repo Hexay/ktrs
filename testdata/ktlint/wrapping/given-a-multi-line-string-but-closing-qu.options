@@ -1,0 +1,4 @@
+rules=standard:wrapping,standard:max-line-length,standard:indent
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=WrappingRuleTest.Given a multi line string but closing quotes not a separate line then wrap them to a new line

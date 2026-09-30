@@ -1,0 +1,4 @@
+rules=standard:wrapping,standard:max-line-length
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=WrappingRuleTest.lint trailing comment in multiline parameter is allowed

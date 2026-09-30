@@ -1,0 +1,2 @@
+@SuppressWarnings // comment
+fun foo() {}

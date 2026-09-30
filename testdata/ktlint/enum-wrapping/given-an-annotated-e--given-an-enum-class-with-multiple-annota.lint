@@ -1,0 +1,10 @@
+1:18	standard:enum-wrapping	auto	Enum entry should start on a separate line
+1:21	standard:enum-wrapping	auto	Enum entry should start on a separate line
+1:29	standard:annotation	auto	Expected newline before annotation
+1:30	standard:enum-wrapping	auto	Enum entry should start on a separate line
+1:41	standard:annotation	auto	Expected newline after last annotation
+1:44	standard:annotation	auto	Expected newline before annotation
+1:45	standard:enum-wrapping	auto	Enum entry should start on a separate line
+1:58	standard:annotation	auto	Expected newline before annotation
+1:64	standard:annotation	auto	Expected newline after last annotation
+1:67	standard:enum-wrapping	auto	Expected newline before '}'

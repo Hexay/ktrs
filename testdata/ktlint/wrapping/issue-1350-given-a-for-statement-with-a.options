@@ -1,0 +1,4 @@
+rules=standard:wrapping,standard:max-line-length
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=WrappingRuleTest.Issue 1350 - Given a for-statement with a newline in the expression only then do not wrap

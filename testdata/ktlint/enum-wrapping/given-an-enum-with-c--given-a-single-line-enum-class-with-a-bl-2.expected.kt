@@ -1,0 +1,4 @@
+enum class Foo {
+    A,
+    /* comment */ B
+}

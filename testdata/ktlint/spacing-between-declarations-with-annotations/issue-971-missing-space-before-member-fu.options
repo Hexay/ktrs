@@ -1,0 +1,4 @@
+rules=standard:spacing-between-declarations-with-annotations
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=SpacingBetweenDeclarationsWithAnnotationsRuleTest.Issue 971 - missing space before member function

@@ -1,0 +1,5 @@
+rules=standard:annotation
+ec.ktlint_code_style=intellij_idea
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=AnnotationRuleTest.Given a class with a primary constructor.Issue 628 - Given a non-ktlint_official code style and an annotation followed by other modifier before the primary constructor (non ktlint_official code style)

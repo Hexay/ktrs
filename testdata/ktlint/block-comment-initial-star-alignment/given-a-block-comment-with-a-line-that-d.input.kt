@@ -1,0 +1,3 @@
+/*
+          This blocked is formatted well.
+ */

@@ -9,6 +9,7 @@ mod corpus_diff;
 mod fmt_diff;
 mod lint_diff;
 mod lint_oracle;
+mod lint_report;
 
 #[global_allocator]
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;

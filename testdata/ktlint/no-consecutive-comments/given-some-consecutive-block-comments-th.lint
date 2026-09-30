@@ -1,0 +1,6 @@
+2:1	standard:no-consecutive-comments	manual	a block comment may not be preceded by a block comment
+4:1	standard:no-consecutive-comments	manual	a block comment may not be preceded by a block comment
+5:1	standard:no-consecutive-comments	manual	a block comment may not be preceded by a block comment
+5:23	standard:no-consecutive-comments	manual	a block comment may not be preceded by a block comment
+6:1	standard:no-consecutive-comments	manual	a block comment may not be preceded by a block comment
+6:22	standard:no-consecutive-comments	manual	a block comment may not be preceded by a block comment

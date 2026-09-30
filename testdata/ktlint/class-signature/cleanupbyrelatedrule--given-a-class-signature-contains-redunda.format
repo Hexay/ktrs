@@ -1,0 +1,29 @@
+1:9	standard:no-multi-spaces	auto	Unnecessary long whitespace
+2:11	standard:no-multi-spaces	auto	Unnecessary long whitespace
+2:10	standard:paren-spacing	auto	Unexpected spacing before "("
+3:11	standard:class-signature	auto	No whitespace expected between opening parenthesis and first parameter name
+4:9	standard:no-multi-spaces	auto	Unnecessary long whitespace
+4:9	standard:colon-spacing	auto	Unexpected spacing before ":"
+5:8	standard:no-multi-spaces	auto	Unnecessary long whitespace
+6:11	standard:no-multi-spaces	auto	Unnecessary long whitespace
+6:10	standard:comma-spacing	auto	Unexpected spacing before ","
+7:11	standard:class-signature	auto	Single whitespace expected before parameter
+8:15	standard:class-signature	auto	No whitespace expected between last parameter and closing parenthesis
+9:1	standard:class-signature	auto	No whitespace expected between opening parenthesis and first parameter name
+10:5	standard:no-multi-spaces	auto	Unnecessary long whitespace
+10:26	standard:class-signature	auto	Expected a single space before class body
+11:12	standard:no-multi-spaces	auto	Unnecessary long whitespace
+12:19	standard:class-signature	auto	Expected single space before the super type
+13:15	standard:spacing-around-angle-brackets	auto	Unexpected spacing after "<"
+14:14	standard:spacing-around-angle-brackets	auto	Unexpected spacing before ">"
+15:11	standard:no-multi-spaces	auto	Unnecessary long whitespace
+16:15	standard:no-multi-spaces	auto	Unnecessary long whitespace
+17:14	standard:no-multi-spaces	auto	Unnecessary long whitespace
+17:13	standard:comma-spacing	auto	Unexpected spacing before ","
+18:15	standard:no-multi-spaces	auto	Unnecessary long whitespace
+19:16	standard:spacing-around-angle-brackets	auto	Unexpected spacing before ">"
+20:15	standard:spacing-around-angle-brackets	auto	Unexpected spacing after "<"
+21:34	standard:no-multi-spaces	auto	Unnecessary long whitespace
+21:33	standard:comma-spacing	auto	Unexpected spacing before ","
+22:33	standard:no-multi-spaces	auto	Unnecessary long whitespace
+23:34	standard:spacing-around-angle-brackets	auto	Unexpected spacing before ">"

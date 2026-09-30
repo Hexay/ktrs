@@ -1,0 +1,4 @@
+rules=standard:no-consecutive-blank-lines
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoConsecutiveBlankLinesRuleTest.Given some blank line between the class name and the primary constructor.Given a class followed bij an EOL comment and a blank line before the constructor then do no return a lint error

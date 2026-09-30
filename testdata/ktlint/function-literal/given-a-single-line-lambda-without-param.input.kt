@@ -1,0 +1,1 @@
+val foobar = { foo + bar }

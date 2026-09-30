@@ -1,0 +1,1 @@
+2:1	standard:no-consecutive-comments	manual	an EOL comment may not be preceded by a block comment unless separated by a blank line

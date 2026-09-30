@@ -1,0 +1,4 @@
+rules=standard:annotation
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=AnnotationRuleTest.Issue 740 - Given multiple annotations and ending with a EOL comment before annotated construct

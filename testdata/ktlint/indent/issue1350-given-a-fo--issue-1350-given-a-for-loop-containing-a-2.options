@@ -1,0 +1,4 @@
+rules=standard:indent
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=IndentationRuleTest.Issue1350 - Given a for-loop.Issue 1350 - Given a for-loop containing a newline before the expression then do not indent it to keep it in sync with IntelliJ default formatting

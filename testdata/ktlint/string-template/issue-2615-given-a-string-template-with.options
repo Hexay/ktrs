@@ -1,0 +1,4 @@
+rules=standard:string-template,standard:no-unused-imports
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=StringTemplateRuleTest.Issue 2615 - Given a string template with redundant curly braces then do not remove the corresponding import

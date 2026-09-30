@@ -1,0 +1,10 @@
+2:9	standard:context-receiver-wrapping	auto	Newline expected before context receiver as max line length is violated
+2:37	standard:context-receiver-wrapping	auto	Newline expected before context receiver as max line length is violated
+3:8	standard:context-receiver-wrapping	auto	Newline expected before closing parenthesis as max line length is violated
+3:1	standard:max-line-length	manual	Exceeded max line length (29)
+6:23	standard:context-receiver-wrapping	auto	Newline expected before context receiver as max line length is violated
+6:51	standard:context-receiver-wrapping	auto	Newline expected before context receiver as max line length is violated
+1:1	standard:context-receiver-wrapping	auto	Newline expected before closing parenthesis as max line length is violated
+1:1	standard:max-line-length	manual	Exceeded max line length (29)
+3:1	standard:max-line-length	manual	Exceeded max line length (29)
+1:1	standard:max-line-length	manual	Exceeded max line length (29)

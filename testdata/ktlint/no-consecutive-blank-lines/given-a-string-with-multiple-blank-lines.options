@@ -1,0 +1,4 @@
+rules=standard:no-consecutive-blank-lines
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoConsecutiveBlankLinesRuleTest.Given a string with multiple blank lines then do no return lint errors

@@ -1,0 +1,4 @@
+rules=standard:statement-wrapping
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=StatementWrappingRuleTest.Issue 2177 - Given a single line enumeration then do not wrap the values

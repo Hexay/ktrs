@@ -1,0 +1,1 @@
+val foo : List<String ?> = listOf(null)

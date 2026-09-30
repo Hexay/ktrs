@@ -1,0 +1,4 @@
+rules=standard:type-parameter-list-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=TypeParameterListSpacingRuleTest.Given a type parameter list in a function declaration preceded or followed by too many spaces then the redundant spaces are removed

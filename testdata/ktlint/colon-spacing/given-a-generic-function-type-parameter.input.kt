@@ -1,0 +1,1 @@
+fun <T: Any> trueIdentity(value: T): T = value

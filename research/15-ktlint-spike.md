@@ -55,7 +55,8 @@ the 4 `MultiLineIfElseRuleTest` cases that add `IndentationRule` are skipped (vi
   Rules: `standard:no-semi`, `standard:comma-spacing`, `standard:multiline-if-else`.
 - `examples/ktlint_probe` (`cargo ktlint-probe`) writes the oracle's layout (below). Its `compare` mode is the
   go/no-go diff.
-- `tools/ktlint-tests/extract-rule-tests.py` vendors `<Rule>Test.kt` into `testdata/ktlint/`.
+- `tools/ktlint-tests/extract-rule-tests.py` vendored `<Rule>Test.kt` into `testdata/ktlint/`. It was later replaced by
+  the JVM-recorded goldens (`tools/ktlint-tests/extract-goldens.sh`, research/12 §3).
 
 ## Output format (shared with tools/ktlint-oracle/src/KtlintProbe.kt; that code is the spec)
 

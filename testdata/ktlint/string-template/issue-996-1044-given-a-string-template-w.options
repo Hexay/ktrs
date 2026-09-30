@@ -1,0 +1,4 @@
+rules=standard:string-template,standard:no-unused-imports
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=StringTemplateRuleTest.Issue 996, 1044 - Given a string-template with a redundant toString call should not lead to a failure in the UnusedImportsRule

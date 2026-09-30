@@ -1,0 +1,16 @@
+2:27	standard:argument-list-wrapping	auto	Argument should be on a separate line (unless all arguments can fit a single line)
+2:30	standard:chain-method-continuation	auto	Expected newline before '.'
+2:31	standard:max-line-length	manual	Exceeded max line length (30)
+2:38	standard:function-literal	auto	Newline expected after opening brace
+2:52	standard:function-literal	auto	Newline expected before closing brace
+2:53	standard:argument-list-wrapping	auto	Missing newline before ")"
+2:55	standard:function-literal	auto	Newline expected after opening brace
+2:72	standard:function-literal	auto	Newline expected before closing brace
+3:27	standard:argument-list-wrapping	auto	Argument should be on a separate line (unless all arguments can fit a single line)
+3:30	standard:chain-method-continuation	auto	Expected newline before '?.'
+3:31	standard:max-line-length	manual	Exceeded max line length (30)
+3:39	standard:function-literal	auto	Newline expected after opening brace
+3:53	standard:function-literal	auto	Newline expected before closing brace
+3:54	standard:argument-list-wrapping	auto	Missing newline before ")"
+3:56	standard:function-literal	auto	Newline expected after opening brace
+3:73	standard:function-literal	auto	Newline expected before closing brace

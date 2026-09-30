@@ -1,0 +1,4 @@
+5:37	standard:class-signature	auto	Super type should start on a newline
+5:48	standard:argument-list-wrapping	auto	Argument should be on a separate line (unless all arguments can fit a single line)
+5:60	standard:argument-list-wrapping	auto	Argument should be on a separate line (unless all arguments can fit a single line)
+1:1	standard:argument-list-wrapping	auto	Missing newline before ")"

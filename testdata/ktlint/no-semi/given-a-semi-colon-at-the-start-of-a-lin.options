@@ -1,0 +1,4 @@
+rules=standard:no-semi
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoSemicolonsRuleTest.Given a semi colon at the start of a line and not followed by code or comment on the same line then do report a lint error

@@ -1,0 +1,1 @@
+1:14	standard:type-parameter-comment	manual	A (block or EOL) comment inside or on same line after a 'type_parameter' is not allowed. It may be placed on a separate line above.

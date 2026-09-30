@@ -1,0 +1,6 @@
+rules=standard:function-signature,standard:max-line-length
+ec.ktlint_code_style=ktlint_official
+ec.ktlint_function_signature_rule_force_multiline_when_parameter_count_greater_or_equal_than=unset
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=FunctionSignatureRuleTest.Given the ktlint_official code style then avoid wrapping of parameters by overriding property ktlint_function_signature_rule_force_multiline_when_parameter_count_greater_or_equal_than

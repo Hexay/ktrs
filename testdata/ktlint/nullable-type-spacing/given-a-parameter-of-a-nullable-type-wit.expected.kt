@@ -1,0 +1,1 @@
+fun foo(string: String?) = "some-result"

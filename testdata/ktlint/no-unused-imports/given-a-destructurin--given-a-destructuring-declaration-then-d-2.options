@@ -1,0 +1,5 @@
+rules=standard:no-unused-imports
+ec.ktlint_standard_no-unused-imports=enabled
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoUnusedImportsRuleTest.Given a destructuring declaration.Given a destructuring declaration then do not remove imports ending with 'componentN' where 'N' is any number

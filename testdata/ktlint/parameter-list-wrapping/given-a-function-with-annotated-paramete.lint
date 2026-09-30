@@ -1,0 +1,8 @@
+3:11	standard:parameter-list-wrapping	auto	Parameter should start on a newline
+4:1	standard:indent	auto	Unexpected indentation (10) (should be 8)
+5:1	standard:indent	auto	Unexpected indentation (10) (should be 8)
+6:1	standard:indent	auto	Unexpected indentation (10) (should be 8)
+7:1	standard:indent	auto	Unexpected indentation (10) (should be 8)
+7:19	standard:parameter-list-wrapping	auto	Parameter should start on a newline
+7:32	standard:max-line-length	manual	Exceeded max line length (31)
+7:37	standard:parameter-list-wrapping	auto	Missing newline before ")"

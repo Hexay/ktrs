@@ -1,0 +1,4 @@
+rules=standard:backing-property-naming
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=BackingPropertyNamingRuleTest.Issue 3166 - Allow local properties with name '_'

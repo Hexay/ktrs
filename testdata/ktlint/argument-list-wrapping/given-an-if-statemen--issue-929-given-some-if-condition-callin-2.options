@@ -1,0 +1,4 @@
+rules=standard:argument-list-wrapping,standard:max-line-length
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ArgumentListWrappingRuleTest.Given an if statement.Issue 929 - Given some if condition calling a function with indented parameters (preceded by line break)

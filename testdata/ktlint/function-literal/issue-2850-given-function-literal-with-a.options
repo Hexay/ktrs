@@ -1,0 +1,4 @@
+rules=standard:function-literal,standard:max-line-length
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=FunctionLiteralRuleTest.Issue 2850 - Given function literal with a comment before the parameter list which contains a redundant parameter then do remove the redundant parameter but keep the comment

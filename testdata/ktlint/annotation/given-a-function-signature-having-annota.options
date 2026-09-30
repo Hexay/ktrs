@@ -1,0 +1,4 @@
+rules=standard:annotation
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=AnnotationRuleTest.Given a function signature having annotated parameters, then allow the annotation to be on the same line as the annotated construct

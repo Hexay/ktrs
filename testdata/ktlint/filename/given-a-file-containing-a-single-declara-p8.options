@@ -1,0 +1,5 @@
+rules=standard:filename
+path=/project/some/path/UnexpectedFileName.kt
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=FilenameRuleTest.Given a file containing a single declaration of a class type then the filename should match the class name[8]

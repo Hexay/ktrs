@@ -1,0 +1,4 @@
+rules=standard:comment-wrapping
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=CommentWrappingRuleTest.Given a block comment containing a new line and the block is preceded and followed by other code elements then raise lint errors but do not autocorrect

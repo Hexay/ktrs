@@ -1,0 +1,4 @@
+rules=standard:no-empty-first-line-in-method-block
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoEmptyFirstLineInMethodBlockRuleTest.Given a class declaration starting with an empty line is allowed

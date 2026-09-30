@@ -1,0 +1,4 @@
+1:16	standard:enum-wrapping	auto	Expected a (single) newline before comment
+1:32	standard:enum-wrapping	auto	Enum entry should start on a separate line
+1:35	standard:enum-wrapping	auto	Enum entry should start on a separate line
+1:37	standard:enum-wrapping	auto	Expected newline before '}'

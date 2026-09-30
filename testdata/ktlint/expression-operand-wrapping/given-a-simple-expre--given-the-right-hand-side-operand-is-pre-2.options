@@ -1,0 +1,4 @@
+rules=standard:expression-operand-wrapping,standard:indent
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ExpressionOperandWrappingRuleTest.Given a simple expression with a multiline operand in the left hand side.Given the right hand side operand is preceded by a newline

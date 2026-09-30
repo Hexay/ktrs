@@ -1,0 +1,1 @@
+operator fun Foo.plus(other: Foo): Foo { /* ... */ }

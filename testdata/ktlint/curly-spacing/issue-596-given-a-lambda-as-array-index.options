@@ -1,0 +1,4 @@
+rules=standard:curly-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=SpacingAroundCurlyRuleTest.Issue 596 - Given a lambda as array index then no space is allowed between the closing curly brace and closing bracket

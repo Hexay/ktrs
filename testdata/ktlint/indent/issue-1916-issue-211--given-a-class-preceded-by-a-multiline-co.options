@@ -1,0 +1,4 @@
+rules=standard:indent
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=IndentationRuleTest.Issue 1916, issue 2115 - Given the ktlint_official code style and a class declaration with an annotated constructor.Given a class preceded by a multiline comment and with an explicit constructor on same line as class keyword

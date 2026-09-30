@@ -1,0 +1,4 @@
+rules=standard:string-template-indent
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=StringTemplateIndentRuleTest.A multiline raw string literal containing both tabs and spaces in the indentation margin can not be autocorrected.Mixed indentation characters including line with opening quotes

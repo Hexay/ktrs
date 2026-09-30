@@ -1,0 +1,2 @@
+// EOL comment
+/** KDoc */

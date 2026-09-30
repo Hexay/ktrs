@@ -1,0 +1,4 @@
+rules=standard:string-template-indent
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=StringTemplateIndentRuleTest.Issue 2577 - Given a multiline string template as left hand side in a binary expression then do not wrap the operator to the next line

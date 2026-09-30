@@ -1,0 +1,4 @@
+rules=standard:function-signature,standard:max-line-length
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=FunctionSignatureRuleTest.Given a single line function signature and max-line-length is not set then do not rewrite a multiline signature

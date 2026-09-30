@@ -1,0 +1,2 @@
+2:33	standard:function-signature	auto	Newline expected before expression body
+2:45	standard:max-line-length	manual	Exceeded max line length (44)

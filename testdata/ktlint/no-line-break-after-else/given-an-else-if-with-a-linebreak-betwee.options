@@ -1,0 +1,4 @@
+rules=standard:no-line-break-after-else
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoLineBreakAfterElseRuleTest.Given an else-if with a linebreak between the else and if then do return a lint error

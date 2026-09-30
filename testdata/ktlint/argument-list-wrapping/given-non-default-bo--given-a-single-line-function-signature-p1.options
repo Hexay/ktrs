@@ -1,0 +1,6 @@
+rules=standard:argument-list-wrapping,standard:max-line-length,standard:function-signature,standard:indent
+ec.max_line_length=36
+ec.ktlint_function_signature_body_expression_wrapping=multiline
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ArgumentListWrappingRuleTest.Issue 2450 - Run 'argument-list-wrapping' after 'function-signature'.Given non-default body expression wrapping.Given a single line function signature[1]

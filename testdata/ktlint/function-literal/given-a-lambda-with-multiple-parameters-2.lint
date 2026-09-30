@@ -1,0 +1,4 @@
+3:7	standard:function-literal	auto	Newline expected before parameter
+3:26	standard:function-literal	auto	Newline expected before parameter
+3:30	standard:max-line-length	manual	Exceeded max line length (29)
+3:35	standard:function-literal	auto	Newline expected before arrow

@@ -1,0 +1,4 @@
+rules=standard:colon-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=SpacingAroundColonRuleTest.Given a function declaration with an unexpected space before the colon before the return type

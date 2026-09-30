@@ -1,0 +1,4 @@
+rules=standard:backing-property-naming
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=BackingPropertyNamingRuleTest.Given a private backing property defined in a non-private companion object.Given a co=related function.Given that the correlated function has at least 1 parameter then emit

@@ -1,0 +1,5 @@
+rules=standard:binary-expression-wrapping,standard:max-line-length
+ec.max_line_length=59
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=BinaryExpressionWrappingRuleTest.Given a return with a binary expression, and it exceeds the max line length then wrap the expression at the operator

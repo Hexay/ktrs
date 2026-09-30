@@ -1,0 +1,5 @@
+rules=standard:property-wrapping,standard:max-line-length
+ec.max_line_length=71
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=PropertyWrappingRuleTest.Given that the value does not fit on the same line as the type and variable name then wrap after the equals sign

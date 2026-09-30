@@ -1,0 +1,4 @@
+rules=standard:multiline-expression-wrapping,standard:indent
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=MultilineExpressionWrappingRuleTest.Given an elvis operator followed by a multiline expression then do not reformat

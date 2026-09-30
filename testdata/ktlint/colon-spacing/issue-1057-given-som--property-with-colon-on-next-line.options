@@ -1,0 +1,4 @@
+rules=standard:colon-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=SpacingAroundColonRuleTest.Issue 1057 - Given some declaration with an unexpected newline before the colon.Property with colon on next line

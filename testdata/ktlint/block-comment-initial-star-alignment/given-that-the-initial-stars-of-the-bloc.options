@@ -1,0 +1,4 @@
+rules=standard:block-comment-initial-star-alignment
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=BlockCommentInitialStarAlignmentRuleTest.Given that the initial stars of the block comment are not aligned then reformat

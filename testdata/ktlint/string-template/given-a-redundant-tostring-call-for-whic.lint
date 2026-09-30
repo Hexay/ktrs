@@ -1,0 +1,1 @@
+1:17	standard:string-template	auto	Redundant ".toString()" call in string template

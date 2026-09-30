@@ -1,0 +1,4 @@
+rules=standard:no-multi-spaces
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoMultipleSpacesRuleTest.Given a whitespace element containing multiple tabs then replace it with a single space

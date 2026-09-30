@@ -1,0 +1,5 @@
+rules=standard:wrapping,standard:max-line-length
+ec.max_line_length=78
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=WrappingRuleTest.Given a block starting and ending on the same line.Issue 1643 - Wrap a block in case line including the block is violating the max line length

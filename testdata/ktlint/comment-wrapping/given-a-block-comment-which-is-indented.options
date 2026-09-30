@@ -1,0 +1,4 @@
+rules=standard:comment-wrapping
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=CommentWrappingRuleTest.Given a block comment which is indented then keep that indent when wrapping the line

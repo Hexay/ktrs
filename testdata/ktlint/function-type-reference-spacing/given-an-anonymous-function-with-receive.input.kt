@@ -1,0 +1,1 @@
+val anonymousFunction = fun Boolean ? . (): String? = this?.let { "Test string" }

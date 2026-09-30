@@ -1,0 +1,4 @@
+rules=standard:type-parameter-list-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=TypeParameterListSpacingRuleTest.Issue 2299 - Given a class with multiline type parameter list which is correctly formatted then do not report a violation

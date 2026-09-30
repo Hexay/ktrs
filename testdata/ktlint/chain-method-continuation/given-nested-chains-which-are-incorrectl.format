@@ -1,0 +1,6 @@
+1:26	standard:chain-method-continuation	auto	Expected newline before '.'
+8:4	standard:chain-method-continuation	auto	Expected newline before '.'
+2:4	standard:chain-method-continuation	auto	Unexpected newline after '.'
+8:4	standard:chain-method-continuation	auto	Unexpected newline after '.'
+3:24	standard:chain-method-continuation	auto	Expected newline before '.'
+4:12	standard:chain-method-continuation	auto	Unexpected newline after '.'

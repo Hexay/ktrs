@@ -1,0 +1,4 @@
+rules=standard:type-parameter-comment
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=TypeParameterCommentRuleTest.Given a comment after, but on the same line as an type parameter ast node

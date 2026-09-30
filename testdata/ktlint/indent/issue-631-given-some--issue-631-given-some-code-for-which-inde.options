@@ -1,0 +1,4 @@
+rules=standard:indent
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=IndentationRuleTest.Issue 631 - Given some suppression directive in the middle of a file.Issue 631 - Given some code for which indentation is disabled with ktlint-suppression then do not fix indentation of that block only

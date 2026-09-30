@@ -1,0 +1,1 @@
+val foo /** Some KDoc comment */ = "foo"

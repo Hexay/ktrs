@@ -1,0 +1,5 @@
+rules=standard:filename
+path=/project/some/path/Bar.kts
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=FilenameRuleTest.Given a kotlin script file then ignore it

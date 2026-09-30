@@ -1,0 +1,4 @@
+rules=standard:no-single-line-block-comment
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoSingleLineBlockCommentRuleTest.Given a multi line block comment that start starts and end on a separate line then do not reformat

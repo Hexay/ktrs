@@ -1,0 +1,12 @@
+3:12	standard:binary-expression-wrapping	auto	Line is exceeding max line length. Break line between assignment and expression
+4:16	standard:binary-expression-wrapping	auto	Line is exceeding max line length. Break line between assignment and expression
+5:20	standard:binary-expression-wrapping	auto	Line is exceeding max line length. Break line between assignment and expression
+6:24	standard:binary-expression-wrapping	auto	Line is exceeding max line length. Break line between assignment and expression
+7:10	standard:binary-expression-wrapping	auto	Line is exceeding max line length. Break line after '+' in binary expression
+7:36	standard:binary-expression-wrapping	auto	Line is exceeding max line length. Break line between assignment and expression
+8:22	standard:binary-expression-wrapping	auto	Line is exceeding max line length. Break line after '+' in binary expression
+8:48	standard:binary-expression-wrapping	auto	Line is exceeding max line length. Break line between assignment and expression
+1:1	standard:binary-expression-wrapping	auto	Line is exceeding max line length. Break line after '+' in binary expression
+1:1	standard:argument-list-wrapping	auto	Argument should be on a separate line (unless all arguments can fit a single line)
+1:1	standard:argument-list-wrapping	auto	Argument should be on a separate line (unless all arguments can fit a single line)
+1:1	standard:argument-list-wrapping	auto	Missing newline before ")"

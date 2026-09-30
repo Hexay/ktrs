@@ -1,0 +1,5 @@
+rules=standard:no-semi,standard:indent,standard:trailing-comma-on-declaration-site
+ec.ij_kotlin_allow_trailing_comma=true
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=TrailingCommaOnDeclarationSiteRuleTest.Issue 1786 - Given an enumeration containing a companion object, and that a trailing comma is inserted then do not report a unnecessary semicolon

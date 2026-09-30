@@ -1,0 +1,2 @@
+@Deprecated("Foo")
+class Foo

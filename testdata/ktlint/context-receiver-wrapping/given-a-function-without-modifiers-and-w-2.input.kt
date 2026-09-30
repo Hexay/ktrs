@@ -1,0 +1,1 @@
+context(Foo) fun fooBar()

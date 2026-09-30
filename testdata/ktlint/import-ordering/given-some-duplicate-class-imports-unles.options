@@ -1,0 +1,5 @@
+rules=standard:import-ordering
+ec.ij_kotlin_imports_layout=*,java.**,javax.**,kotlin.**,^
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ImportOrderingRuleIdeaTest.Given some duplicate class imports unless they have distinct aliases

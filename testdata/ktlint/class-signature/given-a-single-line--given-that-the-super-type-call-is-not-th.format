@@ -1,0 +1,4 @@
+2:43	standard:class-signature	auto	Super type call must be first super type
+2:48	standard:class-signature	auto	Super type should start on a newline
+2:59	standard:class-signature	auto	Super type should start on a newline
+2:37	standard:class-signature	auto	Super type should start on a newline

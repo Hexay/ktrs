@@ -1,0 +1,4 @@
+rules=standard:block-comment-initial-star-alignment
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=BlockCommentInitialStarAlignmentRuleTest.Given a block comment with a line that contains a star which is preceded by a non-space or non-tab character then do not reformat that line

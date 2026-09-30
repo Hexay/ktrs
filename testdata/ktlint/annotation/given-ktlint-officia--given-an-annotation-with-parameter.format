@@ -1,0 +1,11 @@
+1:15	standard:annotation	auto	Expected newline before annotation
+1:25	standard:annotation	auto	Expected newline before annotation
+1:42	standard:annotation	auto	Expected newline before annotation
+1:58	standard:annotation	auto	Expected newline after last annotation
+1:53	standard:annotation	auto	All annotations should either be on a single line or all annotations should be on a separate line
+2:21	standard:indent	auto	Unexpected indentation (4) (should be 8)
+4:23	standard:indent	auto	Unexpected indentation (0) (should be 4)
+4:43	standard:annotation	auto	Expected newline before annotation
+4:78	standard:annotation	auto	Expected newline after last annotation
+1:1	standard:indent	auto	Unexpected indentation (4) (should be 8)
+1:1	standard:indent	auto	Unexpected indentation (0) (should be 4)

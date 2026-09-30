@@ -1,0 +1,4 @@
+rules=standard:argument-list-wrapping,standard:max-line-length,standard:indent
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ArgumentListWrappingRuleTest.Given a parameter (after a multiline lambda parameter) which already does start on a new line

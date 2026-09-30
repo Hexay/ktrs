@@ -1,0 +1,5 @@
+rules=standard:class-signature,standard:max-line-length
+ec.max_line_length=35
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ClassSignatureRuleTest.Given a single line class signature and first parameter is annotated and class signature has a length greater than the max line length then reformat to multiline signature

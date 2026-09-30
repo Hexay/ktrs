@@ -1,0 +1,5 @@
+rules=standard:no-wildcard-imports
+ec.ij_kotlin_packages_to_use_import_on_demand=
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoWildcardImportsRuleTest.Given that editorconfig property ij_kotlin_packages_to_use_import_on_demand is set.Given that property is set without a value then the packages which otherwise would be accepted by IntelliJ Default are detected

@@ -1,0 +1,4 @@
+rules=standard:modifier-order
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ModifierOrderRuleTest.Given a function with a tailrec and protected modifier in incorrect order

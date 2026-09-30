@@ -1,0 +1,5 @@
+2:15	standard:call-expression-wrapping	auto	Expected new line after '('
+2:35	standard:call-expression-wrapping	auto	Expected new line before ')'
+2:35	standard:max-line-length	manual	Exceeded max line length (34)
+2:37	standard:call-expression-wrapping	auto	Expected new line after '{'
+2:54	standard:call-expression-wrapping	auto	Expected new line before '}'

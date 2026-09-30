@@ -1,0 +1,4 @@
+rules=standard:annotation
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=AnnotationRuleTest.Given an array of annotations on same line as a type parameter.Given a list with an array of annotations on its type

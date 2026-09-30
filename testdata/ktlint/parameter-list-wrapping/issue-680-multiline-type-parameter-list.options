@@ -1,0 +1,4 @@
+rules=standard:parameter-list-wrapping,standard:max-line-length,standard:indent
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ParameterListWrappingRuleTest.Issue 680 - multiline type parameter list in function signature - indented correctly

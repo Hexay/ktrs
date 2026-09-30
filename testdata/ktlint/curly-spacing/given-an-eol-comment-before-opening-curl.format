@@ -1,0 +1,3 @@
+2:1	standard:curly-spacing	auto	Unexpected newline before "{"
+5:1	standard:curly-spacing	auto	Unexpected newline before "{"
+1:15	standard:curly-spacing	auto	Missing spacing after "{"

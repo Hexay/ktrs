@@ -1,0 +1,5 @@
+3:5	standard:function-signature	auto	No whitespace expected between opening parenthesis and first parameter name
+3:12	standard:function-signature	auto	Single whitespace expected before parameter
+4:2	standard:function-signature	auto	No whitespace expected between last parameter and closing parenthesis
+5:2	standard:function-signature	auto	First line of body expression fits on same line as function signature
+6:5	standard:indent	auto	Unexpected indentation (8) (should be 4)

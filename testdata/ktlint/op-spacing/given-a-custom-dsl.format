@@ -1,0 +1,6 @@
+2:20	standard:op-spacing	auto	Missing spacing around "returns"
+2:34	standard:op-spacing	auto	Missing spacing around "andThen"
+3:24	standard:op-spacing	auto	Missing spacing before "returns"
+3:38	standard:op-spacing	auto	Missing spacing before "andThen"
+4:34	standard:op-spacing	auto	Missing spacing after "returns"
+1:1	standard:op-spacing	auto	Missing spacing after "andThen"

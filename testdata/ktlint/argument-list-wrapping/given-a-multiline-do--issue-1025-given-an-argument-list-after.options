@@ -1,0 +1,4 @@
+rules=standard:argument-list-wrapping,standard:max-line-length
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ArgumentListWrappingRuleTest.Given a multiline dot qualified expression.Issue 1025 - Given an argument list after multiline dot qualified expression

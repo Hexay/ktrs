@@ -1,0 +1,4 @@
+3:19	standard:statement-wrapping	auto	Missing newline after '{'
+3:26	standard:statement-wrapping	auto	Missing newline before '}'
+4:17	standard:when-entry-bracing	auto	Body of when entry should be surrounded by braces if any when entry body is surrounded by braces or has a multiline body
+7:17	standard:when-entry-bracing	auto	Body of when entry should be surrounded by braces if any when entry body is surrounded by braces or has a multiline body

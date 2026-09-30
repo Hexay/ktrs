@@ -1,0 +1,3 @@
+import Bar
+
+fun main() {}

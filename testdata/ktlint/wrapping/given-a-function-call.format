@@ -1,0 +1,5 @@
+3:1	standard:indent	auto	Unexpected indentation (4) (should be 8)
+7:2	standard:wrapping	auto	Missing newline after "("
+1:1	standard:wrapping	auto	Missing newline before ")"
+8:4	standard:indent	auto	Unexpected indentation (7) (should be 8)
+1:1	standard:indent	auto	Unexpected indentation (7) (should be 8)

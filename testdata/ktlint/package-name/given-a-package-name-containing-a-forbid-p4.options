@@ -1,0 +1,4 @@
+rules=standard:package-name
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=PackageNameRuleTest.Given a package name containing a forbidden character then do emit[4]

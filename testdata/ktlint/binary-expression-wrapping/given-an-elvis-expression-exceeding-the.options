@@ -1,0 +1,5 @@
+rules=standard:binary-expression-wrapping,standard:max-line-length,standard:argument-list-wrapping,standard:max-line-length
+ec.max_line_length=55
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=BinaryExpressionWrappingRuleTest.Given an elvis expression exceeding the line length

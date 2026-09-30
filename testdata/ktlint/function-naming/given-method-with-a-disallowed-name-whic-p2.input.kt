@@ -1,0 +1,2 @@
+@Suppress("FunctionName")
+fun Foo() {}

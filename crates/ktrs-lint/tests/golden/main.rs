@@ -11,7 +11,8 @@ mod engine;
 use std::collections::BTreeMap;
 use std::panic::{self, AssertUnwindSafe};
 use std::path::Path;
-use std::{env, fs};
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::{env, fs, thread};
 
 use case::Case;
 use engine::Skip;
@@ -41,7 +42,7 @@ fn ktlint_goldens() {
 
     let previous_hook = panic::take_hook();
     panic::set_hook(Box::new(|_| {}));
-    let results: Vec<(&str, Outcome)> = cases.iter().map(|c| (c.name.as_str(), run_case(c))).collect();
+    let results = run_all(&cases);
     panic::set_hook(previous_hook);
 
     print_summary(&results);
@@ -57,6 +58,32 @@ fn ktlint_goldens() {
     let listed = fs::read_to_string(&passing_path).unwrap_or_default();
     let regressions: Vec<&str> = listed.lines().map(str::trim).filter(|n| !n.is_empty() && !passed.contains(n)).collect();
     assert!(regressions.is_empty(), "{} case(s) in tests/golden-passing.txt regressed:\n{}", regressions.len(), regressions.join("\n"));
+}
+
+/// All cases on every core, results in case order.
+fn run_all(cases: &[Case]) -> Vec<(&str, Outcome)> {
+    let next = AtomicUsize::new(0);
+    let threads = thread::available_parallelism().map_or(4, |n| n.get());
+    let mut results: Vec<(usize, Outcome)> = thread::scope(|s| {
+        let workers: Vec<_> = (0..threads)
+            .map(|_| {
+                thread::Builder::new()
+                    .stack_size(64 << 20)
+                    .spawn_scoped(s, || {
+                        let mut out = Vec::new();
+                        loop {
+                            let i = next.fetch_add(1, Ordering::Relaxed);
+                            let Some(case) = cases.get(i) else { return out };
+                            out.push((i, run_case(case)));
+                        }
+                    })
+                    .unwrap()
+            })
+            .collect();
+        workers.into_iter().flat_map(|w| w.join().unwrap()).collect()
+    });
+    results.sort_by_key(|(i, _)| *i);
+    cases.iter().map(|c| c.name.as_str()).zip(results.into_iter().map(|(_, o)| o)).collect()
 }
 
 fn row(e: &LintError) -> String {

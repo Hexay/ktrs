@@ -1,0 +1,4 @@
+rules=standard:property-naming
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=PropertyNamingRuleTest.Issue 2017 - Given property is serialVersionUID.Given property defined object is private const

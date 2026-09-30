@@ -1,0 +1,4 @@
+
+
+@JvmField
+var foo: String

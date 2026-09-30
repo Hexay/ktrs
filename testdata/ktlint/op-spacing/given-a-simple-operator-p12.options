@@ -1,0 +1,4 @@
+rules=standard:op-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=SpacingAroundOperatorsRuleTest.Given a simple operator[12]

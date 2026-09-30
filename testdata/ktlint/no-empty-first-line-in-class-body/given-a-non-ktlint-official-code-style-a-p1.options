@@ -1,0 +1,6 @@
+rules=standard:no-empty-first-line-in-class-body
+ec.ktlint_code_style=android_studio
+ec.ktlint_standard_no-empty-first-line-in-class-body=enabled
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoEmptyFirstLineInClassBodyRuleTest.Given a non-ktlint-official code style, and the rule has been enabled explicitly, and a class body starting with a blank line then do report a lint violation[1]

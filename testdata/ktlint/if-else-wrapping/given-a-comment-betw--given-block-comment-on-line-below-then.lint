@@ -1,0 +1,2 @@
+5:1	standard:indent	auto	Unexpected indentation (4) (should be 8)
+5:5	standard:if-else-wrapping	manual	No comment expected at this location

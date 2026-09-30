@@ -1,0 +1,5 @@
+2:12	standard:class-signature	auto	Newline expected after opening parenthesis
+2:20	standard:class-signature	auto	Parameter should start on a newline
+2:28	standard:class-signature	auto	Parameter should start on a newline
+2:34	standard:class-signature	auto	Newline expected before closing parenthesis
+2:34	standard:max-line-length	manual	Exceeded max line length (33)

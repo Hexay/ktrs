@@ -1,0 +1,49 @@
+1:9	standard:no-multi-spaces	auto	Unnecessary long whitespace
+2:7	standard:paren-spacing	auto	Unexpected spacing before "("
+2:8	standard:no-multi-spaces	auto	Unnecessary long whitespace
+3:8	standard:paren-spacing	auto	Unexpected spacing after "("
+3:9	standard:no-multi-spaces	auto	Unnecessary long whitespace
+3:10	standard:function-signature	auto	No whitespace expected between opening parenthesis and first parameter name
+4:10	standard:no-multi-spaces	auto	Unnecessary long whitespace
+4:11	standard:colon-spacing	auto	Unexpected spacing before ":"
+5:11	standard:no-multi-spaces	auto	Unnecessary long whitespace
+6:14	standard:comma-spacing	auto	Unexpected spacing before ","
+6:15	standard:no-multi-spaces	auto	Unnecessary long whitespace
+7:16	standard:no-multi-spaces	auto	Unnecessary long whitespace
+7:17	standard:function-signature	auto	Single whitespace expected before parameter
+8:22	standard:function-signature	auto	No whitespace expected between last parameter and closing parenthesis
+8:22	standard:paren-spacing	auto	Unexpected spacing before ")"
+8:23	standard:no-multi-spaces	auto	Unnecessary long whitespace
+9:8	standard:paren-spacing	auto	Unexpected spacing after "("
+9:9	standard:no-multi-spaces	auto	Unnecessary long whitespace
+9:10	standard:function-signature	auto	No whitespace expected between opening parenthesis and first parameter name
+10:16	standard:no-multi-spaces	auto	Unnecessary long whitespace
+11:11	standard:no-multi-spaces	auto	Unnecessary long whitespace
+12:11	standard:no-multi-spaces	auto	Unnecessary long whitespace
+12:12	standard:colon-spacing	auto	Unexpected spacing before ":"
+13:12	standard:no-multi-spaces	auto	Unnecessary long whitespace
+14:19	standard:no-multi-spaces	auto	Unnecessary long whitespace
+15:13	standard:no-multi-spaces	auto	Unnecessary long whitespace
+16:6	standard:spacing-around-angle-brackets	auto	Unexpected spacing after "<"
+16:7	standard:no-multi-spaces	auto	Unnecessary long whitespace
+17:9	standard:no-multi-spaces	auto	Unnecessary long whitespace
+18:7	standard:comma-spacing	auto	Unexpected spacing before ","
+18:8	standard:no-multi-spaces	auto	Unnecessary long whitespace
+19:9	standard:no-multi-spaces	auto	Unnecessary long whitespace
+20:10	standard:spacing-around-angle-brackets	auto	Unexpected spacing before ">"
+20:11	standard:no-multi-spaces	auto	Unnecessary long whitespace
+21:9	standard:spacing-around-angle-brackets	auto	Unexpected spacing after "<"
+21:10	standard:no-multi-spaces	auto	Unnecessary long whitespace
+22:12	standard:comma-spacing	auto	Unexpected spacing before ","
+22:13	standard:no-multi-spaces	auto	Unnecessary long whitespace
+23:14	standard:no-multi-spaces	auto	Unnecessary long whitespace
+24:17	standard:spacing-around-angle-brackets	auto	Unexpected spacing before ">"
+24:18	standard:no-multi-spaces	auto	Unnecessary long whitespace
+25:18	standard:dot-spacing	auto	Unexpected spacing before "."
+25:19	standard:no-multi-spaces	auto	Unnecessary long whitespace
+26:17	standard:paren-spacing	auto	Unexpected spacing after "("
+26:18	standard:no-multi-spaces	auto	Unnecessary long whitespace
+27:18	standard:paren-spacing	auto	Unexpected spacing before ")"
+27:19	standard:no-multi-spaces	auto	Unnecessary long whitespace
+28:20	standard:no-multi-spaces	auto	Unnecessary long whitespace
+29:23	standard:no-multi-spaces	auto	Unnecessary long whitespace

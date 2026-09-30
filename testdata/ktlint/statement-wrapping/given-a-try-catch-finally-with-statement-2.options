@@ -1,0 +1,4 @@
+rules=standard:statement-wrapping
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=StatementWrappingRuleTest.Given a try-catch-finally with statements on same line as rbrace

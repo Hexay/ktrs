@@ -1,0 +1,3 @@
+2:25	standard:function-signature	auto	Newline expected after opening parenthesis
+2:38	standard:max-line-length	manual	Exceeded max line length (37)
+2:39	standard:function-signature	auto	Newline expected before closing parenthesis

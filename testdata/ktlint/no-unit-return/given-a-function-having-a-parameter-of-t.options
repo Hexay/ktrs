@@ -1,0 +1,4 @@
+rules=standard:no-unit-return
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoUnitReturnRuleTest.Given a function having a parameter of type Unit then do not return a lint error

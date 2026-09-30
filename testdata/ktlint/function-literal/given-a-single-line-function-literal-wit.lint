@@ -1,0 +1,15 @@
+2:14	standard:function-literal	auto	Newline expected after opening brace
+2:18	standard:chain-method-continuation	auto	Expected newline before '.'
+2:24	standard:chain-method-continuation	auto	Expected newline before '.'
+2:32	standard:max-line-length	manual	Exceeded max line length (31)
+2:33	standard:chain-method-continuation	auto	Expected newline before '.'
+2:44	standard:function-literal	auto	Newline expected before closing brace
+3:11	standard:multiline-expression-wrapping	auto	A multiline expression should start on a new line
+3:14	standard:chain-method-continuation	auto	Expected newline before '.'
+3:32	standard:max-line-length	manual	Exceeded max line length (31)
+3:34	standard:chain-method-continuation	auto	Expected newline before '.'
+3:42	standard:function-literal	auto	Newline expected after opening brace
+3:61	standard:function-literal	auto	Newline expected before closing brace
+3:62	standard:chain-method-continuation	auto	Expected newline before '.'
+3:67	standard:function-literal	auto	Newline expected after opening brace
+3:77	standard:function-literal	auto	Newline expected before closing brace

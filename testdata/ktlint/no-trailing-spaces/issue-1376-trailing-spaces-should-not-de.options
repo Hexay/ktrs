@@ -1,0 +1,4 @@
+rules=standard:no-trailing-spaces
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoTrailingSpacesRuleTest.Issue 1376 - trailing spaces should not delete blank line inside kdoc

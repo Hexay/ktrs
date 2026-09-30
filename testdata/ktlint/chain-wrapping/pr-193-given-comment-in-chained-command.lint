@@ -1,0 +1,5 @@
+3:9	standard:chain-wrapping	auto	Line must not begin with "&&"
+7:9	standard:chain-wrapping	auto	Line must not begin with "&&"
+8:18	standard:chain-wrapping	auto	Line must not end with "."
+10:14	standard:chain-wrapping	auto	Line must not end with "."
+13:14	standard:chain-wrapping	auto	Line must not end with "."

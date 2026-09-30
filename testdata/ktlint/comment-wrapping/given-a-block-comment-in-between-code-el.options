@@ -1,0 +1,4 @@
+rules=standard:comment-wrapping
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=CommentWrappingRuleTest.Given a block comment in between code elements on the same line then raise lint error but do not autocorrect

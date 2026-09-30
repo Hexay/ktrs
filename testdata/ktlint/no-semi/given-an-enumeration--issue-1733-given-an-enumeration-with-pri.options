@@ -1,0 +1,4 @@
+rules=standard:no-semi
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoSemicolonsRuleTest.Given an enumeration.Issue 1733 - Given an enumeration with primary constructor and the list of values is followed by a code element then do not return a lint error

@@ -1,0 +1,5 @@
+rules=standard:no-consecutive-comments
+ec.ktlint_code_style=android_studio
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoConsecutiveCommentsRuleTest.Given a code style other than ktlint_official and some consecutive block comments then do no report a violation[1]

@@ -1,0 +1,5 @@
+rules=standard:trailing-comma-on-call-site,standard:indent
+ec.ij_kotlin_allow_trailing_comma_on_call_site=true
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=TrailingCommaOnCallSiteRuleTest.Given that the trailing comma is required on call site then add it to the array index when missing

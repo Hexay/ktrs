@@ -1,0 +1,4 @@
+rules=standard:annotation
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=AnnotationRuleTest.Given an annotation at file level.lint file annotations should be separated with a blank line in script 1

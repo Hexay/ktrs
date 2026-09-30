@@ -1,0 +1,4 @@
+rules=standard:indent
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=IndentationRuleTest.Given that the first line in a file contains a non-code element.Given a file with indented code on the first line then report unexpected indentation on first line

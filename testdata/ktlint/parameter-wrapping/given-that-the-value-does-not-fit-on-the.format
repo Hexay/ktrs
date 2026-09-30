@@ -1,0 +1,4 @@
+3:41	standard:parameter-wrapping	auto	Missing newline before "Foo()"
+3:42	standard:indent	auto	Unexpected indentation (4) (should be 8)
+8:1	standard:parameter-wrapping	auto	Missing newline before "Foo()"
+8:2	standard:indent	auto	Unexpected indentation (4) (should be 8)

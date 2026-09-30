@@ -1,0 +1,4 @@
+rules=standard:class-naming
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ClassNamingRuleTest.Given an object declaration.Given an invalid object name then do emit[2]

@@ -1,0 +1,5 @@
+rules=standard:max-line-length
+ec.max_line_length=33
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=MaxLineLengthRuleTest.Given code that exceeds the max line length but for which no lint error should be returned.Given a KDoc which exceeds the max line length then do not return a lint error

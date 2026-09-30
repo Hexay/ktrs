@@ -1,0 +1,5 @@
+rules=standard:filename
+path=/project/UnexpectedFileName.kt
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=FilenameRuleTest.Given a file containing a single top level class (non-private) and another top level declaration (private and,x xor extending that class) then the file should be named after that class[2]

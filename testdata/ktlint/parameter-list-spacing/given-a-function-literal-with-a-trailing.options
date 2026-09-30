@@ -1,0 +1,4 @@
+rules=standard:parameter-list-spacing,standard:max-line-length
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ParameterListSpacingRuleTest.Given a function literal with a trailing comma in the parameter list and arrow on the next line then do not report a violation

@@ -1,0 +1,5 @@
+rules=standard:function-literal,standard:max-line-length
+ec.max_line_length=29
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=FunctionLiteralRuleTest.Issue 2450 - Given a parameter list followed by EOL comment which causes the max line length to be exceed then only report the violation via the max-line-length rule

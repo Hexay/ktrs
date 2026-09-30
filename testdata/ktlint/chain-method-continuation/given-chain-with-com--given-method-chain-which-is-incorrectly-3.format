@@ -1,0 +1,5 @@
+1:26	standard:chain-method-continuation	auto	Expected newline before '.'
+4:15	standard:chain-method-continuation	auto	Expected newline before '.'
+4:6	standard:indent	auto	Unexpected indentation (2) (should be 4)
+2:6	standard:indent	auto	Unexpected indentation (4) (should be 8)
+4:3	standard:indent	auto	Unexpected indentation (0) (should be 4)

@@ -1,0 +1,3 @@
+3:50	standard:multiline-expression-wrapping	auto	A multiline expression should start on a new line
+6:13	standard:indent	auto	Unexpected indent of multiline string closing quotes
+6:13	standard:indent	auto	Unexpected indent of multiline string closing quotes

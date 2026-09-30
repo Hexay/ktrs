@@ -1,0 +1,4 @@
+rules=standard:parameter-list-spacing,standard:max-line-length
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ParameterListSpacingRuleTest.Issue 2794 - Given a single line function signature and the last parameter is followed by a trailing comma

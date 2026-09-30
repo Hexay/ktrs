@@ -1,0 +1,5 @@
+rules=standard:import-ordering
+ec.ij_kotlin_imports_layout=*
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ImportOrderingRuleAsciiTest.Given some imports including duplicates then do return a lint error

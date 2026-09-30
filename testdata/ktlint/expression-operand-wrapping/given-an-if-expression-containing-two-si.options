@@ -1,0 +1,5 @@
+rules=standard:expression-operand-wrapping,standard:indent
+ec.max_line_length=33
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ExpressionOperandWrappingRuleTest.Given an if-expression containing two simple expression on the same line, and another arithmetic expression on a separate line not exceeding max line length, then wrap on the logical operands only

@@ -1,0 +1,3 @@
+2:1	standard:no-consecutive-comments	manual	a block comment may not be preceded by an EOL comment unless separated by a blank line
+3:1	standard:no-consecutive-comments	manual	a KDoc may not be preceded by a block comment unless separated by a blank line
+4:1	standard:no-consecutive-comments	manual	a block comment may not be preceded by a KDoc. Reversed order is allowed though when separated by a newline.

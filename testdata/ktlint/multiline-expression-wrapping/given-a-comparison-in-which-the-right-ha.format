@@ -1,0 +1,2 @@
+2:19	standard:multiline-expression-wrapping	auto	A multiline expression should start on a new line
+4:9	standard:indent	auto	Unexpected indent of multiline string closing quotes

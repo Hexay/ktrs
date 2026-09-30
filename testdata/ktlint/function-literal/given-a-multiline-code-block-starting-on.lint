@@ -1,0 +1,2 @@
+2:36	standard:function-literal	auto	Newline expected after arrow
+2:38	standard:multiline-expression-wrapping	auto	A multiline expression should start on a new line

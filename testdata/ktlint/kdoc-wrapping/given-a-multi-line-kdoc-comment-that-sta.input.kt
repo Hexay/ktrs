@@ -1,0 +1,3 @@
+/**
+ * Some KDoc comment
+ */

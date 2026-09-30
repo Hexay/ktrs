@@ -1,0 +1,8 @@
+2:18	standard:call-expression-wrapping	auto	Expected new line after '{'
+3:3	standard:call-expression-wrapping	auto	Expected new line before '}'
+3:19	standard:call-expression-wrapping	auto	Expected new line after '('
+3:44	standard:call-expression-wrapping	auto	Expected new line before ')'
+4:25	standard:call-expression-wrapping	auto	Expected new line after '('
+4:50	standard:call-expression-wrapping	auto	Expected new line before ')'
+4:53	standard:call-expression-wrapping	auto	Expected new line after '{'
+1:1	standard:call-expression-wrapping	auto	Expected new line before '}'

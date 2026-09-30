@@ -1,0 +1,4 @@
+rules=standard:no-blank-lines-in-chained-method-calls
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoBlankLinesInChainedMethodCallsRuleTest.single blank line between statements does not return lint error

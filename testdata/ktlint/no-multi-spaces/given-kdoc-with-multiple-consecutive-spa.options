@@ -1,0 +1,4 @@
+rules=standard:no-multi-spaces
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoMultipleSpacesRuleTest.Given KDoc with multiple consecutive spaces in kdoc then do not return lint errors
