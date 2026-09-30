@@ -1,0 +1,35 @@
+# Publishes an existing release's jar to Maven Central, for releases cut before the MAVEN_CENTRAL_*
+# secrets existed or whose Central upload failed. Tagged releases normally do this in release.yml.
+name: maven-central
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag, e.g. v0.2.0
+        required: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    env:
+      ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+      ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+      ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
+      ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_KEY_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "${{ inputs.tag }}" }
+      - name: Bundle the release's binaries
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "${{ inputs.tag }}" --repo "$GITHUB_REPOSITORY" -p 'ktrs-*.tar.gz' -p 'ktrs-*.zip' -D dist
+          bash tools/release/bundle-natives.sh dist java/native
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21, cache: gradle }
+      - name: Publish
+        working-directory: java
+        run: |
+          v=${{ inputs.tag }}
+          ./gradlew --console=plain test publishAndReleaseToMavenCentral -PktrsVersion=${v#v} -PktrsExecutable=native/linux-x86_64/ktrs
