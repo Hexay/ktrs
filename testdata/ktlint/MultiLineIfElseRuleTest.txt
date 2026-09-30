@@ -1,0 +1,515 @@
+#### case Given an if-statement with curly braces on single line
+#### flag no-violations
+#### code
+fun foo() {
+    if (true) { return 0 }
+}
+#### violations
+#### case Given an if-else-statement with curly braces on single line
+#### flag no-violations
+#### code
+val foo = if (true) { return 0 } else {return 1}
+#### violations
+#### case Given an if-statement without curly braces on single line
+#### flag no-violations
+#### code
+fun foo() {
+    if (true) return 0
+}
+#### violations
+#### case Given an if-else-statement without curly braces on single line
+#### flag no-violations
+#### code
+val foo = if (true) return 0 else return 1
+#### violations
+#### case Given a multiline if-statement with curly braces
+#### flag no-violations
+#### code
+fun foo() {
+    if (true) {
+        return 0
+    }
+}
+#### violations
+#### case Given a multiline if-else-statement with curly braces
+#### flag no-violations
+#### code
+val foo =
+    if (true) {
+        return 0
+    } else {
+        return 1
+    }
+#### violations
+#### case Given a multiline if-statement without curly braces
+#### code
+fun foo() {
+    if (true)
+        return 0
+}
+#### formatted
+fun foo() {
+    if (true) {
+        return 0
+    }
+}
+#### violations
+3:9	auto	Missing { ... }
+#### case Given a multiline if-else-statement without curly braces
+#### code
+val foo =
+    if (true)
+        return 0
+    else
+        return 1
+#### formatted
+val foo =
+    if (true) {
+        return 0
+    } else {
+        return 1
+    }
+#### violations
+3:9	auto	Missing { ... }
+5:9	auto	Missing { ... }
+#### case Issue 727 - Given a multiline if-else-statement with multiple conditions without curly braces
+#### code
+val foo =
+    if (false ||
+        true
+    )
+        return 0
+    else
+        return 1
+#### formatted
+val foo =
+    if (false ||
+        true
+    ) {
+        return 0
+    } else {
+        return 1
+    }
+#### violations
+5:9	auto	Missing { ... }
+7:9	auto	Missing { ... }
+#### case Issue 727 - Given a multiline if-else-if-statement without curly braces
+#### code
+val foo =
+    if (true)
+        return 0
+    else if (false)
+        return 1
+    else
+        return 2
+#### formatted
+val foo =
+    if (true) {
+        return 0
+    } else if (false) {
+        return 1
+    } else {
+        return 2
+    }
+#### violations
+3:9	auto	Missing { ... }
+5:9	auto	Missing { ... }
+7:9	auto	Missing { ... }
+#### case Issue 727 - Given a deep nested if-else-if-statement without curly braces
+#### code
+fun main() {
+    if (outerCondition1)
+        if (innerCondition1)
+            if (innerCondition11)
+                return 0
+            else if (innerCondition12)
+                return 12
+            else if (innerCondition13)
+                return 13
+            else
+                return 14
+        else if (innerCondition44)
+            return 1
+        else {
+            return 16
+        }
+    else if (outerCondition2)
+        if (innerCondition2)
+            return 2
+        else if (innerCondition3)
+            return 3
+        else
+            return 4
+    else
+        if (innerCondition4)
+            return 5
+        else
+            return -1
+}
+#### formatted
+fun main() {
+    if (outerCondition1) {
+        if (innerCondition1) {
+            if (innerCondition11) {
+                return 0
+            } else if (innerCondition12) {
+                return 12
+            } else if (innerCondition13) {
+                return 13
+            } else {
+                return 14
+            }
+        } else if (innerCondition44) {
+            return 1
+        } else {
+            return 16
+        }
+    } else if (outerCondition2) {
+        if (innerCondition2) {
+            return 2
+        } else if (innerCondition3) {
+            return 3
+        } else {
+            return 4
+        }
+    } else {
+        if (innerCondition4) {
+            return 5
+        } else {
+            return -1
+        }
+    }
+}
+#### violations
+3:9	auto	Missing { ... }
+4:13	auto	Missing { ... }
+5:17	auto	Missing { ... }
+7:17	auto	Missing { ... }
+9:17	auto	Missing { ... }
+11:17	auto	Missing { ... }
+13:13	auto	Missing { ... }
+18:9	auto	Missing { ... }
+19:13	auto	Missing { ... }
+21:13	auto	Missing { ... }
+23:13	auto	Missing { ... }
+25:9	auto	Missing { ... }
+26:13	auto	Missing { ... }
+28:13	auto	Missing { ... }
+#### case Given an if-statement preceded by a blank line then do no add redundant blank lines
+#### code
+fun test(): Int {
+    val b = foo()
+
+    if (b)
+        return 1
+    else
+        return 2
+}
+#### formatted
+fun test(): Int {
+    val b = foo()
+
+    if (b) {
+        return 1
+    } else {
+        return 2
+    }
+}
+#### violations
+5:9	auto	Missing { ... }
+7:9	auto	Missing { ... }
+#### case Given an return-if-statement
+#### code
+fun test(i: Int, j: Int): Int {
+    return if (i == 1)
+        if (j == 1)
+            1
+        else
+            2
+    else if (i == 2)
+        if (j == 1)
+            3
+        else
+            4
+    else
+        if (j == 1)
+            5
+        else
+            6
+}
+#### formatted
+fun test(i: Int, j: Int): Int {
+    return if (i == 1) {
+        if (j == 1) {
+            1
+        } else {
+            2
+        }
+    } else if (i == 2) {
+        if (j == 1) {
+            3
+        } else {
+            4
+        }
+    } else {
+        if (j == 1) {
+            5
+        } else {
+            6
+        }
+    }
+}
+#### violations
+3:9	auto	Missing { ... }
+4:13	auto	Missing { ... }
+6:13	auto	Missing { ... }
+8:9	auto	Missing { ... }
+9:13	auto	Missing { ... }
+11:13	auto	Missing { ... }
+13:9	auto	Missing { ... }
+14:13	auto	Missing { ... }
+16:13	auto	Missing { ... }
+#### case Given an if-statement inside a lambda
+#### code
+fun test(s: String?): Int {
+    val i = s.let {
+        if (it == "")
+            1
+        else
+            2
+    } ?: 0
+    return i
+}
+#### formatted
+fun test(s: String?): Int {
+    val i = s.let {
+        if (it == "") {
+            1
+        } else {
+            2
+        }
+    } ?: 0
+    return i
+}
+#### violations
+4:13	auto	Missing { ... }
+6:13	auto	Missing { ... }
+#### case Issue 945 - Given an if-statement without curly brace and EOL-comments in the branches before actual result of branch
+#### flag additional-rules
+#### code
+fun test() {
+    val s = if (x > 0)
+    // comment1
+        "a"
+    else
+    // comment2
+        "b"
+}
+#### formatted
+fun test() {
+    val s = if (x > 0) {
+        // comment1
+        "a"
+    } else {
+        // comment2
+        "b"
+    }
+}
+#### violations
+4:9	auto	Missing { ... }
+7:9	auto	Missing { ... }
+#### case Issue 945 - Given an if-statement without curly brace and EOL-comments in the branches on same line as result of branch
+#### flag additional-rules
+#### code
+fun test() {
+    val s = if (x > 0)
+        "a" // comment1
+    else
+        "b" // comment2
+}
+#### formatted
+fun test() {
+    val s = if (x > 0) {
+        "a" // comment1
+    } else {
+        "b" // comment2
+    }
+}
+#### violations
+3:9	auto	Missing { ... }
+5:9	auto	Missing { ... }
+#### case Issue 1079 - Given an if-statement without curly braces a function call argument
+#### code
+fun foo(x: Int, y: Int, z: Int) {}
+fun test(a: Int, b: Int, c: Int, d: Int, bar: Boolean) {
+    foo(
+        a,
+        if (bar) b else
+            c,
+        d
+    )
+}
+#### formatted
+fun foo(x: Int, y: Int, z: Int) {}
+fun test(a: Int, b: Int, c: Int, d: Int, bar: Boolean) {
+    foo(
+        a,
+        if (bar) {
+            b
+        } else {
+            c
+        },
+        d
+    )
+}
+#### violations
+5:18	auto	Missing { ... }
+6:13	auto	Missing { ... }
+#### case Issue 1560 - Given an if statement with else keyword on same line as true branch
+#### code
+fun foo() = if (bar())
+    "a" else
+    "b"
+#### formatted
+fun foo() = if (bar()) {
+    "a"
+} else {
+    "b"
+}
+#### violations
+2:5	auto	Missing { ... }
+3:5	auto	Missing { ... }
+#### case Issue 828 - Given an if statement with multiline statement starting on same line as if
+#### flag additional-rules
+#### code
+fun foo() {
+    if (true) 50
+      .toString()
+}
+#### formatted
+fun foo() {
+    if (true) {
+        50
+            .toString()
+    }
+}
+#### violations
+2:15	auto	Missing { ... }
+#### case Issue 828 - Given an if statement with simple branches but the else branch is on a separate line
+#### flag additional-rules
+#### code
+fun foo() {
+    if (true) 50
+    else 55
+}
+#### formatted
+fun foo() {
+    if (true) {
+        50
+    } else {
+        55
+    }
+}
+#### violations
+2:15	auto	Missing { ... }
+3:10	auto	Missing { ... }
+#### case Issue 1904 - Given an nested if else statement followed by an elvis operator
+#### flag no-violations
+#### code
+val foo1 = if (bar1) {
+    "bar1"
+} else {
+    null
+} ?: "something-else"
+
+val foo2 = if (bar1) {
+    "bar1"
+} else if (bar2) {
+    null
+} else {
+    null
+} ?: "something-else"
+#### violations
+#### case Issue 2057 - Given an else condition with single line binary expression
+#### code
+val foo = if (bar1) {
+    "bar1"
+} else bar2 ?: "something-else"
+#### formatted
+val foo = if (bar1) {
+    "bar1"
+} else {
+    bar2 ?: "something-else"
+}
+#### violations
+3:8	auto	Missing { ... }
+#### case Issue 1904 - Given an nested if else statement and else which is part of a dot qualified expression
+#### flag no-violations
+#### code
+val foo1 = if (bar1) {
+    "bar1"
+} else {
+    "bar2"
+}.plus("foo")
+
+val foo2 = if (bar1) {
+    "bar1"
+} else if (bar2) {
+    "bar2"
+} else {
+    "bar3"
+}.plus("foo")
+#### violations
+#### case Issue 2057 - Given an else with chained condition
+#### code
+val foo = if (System.currentTimeMillis() % 2 == 0L) {
+    0
+} else System.currentTimeMillis().toInt()
+#### formatted
+val foo = if (System.currentTimeMillis() % 2 == 0L) {
+    0
+} else {
+    System.currentTimeMillis().toInt()
+}
+#### violations
+3:8	auto	Missing { ... }
+#### case Issue 2057 - Given an if with chained condition
+#### code
+val foo = if (System.currentTimeMillis() % 2 == 0L) System.currentTimeMillis().toInt()
+else {
+    System.currentTimeMillis().toInt()
+}
+#### formatted
+val foo = if (System.currentTimeMillis() % 2 == 0L) {
+    System.currentTimeMillis().toInt()
+} else {
+    System.currentTimeMillis().toInt()
+}
+#### violations
+1:53	auto	Missing { ... }
+#### case Issue 2420 - Given a single line else-if
+#### code
+fun foo() {
+    if (foo) {
+        doFoo()
+    } else if (bar) doBar()
+}
+#### formatted
+fun foo() {
+    if (foo) {
+        doFoo()
+    } else if (bar) {
+        doBar()
+    }
+}
+#### violations
+4:21	auto	Missing { ... }
+#### case Issue 3088 - Given an if with an empty 'then' block then do not throw an exception
+#### flag no-violations
+#### code
+fun foo() {
+    if (false) else {
+        false
+    }
+}
+#### violations
