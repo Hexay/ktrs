@@ -6,8 +6,8 @@ linting without starting a JVM.
 **Status:** the formatter is done: output identical to ktfmt 0.64 on 6,121 of 6,123 real-world files
 (the other two are rejected by both), 7-100x faster than the ktfmt jar end to end ([numbers](#performance)).
 Underneath is a
-lossless Kotlin parser whose tree matches the Kotlin compiler's PSI node for node. Linting
-(ktlint-compatible) is in progress ([status](#linting)).
+lossless Kotlin parser whose tree matches the Kotlin compiler's PSI node for node. The linter is a
+port of ktlint 2.0 with identical output on the same files ([details](#linting)).
 
 ## Formatting
 
@@ -149,9 +149,10 @@ set the Gradle property `ktrs.executable` to its path.
 
 ## Linting
 
-In progress: a port of ktlint 2.0 (pinned at 2.0.0-ALPHA-4) with its engine, reporters and CLI.
-Not all standard rules are ported yet; `ktrs lint --list-rules` prints the ones that are, and each
-of them reports and fixes exactly what ktlint does. The same install adds a `ktlint` binary:
+A port of ktlint 2.0 (pinned at 2.0.0-ALPHA-4): its engine, all 105 standard rules, reporters and
+CLI. On the same 6,123 files, violations and `--format` output are identical to ktlint's in all three
+code styles (`ktlint_official`, `intellij_idea`, `android_studio`) and with experimental rules on,
+down to the files where ktlint itself crashes. The same install adds a `ktlint` binary:
 
 ```sh
 ktrs lint                             # check every .kt/.kts under the current directory

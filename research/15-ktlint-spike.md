@@ -146,8 +146,10 @@ oracle already existed.
 
 ## Missing (TODO pointers in code)
 
-- `EditorConfigFinder` (`editorConfigFilePaths`), `EditorConfigGenerator` (`generateKotlinEditorConfigSection`), log
-  output (upstream warnings are dropped), a file-system abstraction (tests use temp dirs).
+All 105 standard rules and the CLI are ported since; corpus parity per code style: research/19-ktlint-parity.md.
+
+- `EditorConfigFinder` (`editorConfigFilePaths`), engine log output (upstream warnings are dropped), a file-system
+  abstraction (tests use temp dirs).
 - Suppression hints are rebuilt on a `(node_count, text_length)` change, then compared by text hash; needs an `Ast`
   modification counter to be exact for raw-only reorders.
 - Helpers in `engine/ast_helpers.rs` marked `TODO: move to ast_node_extension`.
