@@ -49,7 +49,10 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.target }}
-          path: ktrs-*.*
+          # Not `ktrs-*.*`: the staging directory's name has dots too (v0.1.0).
+          path: |
+            ktrs-*.tar.gz
+            ktrs-*.zip
 
   release:
     needs: build
@@ -59,8 +62,8 @@ jobs:
         with:
           merge-multiple: true
       - name: Checksums
-        run: sha256sum ktrs-* > SHA256SUMS
+        run: sha256sum ktrs-*.tar.gz ktrs-*.zip > SHA256SUMS
       - name: Publish
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --generate-notes ktrs-* SHA256SUMS
+        run: gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --generate-notes ktrs-*.tar.gz ktrs-*.zip SHA256SUMS
