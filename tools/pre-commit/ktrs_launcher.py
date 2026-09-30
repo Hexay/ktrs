@@ -1,4 +1,4 @@
-"""`ktrs` and `ktfmt` commands that run the release binaries for this package's version, downloaded
+"""`ktrs`, `ktfmt` and `ktlint` commands that run the release binaries for this package's version, downloaded
 (and checked against SHA256SUMS) into the Python environment on first use. pre-commit installs this
 package from the repository root for the hooks in .pre-commit-hooks.yaml; no Rust toolchain needed.
 KTRS_VERSION (a tag, e.g. v0.2.0) overrides the version.
@@ -48,7 +48,7 @@ def install(tag, home):
         with tarfile.open(fileobj=io.BytesIO(data)) as tf:
             members = {Path(m.name).name: tf.extractfile(m).read() for m in tf.getmembers() if m.isfile()}
     home.mkdir(parents=True, exist_ok=True)
-    for name in ("ktrs", "ktfmt", "ktrs.exe", "ktfmt.exe"):
+    for name in ("ktrs", "ktfmt", "ktlint", "ktrs.exe", "ktfmt.exe", "ktlint.exe"):
         if name in members:
             # Write then rename: a concurrent hook run never sees a partial binary.
             temp = home / f".{name}.{os.getpid()}"
@@ -75,3 +75,7 @@ def ktrs():
 
 def ktfmt():
     run("ktfmt")
+
+
+def ktlint():
+    run("ktlint")

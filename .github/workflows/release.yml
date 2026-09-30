@@ -1,4 +1,4 @@
-# On a `v*` tag: build `ktrs` + `ktfmt` for six targets and publish them as a GitHub release,
+# On a `v*` tag: build `ktrs` + `ktfmt` + `ktlint` for six targets and publish them as a GitHub release,
 # one archive per target plus SHA256SUMS; then the JVM jar and the Homebrew formula.
 name: release
 
@@ -55,7 +55,8 @@ jobs:
           name="ktrs-${GITHUB_REF_NAME}-${{ matrix.target }}"
           mkdir "$name"
           ext=""; [[ "${{ matrix.target }}" == *windows* ]] && ext=".exe"
-          cp "target/${{ matrix.target }}/dist/ktrs$ext" "target/${{ matrix.target }}/dist/ktfmt$ext" "$name/"
+          cp "target/${{ matrix.target }}/dist/ktrs$ext" "target/${{ matrix.target }}/dist/ktfmt$ext" \
+            "target/${{ matrix.target }}/dist/ktlint$ext" "$name/"
           cp README.md LICENSE-MIT LICENSE-APACHE NOTICE "$name/"
           if [[ -n "$ext" ]]; then 7z a -bd "$name.zip" "$name" > /dev/null; else tar czf "$name.tar.gz" "$name"; fi
       - uses: actions/upload-artifact@v4

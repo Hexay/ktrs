@@ -1,0 +1,10 @@
+Usage: ktlint generateEditorConfig [<options>]
+
+  Generate kotlin style section for '.editorconfig' file. Output should be
+  copied manually to the '.editorconfig' file.
+
+Options:
+  --code-style=(android_studio|intellij_idea|ktlint_official)
+              The code style affects the generated settings and their default
+              values.
+  -h, --help  Show this message and exit

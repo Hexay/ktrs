@@ -16,7 +16,8 @@ Milestone 1: the parser's tree must be identical to the Kotlin compiler's PSI (`
 - `crates/ktrs-fmt` — ktfmt port. Throughput: `cargo run -p ktrs-fmt --release --example bench [dir] [reps] [filter]
   [threads]`; compare runs by its "format = N parses" line (stable under machine load), not MB/s.
 - `crates/ktrs-cli` — `ktrs fmt` and the `ktfmt` drop-in (1:1 port of ktfmt's `cli/`: flags, messages, exit
-  codes). The root package `ktrs` owns the two binaries (so `cargo install --path .` and pre-commit work);
+  codes); `ktrs lint` and the `ktlint` drop-in (`src/ktlint/`, 1:1 port of ktlint-cli + reporters; deviations in
+  its `mod.rs`). The root package `ktrs` owns the binaries (so `cargo install --path .` and pre-commit work);
   releases build `--profile dist` (`.github/workflows/release.yml`).
   Adoption gaps and integrations: research/08-drop-in-replacement.md. `ktrs serve` is the build-tool
   server (protocol in `crates/ktrs-cli/src/serve.rs`).
@@ -64,8 +65,10 @@ Milestone 1: the parser's tree must be identical to the Kotlin compiler's PSI (`
   rows of the ported rules; format too with a `--rules <ported>` oracle (`--oracle DIR`); `--counts` = per-rule
   totals. Oracle (JVM, testbox, background): `KTLINT_CODE_STYLE=<style> tools/ktlint-oracle/ktlint-probe.sh corpus
   target/ktlint-oracle/<style>`. Pass-by-pass tree diff: `tools/ktlint-tests/oracle-diff.sh` (`cargo ktlint-probe`).
-- `cargo test -p ktrs-cli` — ktfmt's CLI tests, ported. `tools/ktfmt-oracle/cli-diff.sh` (JVM, ~2 min) — the
+- `cargo test -p ktrs-cli` — ktfmt's and ktlint's CLI and reporter tests, ported. `tools/ktfmt-oracle/cli-diff.sh` (JVM, ~2 min) — the
   `ktfmt` binary vs the ktfmt jar on stdout/stderr/exit code/files (`ONLY=<regex>`, `KEEP=1`).
+  `tools/ktlint-oracle/cli-diff.sh [ktlint-binary]` (JVM, testbox, background) — same for `ktlint` vs the ktlint jar;
+  unported rules are disabled on both sides; `KNOWN` scenarios differ only by unported rules.
 
 ## Rules
 
