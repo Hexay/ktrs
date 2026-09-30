@@ -1,0 +1,12 @@
+[package]
+name = "ktrs-editorconfig"
+description = "Port of ec4j-core 1.2.0 (the EditorConfig library ktlint and ktfmt use): parser, globs, property types, lookup"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+regex = "1.11"

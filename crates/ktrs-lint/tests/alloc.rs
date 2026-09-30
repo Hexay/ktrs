@@ -6,8 +6,9 @@ use std::cell::Cell;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use ktrs_ast::{Ast, NodeId};
-use ktrs_lint::engine::execute_rules;
-use ktrs_lint::rules::STANDARD_RULE_PROVIDERS;
+use ktrs_lint::editorconfig::{INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, PropertyRef};
+use ktrs_lint::engine::{FORMATTER_TAGS_ENABLED_PROPERTY, SuppressionLocator, execute_rules};
+use ktrs_lint::rules::standard_rule_providers;
 use ktrs_lint::{AstNodeExtension, AutocorrectDecision, EditorConfig, RuleV2};
 use ktrs_parser::{FileKind, parse_file};
 
@@ -97,14 +98,22 @@ fn navigation_and_traversal_do_not_allocate_per_node() {
     });
     assert_eq!(navigation, 0, "navigation allocated (checksum {sink})");
 
-    let mut rules: Vec<Box<dyn RuleV2>> = STANDARD_RULE_PROVIDERS.iter().map(|(_, provider)| provider()).collect();
-    let config = EditorConfig::default();
+    let rules: Vec<Box<dyn RuleV2>> = standard_rule_providers().iter().map(|p| p.create_new_rule_instance()).collect();
+    let config = EditorConfig::default().filter_by(&[
+        PropertyRef::from(&*FORMATTER_TAGS_ENABLED_PROPERTY),
+        PropertyRef::from(&*INDENT_SIZE_PROPERTY),
+        PropertyRef::from(&*INDENT_STYLE_PROPERTY),
+    ]);
+    let mut suppression_locator = SuppressionLocator::new(&config);
+    // The suppression hints are built once per text, not per node.
+    suppression_locator.suppress(&ast, ast.root(), 0, &*rules[0]);
     let mut emits = 0;
     let traversal = allocations_during(|| {
-        execute_rules(&mut ast, &mut rules, &config, &mut |_, _, _, _| {
+        execute_rules(&mut ast, rules, &config, &mut suppression_locator, &mut |_, _, _, _| {
             emits += 1;
             AutocorrectDecision::NoAutocorrect
         })
+        .unwrap()
     });
     assert_eq!(emits, 0, "the input is meant to be clean");
     println!("{} nodes: navigation {navigation} allocations, 3-rule traversal {traversal}", nodes.len());

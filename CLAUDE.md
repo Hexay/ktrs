@@ -26,7 +26,8 @@ Milestone 1: the parser's tree must be identical to the Kotlin compiler's PSI (`
   Tests: `cargo build --bins`, then `java/gradlew -p java test` (JAVA_HOME = tools/jdk/*).
 - `crates/ktrs-ast` — mutable arena AST with IntelliJ `TreeElement` semantics, seeded from `Tree` (for ktlint);
   conventions in `src/lib.rs`. `crates/ktrs-lint` — ktlint 2.0.0-ALPHA-4 engine + ported rules; status
-  research/15-ktlint-spike.md. Upstream rule tests: `tools/ktlint-tests/extract-rule-tests.py` -> `testdata/ktlint/`.
+  research/15-ktlint-spike.md. `crates/ktrs-editorconfig` — ec4j 1.2.0 port (ktlint's `.editorconfig` semantics;
+  ktfmt still uses ec4rs). Upstream rule tests: `tools/ktlint-tests/extract-rule-tests.py` -> `testdata/ktlint/`.
 - `tools/psi-accessors/psi-accessors.sh` — JVM oracle for ktrs-psi (`one|hashes|dump <dir> [--fixture] [--script]`);
   Rust mirror: `cargo run -p ktrs-psi --release --example psi_accessors -- one|hashes|compare|dump ...`.
 - `xtask` — `cargo xtask codegen` regenerates `ktrs-syntax/src/generated/kinds.rs` from `kinds.tsv`.

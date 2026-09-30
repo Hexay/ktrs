@@ -8,16 +8,15 @@ use std::path::Path;
 
 type Table = BTreeMap<String, Vec<String>>;
 
-/// The engine's internal rule (always loaded, not ported): rows from it alone get their own label.
-const SUPPRESSION_RULE: &str = "internal:ktlint-suppression";
-
 /// Rows of a `file\t...` table grouped by file, the file column stripped; `keep` picks the columns kept.
 fn table(path: &Path, header: bool, keep: impl Fn(&[&str]) -> String) -> Table {
     let mut rows = Table::new();
     let text = fs::read_to_string(path).unwrap_or_default();
     for line in text.lines().skip(usize::from(header)) {
         let cols: Vec<&str> = line.split('\t').collect();
-        rows.entry(cols[0].to_owned()).or_default().push(keep(&cols[1..]));
+        rows.entry(cols[0].to_owned())
+            .or_default()
+            .push(keep(&cols[1..]));
     }
     rows
 }
@@ -26,25 +25,36 @@ fn tables(out: &Path) -> [Table; 4] {
     [
         table(&out.join("format.tsv"), true, |c| c.join("\t")),
         table(&out.join("lint.tsv"), true, |c| c.join("\t")),
-        table(&out.join("passes.tsv"), true, |c| format!("{}\t{}", c[0], c[1])),
+        table(&out.join("passes.tsv"), true, |c| {
+            format!("{}\t{}", c[0], c[1])
+        }),
         table(&out.join("failed.tsv"), false, |c| c[0].to_owned()),
     ]
 }
 
 fn read(path: &Path) -> Option<String> {
-    fs::read(path).ok().map(|b| String::from_utf8_lossy(&b).into_owned())
+    fs::read(path)
+        .ok()
+        .map(|b| String::from_utf8_lossy(&b).into_owned())
 }
 
 fn without_header(dump: Option<String>) -> Option<String> {
-    dump.map(|d| d.split_once('\n').map_or(String::new(), |(_, rest)| rest.to_owned()))
+    dump.map(|d| {
+        d.split_once('\n')
+            .map_or(String::new(), |(_, rest)| rest.to_owned())
+    })
 }
 
 /// `src` holds the sources by relative path (the oracle's staged `<jvm>/src` when the out-dir kept it).
 pub fn compare(jvm: &Path, rust: &Path, src: &Path) -> i32 {
     let [jvm_format, jvm_lint, jvm_passes, jvm_failed] = tables(jvm);
     let [rust_format, rust_lint, rust_passes, rust_failed] = tables(rust);
-    let files: BTreeSet<&String> =
-        jvm_format.keys().chain(rust_format.keys()).chain(jvm_failed.keys()).chain(rust_failed.keys()).collect();
+    let files: BTreeSet<&String> = jvm_format
+        .keys()
+        .chain(rust_format.keys())
+        .chain(jvm_failed.keys())
+        .chain(rust_failed.keys())
+        .collect();
     let mut mismatches = String::from("file\twhat\tsuspect\n");
     let mut bad = 0;
     for &file in &files {
@@ -56,9 +66,7 @@ pub fn compare(jvm: &Path, rust: &Path, src: &Path) -> i32 {
             ("failed", &jvm_failed, &rust_failed),
         ] {
             if a.get(file) != b.get(file) {
-                let ported = |t: &Table| t.get(file).map(|rows| rows.iter().filter(|r| !r.contains(SUPPRESSION_RULE)).cloned().collect::<Vec<_>>());
-                let only_unported = name == "format" && ported(a).unwrap_or_default() == ported(b).unwrap_or_default();
-                what.push(if only_unported { format!("{name}:{SUPPRESSION_RULE}-only") } else { name.to_owned() });
+                what.push(name.to_owned());
             }
         }
         if read(&jvm.join("fmt").join(file)) != read(&rust.join("fmt").join(file)) {
@@ -72,24 +80,24 @@ pub fn compare(jvm: &Path, rust: &Path, src: &Path) -> i32 {
         }
         if !what.is_empty() {
             bad += 1;
-            mismatches.push_str(&format!("{file}\t{}\t{}\n", what.join(","), suspect(&src.join(file))));
+            let staged = if read(&src.join(file)).is_some() {
+                ""
+            } else {
+                "no staged source"
+            };
+            mismatches.push_str(&format!("{file}\t{}\t{staged}\n", what.join(",")));
         }
     }
     fs::write(rust.join("mismatches.tsv"), &mismatches).unwrap();
-    println!("{} files with a violation or failure on either side; {} identical, {bad} differ", files.len(), files.len() - bad);
+    println!(
+        "{} files with a violation or failure on either side; {} identical, {bad} differ",
+        files.len(),
+        files.len() - bad
+    );
     for line in mismatches.lines().skip(1).take(20) {
         println!("  {line}");
     }
     i32::from(bad != 0)
-}
-
-/// A mismatch in a file the port knowingly handles differently (see research/15-ktlint-spike.md, "Missing").
-fn suspect(source: &Path) -> &'static str {
-    match read(source) {
-        Some(text) if text.contains("ktlint") => "ktlint-directive (suppression TODO)",
-        Some(_) => "",
-        None => "no staged source",
-    }
 }
 
 /// `hunk(a, b, max)` of tools/ktlint-oracle/src/Probe.kt: one hunk from the first to the last differing line.
@@ -104,7 +112,13 @@ pub fn hunk(a: &str, b: &str, max: usize) -> String {
     while s < x.len() - p && s < y.len() - p && x[x.len() - 1 - s] == y[y.len() - 1 - s] {
         s += 1;
     }
-    let mut out = format!("@@ -{},{} +{},{} @@ (- mutated, + reparse)\n", p + 1, x.len() - p - s, p + 1, y.len() - p - s);
+    let mut out = format!(
+        "@@ -{},{} +{},{} @@ (- mutated, + reparse)\n",
+        p + 1,
+        x.len() - p - s,
+        p + 1,
+        y.len() - p - s
+    );
     for line in &x[p.saturating_sub(4)..p] {
         out.push_str(&format!(" {line}\n"));
     }
