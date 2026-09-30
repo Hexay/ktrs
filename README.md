@@ -117,6 +117,36 @@ processes, so a build starts the binary once, not once per file.
 Without the jar, Spotless's generic step runs the binary once per file:
 `nativeCmd("ktfmt", "/path/to/ktfmt", listOf("--kotlinlang-style", "-"))`.
 
+### Gradle plugin (drop-in for ktfmt-gradle)
+
+`io.github.hexay.ktrs` replaces [cortinico's ktfmt-gradle](https://github.com/cortinico/ktfmt-gradle)
+0.27.0. Swap the plugin id and keep the rest of the build as it is (the `ktfmt { }` block, the
+`ktfmtCheck`/`ktfmtFormat*` tasks, `--include-only`, and `com.ncorti.ktfmt.gradle.*` imports):
+
+```kotlin
+plugins {
+    // id("com.ncorti.ktfmt.gradle") version "0.27.0"
+    id("io.github.hexay.ktrs") version "0.2.0"
+}
+```
+
+Until it is on the Gradle Plugin Portal, add this repository in `settings.gradle.kts`:
+
+```kotlin
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        maven("https://hexay.github.io/ktrs/maven")
+    }
+}
+```
+
+(From the Portal, its `io.github.hexay:ktrs` dependency comes from Maven Central.) Formatting runs in
+long-lived `ktrs` processes shared by the whole build. `useClassloaderIsolation`,
+`processIsolationJvmArgs` and `ktfmtClasspath` are accepted and ignored, and
+`debuggingPrintOpsAfterFormatting` only logs a warning. To use another binary than the bundled one,
+set the Gradle property `ktrs.executable` to its path.
+
 ## Performance
 
 The `ktfmt` binary against the ktfmt 0.64 jar, both run from the command line the way users run them
