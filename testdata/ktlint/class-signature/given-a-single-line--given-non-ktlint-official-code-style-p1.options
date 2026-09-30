@@ -1,0 +1,5 @@
+rules=standard:class-signature,standard:max-line-length
+ec.ktlint_code_style=android_studio
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ClassSignatureRuleTest.Given a single line class signature and max-line-length is not set.Given non-ktlint_official code style[1]

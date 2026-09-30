@@ -1,0 +1,4 @@
+rules=standard:annotation
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=AnnotationRuleTest.Array syntax annotations, Issue #1765.annotation followed by array syntax annotation[1765]

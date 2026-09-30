@@ -1,0 +1,4 @@
+rules=standard:modifier-order
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ModifierOrderRuleTest.Issue 3027 - Given context receiver list in incorrect order

@@ -1,0 +1,1 @@
+fun List<String ?>.foo() = "some-result"

@@ -1,0 +1,4 @@
+rules=standard:class-naming
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ClassNamingRuleTest.Given an object declaration.Given a valid object name then do not emit

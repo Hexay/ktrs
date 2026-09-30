@@ -1,0 +1,4 @@
+rules=standard:blank-line-before-declaration,standard:no-consecutive-blank-lines
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=BlankLineBeforeDeclarationRuleTest.Issue 2260 - Given an anonymous function as right hand side in an assignment

@@ -1,0 +1,4 @@
+val foo =
+    bar {
+        { Foobar() }
+    }

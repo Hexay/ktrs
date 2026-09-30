@@ -1,0 +1,1 @@
+fun <T> Array<T>.getFoo(): T = this[this.count { it == "foo" }]

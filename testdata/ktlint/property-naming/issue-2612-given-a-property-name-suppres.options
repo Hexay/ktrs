@@ -1,0 +1,4 @@
+rules=standard:property-naming
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=PropertyNamingRuleTest.Issue 2612 - Given a property name suppressed via 'PrivatePropertyName' then also suppress the ktlint violation

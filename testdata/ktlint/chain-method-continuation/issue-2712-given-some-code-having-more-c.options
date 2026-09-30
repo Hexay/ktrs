@@ -1,0 +1,5 @@
+rules=standard:chain-method-continuation,standard:max-line-length
+ec.ktlint_chain_method_rule_force_multiline_when_chain_operator_count_greater_or_equal_than=unset
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ChainMethodContinuationRuleTest.Issue 2712 - Given some code having more chain operators than the default, but with ktlint_chain_method_rule_force_multiline_when_chain_operator_count_greater_or_equal_than unset

@@ -1,0 +1,4 @@
+rules=standard:enum-entry-name-case
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=EnumEntryNameCaseRuleTest.Issue 2835 - Given enum entries in both upper cases and camel cases.Given that 'ktlint_enum_entry_name_casing' is not set, then allow both upper cases and camel cases

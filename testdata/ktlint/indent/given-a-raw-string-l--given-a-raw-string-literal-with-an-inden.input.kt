@@ -1,0 +1,4 @@
+val foo =
+    """
+        true
+    """.trimIndent()

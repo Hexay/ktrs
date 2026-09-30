@@ -1,0 +1,4 @@
+rules=standard:try-catch-finally-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=TryCatchFinallySpacingRuleTest.Issue 2427 - Given a try-catch with a comment at an unexpected location

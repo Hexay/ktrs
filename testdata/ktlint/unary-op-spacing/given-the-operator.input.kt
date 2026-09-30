@@ -1,0 +1,14 @@
+val foo1 = -1
+val foo2 = - 1
+val foo3 = -
+    1
+val foo4 = -1 in -100..-1
+val foo5 = - 1 in -100..-1
+val foo6 = -1 in - 100..-1
+val foo7 = -1 in -100..- 1
+val foo8 = -
+    1 in -100..-1
+val foo9 = -1 in -
+    100..-1
+val foo10 = -1 in -100..-
+    1

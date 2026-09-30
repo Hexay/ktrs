@@ -1,0 +1,7 @@
+rules=standard:function-signature,standard:max-line-length
+ec.max_line_length=45
+ec.ktlint_function_signature_rule_force_multiline_when_parameter_count_greater_or_equal_than=unset
+ec.ktlint_function_signature_body_expression_wrapping=default
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=FunctionSignatureRuleTest.BodyExpressionOnSameLine.Given that the function signature and a single line body expression body fit on the same line then do not reformat function signature or body expression[1]

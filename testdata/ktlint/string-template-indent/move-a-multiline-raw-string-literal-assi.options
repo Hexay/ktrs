@@ -1,0 +1,4 @@
+rules=standard:string-template-indent
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=StringTemplateIndentRuleTest.Move a multiline raw string literal assignment to a variable to a new line

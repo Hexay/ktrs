@@ -2,22 +2,24 @@
 //! lints (and, when the oracle ran exactly the ported rules, formats) every corpus file with ktrs-lint and diffs
 //! against the real ktlint engine, pre-built on the JVM by (background, testbox):
 //!   KTLINT_CODE_STYLE=<style> tools/ktlint-oracle/ktlint-probe.sh corpus target/ktlint-oracle/<style> [--rules <ported>]
-//! Lint rows are compared per file as a multiset over the ported rules plus the engine's suppression rule (lint is
-//! per-rule independent, so an all-rules oracle filters down); format rows (emit order) and formatted bytes need an
-//! oracle restricted to the ported rules. Mismatches go to target/lint-diff-<style>.txt; `--counts` prints the
-//! oracle's per-rule violation counts instead.
+//! Lint rows are compared per file as a multiset over the ported rules (lint is per-rule independent, so an
+//! all-rules oracle filters down). An oracle run with exactly the ported rules (`--rules`) also compares the
+//! engine's suppression rule, format rows (emit order) and formatted bytes. Both sides run on a staged LF copy under
+//! one root `.editorconfig` (target/lint-diff/<style>). Mismatches go to target/lint-diff-<style>.txt; `--counts`
+//! prints the oracle's per-rule violation counts instead.
 
-use std::collections::{BTreeMap, HashMap, HashSet};
+use std::collections::{HashMap, HashSet};
 use std::panic::{self, AssertUnwindSafe};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::{fs, thread};
 
-use ktrs_lint::rules::STANDARD_RULE_PROVIDERS;
+use ktrs_lint::rules::standard_rule_providers;
 use ktrs_lint::{AutocorrectDecision, Code, KtLintRuleEngine, LintError};
 
 use crate::corpus_diff::collect;
 use crate::lint_oracle::{self, Oracle, Row, SUPPRESSION_RULE, rule_of};
+use crate::lint_report::{FileResult, report};
 
 const STYLES: [&str; 3] = ["ktlint_official", "intellij_idea", "android_studio"];
 
@@ -26,19 +28,6 @@ struct Args {
     oracle: PathBuf,
     corpus: PathBuf,
     counts: bool,
-}
-
-#[derive(Default)]
-struct FileResult {
-    rel: String,
-    missing: Vec<Row>,
-    extra: Vec<Row>,
-    /// Every mismatched row is on a KDoc line: likely the oracle jar's Kotlin 2.4.10 KDoc lexer, not a rule.
-    kdoc_only: bool,
-    format_diff: Option<String>,
-    rejected_mismatch: Option<String>,
-    both_rejected: bool,
-    panic: Option<String>,
 }
 
 fn parse_args(root: &Path, args: &[String]) -> Result<Args, String> {
@@ -58,17 +47,33 @@ fn parse_args(root: &Path, args: &[String]) -> Result<Args, String> {
     Ok(parsed)
 }
 
-// TODO: set the code style through ktrs-lint's editorconfig API once it has one; ktlint_official is its hard-wired default.
-fn engine_for(style: &str) -> Result<KtLintRuleEngine, String> {
-    if style != "ktlint_official" {
-        return Err(format!("ktrs-lint can't run code style {style} yet"));
-    }
-    Ok(KtLintRuleEngine { rule_providers: STANDARD_RULE_PROVIDERS.iter().map(|(_, p)| *p).collect() })
+/// Copies the corpus sources to `<staged>/` under one root `.editorconfig`, as ktlint-probe.sh stages them for the
+/// oracle, so the corpus repos' own `.editorconfig` files apply to neither side. Returns the staged root and files.
+fn stage(corpus: &Path, files: &[PathBuf], staged: &Path, style: &str) -> Result<(PathBuf, Vec<PathBuf>), String> {
+    let _ = fs::remove_dir_all(staged);
+    let io = |e: std::io::Error| format!("{}: {e}", staged.display());
+    fs::create_dir_all(staged).map_err(io)?;
+    let staged = fs::canonicalize(staged).map_err(io)?;
+    fs::write(staged.join(".editorconfig"), format!("root = true\n\n[*.{{kt,kts}}]\nktlint_code_style = {style}\n")).map_err(io)?;
+    let files = files
+        .iter()
+        .map(|file| {
+            let target = staged.join(file.strip_prefix(corpus).unwrap());
+            fs::create_dir_all(target.parent().unwrap()).map_err(io)?;
+            // The oracle ran on a Linux (LF) checkout; a Windows one may have CRLF, which ktlint would keep.
+            let text = fs::read(file).map_err(io)?;
+            let text = String::from_utf8_lossy(&text).replace("\r\n", "\n");
+            fs::write(&target, text).map_err(io)?;
+            Ok(target)
+        })
+        .collect::<Result<Vec<_>, String>>()?;
+    Ok((staged, files))
 }
 
 pub(crate) fn run(root: &Path, args: &[String]) -> Result<(), String> {
     let args = parse_args(root, args)?;
-    let ported: HashSet<&str> = STANDARD_RULE_PROVIDERS.iter().map(|(id, _)| *id).collect();
+    let providers = standard_rule_providers();
+    let ported: HashSet<&str> = providers.iter().map(|p| p.rule_id().value()).collect();
     let oracle = lint_oracle::load(&args.oracle).map_err(|e| {
         format!(
             "no oracle ({e}); build it first (JVM, slow; see research/17-ktlint-corpus-counts.md):\n  \
@@ -81,12 +86,13 @@ pub(crate) fn run(root: &Path, args: &[String]) -> Result<(), String> {
         lint_oracle::print_counts(&oracle, &ported);
         return Ok(());
     }
-    let engine = engine_for(&args.style)?;
-    let compare_format = oracle.rules.as_ref().is_some_and(|r| r.iter().map(String::as_str).collect::<HashSet<_>>() == ported);
+    let same_rules = oracle.rules.as_ref().is_some_and(|r| r.iter().map(String::as_str).collect::<HashSet<_>>() == ported);
     let corpus = fs::canonicalize(&args.corpus).map_err(|e| format!("{}: {e}", args.corpus.display()))?;
-    let mut files = Vec::new();
-    collect(&corpus, &mut files);
-    files.sort();
+    let mut sources = Vec::new();
+    collect(&corpus, &mut sources);
+    sources.sort();
+    let (corpus, files) = stage(&corpus, &sources, &root.join("target/lint-diff").join(&args.style), &args.style)?;
+    let engine = KtLintRuleEngine::new(providers.clone());
 
     let next = AtomicUsize::new(0);
     let previous_hook = panic::take_hook();
@@ -102,7 +108,7 @@ pub(crate) fn run(root: &Path, args: &[String]) -> Result<(), String> {
                         while let Some(file) = files.get(next.fetch_add(1, Ordering::Relaxed)) {
                             let rel = file.strip_prefix(&corpus).unwrap().to_string_lossy().replace('\\', "/");
                             if !oracle.crashed.contains(&rel) {
-                                out.push(check(&engine, &oracle, &ported, compare_format, file, rel));
+                                out.push(check(&engine, &oracle, &ported, same_rules, file, rel));
                             }
                         }
                         out
@@ -114,94 +120,7 @@ pub(crate) fn run(root: &Path, args: &[String]) -> Result<(), String> {
     });
     panic::set_hook(previous_hook);
     results.sort_by(|a, b| a.rel.cmp(&b.rel));
-    report(root, &args.style, &results, &oracle, &ported, compare_format, files.len())
-}
-
-fn report(
-    root: &Path,
-    style: &str,
-    results: &[FileResult],
-    oracle: &Oracle,
-    ported: &HashSet<&str>,
-    compare_format: bool,
-    total: usize,
-) -> Result<(), String> {
-    let mut per_rule: BTreeMap<&str, [usize; 2]> = ported.iter().map(|r| (*r, [0, 0])).collect();
-    per_rule.insert(SUPPRESSION_RULE, [0, 0]);
-    let (mut lint_same, mut lint_differ, mut kdoc, mut fmt_same, mut fmt_differ) = (0, 0, 0, 0, 0);
-    let (mut panics, mut mismatched, mut both_rejected) = (0, 0, 0);
-    let mut text = String::new();
-    for r in results {
-        if let Some(message) = &r.panic {
-            panics += 1;
-            text.push_str(&format!("{}\n  panic: {message}\n\n", r.rel));
-            continue;
-        }
-        if let Some(what) = &r.rejected_mismatch {
-            mismatched += 1;
-            text.push_str(&format!("{}\n  {what}\n\n", r.rel));
-            continue;
-        }
-        if r.both_rejected {
-            both_rejected += 1;
-            continue;
-        }
-        let lint_ok = r.missing.is_empty() && r.extra.is_empty();
-        match (lint_ok, r.kdoc_only) {
-            (true, _) => lint_same += 1,
-            (false, true) => kdoc += 1,
-            (false, false) => lint_differ += 1,
-        }
-        for (i, rows) in [&r.missing, &r.extra].into_iter().enumerate() {
-            rows.iter().for_each(|row| per_rule.entry(rule_of(row)).or_default()[i] += 1);
-        }
-        if compare_format {
-            if r.format_diff.is_some() { fmt_differ += 1 } else { fmt_same += 1 }
-        }
-        if lint_ok && r.format_diff.is_none() {
-            continue;
-        }
-        text.push_str(&format!("{}{}\n", r.rel, if r.kdoc_only { "  (kdoc lines only: 2.4.10 KDoc lexer?)" } else { "" }));
-        r.missing.iter().for_each(|row| text.push_str(&format!("  - {row}\n")));
-        r.extra.iter().for_each(|row| text.push_str(&format!("  + {row}\n")));
-        if let Some(diff) = &r.format_diff {
-            text.push_str(&format!("  {diff}\n"));
-        }
-        text.push('\n');
-    }
-    let report_path = root.join(format!("target/lint-diff-{style}.txt"));
-    fs::write(&report_path, &text).map_err(|e| e.to_string())?;
-
-    let oracle_rows: HashMap<&str, usize> = oracle.lint.values().flatten().fold(HashMap::new(), |mut m, row| {
-        *m.entry(rule_of(row)).or_default() += 1;
-        m
-    });
-    println!(
-        "{style}: lint identical {lint_same}/{total}  differ {lint_differ}  kdoc-pin-suspect {kdoc}  panic {panics}  \
-         rejected-mismatch {mismatched}  both-rejected {both_rejected}/{}  oracle-crash {}",
-        oracle.parse_failed.len(),
-        oracle.crashed.len(),
-    );
-    if compare_format {
-        println!("format: identical {fmt_same}  differ {fmt_differ}");
-    } else {
-        let mut rules: Vec<&str> = ported.iter().copied().collect();
-        rules.sort();
-        println!(
-            "format: not compared (the oracle's rule set is not the ported one); for it build\n  \
-             KTLINT_CODE_STYLE={style} tools/ktlint-oracle/ktlint-probe.sh corpus target/ktlint-oracle/{style}-ported --rules {}\n  \
-             and pass --oracle target/ktlint-oracle/{style}-ported",
-            rules.join(",")
-        );
-    }
-    println!("rule\toracle rows\tmissing\textra");
-    for (rule, [missing, extra]) in &per_rule {
-        println!("{rule}\t{}\t{missing}\t{extra}", oracle_rows.get(rule).unwrap_or(&0));
-    }
-    if !text.is_empty() {
-        println!("differences: {}", report_path.display());
-    }
-    Ok(())
+    report(root, &args.style, &results, &oracle, &ported, same_rules, files.len())
 }
 
 fn row(e: &LintError) -> Row {
@@ -210,15 +129,14 @@ fn row(e: &LintError) -> Row {
     format!("{}\t{}\t{}\t{auto}\t{detail}", e.line, e.col, e.rule_id.value())
 }
 
-fn check(engine: &KtLintRuleEngine, oracle: &Oracle, ported: &HashSet<&str>, compare_format: bool, file: &Path, rel: String) -> FileResult {
+fn check(engine: &KtLintRuleEngine, oracle: &Oracle, ported: &HashSet<&str>, same_rules: bool, file: &Path, rel: String) -> FileResult {
     let mut result = FileResult { rel, ..FileResult::default() };
-    // The oracle ran on a Linux (LF) checkout; a Windows one may have CRLF, which ktlint would keep.
-    let Ok(content) = fs::read_to_string(file).map(|t| t.replace("\r\n", "\n")) else { return result };
-    let code = Code::from_file(&file.to_string_lossy(), content.clone());
+    let Ok(content) = fs::read_to_string(file) else { return result };
+    let code = Code::from_file_content(file, content.clone());
     let run = panic::catch_unwind(AssertUnwindSafe(|| {
         let mut lint = Vec::new();
         let linted = engine.lint(&code, &mut |e| lint.push(row(e)));
-        let formatted = compare_format.then(|| {
+        let formatted = same_rules.then(|| {
             let mut rows = Vec::new();
             let text = engine.format(&code, &mut |e| {
                 rows.push(row(e));
@@ -252,9 +170,10 @@ fn check(engine: &KtLintRuleEngine, oracle: &Oracle, ported: &HashSet<&str>, com
         }
         (Ok(rows), false) => rows,
     };
-    let compared = |r: &&Row| ported.contains(rule_of(r)) || rule_of(r) == SUPPRESSION_RULE;
+    // Suppression rows depend on the loaded rule set ("unknown or not loaded rule"): comparable only on the same set.
+    let compared = |r: &&Row| ported.contains(rule_of(r)) || (same_rules && rule_of(r) == SUPPRESSION_RULE);
     let theirs: Vec<&Row> = oracle.lint.get(&result.rel).map(|rows| rows.iter().filter(compared).collect()).unwrap_or_default();
-    (result.missing, result.extra) = multiset_diff(&theirs, &ours.iter().collect::<Vec<_>>());
+    (result.missing, result.extra) = multiset_diff(&theirs, &ours.iter().filter(compared).collect::<Vec<_>>());
     if !result.missing.is_empty() || !result.extra.is_empty() {
         let kdoc = kdoc_lines(&content);
         let line_of = |r: &Row| r.split('\t').next().and_then(|l| l.parse::<usize>().ok()).unwrap_or(0);

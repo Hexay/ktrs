@@ -1,0 +1,6 @@
+rules=standard:class-signature,standard:max-line-length
+ec.ktlint_code_style=intellij_idea
+ec.max_line_length=999
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ClassSignatureRuleTest.Issue 2689 - Given a multiline class containing an EOL comment.Issue 2689 - Given intellij_idea code style

@@ -1,0 +1,4 @@
+rules=standard:expression-operand-wrapping,standard:indent
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ExpressionOperandWrappingRuleTest.Given a parenthesized logical expression for which all inner operands are on the same line.Given first operand is parenthesized

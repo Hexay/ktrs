@@ -1,0 +1,5 @@
+rules=standard:binary-expression-wrapping,standard:max-line-length
+ec.max_line_length=58
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=BinaryExpressionWrappingRuleTest.Issue 2450 - Given a binary expression including an EOL-comment that causes the max line length to be exceeded then ignore the EOL-comment

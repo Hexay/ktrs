@@ -1,0 +1,4 @@
+rules=standard:function-expression-body
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=FunctionExpressionBodyRuleTest.Given a function with a single expression but having multiple return expression inside then do not convert as it results in a compilation error

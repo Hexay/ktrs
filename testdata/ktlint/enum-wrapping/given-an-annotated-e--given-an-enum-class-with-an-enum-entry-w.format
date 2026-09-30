@@ -1,0 +1,2 @@
+1:18	standard:enum-wrapping	auto	Enum entry should start on a separate line
+1:1	standard:enum-wrapping	auto	Expected newline before '}'

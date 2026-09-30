@@ -1,0 +1,4 @@
+rules=standard:class-signature,standard:max-line-length
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ClassSignatureRuleTest.Issue 2630 - White space in super type call entry.Issue 2630 - Given a super type call entry without type argument list

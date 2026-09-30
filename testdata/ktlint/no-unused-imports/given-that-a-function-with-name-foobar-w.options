@@ -1,0 +1,5 @@
+rules=standard:no-unused-imports
+ec.ktlint_standard_no-unused-imports=enabled
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoUnusedImportsRuleTest.Given that a function with name 'fooBar' without backticks is called then do not remove imports ending with 'fooBar' or 'fooBar' between backticks as path element 

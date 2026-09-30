@@ -1,0 +1,5 @@
+rules=standard:function-literal,standard:max-line-length
+ec.max_line_length=36
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=FunctionLiteralRuleTest.Given a single line parameter list starting on the next line below the opening brace and arrow on separate line which can not be merged to a single line after opening brace

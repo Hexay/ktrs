@@ -1,0 +1,4 @@
+rules=standard:enum-wrapping
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=EnumWrappingRuleTest.Issue 2510 - Given an enum class with comment before the first entry

@@ -1,0 +1,4 @@
+rules=standard:indent
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=IndentationRuleTest.Issue 1639 - Context receivers.Issue 1639 - Given a context receiver on a function having at least one modifier

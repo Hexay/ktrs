@@ -1,0 +1,4 @@
+rules=standard:wrapping,standard:max-line-length
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=WrappingRuleTest.Issue 1867 - Given a multiline type parameter list then wrap each type parameter to a new line

@@ -1,0 +1,4 @@
+val foo = [
+    "bar1",
+    "bar2"
+]

@@ -1,0 +1,1 @@
+class A { private val shouldEjectBlock = block@{ (pathProgress ?: return@block false) >= 0.85 } }

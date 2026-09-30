@@ -1,0 +1,6 @@
+2:22	standard:multiline-loop	auto	Missing { ... }
+3:11	standard:indent	auto	Unexpected indentation (6) (should be 12)
+6:2	standard:multiline-loop	auto	Missing { ... }
+7:5	standard:indent	auto	Unexpected indentation (6) (should be 12)
+1:1	standard:multiline-loop	auto	Missing { ... }
+1:1	standard:indent	auto	Unexpected indentation (6) (should be 12)

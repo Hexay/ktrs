@@ -1,0 +1,4 @@
+rules=standard:indent
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=IndentationRuleTest.Issue1350 - Given a for-loop.Issue 1350 - Given a for-loop with a multiline expression then indent that expression normally

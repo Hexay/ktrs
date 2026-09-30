@@ -1,0 +1,13 @@
+3:18	standard:trailing-comma-on-call-site	auto	Unnecessary trailing comma before "]"
+6:12	standard:wrapping	auto	Missing newline after "("
+10:2	standard:wrapping	auto	Missing newline before ")"
+8:10	standard:trailing-comma-on-call-site	auto	Unnecessary trailing comma before "]"
+13:3	standard:wrapping	auto	Missing newline after "("
+16:7	standard:wrapping	auto	Missing newline before ")"
+14:15	standard:trailing-comma-on-call-site	auto	Unnecessary trailing comma before "]"
+7:5	standard:indent	auto	Unexpected indentation (4) (should be 8)
+8:9	standard:indent	auto	Unexpected indentation (4) (should be 8)
+10:9	standard:indent	auto	Unexpected indentation (0) (should be 4)
+14:15	standard:indent	auto	Unexpected indentation (4) (should be 8)
+14:26	standard:indent	auto	Unexpected indentation (4) (should be 8)
+1:1	standard:indent	auto	Unexpected indentation (0) (should be 4)

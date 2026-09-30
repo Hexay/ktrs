@@ -1,0 +1,4 @@
+class FooBar<
+    Foo,
+    Bar,
+>

@@ -1,0 +1,5 @@
+rules=standard:trailing-comma-on-declaration-site,standard:indent
+ec.ij_kotlin_allow_trailing_comma=false
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=TrailingCommaOnDeclarationSiteRuleTest.Given that the trailing comma is not allowed on declaration site then remove it from an type parameter list when present

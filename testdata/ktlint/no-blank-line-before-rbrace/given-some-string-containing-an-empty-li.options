@@ -1,0 +1,4 @@
+rules=standard:no-blank-line-before-rbrace
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoBlankLineBeforeRbraceRuleTest.Given some string containing an empty line before a right brace then do not return a lint error

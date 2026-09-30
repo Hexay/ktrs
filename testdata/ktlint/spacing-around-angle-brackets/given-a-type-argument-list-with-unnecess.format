@@ -1,0 +1,15 @@
+1:12	standard:spacing-around-angle-brackets	auto	Unexpected spacing after "<"
+2:22	standard:spacing-around-angle-brackets	auto	Unexpected spacing before ">"
+3:9	standard:spacing-around-angle-brackets	auto	Unexpected spacing before "<"
+5:14	standard:indent	auto	Unexpected indentation (4) (should be 0)
+9:5	standard:indent	auto	Unexpected indentation (4) (should be 0)
+10:16	standard:spacing-around-angle-brackets	auto	Unexpected spacing before "<"
+16:16	standard:spacing-around-angle-brackets	auto	Unexpected spacing before ">"
+16:5	standard:spacing-around-angle-brackets	auto	Unexpected spacing before "<"
+16:6	standard:spacing-around-angle-brackets	auto	Unexpected spacing after "<"
+16:12	standard:spacing-around-angle-brackets	auto	Unexpected spacing before ">"
+19:6	standard:indent	auto	Unexpected indentation (8) (should be 4)
+20:2	standard:indent	auto	Unexpected indentation (4) (should be 0)
+11:2	standard:indent	auto	Unexpected indentation (8) (should be 4)
+11:11	standard:indent	auto	Unexpected indentation (8) (should be 4)
+13:5	standard:indent	auto	Unexpected indentation (4) (should be 0)

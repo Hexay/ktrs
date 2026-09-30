@@ -1,0 +1,4 @@
+rules=standard:unnecessary-parentheses-before-trailing-lambda
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=UnnecessaryParenthesesBeforeTrailingLambdaRuleTest.Issue 2884 - Given some a call expression ending with a lambda argument, followed by an empty argument list followed by another lambda argument then do not remove empty parameter list

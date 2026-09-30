@@ -1,0 +1,5 @@
+2:10	standard:parameter-list-wrapping	auto	Parameter should start on a newline
+2:18	standard:parameter-list-wrapping	auto	Parameter should start on a newline
+2:26	standard:parameter-list-wrapping	auto	Parameter should start on a newline
+2:32	standard:parameter-list-wrapping	auto	Missing newline before ")"
+2:34	standard:max-line-length	manual	Exceeded max line length (33)

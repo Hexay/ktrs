@@ -1,0 +1,5 @@
+rules=standard:no-empty-file
+path=/project/some/path/Tmp.kt
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoEmptyFileRuleTest.Given only package statement in kotlin file then do a return lint error

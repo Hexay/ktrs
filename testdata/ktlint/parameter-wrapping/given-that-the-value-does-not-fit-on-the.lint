@@ -1,0 +1,4 @@
+3:41	standard:parameter-wrapping	auto	Missing newline before "Foo()"
+3:47	standard:max-line-length	manual	Exceeded max line length (46)
+7:41	standard:parameter-wrapping	auto	Missing newline before "Foo()"
+7:47	standard:max-line-length	manual	Exceeded max line length (46)

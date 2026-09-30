@@ -1,0 +1,6 @@
+val foo = try {
+    "try"
+}
+finally {
+    "finally"
+}

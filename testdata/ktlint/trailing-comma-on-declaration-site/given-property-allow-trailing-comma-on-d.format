@@ -1,0 +1,8 @@
+1:29	standard:trailing-comma-on-declaration-site	auto	Unnecessary trailing comma before ")"
+3:15	standard:trailing-comma-on-declaration-site	auto	Unnecessary trailing comma before ">"
+6:7	standard:trailing-comma-on-declaration-site	auto	Unnecessary trailing comma before "->"
+13:11	standard:trailing-comma-on-declaration-site	auto	Unnecessary trailing comma before ")"
+14:10	standard:trailing-comma-on-declaration-site	auto	Unnecessary trailing comma before "]"
+17:15	standard:trailing-comma-on-declaration-site	auto	Unnecessary trailing comma before ")"
+19:14	standard:trailing-comma-on-declaration-site	auto	Unnecessary trailing comma before ")"
+19:35	standard:trailing-comma-on-declaration-site	auto	Unnecessary trailing comma before "->"

@@ -1,0 +1,4 @@
+4:7	standard:try-catch-finally-spacing	manual	No comment expected at this location
+5:5	standard:try-catch-finally-spacing	auto	A single space is required before 'catch'
+7:7	standard:try-catch-finally-spacing	manual	No comment expected at this location
+8:5	standard:try-catch-finally-spacing	auto	A single space is required before 'finally'

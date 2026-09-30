@@ -1,0 +1,1 @@
+class Bar <T> (val t: T)

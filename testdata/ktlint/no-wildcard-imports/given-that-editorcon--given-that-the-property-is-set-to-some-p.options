@@ -1,0 +1,5 @@
+rules=standard:no-wildcard-imports
+ec.ij_kotlin_packages_to_use_import_on_demand=react.**
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoWildcardImportsRuleTest.Given that editorconfig property ij_kotlin_packages_to_use_import_on_demand is set.Given that the property is set to some packages inclusive subpackages then wildcard imports for those directories are not detected

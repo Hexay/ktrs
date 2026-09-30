@@ -1,0 +1,6 @@
+2:9	standard:context-parameter-list-wrapping	auto	Newline expected before context parameter as max line length is violated
+2:33	standard:context-parameter-list-wrapping	auto	Newline expected before closing parenthesis as max line length is violated
+2:33	standard:max-line-length	manual	Exceeded max line length (32)
+6:13	standard:context-parameter-list-wrapping	auto	Newline expected before context parameter as max line length is violated
+6:33	standard:context-parameter-list-wrapping	auto	Newline expected before closing parenthesis as max line length is violated
+6:33	standard:max-line-length	manual	Exceeded max line length (32)

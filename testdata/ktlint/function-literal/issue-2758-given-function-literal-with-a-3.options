@@ -1,0 +1,4 @@
+rules=standard:function-literal,standard:max-line-length
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=FunctionLiteralRuleTest.Issue 2758 - Given function literal with an arrow without parameters arrow literal not as leaf of when then do remove the arrow

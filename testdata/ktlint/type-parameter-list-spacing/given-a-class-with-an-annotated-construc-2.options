@@ -1,0 +1,4 @@
+rules=standard:type-parameter-list-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=TypeParameterListSpacingRuleTest.Given a class with an annotated constructor on same line as parameter type list then do not report a violation

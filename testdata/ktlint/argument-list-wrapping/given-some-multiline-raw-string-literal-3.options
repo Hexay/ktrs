@@ -1,0 +1,5 @@
+rules=standard:argument-list-wrapping,standard:max-line-length
+ec.max_line_length=65
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ArgumentListWrappingRuleTest.Given some multiline raw string literal containing a string template and the the content of the string template exceeds the max line length then do wrap

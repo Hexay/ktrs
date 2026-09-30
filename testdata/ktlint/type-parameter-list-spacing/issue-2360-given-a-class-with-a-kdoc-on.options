@@ -1,0 +1,5 @@
+rules=standard:type-parameter-list-spacing
+ec.ktlint_code_style=android_studio
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=TypeParameterListSpacingRuleTest.Issue 2360 - Given a class with a KDoc on an explicit constructor starting on a separate line then do not report a violation

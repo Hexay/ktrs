@@ -1,0 +1,5 @@
+rules=standard:argument-list-wrapping,standard:max-line-length
+ec.max_line_length=30
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ArgumentListWrappingRuleTest.Given some argument lists that exceeds the max line length, but the max-line-length is suppressed then do not reformat the declaration on which it is suppressed

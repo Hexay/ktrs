@@ -1,0 +1,2 @@
+2:10	standard:statement-wrapping	auto	Missing newline after '{'
+3:23	standard:statement-wrapping	auto	Missing newline before '}'

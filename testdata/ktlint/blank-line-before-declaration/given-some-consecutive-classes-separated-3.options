@@ -1,0 +1,4 @@
+rules=standard:blank-line-before-declaration,standard:no-consecutive-blank-lines
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=BlankLineBeforeDeclarationRuleTest.Given some consecutive classes separated with EOL comments before the second class then insert a blank line before the EOL-comments

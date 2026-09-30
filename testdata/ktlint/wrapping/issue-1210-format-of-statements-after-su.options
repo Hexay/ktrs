@@ -1,0 +1,4 @@
+rules=standard:wrapping,standard:max-line-length
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=WrappingRuleTest.Issue 1210 - format of statements after supertype delegated entry 2

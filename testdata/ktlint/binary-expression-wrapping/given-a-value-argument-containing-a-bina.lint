@@ -1,0 +1,22 @@
+2:19	standard:argument-list-wrapping	auto	Argument should be on a separate line (unless all arguments can fit a single line)
+2:32	standard:argument-list-wrapping	auto	Missing newline before ")"
+2:32	standard:max-line-length	manual	Exceeded max line length (31)
+3:19	standard:argument-list-wrapping	auto	Argument should be on a separate line (unless all arguments can fit a single line)
+3:23	standard:argument-list-wrapping	auto	Argument should be on a separate line (unless all arguments can fit a single line)
+3:32	standard:argument-list-wrapping	auto	Missing newline before ")"
+3:32	standard:max-line-length	manual	Exceeded max line length (31)
+3:33	standard:argument-list-wrapping	auto	Missing newline before ")"
+4:19	standard:argument-list-wrapping	auto	Argument should be on a separate line (unless all arguments can fit a single line)
+4:23	standard:argument-list-wrapping	auto	Argument should be on a separate line (unless all arguments can fit a single line)
+4:23	standard:binary-expression-wrapping	auto	Line is exceeding max line length. Break line before expression
+4:30	standard:binary-expression-wrapping	auto	Line is exceeding max line length. Break line after '+' in binary expression
+4:32	standard:max-line-length	manual	Exceeded max line length (31)
+4:46	standard:argument-list-wrapping	auto	Missing newline before ")"
+4:47	standard:argument-list-wrapping	auto	Missing newline before ")"
+5:19	standard:argument-list-wrapping	auto	Argument should be on a separate line (unless all arguments can fit a single line)
+5:23	standard:argument-list-wrapping	auto	Argument should be on a separate line (unless all arguments can fit a single line)
+5:23	standard:binary-expression-wrapping	auto	Line is exceeding max line length. Break line before expression
+5:30	standard:binary-expression-wrapping	auto	Line is exceeding max line length. Break line after '+' in binary expression
+5:32	standard:max-line-length	manual	Exceeded max line length (31)
+5:47	standard:argument-list-wrapping	auto	Missing newline before ")"
+5:48	standard:argument-list-wrapping	auto	Missing newline before ")"

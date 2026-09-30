@@ -1,0 +1,4 @@
+rules=standard:curly-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=SpacingAroundCurlyRuleTest.Given an opening curly brace on the same line as the controlling statement.Given a do-while-statement with the opening curly brace on a new line

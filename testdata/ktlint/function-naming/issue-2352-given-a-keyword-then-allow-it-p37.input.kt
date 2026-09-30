@@ -1,0 +1,1 @@
+fun `import`() = "foo"

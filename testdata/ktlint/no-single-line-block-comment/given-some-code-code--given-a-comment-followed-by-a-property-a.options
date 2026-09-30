@@ -1,0 +1,4 @@
+rules=standard:no-single-line-block-comment
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoSingleLineBlockCommentRuleTest.Given some code code followed by a block comment on the same line.Given a comment followed by a property and separated with space

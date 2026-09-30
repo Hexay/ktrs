@@ -1,0 +1,4 @@
+2:1	standard:indent	auto	Unexpected indentation (2) (should be 4)
+3:3	standard:indent	auto	Unexpected indentation (3) (should be 5)
+4:5	standard:indent	auto	Unexpected indentation (3) (should be 5)
+5:7	standard:indent	auto	Unexpected indentation (2) (should be 4)

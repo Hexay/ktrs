@@ -1,0 +1,7 @@
+2:15	standard:if-else-wrapping	auto	Expected a newline
+2:29	standard:if-else-wrapping	auto	Expected a newline
+2:29	standard:indent	auto	Unexpected indentation (8) (should be 4)
+2:49	standard:if-else-wrapping	auto	Expected a newline
+1:1	standard:if-else-wrapping	auto	Expected a newline
+1:1	standard:if-else-wrapping	auto	Expected a newline
+1:1	standard:indent	auto	Unexpected indentation (8) (should be 4)

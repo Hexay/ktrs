@@ -1,0 +1,9 @@
+6:5	standard:class-signature	auto	Expected single space before the first super type
+2:1	standard:indent	auto	Unexpected indentation (0) (should be 4)
+3:5	standard:indent	auto	Unexpected indentation (4) (should be 8)
+4:9	standard:indent	auto	Unexpected indentation (4) (should be 8)
+6:9	standard:indent	auto	Unexpected indentation (0) (should be 4)
+7:13	standard:indent	auto	Unexpected indentation (4) (should be 8)
+9:3	standard:indent	auto	Unexpected indentation (4) (should be 8)
+1:1	standard:indent	auto	Unexpected indentation (4) (should be 8)
+1:1	standard:indent	auto	Unexpected indentation (0) (should be 4)

@@ -1,0 +1,4 @@
+rules=standard:indent,standard:wrapping,standard:string-template-indent
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=IndentationRuleTest.Given a raw string literals.Given a multiline raw string literal as function call parameter but not starting and ending on a separate line

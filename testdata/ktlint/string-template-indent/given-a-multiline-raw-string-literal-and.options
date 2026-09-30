@@ -1,0 +1,4 @@
+rules=standard:string-template-indent
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=StringTemplateIndentRuleTest.Given a multiline raw string literal and trimIndent is followed by another dot qualified expression

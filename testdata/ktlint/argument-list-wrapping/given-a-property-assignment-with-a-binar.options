@@ -1,0 +1,5 @@
+rules=standard:argument-list-wrapping,standard:max-line-length,standard:binary-expression-wrapping,standard:wrapping
+ec.max_line_length=36
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ArgumentListWrappingRuleTest.Given a property assignment with a binary expression for which the left hand side operator is a function call then binary expression wrapping takes precedence

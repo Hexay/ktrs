@@ -1,0 +1,4 @@
+2:25	standard:class-signature	auto	No whitespace expected
+3:13	standard:class-signature	auto	Super type should start on a newline
+4:3	standard:class-signature	auto	No whitespace expected
+3:17	standard:class-signature	auto	Expected single space before the super type

@@ -1,0 +1,4 @@
+rules=standard:function-type-reference-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=FunctionTypeReferenceSpacingRuleTest.Given a function signature with whitespace after a nullable type reference of an extension function

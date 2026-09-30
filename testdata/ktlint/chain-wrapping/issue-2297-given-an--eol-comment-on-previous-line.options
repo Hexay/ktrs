@@ -1,0 +1,4 @@
+rules=standard:chain-wrapping,standard:multiline-expression-wrapping
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ChainWrappingRuleTest.Issue 2297 - Given an && starting on new line should not result in malformed AST which causes NPE in multiline-expression rule.EOL comment on previous line

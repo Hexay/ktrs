@@ -1,0 +1,11 @@
+1:10	standard:colon-spacing	auto	Missing spacing after ":"
+2:16	standard:function-signature	auto	Single whitespace expected before parameter
+3:11	standard:function-start-of-body-spacing	auto	Expected a single white space before assignment of expression body
+4:13	standard:colon-spacing	auto	Missing spacing after ":"
+5:21	standard:function-start-of-body-spacing	auto	Expected a single white space before assignment of expression body
+6:15	standard:function-start-of-body-spacing	auto	Expected a single white space between assignment and expression body on same line
+7:14	standard:type-parameter-list-spacing	auto	Expected a single space
+8:15	standard:comma-spacing	auto	Missing spacing after ","
+9:21	standard:comma-spacing	auto	Missing spacing after ","
+10:28	standard:op-spacing	auto	Missing spacing before "->"
+11:32	standard:op-spacing	auto	Missing spacing after "->"

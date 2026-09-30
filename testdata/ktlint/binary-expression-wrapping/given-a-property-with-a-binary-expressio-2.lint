@@ -1,0 +1,3 @@
+2:12	standard:binary-expression-wrapping	auto	Line is exceeding max line length. Break line between assignment and expression
+2:37	standard:binary-expression-wrapping	auto	Line is exceeding max line length. Break line after '&&' in binary expression
+2:59	standard:max-line-length	manual	Exceeded max line length (58)

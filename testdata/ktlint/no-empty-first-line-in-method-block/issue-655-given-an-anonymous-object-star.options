@@ -1,0 +1,4 @@
+rules=standard:no-empty-first-line-in-method-block
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoEmptyFirstLineInMethodBlockRuleTest.Issue 655 - Given an anonymous object starting with a blank line is allowed

@@ -1,0 +1,4 @@
+rules=standard:square-brackets-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=SpacingAroundSquareBracketsRuleTest.Given array access expression with whitespace after RBRACKET then do not emit

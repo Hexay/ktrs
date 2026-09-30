@@ -1,0 +1,4 @@
+rules=standard:no-line-break-before-assignment
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoLineBreakBeforeAssignmentRuleTest.Issue 1039 - Given a function declaration with a parameter having a linebreak before the equals sign of the default value then do return a lint error

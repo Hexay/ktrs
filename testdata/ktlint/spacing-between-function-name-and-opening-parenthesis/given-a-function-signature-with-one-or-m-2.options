@@ -1,0 +1,4 @@
+rules=standard:spacing-between-function-name-and-opening-parenthesis
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=SpacingBetweenFunctionNameAndOpeningParenthesisRuleTest.Given a function signature with one or more spaces between function name and opening parenthesis then do not reformat

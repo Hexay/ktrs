@@ -1,0 +1,3 @@
+2:11	standard:wrapping	auto	Missing newline after "("
+2:49	standard:wrapping	auto	Missing newline after ","
+6:34	standard:wrapping	auto	Missing newline before ")"

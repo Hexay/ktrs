@@ -1,0 +1,4 @@
+rules=standard:type-argument-list-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=TypeArgumentListSpacingRuleTest.Given a type argument list, containing unexpected spaces, in a super type call then remove the redundant spaces

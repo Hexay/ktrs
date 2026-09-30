@@ -1,0 +1,4 @@
+rules=standard:enum-wrapping
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=EnumWrappingRuleTest.Given an enum with comments.Given a single line enum class with a block comment after the last enum entry

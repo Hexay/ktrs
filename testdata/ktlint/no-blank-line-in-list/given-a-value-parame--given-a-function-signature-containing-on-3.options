@@ -1,0 +1,5 @@
+rules=standard:no-blank-line-in-list
+ec.ktlint_code_style=ktlint_official
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoBlankLineInListRuleTest.Given a value parameter list.Given a function signature containing one or more blank lines after the last parameter

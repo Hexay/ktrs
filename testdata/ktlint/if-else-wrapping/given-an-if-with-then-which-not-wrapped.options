@@ -1,0 +1,4 @@
+rules=standard:if-else-wrapping,standard:indent
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=IfElseWrappingRuleTest.Given an if with THEN, which not wrapped in a block, on the same line as the multiline CONDITION

@@ -44,16 +44,19 @@ public class CaseNaming :
             return (classes + context.requiredTestMethod.name).joinToString(".") + invocations.joinToString("") { "[$it]" }
         }
 
-        /** Lower-cased (checkouts on case-insensitive file systems) and capped, like ktfmt's golden names. */
+        /**
+         * `<innermost nested class, 20 chars>--<method, 40 chars>[-p<i>]`, lower-cased (case-insensitive file systems) and
+         * short so paths stay under Windows' MAX_PATH. The full name is the `test=` line of `.options`.
+         */
         private fun caseName(context: ExtensionContext): String {
-            val nested = generateSequence(context.requiredTestClass) { it.enclosingClass }.toList().reversed().drop(1).map { it.simpleName }
+            val nested = generateSequence(context.requiredTestClass) { it.enclosingClass }.toList().reversed().drop(1)
             val invocations = Regex("#(\\d+)").findAll(context.uniqueId).map { "p" + it.groupValues[1] }.toList()
-            val base =
-                (nested + context.requiredTestMethod.name)
-                    .joinToString("--") { sanitize(it) }
-                    .take(110)
-                    .trimEnd('-')
-            return (listOf(base) + invocations).joinToString("-")
+            val parts =
+                listOfNotNull(
+                    nested.lastOrNull()?.let { sanitize(it.simpleName).take(20).trimEnd('-') },
+                    sanitize(context.requiredTestMethod.name).take(40).trimEnd('-'),
+                )
+            return (listOf(parts.joinToString("--")) + invocations).joinToString("-")
         }
 
         private fun sanitize(s: String) = s.lowercase().replace(Regex("[^a-z0-9]+"), "-").trim('-')

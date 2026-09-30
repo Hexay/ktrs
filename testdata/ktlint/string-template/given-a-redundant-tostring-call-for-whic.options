@@ -1,0 +1,4 @@
+rules=standard:string-template
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=StringTemplateRuleTest.Given a redundant toString call for which also the curly braces become redundant after removal of toString

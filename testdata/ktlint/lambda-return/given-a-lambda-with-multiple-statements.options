@@ -1,0 +1,4 @@
+rules=standard:lambda-return
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=LambdaReturnRuleTest.Given a lambda with multiple statements and an early return then then do not emit on the early return

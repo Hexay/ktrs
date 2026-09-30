@@ -1,0 +1,5 @@
+rules=standard:parameter-wrapping,standard:max-line-length,standard:indent
+ec.max_line_length=33
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ParameterWrappingRuleTest.Given that the variable name and the following colon do not fit on the same line as val or var keyword then wrap after the colon

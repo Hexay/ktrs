@@ -1,0 +1,5 @@
+rules=standard:max-line-length
+ec.max_line_length=46
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=MaxLineLengthRuleTest.Given some code that exceeds the max line length then return a lint error

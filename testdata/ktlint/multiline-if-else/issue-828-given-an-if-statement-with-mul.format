@@ -1,0 +1,2 @@
+2:15	standard:multiline-if-else	auto	Missing { ... }
+3:11	standard:indent	auto	Unexpected indentation (6) (should be 12)

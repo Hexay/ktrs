@@ -1,0 +1,4 @@
+rules=standard:curly-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=SpacingAroundCurlyRuleTest.Issue 2355 - Given a function signature with multiple comments at an unexpected location.Multiple block comments at an unexpected location

@@ -1,0 +1,1 @@
+class ŸèśThîsIsAllowed123

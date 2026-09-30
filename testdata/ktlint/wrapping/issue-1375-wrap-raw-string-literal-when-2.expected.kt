@@ -1,0 +1,3 @@
+val someCodeBlock = """
+  foo()
+""".trimMargin()

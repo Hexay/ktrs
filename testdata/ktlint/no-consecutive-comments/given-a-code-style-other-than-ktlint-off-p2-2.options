@@ -1,0 +1,6 @@
+rules=standard:no-consecutive-comments
+ec.ktlint_code_style=intellij_idea
+ec.ktlint_standard_no-consecutive-comments=enabled
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoConsecutiveCommentsRuleTest.Given a code style other than ktlint_official, and the rule has been enabled explicitly, and some consecutive block comments then do report a violation[2]

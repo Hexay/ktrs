@@ -1,0 +1,1 @@
+fun Foo<out /** some comment */ Any>.foo() {}

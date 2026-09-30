@@ -1,0 +1,5 @@
+rules=standard:parameter-list-wrapping,standard:max-line-length,standard:indent
+ec.ktlint_code_style=android_studio
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ParameterListWrappingRuleTest.Given a function literal having a multiline parameter list and the first parameter starts on same line as LBRACE.Given another code style than ktlint_official then do not reformat[1]

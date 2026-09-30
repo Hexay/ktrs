@@ -1,0 +1,4 @@
+rules=standard:no-trailing-spaces
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoTrailingSpacesRuleTest.Issue 1334 - trailing spaces should not delete indent of the next line

@@ -1,0 +1,3 @@
+fun testIf() {
+    if (true);
+}

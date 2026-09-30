@@ -1,0 +1,5 @@
+rules=standard:function-literal,standard:max-line-length,standard:indent,standard:property-wrapping
+ec.max_line_length=65
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=FunctionLiteralRuleTest.Issue 2451 - Given a function literal that does not fit the line then wrap after the opening brace

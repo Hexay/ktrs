@@ -1,0 +1,4 @@
+rules=standard:block-comment-initial-star-alignment
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=BlockCommentInitialStarAlignmentRuleTest.Given a block comment with a line that does not have an initial star then do not reformat that line

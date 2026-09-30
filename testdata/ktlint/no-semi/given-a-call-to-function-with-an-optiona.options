@@ -1,0 +1,4 @@
+rules=standard:no-semi
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoSemicolonsRuleTest.Given a call to function with an optional lambda as last parameter which is omitted, followed by function call on a lambda receiver requires a semicolon in between

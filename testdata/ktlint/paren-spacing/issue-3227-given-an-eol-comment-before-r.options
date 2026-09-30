@@ -1,0 +1,4 @@
+rules=standard:paren-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=SpacingAroundParensRuleTest.Issue 3227 - Given an EOL comment before RPAR then do not remove the newline

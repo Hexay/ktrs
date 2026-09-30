@@ -1,0 +1,5 @@
+rules=standard:no-blank-line-in-list
+ec.ktlint_code_style=ktlint_official
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoBlankLineInListRuleTest.Given a super type list.Given one or more blank lines before the first super type

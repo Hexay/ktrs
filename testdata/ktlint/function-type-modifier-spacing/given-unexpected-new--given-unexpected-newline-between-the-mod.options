@@ -1,0 +1,4 @@
+rules=standard:function-type-modifier-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=FunctionTypeModifierSpacingRuleTest.Given unexpected newline before the function type.Given unexpected newline between the modifier list and the function property type

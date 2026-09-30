@@ -1,0 +1,4 @@
+rules=standard:parameter-list-wrapping,standard:max-line-length,standard:indent
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ParameterListWrappingRuleTest.Given a multiline function with parameters then start each parameter and closing parenthesis on a separate line

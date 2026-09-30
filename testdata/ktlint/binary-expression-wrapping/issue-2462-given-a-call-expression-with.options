@@ -1,0 +1,5 @@
+rules=standard:binary-expression-wrapping,standard:max-line-length,standard:argument-list-wrapping,standard:wrapping
+ec.max_line_length=45
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=BinaryExpressionWrappingRuleTest.Issue 2462 - Given a call expression with value argument list inside a binary expression, then first wrap the binary expression

@@ -1,0 +1,4 @@
+rules=standard:no-semi
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=NoSemicolonsRuleTest.Given an enumeration.Given an enumeration and the list of values is closed with a semicolon not followed by statements then do return a lint error

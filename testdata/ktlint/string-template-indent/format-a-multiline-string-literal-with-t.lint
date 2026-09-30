@@ -1,0 +1,3 @@
+2:13	standard:string-template-indent	auto	Expected newline before multiline string template
+6:1	standard:indent	auto	Unexpected indent of multiline string closing quotes
+6:17	standard:string-template-indent	auto	Expected newline after multiline string template

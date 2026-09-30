@@ -1,0 +1,4 @@
+rules=standard:multiline-if-else
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=MultiLineIfElseRuleTest.Issue 2057 - Given an else condition with single line binary expression

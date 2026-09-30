@@ -1,0 +1,4 @@
+rules=standard:keyword-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=SpacingAroundKeywordRuleTest.Given an if-else-statement where the true branch contains a when statement which is not wrapped in a block then the else should not be forced after the closing brace of the when

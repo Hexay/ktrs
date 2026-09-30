@@ -1,0 +1,4 @@
+rules=standard:annotation
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=AnnotationRuleTest.Given an annotation at file level.Issue 714 - Given a file annotation followed by an EOL comment, on the line above the package statement but without blank line in between

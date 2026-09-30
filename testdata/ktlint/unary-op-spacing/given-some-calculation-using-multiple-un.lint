@@ -1,0 +1,12 @@
+1:21	standard:unary-op-spacing	auto	Unexpected spacing in - (-- i)
+1:25	standard:unary-op-spacing	auto	Unexpected spacing in -- i
+2:21	standard:unary-op-spacing	auto	Unexpected spacing in - (++ i)
+2:25	standard:unary-op-spacing	auto	Unexpected spacing in ++ i
+3:21	standard:unary-op-spacing	auto	Unexpected spacing in + 1
+3:32	standard:unary-op-spacing	auto	Unexpected spacing in - 1
+6:10	standard:unary-op-spacing	auto	Unexpected spacing in - 1
+6:16	standard:unary-op-spacing	auto	Unexpected spacing in - f
+6:23	standard:unary-op-spacing	auto	Unexpected spacing in + f
+6:29	standard:unary-op-spacing	auto	Unexpected spacing in - 10
+7:24	standard:unary-op-spacing	auto	Unexpected spacing in - 3
+7:35	standard:unary-op-spacing	auto	Unexpected spacing in - 4

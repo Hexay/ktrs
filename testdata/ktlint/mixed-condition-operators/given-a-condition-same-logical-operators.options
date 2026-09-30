@@ -1,0 +1,4 @@
+rules=standard:mixed-condition-operators
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=MixedConditionOperatorsRuleTest.Given a condition same logical operators in the expression but a different operator in a subexpression

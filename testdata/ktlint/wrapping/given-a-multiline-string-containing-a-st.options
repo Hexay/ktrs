@@ -1,0 +1,4 @@
+rules=standard:wrapping,standard:max-line-length,standard:indent
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=WrappingRuleTest.Given a multiline string containing a string-template as parameter value but then wrap the value to a start and end on separate lines

@@ -1,0 +1,4 @@
+rules=standard:function-naming
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=FunctionNamingRuleTest.Issue 2383 - Given a class with tests in JUnit3 style

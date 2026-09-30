@@ -1,0 +1,4 @@
+rules=standard:indent,standard:chain-wrapping
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=IndentationRuleTest.Issue 1993 - An or operator at start of line followed by a dot qualified expressions should not throw an exception

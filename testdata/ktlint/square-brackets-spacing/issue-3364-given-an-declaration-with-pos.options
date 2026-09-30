@@ -1,0 +1,4 @@
+rules=standard:square-brackets-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=SpacingAroundSquareBracketsRuleTest.Issue 3364 - Given an declaration with positional based destructuring then ignore space before lbracket

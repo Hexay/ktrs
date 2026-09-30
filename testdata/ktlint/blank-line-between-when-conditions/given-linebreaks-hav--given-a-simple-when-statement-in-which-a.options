@@ -1,0 +1,4 @@
+rules=standard:blank-line-between-when-conditions
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=BlankLineBetweenWhenConditionsTest.Given when statement with multiline when-condition.Given linebreaks have to be added after when-condition.Given a simple when-statement in which a when condition is preceded by a comment then add blank lines between the when-conditions

@@ -1,0 +1,4 @@
+2:7	standard:function-signature	auto	Newline expected after opening parenthesis
+2:25	standard:function-signature	auto	Parameter should start on a newline
+2:37	standard:function-signature	auto	Parameter should start on a newline
+2:47	standard:function-signature	auto	Newline expected before closing parenthesis

@@ -1,0 +1,5 @@
+rules=standard:try-catch-finally-spacing
+ec.ktlint_code_style=ktlint_official
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=TryCatchFinallySpacingRuleTest.Given a finally not preceded by a single space.Given try - finally with multiple spaces before finally then reformat

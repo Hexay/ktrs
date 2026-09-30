@@ -1,0 +1,2 @@
+@file:bar
+package foo

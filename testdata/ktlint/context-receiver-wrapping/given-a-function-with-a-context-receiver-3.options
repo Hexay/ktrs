@@ -1,0 +1,5 @@
+rules=standard:context-receiver-wrapping,standard:max-line-length
+ec.max_line_length=29
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ContextReceiverWrappingRuleTest.Given a function with a context receiver with multiple arguments and the context receiver line exceeds the maximum line length, then wrap each context receiver entry to a separate line

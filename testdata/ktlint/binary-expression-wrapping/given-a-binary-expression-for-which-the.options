@@ -1,0 +1,5 @@
+rules=standard:binary-expression-wrapping,standard:max-line-length
+ec.max_line_length=35
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=BinaryExpressionWrappingRuleTest.Given a binary expression for which the left hand side including the operation reference is exceeding the max line length

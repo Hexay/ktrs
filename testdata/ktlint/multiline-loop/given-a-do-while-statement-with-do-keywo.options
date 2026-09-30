@@ -1,0 +1,4 @@
+rules=standard:multiline-loop
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=MultilineLoopRuleTest.Given a do-while-statement with do keyword on same line as body statement and while keyword on separate line

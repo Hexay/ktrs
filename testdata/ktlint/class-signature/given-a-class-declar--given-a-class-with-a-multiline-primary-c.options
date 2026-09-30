@@ -1,0 +1,5 @@
+rules=standard:class-signature,standard:max-line-length,standard:indent
+ec.ktlint_code_style=ktlint_official
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=ClassSignatureRuleTest.Given a class declaration.Given a class with a multiline primary constructor and multiline super type call entry starting on same line as closing parenthesis of primary constructor and followed by other super type entries

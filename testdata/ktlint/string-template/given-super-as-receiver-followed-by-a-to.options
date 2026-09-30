@@ -1,0 +1,4 @@
+rules=standard:string-template
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=StringTemplateRuleTest.Given 'super' as receiver, followed by a toString call then do not remove the toString call

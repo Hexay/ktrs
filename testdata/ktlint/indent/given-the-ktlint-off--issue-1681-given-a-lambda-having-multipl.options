@@ -1,0 +1,5 @@
+rules=standard:indent,standard:parameter-list-wrapping
+ec.ktlint_code_style=ktlint_official
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=IndentationRuleTest.Given the ktlint_official code style is enabled.Issue 1681 - Given a lambda having multiple arguments on different lines

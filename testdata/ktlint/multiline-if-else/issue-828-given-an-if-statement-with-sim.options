@@ -1,0 +1,4 @@
+rules=standard:multiline-if-else,standard:indent
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=MultiLineIfElseRuleTest.Issue 828 - Given an if statement with simple branches but the else branch is on a separate line

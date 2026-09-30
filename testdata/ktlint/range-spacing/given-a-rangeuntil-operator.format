@@ -1,0 +1,3 @@
+5:17	standard:range-spacing	auto	Unexpected spacing after "..<"
+6:14	standard:range-spacing	auto	Unexpected spacing around "..<"
+7:11	standard:range-spacing	auto	Unexpected spacing before "..<"

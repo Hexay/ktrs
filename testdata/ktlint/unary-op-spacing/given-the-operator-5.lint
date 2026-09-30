@@ -1,0 +1,3 @@
+2:21	standard:unary-op-spacing	auto	Unexpected spacing in i --
+4:22	standard:unary-op-spacing	auto	Unexpected spacing in -- i
+5:22	standard:unary-op-spacing	auto	Unexpected spacing in --\\n    i

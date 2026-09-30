@@ -1,0 +1,5 @@
+rules=standard:indent
+ec.indent_size=2
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=IndentationRuleTest.Given code which is correctly indented with TABS while a custom indent size of 2 SPACES should be used

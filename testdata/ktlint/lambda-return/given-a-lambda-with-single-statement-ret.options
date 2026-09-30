@@ -1,0 +1,4 @@
+rules=standard:lambda-return
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=LambdaReturnRuleTest.Given a lambda with single statement return statement then do not emit

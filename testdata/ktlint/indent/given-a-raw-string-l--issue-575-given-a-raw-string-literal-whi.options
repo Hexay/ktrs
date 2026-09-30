@@ -1,0 +1,4 @@
+rules=standard:indent
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=IndentationRuleTest.Given a raw string literals.Issue 575 - Given a raw string literal which is properly indented but does contain tabs after the margin then do not return lint errors

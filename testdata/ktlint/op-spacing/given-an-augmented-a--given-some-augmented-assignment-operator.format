@@ -1,0 +1,4 @@
+3:6	standard:op-spacing	auto	Missing spacing before "+="
+4:7	standard:op-spacing	auto	Missing spacing before "-="
+5:8	standard:op-spacing	auto	Missing spacing before "/="
+6:9	standard:op-spacing	auto	Missing spacing before "*="

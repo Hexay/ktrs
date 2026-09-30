@@ -1,0 +1,9 @@
+2:12	standard:class-signature	auto	Newline expected after opening parenthesis
+2:18	standard:class-signature	auto	Newline expected before closing parenthesis
+3:12	standard:class-signature	auto	Newline expected after opening parenthesis
+3:20	standard:class-signature	auto	Parameter should start on a newline
+3:26	standard:class-signature	auto	Newline expected before closing parenthesis
+4:12	standard:class-signature	auto	Newline expected after opening parenthesis
+4:20	standard:class-signature	auto	Parameter should start on a newline
+4:28	standard:class-signature	auto	Parameter should start on a newline
+4:34	standard:class-signature	auto	Newline expected before closing parenthesis

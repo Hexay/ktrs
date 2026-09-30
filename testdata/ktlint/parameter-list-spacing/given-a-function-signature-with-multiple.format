@@ -1,0 +1,13 @@
+1:10	standard:parameter-list-spacing	auto	Unexpected whitespace
+1:10	standard:parameter-list-spacing	auto	Whitespace after ':' is missing
+1:18	standard:parameter-list-spacing	auto	Unexpected whitespace
+1:19	standard:parameter-list-spacing	auto	Expected a single space
+1:24	standard:parameter-list-spacing	auto	Expected a single space
+1:26	standard:parameter-list-spacing	auto	Unexpected whitespace
+1:27	standard:parameter-list-spacing	auto	Expected a single space
+1:31	standard:parameter-list-spacing	auto	Unexpected whitespace
+1:32	standard:parameter-list-spacing	auto	Expected a single space
+1:39	standard:parameter-list-spacing	auto	Expected a single space
+1:41	standard:parameter-list-spacing	auto	Unexpected whitespace
+1:42	standard:parameter-list-spacing	auto	Expected a single space
+1:46	standard:parameter-list-spacing	auto	Unexpected whitespace

@@ -1,0 +1,17 @@
+2:14	standard:chain-method-continuation	auto	Expected newline before '.'
+2:59	standard:chain-method-continuation	auto	Expected newline before '.'
+4:1	standard:chain-method-continuation	auto	Expected newline before '.'
+4:70	standard:call-expression-wrapping	auto	Expected new line after '{'
+5:18	standard:call-expression-wrapping	auto	Expected new line before '}'
+4:27	standard:multiline-expression-wrapping	auto	A multiline expression should start on a new line
+1:1	standard:call-expression-wrapping	auto	Expected new line after '{'
+1:1	standard:call-expression-wrapping	auto	Expected new line before '}'
+5:35	standard:multiline-expression-wrapping	auto	A multiline expression should start on a new line
+2:11	standard:multiline-expression-wrapping	auto	A multiline expression should start on a new line
+5:7	standard:indent	auto	Unexpected indentation (4) (should be 8)
+5:30	standard:indent	auto	Unexpected indentation (0) (should be 4)
+1:1	standard:indent	auto	Unexpected indentation (4) (should be 8)
+1:1	standard:indent	auto	Unexpected indentation (0) (should be 4)
+2:19	standard:indent	auto	Unexpected indentation (4) (should be 8)
+2:68	standard:indent	auto	Unexpected indentation (4) (should be 8)
+4:14	standard:indent	auto	Unexpected indentation (4) (should be 8)

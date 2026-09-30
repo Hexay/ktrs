@@ -1,0 +1,4 @@
+rules=standard:colon-spacing
+ec.ktlint_experimental=enabled
+ec.ktlint_standard=enabled
+test=SpacingAroundColonRuleTest.Given some object creation as parameter value in function without a space before the colon

@@ -1,0 +1,1 @@
+fun `tailrec`() = "foo"

@@ -1,0 +1,3 @@
+// boo
+// foo
+fun foo()
