@@ -13,6 +13,8 @@ ktrs - fast Kotlin tooling
 Usage:
   ktrs fmt [OPTIONS] [PATH ...]    Format .kt/.kts files in place (default PATH: .)
   ktrs fmt [OPTIONS] -             Format stdin to stdout
+  ktrs serve                       Format requests framed on stdin until it closes (for build tools;
+                                     protocol: crates/ktrs-cli/src/serve.rs)
   ktrs --version
 
 Format options:
@@ -35,6 +37,7 @@ pub fn run(args: &[String]) -> i32 {
                 2
             }
         },
+        Some("serve") if args.len() == 1 => crate::serve::run(io::stdin().lock(), io::stdout().lock()),
         Some("--version" | "-V") => {
             println!("ktrs {} (formats like ktfmt {KTFMT_VERSION})", env!("CARGO_PKG_VERSION"));
             0
@@ -94,7 +97,7 @@ pub fn parse_fmt_args(args: &[String]) -> Result<ParsedArgs, String> {
     Ok(parsed)
 }
 
-fn style(name: &str) -> Result<FormattingOptions, String> {
+pub(crate) fn style(name: &str) -> Result<FormattingOptions, String> {
     match name {
         "meta" => Ok(META_FORMAT),
         "google" => Ok(GOOGLE_FORMAT),
