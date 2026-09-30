@@ -46,6 +46,6 @@ jobs:
       - run: cargo build --locked --bins
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: 21, cache: gradle }
-      - name: Test the JVM wrapper against target/debug/ktrs
+      - name: Test the JVM wrapper and the Gradle plugin against target/debug/ktrs
         working-directory: java
         run: ./gradlew --console=plain test
