@@ -254,6 +254,10 @@ impl RuleV2 for IndentationRule {
         self.after_visit_child_nodes_impl(ast, node);
     }
 
+    fn visits_after_child_nodes(&self) -> bool {
+        true
+    }
+
     fn after_last_node(&mut self) {
         self.after_last_node_impl();
     }

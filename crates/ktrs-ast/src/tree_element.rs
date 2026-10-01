@@ -70,19 +70,30 @@ impl Ast {
         if old == parent {
             return;
         }
-        let len = self.node(n).len;
-        self.add_length_to_ancestors(old, len, false);
+        let (len, surplus) = (self.node(n).len, self.node(n).surplus);
+        self.add_length_to_ancestors(old, len, surplus, false);
         self.node_mut(n).parent = parent;
-        self.add_length_to_ancestors(parent, len, true);
+        self.add_length_to_ancestors(parent, len, surplus, true);
+        self.clear_text_hashes(old);
+        self.clear_text_hashes(parent);
     }
 
-    fn add_length_to_ancestors(&mut self, mut ancestor: u32, len: u32, add: bool) {
+    /// Clears the cached text hash of `element` and its ancestors, up to the first one already clear.
+    pub(crate) fn clear_text_hashes(&self, element: u32) {
+        let mut cur = element;
+        while cur != NONE && self.nodes[cur as usize].text_hash.take().is_some() {
+            cur = self.nodes[cur as usize].parent;
+        }
+    }
+
+    fn add_length_to_ancestors(&mut self, mut ancestor: u32, len: u32, surplus: u32, add: bool) {
         if len == 0 {
             return;
         }
         while ancestor != NONE {
             let node = &mut self.nodes[ancestor as usize];
             node.len = if add { node.len + len } else { node.len - len };
+            node.surplus = if add { node.surplus + surplus } else { node.surplus - surplus };
             let (next, parent) = (node.next, node.parent);
             self.clear_relative_offsets(next);
             ancestor = parent;
@@ -92,11 +103,13 @@ impl Ast {
     pub(crate) fn set_tree_prev(&mut self, n: NodeId, prev: u32) {
         self.node_mut(n).prev = prev;
         self.clear_relative_offsets(n.0);
+        self.clear_text_hashes(self.node(n).parent);
     }
 
     pub(crate) fn set_tree_next(&mut self, n: NodeId, next: u32) {
         self.node_mut(n).next = next;
         self.clear_relative_offsets(next);
+        self.clear_text_hashes(self.node(n).parent);
     }
 
     pub(crate) fn clear_relative_offsets(&self, element: u32) {

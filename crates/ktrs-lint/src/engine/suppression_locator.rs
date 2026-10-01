@@ -13,7 +13,7 @@ use crate::ast_node_extension::AstNodeExtension;
 use crate::editorconfig::EditorConfig;
 use crate::engine::ast_helpers::{is_kt_annotated, recursive_children, text_range};
 use crate::engine::formatter_tags::FormatterTags;
-use crate::rule::RuleV2;
+use crate::rule::RuleId;
 
 /// `range` is inclusive, in UTF-8 offsets of the tree the hints were built from; empty ids = all rules.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -31,56 +31,115 @@ struct CommentSuppressionHint {
 
 pub struct SuppressionLocator {
     formatter_tags: FormatterTags,
-    /// `rootNode.text.hashCode()` of the text the hints were built from, with the cheap fingerprint
-    /// that tells when it has to be recomputed.
+    /// `rootNode.text.hashCode()` of the text the hints were built from, and the tree version it was
+    /// last checked against.
     hashcode_ast_node_text: Option<i32>,
-    fingerprint: Option<(usize, usize)>,
+    checked_modification_count: Option<u64>,
     suppression_hints: Vec<SuppressionHint>,
+    /// Whether any leaf allocated so far could make a hint; `allocated_leaf_text` bytes scanned so far.
+    may_have_hints: bool,
+    scanned_leaf_text: usize,
+    /// The hints covering the offset of the node last asked about, for that node and tree version.
+    covering_key: Option<(NodeId, u64)>,
+    covering: Vec<usize>,
+    /// Every `ANNOTATION_ENTRY` in the arena (attached or not), from the first `scanned_nodes` nodes.
+    annotation_entries: Vec<NodeId>,
+    scanned_nodes: usize,
 }
 
 impl SuppressionLocator {
     pub fn new(editor_config: &EditorConfig) -> SuppressionLocator {
+        let formatter_tags = FormatterTags::from(editor_config);
         SuppressionLocator {
-            formatter_tags: FormatterTags::from(editor_config),
+            may_have_hints: formatter_tags.formatter_tag_off.is_some(),
+            formatter_tags,
             hashcode_ast_node_text: None,
-            fingerprint: None,
+            checked_modification_count: None,
             suppression_hints: Vec::new(),
+            scanned_leaf_text: 0,
+            covering_key: None,
+            covering: Vec::new(),
+            annotation_entries: Vec::new(),
+            scanned_nodes: 0,
         }
     }
 
-    /// Whether the element at `offset` in `root_node` is suppressed for `rule`. The hints are rebuilt
-    /// when the root text changed (format mode mutates it).
+    /// Whether `node` (at its start offset in `root_node`) is suppressed for the rule `rule_id`
+    /// (`ignores_suppressions`: the rule is `IgnoreKtlintSuppressions`). The hints are rebuilt when the
+    /// root text changed (format mode mutates it).
     pub fn suppress(
         &mut self,
         ast: &Ast,
         root_node: NodeId,
-        offset: usize,
-        rule: &dyn RuleV2,
+        node: NodeId,
+        rule_id: RuleId,
+        ignores_suppressions: bool,
     ) -> bool {
-        // Every edit allocates a node or changes the length, so the text is only hashed after one.
-        // TODO: use an Ast modification counter (1B) instead of (node_count, text_length).
-        let fingerprint = (ast.node_count(), ast.text_length(root_node));
-        if self.fingerprint != Some(fingerprint) {
-            self.fingerprint = Some(fingerprint);
-            let hash_code = java_string_hash_code(&ast.text(root_node));
+        if !self.refresh_may_have_hints(ast) {
+            // Nothing could ever have made a hint, so every rebuild would have found none.
+            return false;
+        }
+        let modification_count = ast.modification_count();
+        if self.checked_modification_count != Some(modification_count) {
+            self.checked_modification_count = Some(modification_count);
+            let hash_code = ast.text_hash_code(root_node);
             if self.hashcode_ast_node_text != Some(hash_code) {
                 self.hashcode_ast_node_text = Some(hash_code);
                 self.suppression_hints = self.find_suppression_hints(ast, root_node);
+                self.covering_key = None;
             }
         }
-        if rule.ignores_ktlint_suppressions() || self.suppression_hints.is_empty() {
+        if ignores_suppressions || self.suppression_hints.is_empty() {
             return false;
         }
-        let rule_id = rule.rule_id().value();
-        self.suppression_hints
-            .iter()
-            .filter(|it| it.range.0 <= offset as i64 && offset as i64 <= it.range.1)
-            .any(|hint| {
-                hint.disabled_rule_ids.is_empty() || hint.disabled_rule_ids.contains(rule_id)
-            })
+        // Every rule asks about the same node in turn: filter the hints by offset once.
+        if self.covering_key != Some((node, modification_count)) {
+            self.covering_key = Some((node, modification_count));
+            let offset = ast.start_offset(node) as i64;
+            self.covering.clear();
+            self.covering.extend(
+                (0..self.suppression_hints.len())
+                    .filter(|&i| self.suppression_hints[i].range.0 <= offset && offset <= self.suppression_hints[i].range.1),
+            );
+        }
+        let rule_id = rule_id.value();
+        self.covering.iter().any(|&i| {
+            let hint = &self.suppression_hints[i];
+            hint.disabled_rule_ids.is_empty() || hint.disabled_rule_ids.contains(rule_id)
+        })
     }
 
-    fn find_suppression_hints(&self, ast: &Ast, root_node: NodeId) -> Vec<SuppressionHint> {
+    /// Hints come only from `@Suppress`/`@SuppressWarnings` annotations and formatter-tag comments. Leaf
+    /// text never changes and a new leaf's text is appended whole, so scanning the new text suffices.
+    fn refresh_may_have_hints(&mut self, ast: &Ast) -> bool {
+        let text = ast.allocated_leaf_text();
+        if !self.may_have_hints && text.len() > self.scanned_leaf_text {
+            self.may_have_hints = text[self.scanned_leaf_text..].contains("Suppress");
+            self.scanned_leaf_text = text.len();
+        }
+        self.may_have_hints
+    }
+
+    /// Without formatter tags only annotations make hints, so the tracked annotation entries still in
+    /// the tree give the same hints as the full walk (in another order, which `suppress` ignores).
+    fn find_suppression_hints(&mut self, ast: &Ast, root_node: NodeId) -> Vec<SuppressionHint> {
+        if self.formatter_tags.formatter_tag_off.is_some() {
+            return self.find_suppression_hints_in_tree(ast, root_node);
+        }
+        self.annotation_entries.extend(
+            ast.nodes_allocated_since(self.scanned_nodes)
+                .filter(|&n| ast.element_type(n) == ANNOTATION_ENTRY),
+        );
+        self.scanned_nodes = ast.node_count();
+        self.annotation_entries
+            .iter()
+            .filter(|&&n| n != root_node && ast.parent_matching(n, |p| p == root_node).is_some())
+            .filter(|&&n| is_suppress_annotation(ast, n))
+            .filter_map(|&n| create_suppression_hint_from_annotations(ast, n))
+            .collect()
+    }
+
+    fn find_suppression_hints_in_tree(&self, ast: &Ast, root_node: NodeId) -> Vec<SuppressionHint> {
         let mut suppression_hints = Vec::new();
         let mut comment_suppressions_hints = Vec::new();
         for node in recursive_children(ast, root_node) {
@@ -263,10 +322,4 @@ pub(crate) fn remove_surrounding<'a>(s: &'a str, delimiter: &str) -> &'a str {
     } else {
         s
     }
-}
-
-/// `String.hashCode()` over UTF-16 code units.
-fn java_string_hash_code(text: &str) -> i32 {
-    text.encode_utf16()
-        .fold(0i32, |h, c| h.wrapping_mul(31).wrapping_add(i32::from(c)))
 }

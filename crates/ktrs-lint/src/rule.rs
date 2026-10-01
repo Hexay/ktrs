@@ -169,6 +169,7 @@ pub trait RuleV2 {
         false
     }
 
+    /// `None` for a rule that never stops; one that can returns `Some` from the start (asked once).
     fn traversal_state(&self) -> Option<TraversalState> {
         None
     }
@@ -178,6 +179,12 @@ pub trait RuleV2 {
     fn before_visit_child_nodes(&mut self, _ast: &mut Ast, _node: NodeId, _emit: &mut Emit<'_>) {}
 
     fn after_visit_child_nodes(&mut self, _ast: &mut Ast, _node: NodeId, _emit: &mut Emit<'_>) {}
+
+    /// Whether [`Self::after_visit_child_nodes`] is overridden; the engine skips the no-op hook of the
+    /// others (half of all visits). `tests/rule_hooks.rs` keeps the two in sync.
+    fn visits_after_child_nodes(&self) -> bool {
+        false
+    }
 
     fn after_last_node(&mut self) {}
 }

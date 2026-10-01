@@ -75,6 +75,10 @@ impl RuleV2 for WrappingRule {
         }
     }
 
+    fn visits_after_child_nodes(&self) -> bool {
+        true
+    }
+
     fn after_visit_child_nodes(&mut self, ast: &mut Ast, node: NodeId, emit: &mut Emit<'_>) {
         self.after_visit_block(ast, node, emit);
     }
