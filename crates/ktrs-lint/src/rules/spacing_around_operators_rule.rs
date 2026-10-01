@@ -16,12 +16,17 @@ const OPERATORS: TokenSet = TokenSet::create(&[
     ANDAND, ARROW, DIV, DIVEQ, ELVIS, EQ, EQEQ, EQEQEQ, EXCLEQ, EXCLEQEQEQ, GT, GTEQ, LT, LTEQ, MINUS, MINUSEQ, MUL, MULTEQ, OROR,
     PERC, PERCEQ, PLUS, PLUSEQ,
 ]);
+const VISITED_TYPES: TokenSet = TokenSet::or_set(&[OPERATORS, TokenSet::create(&[IDENTIFIER])]);
 
 pub struct SpacingAroundOperatorsRule;
 
 impl RuleV2 for SpacingAroundOperatorsRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:op-spacing")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

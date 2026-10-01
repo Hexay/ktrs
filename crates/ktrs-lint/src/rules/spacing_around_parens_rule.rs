@@ -14,6 +14,7 @@ use crate::rules::STANDARD_RULE_ABOUT;
 
 const ELEMENT_LIST_TOKEN_SET: TokenSet = TokenSet::create(&[VALUE_PARAMETER_LIST, VALUE_ARGUMENT_LIST]);
 const COMMENT_TYPES: TokenSet = TokenSet::create(&[EOL_COMMENT, BLOCK_COMMENT, KDOC_START]);
+const VISITED_TYPES: TokenSet = TokenSet::create(&[LPAR, RPAR]);
 
 /// Ensures there are no extra spaces around parentheses.
 ///
@@ -23,6 +24,10 @@ pub struct SpacingAroundParensRule;
 impl RuleV2 for SpacingAroundParensRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:paren-spacing")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

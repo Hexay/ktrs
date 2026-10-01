@@ -6,8 +6,10 @@ use ktrs_syntax::SyntaxKind::{IMPORT_LIST, PACKAGE_DIRECTIVE};
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::AstNodeExtension;
 use crate::editorconfig::{CODE_STYLE_PROPERTY, CodeStyleValue, EditorConfig};
-use crate::rule::{About, Emit, RuleId, RuleV2, TraversalState};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet, TraversalState};
 use crate::rules::STANDARD_RULE_ABOUT;
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[PACKAGE_DIRECTIVE]);
 
 /// Insert a blank line before the imports list: <https://developer.android.com/kotlin/style-guide#structure>
 #[derive(Default)]
@@ -18,6 +20,10 @@ pub struct BlankLineBeforeImports {
 impl RuleV2 for BlankLineBeforeImports {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:blank-line-before-imports")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

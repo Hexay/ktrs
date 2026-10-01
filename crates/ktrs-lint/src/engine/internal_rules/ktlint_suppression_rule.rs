@@ -27,7 +27,9 @@ use crate::engine::ktlint_suppression::{
     to_fully_qualified_ktlint_suppression_id,
 };
 use crate::engine::suppression_locator::remove_surrounding;
-use crate::rule::{About, Emit, RuleId, RuleV2};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet};
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[STRING_TEMPLATE, EOL_COMMENT, BLOCK_COMMENT]);
 
 pub struct KtlintSuppressionRule {
     allowed_rule_ids: Vec<RuleId>,
@@ -46,6 +48,10 @@ impl KtlintSuppressionRule {
 impl RuleV2 for KtlintSuppressionRule {
     fn rule_id(&self) -> RuleId {
         KTLINT_SUPPRESSION_RULE_ID
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

@@ -7,8 +7,10 @@ use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::{AstNodeExtension, AstNodeLines};
 use crate::editorconfig::{CODE_STYLE_PROPERTY, CodeStyleValue, EditorConfig, INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, PropertyRef};
 use crate::indent_config::IndentConfig;
-use crate::rule::{About, Emit, RuleId, RuleV2, TraversalState};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet, TraversalState};
 use crate::rules::STANDARD_RULE_ABOUT;
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[BLOCK]);
 
 /// Prefer using an expression body for functions with the body consisting of a single expression
 /// (<https://kotlinlang.org/docs/coding-conventions.html#functions>).
@@ -38,6 +40,10 @@ impl Default for FunctionExpressionBodyRule {
 impl RuleV2 for FunctionExpressionBodyRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:function-expression-body")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

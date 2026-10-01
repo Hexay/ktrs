@@ -5,8 +5,10 @@ use ktrs_syntax::SyntaxKind::{BLOCK, EQ, FUN, WHITE_SPACE};
 
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::AstNodeExtension;
-use crate::rule::{About, Emit, RuleId, RuleV2};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[FUN]);
 
 /// Lints and formats the spacing after the fun keyword
 pub struct FunctionStartOfBodySpacingRule;
@@ -14,6 +16,10 @@ pub struct FunctionStartOfBodySpacingRule;
 impl RuleV2 for FunctionStartOfBodySpacingRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:function-start-of-body-spacing")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

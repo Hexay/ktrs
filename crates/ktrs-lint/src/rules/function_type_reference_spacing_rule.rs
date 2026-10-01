@@ -5,14 +5,20 @@ use ktrs_syntax::SyntaxKind::{FUN, NULLABLE_TYPE, TYPE_REFERENCE, VALUE_PARAMETE
 
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::AstNodeExtension;
-use crate::rule::{About, Emit, RuleId, RuleV2};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[FUN]);
 
 pub struct FunctionTypeReferenceSpacingRule;
 
 impl RuleV2 for FunctionTypeReferenceSpacingRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:function-type-reference-spacing")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

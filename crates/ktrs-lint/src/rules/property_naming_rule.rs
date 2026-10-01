@@ -11,10 +11,12 @@ use ktrs_syntax::SyntaxKind::{
 
 use crate::ast_node_extension::AstNodeExtension;
 use crate::editorconfig::{EditorConfigProperty, PropertyRef, safe_enum_value_parser};
-use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2};
+use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
 use crate::rules::internal::kotlin_string::remove_surrounding;
 use crate::rules::internal::{KotlinRegex, is_keyword, reg_ex_ignoring_diacritics_and_strokes_on_letters};
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[PROPERTY]);
 
 pub struct PropertyNamingRule {
     constant_naming_property: ConstantNamingStyle,
@@ -35,6 +37,10 @@ impl Default for PropertyNamingRule {
 impl RuleV2 for PropertyNamingRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:property-naming")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

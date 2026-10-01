@@ -8,7 +8,7 @@ use ktrs_editorconfig::{EnumValue, PropertyType};
 use ktrs_syntax::SyntaxKind::{ENUM_ENTRY, IDENTIFIER};
 
 use crate::editorconfig::{EditorConfigProperty, PropertyRef, safe_enum_value_parser};
-use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2};
+use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
 use crate::rules::internal::{KotlinRegex, reg_ex_ignoring_diacritics_and_strokes_on_letters};
 
@@ -18,9 +18,15 @@ pub struct EnumEntryNameCaseRule {
     enum_entry_casing: Option<(&'static KotlinRegex, &'static str)>,
 }
 
+const VISITED_TYPES: TokenSet = TokenSet::create(&[ENUM_ENTRY]);
+
 impl RuleV2 for EnumEntryNameCaseRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:enum-entry-name-case")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

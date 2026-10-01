@@ -7,8 +7,10 @@ use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::AstNodeExtension;
 use crate::editorconfig::{EditorConfig, INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, PropertyRef};
 use crate::indent_config::IndentConfig;
-use crate::rule::{About, Emit, RuleId, RuleV2};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[CLASS_BODY]);
 
 pub struct NoEmptyFirstLineInClassBodyRule {
     indent_config: IndentConfig,
@@ -29,6 +31,10 @@ impl Default for NoEmptyFirstLineInClassBodyRule {
 impl RuleV2 for NoEmptyFirstLineInClassBodyRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:no-empty-first-line-in-class-body")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

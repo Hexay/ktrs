@@ -7,8 +7,10 @@ use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::AstNodeExtension;
 use crate::editorconfig::{INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, PropertyRef};
 use crate::indent_config::IndentConfig;
-use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2};
+use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[IF]);
 
 /// All branches of the if-statement should be wrapped between braces if at least one branch is wrapped between braces.
 pub struct IfElseBracingRule {
@@ -30,6 +32,10 @@ impl Default for IfElseBracingRule {
 impl RuleV2 for IfElseBracingRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:if-else-bracing")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

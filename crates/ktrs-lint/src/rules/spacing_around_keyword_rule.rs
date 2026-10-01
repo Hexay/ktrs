@@ -17,12 +17,17 @@ const TOKEN_SET: TokenSet = TokenSet::create(&[
     CATCH_KEYWORD, DO_KEYWORD, ELSE_KEYWORD, FINALLY_KEYWORD, FOR_KEYWORD, IF_KEYWORD, TRY_KEYWORD, WHEN_KEYWORD, WHILE_KEYWORD,
 ]);
 const KEYWORDS_WITHOUT_SPACES: TokenSet = TokenSet::create(&[GET_KEYWORD, SET_KEYWORD]);
+const VISITED_TYPES: TokenSet = TokenSet::or_set(&[TOKEN_SET, KEYWORDS_WITHOUT_SPACES, NO_LF_BEFORE_SET]);
 
 pub struct SpacingAroundKeywordRule;
 
 impl RuleV2 for SpacingAroundKeywordRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:keyword-spacing")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

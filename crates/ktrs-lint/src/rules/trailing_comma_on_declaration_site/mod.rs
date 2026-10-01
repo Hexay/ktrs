@@ -48,6 +48,8 @@ const TYPES_ON_DECLARATION_SITE: TokenSet = TokenSet::create(&[
     VALUE_PARAMETER_LIST,
     WHEN_ENTRY,
 ]);
+const VISITED_TYPES: TokenSet =
+    TokenSet::create(&[CLASS, DESTRUCTURING_DECLARATION, FUNCTION_LITERAL, TYPE_PARAMETER_LIST, VALUE_PARAMETER_LIST, WHEN_ENTRY]);
 
 const NO_MATCHING_ELEMENT: &str = "NoSuchElementException: Sequence contains no element matching the predicate.";
 
@@ -71,6 +73,10 @@ impl Default for TrailingCommaOnDeclarationSiteRule {
 impl RuleV2 for TrailingCommaOnDeclarationSiteRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:trailing-comma-on-declaration-site")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

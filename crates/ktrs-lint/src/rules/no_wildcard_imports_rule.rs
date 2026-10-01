@@ -8,9 +8,11 @@ use ktrs_editorconfig::{PropertyType, PropertyValue};
 use ktrs_syntax::SyntaxKind::IMPORT_DIRECTIVE;
 
 use crate::editorconfig::{EditorConfigProperty, PropertyRef};
-use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2};
+use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
 use crate::rules::internal::importordering::PatternEntry;
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[IMPORT_DIRECTIVE]);
 
 pub struct NoWildcardImportsRule {
     allowed_wildcard_imports: Vec<PatternEntry>,
@@ -31,6 +33,10 @@ impl Default for NoWildcardImportsRule {
 impl RuleV2 for NoWildcardImportsRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:no-wildcard-imports")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

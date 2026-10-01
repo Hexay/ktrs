@@ -1,11 +1,14 @@
 //! Port of ktlint-ruleset-standard `NoBlankLineAtStartOfFileRule.kt`.
 
 use ktrs_ast::{Ast, NodeId, tree_util};
+use ktrs_syntax::SyntaxKind::FILE;
 
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::AstNodeExtension;
-use crate::rule::{About, Emit, RuleId, RuleV2, TraversalState};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet, TraversalState};
 use crate::rules::STANDARD_RULE_ABOUT;
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[FILE]);
 
 #[derive(Default)]
 pub struct NoBlankLineAtStartOfFileRule {
@@ -15,6 +18,10 @@ pub struct NoBlankLineAtStartOfFileRule {
 impl RuleV2 for NoBlankLineAtStartOfFileRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:no-blank-line-at-start-of-file")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

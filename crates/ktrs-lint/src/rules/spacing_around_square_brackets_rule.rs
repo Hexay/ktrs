@@ -5,8 +5,10 @@ use ktrs_syntax::SyntaxKind::{COLLECTION_LITERAL_EXPRESSION, DESTRUCTURING_DECLA
 
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::AstNodeExtension;
-use crate::rule::{About, Emit, RuleId, RuleV2};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[LBRACKET, RBRACKET]);
 
 /// Ensures there are no extra spaces around square brackets.
 ///
@@ -16,6 +18,10 @@ pub struct SpacingAroundSquareBracketsRule;
 impl RuleV2 for SpacingAroundSquareBracketsRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:square-brackets-spacing")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

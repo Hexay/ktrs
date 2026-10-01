@@ -9,8 +9,10 @@ use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::AstNodeExtension;
 use crate::editorconfig::{INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, PropertyRef};
 use crate::indent_config::IndentConfig;
-use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2};
+use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[TYPE_ARGUMENT_LIST, SUPER_TYPE_LIST, SUPER_EXPRESSION]);
 
 /// Lints and formats the spacing before and after the angle brackets of a type argument list.
 pub struct TypeArgumentListSpacingRule {
@@ -32,6 +34,10 @@ impl Default for TypeArgumentListSpacingRule {
 impl RuleV2 for TypeArgumentListSpacingRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:type-argument-list-spacing")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

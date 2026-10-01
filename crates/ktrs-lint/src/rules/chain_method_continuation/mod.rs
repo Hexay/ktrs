@@ -94,6 +94,10 @@ impl RuleV2 for ChainMethodContinuationRule {
         RuleId("standard:chain-method-continuation")
     }
 
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(CHAIN_OPERATOR_TOKEN_SET)
+    }
+
     fn about(&self) -> About {
         STANDARD_RULE_ABOUT
     }

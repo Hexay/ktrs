@@ -2,18 +2,24 @@
 
 use ktrs_ast::psi::KtFile;
 use ktrs_ast::{Ast, NodeId};
-use ktrs_syntax::SyntaxKind::{IMPORT_LIST, PACKAGE_DIRECTIVE, SCRIPT};
+use ktrs_syntax::SyntaxKind::{FILE, IMPORT_LIST, PACKAGE_DIRECTIVE, SCRIPT};
 
 use crate::ast_node_extension::AstNodeExtension;
-use crate::rule::{About, Emit, RuleId, RuleV2};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
 use crate::rules::internal::kotlin_string::{is_blank, substring_after_last};
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[FILE]);
 
 pub struct NoEmptyFileRule;
 
 impl RuleV2 for NoEmptyFileRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:no-empty-file")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {
