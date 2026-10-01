@@ -266,12 +266,8 @@ impl RuleV2 for UnindentCommentRule {
 }
 
 fn format_spec(before: &str, after: &str) {
-    // third_party/ is in the main checkout, above a worktree.
-    let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .ancestors()
-        .map(|a| a.join("third_party/ktlint/ktlint-rule-engine/src/test/resources/spec"))
-        .find(|d| d.is_dir())
-        .expect("third_party/ktlint (tools/sync-ktlint.sh)");
+    // Vendored from ktlint-rule-engine/src/test/resources/spec.
+    let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../testdata/ktlint-engine/spec");
     let read = |name: &str| {
         std::fs::read_to_string(dir.join(name))
             .unwrap()
