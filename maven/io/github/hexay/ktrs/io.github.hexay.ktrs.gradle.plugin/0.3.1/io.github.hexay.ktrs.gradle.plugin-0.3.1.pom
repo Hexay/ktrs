@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>io.github.hexay.ktrs</groupId>
+  <artifactId>io.github.hexay.ktrs.gradle.plugin</artifactId>
+  <version>0.3.1</version>
+  <packaging>pom</packaging>
+  <name>ktrs (ktfmt-gradle drop-in)</name>
+  <description>Drop-in replacement for com.ncorti.ktfmt.gradle: same DSL and tasks, formatting through ktrs, a native port of ktfmt 0.64 with byte-identical output.</description>
+  <dependencies>
+    <dependency>
+      <groupId>io.github.hexay</groupId>
+      <artifactId>ktrs-gradle-plugin</artifactId>
+      <version>0.3.1</version>
+    </dependency>
+  </dependencies>
+</project>
