@@ -51,7 +51,7 @@ checksum = "aedcfb3409746eddb02b9e19ebda1c3394f759a152e48ee875a0844d1b955484"
 
 [[package]]
 name = "ktrs"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "ktrs-cli",
  "mimalloc",
@@ -59,7 +59,7 @@ dependencies = [
 
 [[package]]
 name = "ktrs-ast"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "ktrs-parser",
  "ktrs-psi",
@@ -69,7 +69,7 @@ dependencies = [
 
 [[package]]
 name = "ktrs-cli"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "ec4rs",
  "ktrs-editorconfig",
@@ -80,14 +80,14 @@ dependencies = [
 
 [[package]]
 name = "ktrs-editorconfig"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "regex",
 ]
 
 [[package]]
 name = "ktrs-fmt"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "expect-test",
  "ktrs-lexer",
@@ -99,7 +99,7 @@ dependencies = [
 
 [[package]]
 name = "ktrs-lexer"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "expect-test",
  "ktrs-syntax",
@@ -107,7 +107,7 @@ dependencies = [
 
 [[package]]
 name = "ktrs-lint"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "ktrs-ast",
  "ktrs-editorconfig",
@@ -120,7 +120,7 @@ dependencies = [
 
 [[package]]
 name = "ktrs-parser"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "expect-test",
  "ktrs-lexer",
@@ -130,7 +130,7 @@ dependencies = [
 
 [[package]]
 name = "ktrs-psi"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "expect-test",
  "ktrs-parser",
@@ -139,14 +139,14 @@ dependencies = [
 
 [[package]]
 name = "ktrs-syntax"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "text-size",
 ]
 
 [[package]]
 name = "ktrs-wasm"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "ktrs-fmt",
 ]
@@ -224,7 +224,7 @@ checksum = "f18aa187839b2bdb1ad2fa35ead8c4c2976b64e4363c386d45ac0f7ee85c9233"
 
 [[package]]
 name = "xtask"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "ktrs-fmt",
  "ktrs-lint",

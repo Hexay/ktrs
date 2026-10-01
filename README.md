@@ -9,12 +9,12 @@
 [![License](https://img.shields.io/badge/license-MIT%20%2F%20Apache--2.0-blue.svg)](#license)
 [![Playground](https://img.shields.io/badge/try%20it-playground-7f52ff.svg)](https://hexay.github.io/ktrs/)
 
-<img src="assets/benchmark.svg" alt="Format okhttp: ktrs 0.47 s vs ktfmt 9.58 s. Lint okhttp: ktrs 0.59 s vs ktlint 11.77 s." width="720">
+<img src="assets/benchmark.svg" alt="Format okhttp: ktrs 0.47 s vs ktfmt 9.58 s. Lint okhttp: ktrs 0.39 s vs ktlint 11.33 s." width="720">
 
 </div>
 
 ktrs is a native replacement for [ktfmt](https://github.com/facebook/ktfmt) and
-[ktlint](https://github.com/pinterest/ktlint). It produces the same output, it is 7-120x faster, and
+[ktlint](https://github.com/pinterest/ktlint). It produces the same output, it is 7-190x faster, and
 it ships as small native binaries with no runtime.
 
 - ⚡ **Fast.** About 10 ms per file in an editor or pre-commit hook, against roughly a second of JVM
@@ -78,7 +78,7 @@ ktlint --relative "src/**/*.kt" "!src/**/generated/**"
 ### GitHub Actions
 
 ```yaml
-- uses: Hexay/ktrs@v0.3.0          # Linux, macOS and Windows
+- uses: Hexay/ktrs@v0.3.1          # Linux, macOS and Windows
 - run: ktrs fmt --check --style kotlinlang
 - run: ktrs lint
 ```
@@ -89,7 +89,7 @@ No Rust needed: on first run, the hook downloads the release binaries for its `r
 
 ```yaml
 - repo: https://github.com/Hexay/ktrs
-  rev: v0.3.0
+  rev: v0.3.1
   hooks:
     - id: ktrs-fmt          # also: ktrs-fmt-check, ktfmt (with ktfmt's flags in `args`)
       args: [--style, kotlinlang]
@@ -152,7 +152,7 @@ auto-format = true
 
 ```kotlin
 plugins {
-    id("io.github.hexay.ktrs") version "0.3.0"   // was: id("com.ncorti.ktfmt.gradle") version "0.27.0"
+    id("io.github.hexay.ktrs") version "0.3.1"   // was: id("com.ncorti.ktfmt.gradle") version "0.27.0"
 }
 ```
 
@@ -161,7 +161,7 @@ plugins {
 ```kotlin
 buildscript {
     repositories { maven("https://hexay.github.io/ktrs/maven") }
-    dependencies { classpath("io.github.hexay:ktrs:0.3.0") }
+    dependencies { classpath("io.github.hexay:ktrs:0.3.1") }
 }
 
 spotless {
@@ -224,13 +224,13 @@ CPUs, JDK 21):
 
 | Scenario | ktrs | ktlint 2.0 | Speedup |
 |---|--:|--:|--:|
-| Editor: one 8 KB file on stdin | 10 ms | 1.09 s | **109x** |
-| Lint one file | 10 ms | 870 ms | **87x** |
-| Lint okhttp (617 files) | 590 ms | 11.77 s | **20x** |
-| Autocorrect okhttp (`-F`) | 1.00 s | 121.01 s | **121x** |
-| Lint okhttp, 1 core | 2.42 s · 40 MB | 39.59 s · 341 MB | **16x** |
-| Lint 7 projects (6,123 files) | 3.03 s · 227 MB | 49.26 s · 514 MB | **16x** |
-| Autocorrect 7 projects (`-F`) | 6.92 s | 336.87 s | **49x** |
+| Editor: one 8 KB file on stdin | <10 ms | 1.04 s | **>100x** |
+| Lint one file | <10 ms | 830 ms | **>80x** |
+| Lint okhttp (617 files) | 390 ms | 11.33 s | **29x** |
+| Autocorrect okhttp (`-F`) | 620 ms | 118.94 s | **192x** |
+| Lint okhttp, 1 core | 1.35 s · 47 MB | 38.15 s · 344 MB | **28x** |
+| Lint 7 projects (6,123 files) | 1.79 s · 249 MB | 48.24 s · 515 MB | **27x** |
+| Autocorrect 7 projects (`-F`) | 3.76 s | 320.12 s | **85x** |
 
 JVM startup dominates small runs. On large runs ktrs is still several times faster per core, and it
 uses every core. The binary is a few MB with no runtime, compared with a 71 MB jar plus a JRE.
