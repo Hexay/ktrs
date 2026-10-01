@@ -8,7 +8,6 @@ use crate::editorconfig::{END_OF_LINE_PROPERTY, EndOfLineValue};
 use crate::engine::code::{Code, KtLintException, LintError};
 use crate::engine::ktlint_rule_engine::{KtLintRuleEngine, UTF8_BOM};
 use crate::engine::rule_execution_context::{RuleExecutionContext, create_rule_execution_context};
-use crate::engine::visitor_provider::VisitorProvider;
 use crate::rule::AutocorrectDecision;
 
 pub(crate) enum AutocorrectHandler<'a> {
@@ -85,7 +84,7 @@ fn format_code(
 ) -> Result<(String, Vec<(LintError, bool)>), KtLintException> {
     let mut context = create_rule_execution_context(engine, code)?;
     let line_separator =
-        determine_line_separator(code, context.editor_config.get(&END_OF_LINE_PROPERTY));
+        determine_line_separator(code, context.setup.editor_config.get(&END_OF_LINE_PROPERTY));
     let mut code_content = formatted_code(&context, line_separator);
     let mut errors = ErrorSet::default();
     let mut format_run_count = 0;
@@ -135,7 +134,7 @@ fn format_pass(
     autocorrect_handler: &mut AutocorrectHandler<'_>,
     after_pass: &mut dyn FnMut(&Ast),
 ) -> Result<ErrorSet, KtLintException> {
-    let rules = VisitorProvider::new(&context.rule_providers).rules();
+    let rules = context.setup.visitor_provider.rules();
     execute_rules_collecting(context, rules, autocorrect_handler, after_pass)
 }
 
@@ -144,7 +143,7 @@ fn lint_after_format(
     context: &mut RuleExecutionContext,
     after_pass: &mut dyn FnMut(&Ast),
 ) -> Result<bool, KtLintException> {
-    let rules = VisitorProvider::new(&context.rule_providers).rules();
+    let rules = context.setup.visitor_provider.rules();
     let mut has_errors_which_can_be_autocorrected = false;
     context.execute_rules(rules, true, &mut |_, _, _, can_be_auto_corrected| {
         has_errors_which_can_be_autocorrected |= can_be_auto_corrected;

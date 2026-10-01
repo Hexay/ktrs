@@ -2,10 +2,10 @@
 //! and enabled rules, and the 2.0 traversal (every rule at a node, then the children, then every rule's
 //! `after` at that node), preceded by a traversal of the internal suppression rule alone.
 
-use std::borrow::Cow;
+use std::ops::Deref;
 use std::panic::{self, AssertUnwindSafe};
 use std::rc::Rc;
-use std::sync::LazyLock;
+use std::sync::{Arc, LazyLock};
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use ktrs_ast::{Ast, NodeId};
@@ -21,9 +21,7 @@ use crate::engine::internal_rules::KTLINT_SUPPRESSION_RULE_ID;
 use crate::engine::ktlint_rule_engine::{KtLintRuleEngine, UTF8_BOM};
 use crate::engine::position_in_text_locator::PositionInTextLocator;
 use crate::engine::rule_dispatch::RuleDispatch;
-use crate::engine::rule_filter::{
-    InternalRuleProvidersFilter, RuleExecutionRuleFilter, apply_rule_filters,
-};
+use crate::engine::rule_setup::RuleSetup;
 use crate::engine::suppression_locator::SuppressionLocator;
 use crate::rule::{About, AutocorrectDecision, RuleId, RuleV2, TokenSet};
 use crate::rule_provider::RuleV2Provider;
@@ -43,8 +41,8 @@ pub type EmitAndApprove<'a> = dyn FnMut(usize, RuleId, &str, bool) -> Autocorrec
 pub(crate) struct RuleExecutionContext {
     file_path_or_stdin: String,
     pub(crate) ast: Ast,
-    pub(crate) rule_providers: Vec<RuleV2Provider>,
-    pub(crate) editor_config: EditorConfig,
+    /// The `.editorconfig` and the rules it enables.
+    pub(crate) setup: Arc<RuleSetup>,
     /// Built from the original text and kept for every pass (so later positions are stale, as upstream).
     pub(crate) position_in_text_locator: Rc<PositionInTextLocator>,
     suppression_locator: SuppressionLocator,
@@ -135,15 +133,14 @@ impl RuleExecutionContext {
         lint_mode: bool,
         emit_and_approve: &mut EmitAndApprove<'_>,
     ) -> Result<(), KtLintRuleException> {
-        let (editor_config, rule_providers) = (&self.editor_config, &self.rule_providers);
+        let setup = &self.setup;
         let parts = TraversalParts {
             ast: &mut self.ast,
             suppression_locator: &mut self.suppression_locator,
             position_in_text_locator: &self.position_in_text_locator,
             lint_mode,
         };
-        let rule_editor_config =
-            |rule: &dyn RuleV2| Cow::Owned(rule_editor_config(editor_config, rule_providers, rule));
+        let rule_editor_config = |rule: &dyn RuleV2| setup.rule_editor_config(rule);
         let file_path_or_stdin = &self.file_path_or_stdin;
         traverse(parts, rules, &rule_editor_config, emit_and_approve).map_err(|e| KtLintRuleException {
             line: e.line,
@@ -165,7 +162,7 @@ impl RuleExecutionContext {
 
 /// The rule's view of the `.editorconfig`: its declared properties, the code style (needed for the
 /// defaults) and whether `standard:max-line-length` runs (whether `max_line_length` applies at all).
-fn rule_editor_config(
+pub(crate) fn rule_editor_config(
     editor_config: &EditorConfig,
     rule_providers: &[RuleV2Provider],
     rule: &dyn RuleV2,
@@ -191,10 +188,10 @@ struct TraversalParts<'a> {
 }
 
 /// One traversal: `beforeFirstNode` for all rules, the node walk, `afterLastNode` for all rules.
-fn traverse<'c>(
+fn traverse<C: Deref<Target = EditorConfig>>(
     parts: TraversalParts<'_>,
     rules: Vec<Box<dyn RuleV2>>,
-    rule_editor_config: &dyn Fn(&dyn RuleV2) -> Cow<'c, EditorConfig>,
+    rule_editor_config: &dyn Fn(&dyn RuleV2) -> C,
     emit_and_approve: &mut EmitAndApprove<'_>,
 ) -> Result<(), RuleExecutionException> {
     let mut rules: Vec<RuleInstance> = rules
@@ -245,7 +242,7 @@ pub fn execute_rules(
     traverse(
         parts,
         rules,
-        &|_| Cow::Borrowed(editor_config),
+        &|_| editor_config,
         emit_and_approve,
     )
     .map_err(|e| e.cause)
@@ -437,19 +434,12 @@ pub(crate) fn create_rule_execution_context(
     let editor_config = engine
         .editor_config_loader()
         .load(code.file_path.as_deref())?;
-    let rule_providers = apply_rule_filters(
-        &engine.rule_providers,
-        &[
-            &InternalRuleProvidersFilter::new(&engine.rule_providers),
-            &RuleExecutionRuleFilter::new(&editor_config),
-        ],
-    );
+    let setup = engine.rule_setup(editor_config);
     Ok(RuleExecutionContext {
         file_path_or_stdin: code.file_path_or_stdin(),
         ast,
-        rule_providers,
-        suppression_locator: SuppressionLocator::new(&editor_config),
-        editor_config,
+        suppression_locator: SuppressionLocator::new(&setup.editor_config),
+        setup,
         position_in_text_locator: Rc::new(position_in_text_locator),
     })
 }
