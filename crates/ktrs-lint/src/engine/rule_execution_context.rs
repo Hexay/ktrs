@@ -20,6 +20,7 @@ use crate::engine::code::{Code, KtLintException, KtLintParseException, KtLintRul
 use crate::engine::internal_rules::KTLINT_SUPPRESSION_RULE_ID;
 use crate::engine::ktlint_rule_engine::{KtLintRuleEngine, UTF8_BOM};
 use crate::engine::position_in_text_locator::PositionInTextLocator;
+use crate::engine::rule_dispatch::RuleDispatch;
 use crate::engine::rule_filter::{
     InternalRuleProvidersFilter, RuleExecutionRuleFilter, apply_rule_filters,
 };
@@ -215,6 +216,7 @@ fn traverse<'c>(
         emit_and_approve,
         children: Vec::new(),
         seq: 0,
+        dispatch: RuleDispatch::new(rules.len()),
     };
     let root = traversal.ast.root();
     traversal.execute_rules_on_node_recursively(root, &mut rules)?;
@@ -283,6 +285,7 @@ struct Traversal<'a, 'e> {
     /// One stack of `getChildren(null)` snapshots for the whole walk, so it allocates nothing per node.
     children: Vec<NodeId>,
     seq: u64,
+    dispatch: RuleDispatch,
 }
 
 impl Traversal<'_, '_> {
@@ -296,7 +299,16 @@ impl Traversal<'_, '_> {
         let kind = self.ast.element_type(node);
         // Skipped hooks change nothing, so the replaced check only needs refreshing after a visit.
         let mut replaced = is_replaced(self.ast, node);
-        for r in rules.iter_mut().filter(|r| r.visits(entry_seq)) {
+        // The rules from here on still ask upstream's replaced check, skipped ones included.
+        let mut unchecked_from = 0;
+        let verify = VERIFY_VISITED_TYPES.load(Ordering::Relaxed);
+        let (start, len) = self.dispatch.rules_for(kind, rules.iter().map(|r| r.visited_types), verify);
+        for position in start..start + len {
+            let index = self.dispatch.rule_at(position);
+            let r = &mut rules[index];
+            if !r.visits(entry_seq) {
+                continue;
+            }
             // A node replaced by an earlier rule (e.g. `rawReplaceWithText`) is not processed further.
             if replaced {
                 return Ok(());
@@ -304,9 +316,13 @@ impl Traversal<'_, '_> {
             if r.visited_types.is_none_or(|types| types.contains(kind)) {
                 self.visit(node, r, true)?;
                 replaced = is_replaced(self.ast, node);
-            } else if VERIFY_VISITED_TYPES.load(Ordering::Relaxed) {
+            } else if verify {
                 self.verify_skipped_visit(node, r);
             }
+            unchecked_from = index + 1;
+        }
+        if replaced && rules[unchecked_from..].iter().any(|r| r.visits(entry_seq)) {
+            return Ok(());
         }
         let start = self.children.len();
         self.ast.get_children(node, &mut self.children);

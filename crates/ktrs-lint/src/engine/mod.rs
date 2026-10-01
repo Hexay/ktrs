@@ -15,6 +15,7 @@ mod ktlint_rule_engine_suppression;
 mod ktlint_suppression;
 mod ktlint_suppression_annotation;
 mod position_in_text_locator;
+mod rule_dispatch;
 mod rule_execution_context;
 pub mod rule_filter;
 mod suppression_locator;
