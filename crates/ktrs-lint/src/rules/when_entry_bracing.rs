@@ -6,8 +6,10 @@ use ktrs_syntax::SyntaxKind::{ARROW, BLOCK, WHEN, WHEN_ENTRY};
 use crate::ast_node_extension::AstNodeExtension;
 use crate::editorconfig::{INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, PropertyRef};
 use crate::indent_config::IndentConfig;
-use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2};
+use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[WHEN]);
 
 /// If any when condition is using curly braces, then all other when conditions should use braces as well.
 pub struct WhenEntryBracing {
@@ -29,6 +31,10 @@ impl Default for WhenEntryBracing {
 impl RuleV2 for WhenEntryBracing {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:when-entry-bracing")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

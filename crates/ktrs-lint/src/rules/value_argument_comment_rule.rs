@@ -4,8 +4,9 @@ use ktrs_ast::{Ast, NodeId};
 use ktrs_syntax::SyntaxKind::VALUE_ARGUMENT;
 
 use crate::ast_node_extension::AstNodeExtension;
-use crate::rule::{About, Emit, RuleId, RuleV2};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
+use crate::token_sets::COMMENTS;
 
 /// Disallows comments inside a value argument. One of the rules split from `DiscouragedCommentLocationRule`.
 pub struct ValueArgumentCommentRule;
@@ -13,6 +14,11 @@ pub struct ValueArgumentCommentRule;
 impl RuleV2 for ValueArgumentCommentRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:value-argument-comment")
+    }
+
+    // A part-of-comment node whose parent is a VALUE_ARGUMENT is itself a COMMENTS node.
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(COMMENTS)
     }
 
     fn about(&self) -> About {

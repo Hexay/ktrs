@@ -58,6 +58,10 @@ impl RuleV2 for TrailingCommaOnCallSiteRule {
         RuleId("standard:trailing-comma-on-call-site")
     }
 
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(TYPES_ON_CALL_SITE)
+    }
+
     fn about(&self) -> About {
         STANDARD_RULE_ABOUT
     }

@@ -14,9 +14,19 @@ use ktrs_syntax::SyntaxKind::{
 
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::AstNodeExtension;
-use crate::rule::{About, Emit, RuleId, RuleV2};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
 use crate::rules::internal::kotlin_string::{is_blank, remove_surrounding, substring_after, substring_before, substring_before_last, trim};
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[
+    PACKAGE_DIRECTIVE,
+    IMPORT_DIRECTIVE,
+    DOT_QUALIFIED_EXPRESSION,
+    KDOC_MARKDOWN_LINK,
+    REFERENCE_EXPRESSION,
+    OPERATION_REFERENCE,
+    BY_KEYWORD,
+]);
 
 pub struct NoUnusedImportsRule {
     /// The set of `Reference(text, inDotQualifiedExpression)`, split by the flag: `[false]`, `[true]`.
@@ -53,6 +63,10 @@ impl Default for NoUnusedImportsRule {
 impl RuleV2 for NoUnusedImportsRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:no-unused-imports")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

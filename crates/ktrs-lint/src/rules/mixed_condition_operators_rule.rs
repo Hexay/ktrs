@@ -9,11 +9,17 @@ use crate::ast_node_extension::AstNodeExtension;
 use crate::rule::{About, Emit, RuleId, RuleV2};
 use crate::rules::STANDARD_RULE_ABOUT;
 
+const VISITED_TYPES: TokenSet = TokenSet::create(&[BINARY_EXPRESSION]);
+
 pub struct MixedConditionOperatorsRule;
 
 impl RuleV2 for MixedConditionOperatorsRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:mixed-condition-operators")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

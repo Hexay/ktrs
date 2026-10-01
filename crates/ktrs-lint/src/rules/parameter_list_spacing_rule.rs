@@ -8,9 +8,11 @@ use ktrs_syntax::SyntaxKind::{
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::{AstNodeExtension, AstNodeLines};
 use crate::editorconfig::{MAX_LINE_LENGTH_PROPERTY, PropertyRef};
-use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2};
+use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
 use crate::rules::max_line_length_rule::max_line_length;
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[VALUE_PARAMETER_LIST]);
 
 /// Ensures consistent spacing inside the parameter list. This rule partly overlaps with other rules like spacing around
 /// commas and colons. However, it does have a more complete view on the higher concept of the parameter-list without
@@ -34,6 +36,10 @@ impl Default for ParameterListSpacingRule {
 impl RuleV2 for ParameterListSpacingRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:parameter-list-spacing")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

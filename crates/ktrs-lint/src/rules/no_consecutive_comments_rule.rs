@@ -4,8 +4,10 @@ use ktrs_ast::{Ast, NodeId};
 use ktrs_syntax::SyntaxKind::{BLOCK_COMMENT, EOL_COMMENT, KDOC_END, KDOC_START};
 
 use crate::ast_node_extension::AstNodeExtension;
-use crate::rule::{About, Emit, RuleId, RuleV2};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[EOL_COMMENT, BLOCK_COMMENT, KDOC_START]);
 
 /// Consecutive comments should be disallowed in following cases:
 /// - Any mix of a consecutive kdoc, a block comment or an EOL comment unless separated by a blank line in between
@@ -18,6 +20,10 @@ pub struct NoConsecutiveCommentsRule;
 impl RuleV2 for NoConsecutiveCommentsRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:no-consecutive-comments")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

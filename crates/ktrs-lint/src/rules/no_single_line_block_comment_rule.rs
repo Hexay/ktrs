@@ -6,9 +6,11 @@ use ktrs_syntax::SyntaxKind::{BLOCK_COMMENT, EOL_COMMENT};
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::AstNodeExtension;
 use crate::editorconfig::{INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, PropertyRef};
-use crate::rule::{About, Emit, RuleId, RuleV2};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
 use crate::rules::internal::kotlin_string::{remove_surrounding, trim};
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[BLOCK_COMMENT]);
 
 /// A block comment following another element on the same line is replaced with an EOL comment, if possible.
 pub struct NoSingleLineBlockCommentRule;
@@ -16,6 +18,10 @@ pub struct NoSingleLineBlockCommentRule;
 impl RuleV2 for NoSingleLineBlockCommentRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:no-single-line-block-comment")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

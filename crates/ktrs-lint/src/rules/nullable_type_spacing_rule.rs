@@ -4,14 +4,20 @@ use ktrs_ast::{Ast, NodeId};
 use ktrs_syntax::SyntaxKind::QUEST;
 
 use crate::ast_node_extension::AstNodeExtension;
-use crate::rule::{About, Emit, RuleId, RuleV2};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[QUEST]);
 
 pub struct NullableTypeSpacingRule;
 
 impl RuleV2 for NullableTypeSpacingRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:nullable-type-spacing")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

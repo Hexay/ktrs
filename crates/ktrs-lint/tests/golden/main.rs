@@ -4,6 +4,7 @@
 //! `tools/ktlint-tests/extract-goldens.sh`. Cases needing an unported rule are skipped and counted.
 //! Ratchet: cases in `tests/golden-passing.txt` must pass; `UPDATE_PASSING=1 cargo test -p ktrs-lint --release
 //! --test golden` rewrites it. `GOLDEN_FILTER=<substring>` runs a subset (no ratchet check).
+//! `GOLDEN_VERIFY_VISITED_TYPES=1` also runs every hook a rule's `visited_types` skips and fails the case if it acts.
 
 mod case;
 mod engine;
@@ -39,6 +40,7 @@ fn ktlint_goldens() {
         .filter(|c| filter.as_ref().is_none_or(|f| c.name.contains(f.as_str())))
         .collect();
     assert!(!cases.is_empty(), "no cases under {}; run tools/ktlint-tests/extract-goldens.sh", root.display());
+    ktrs_lint::engine::set_verify_visited_types(env::var_os("GOLDEN_VERIFY_VISITED_TYPES").is_some_and(|v| v == "1"));
 
     let previous_hook = panic::take_hook();
     panic::set_hook(Box::new(|_| {}));

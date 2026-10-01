@@ -5,14 +5,20 @@ use ktrs_syntax::SyntaxKind::EOL_COMMENT;
 
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::AstNodeExtension;
-use crate::rule::{About, Emit, RuleId, RuleV2};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[EOL_COMMENT]);
 
 pub struct CommentSpacingRule;
 
 impl RuleV2 for CommentSpacingRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:comment-spacing")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

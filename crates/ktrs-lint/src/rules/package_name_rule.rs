@@ -6,15 +6,21 @@ use ktrs_ast::{Ast, NodeId};
 use ktrs_syntax::SyntaxKind::{DOT_QUALIFIED_EXPRESSION, PACKAGE_DIRECTIVE, REFERENCE_EXPRESSION};
 
 use crate::ast_node_extension::AstNodeExtension;
-use crate::rule::{About, Emit, RuleId, RuleV2};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
 use crate::rules::internal::{KotlinRegex, reg_ex_ignoring_diacritics_and_strokes_on_letters};
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[PACKAGE_DIRECTIVE]);
 
 pub struct PackageNameRule;
 
 impl RuleV2 for PackageNameRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:package-name")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

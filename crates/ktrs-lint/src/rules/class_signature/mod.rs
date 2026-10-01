@@ -20,7 +20,7 @@ use crate::element_type::{
     WHITE_SPACE,
 };
 use crate::indent_config::IndentConfig;
-use crate::rule::{About, Emit, RuleId, RuleV2};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
 use crate::rules::function_signature::{children_between, collect_leaves_recursively, join_text_length};
 use crate::rules::max_line_length_rule::max_line_length;
@@ -55,9 +55,15 @@ impl Default for ClassSignatureRule {
     }
 }
 
+const VISITED_TYPES: TokenSet = TokenSet::create(&[CLASS]);
+
 impl RuleV2 for ClassSignatureRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:class-signature")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

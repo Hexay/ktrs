@@ -5,14 +5,20 @@ use ktrs_syntax::SyntaxKind::{EQ, WHITE_SPACE};
 
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::AstNodeExtension;
-use crate::rule::{About, Emit, RuleId, RuleV2};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[EQ]);
 
 pub struct NoLineBreakBeforeAssignmentRule;
 
 impl RuleV2 for NoLineBreakBeforeAssignmentRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:no-line-break-before-assignment")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

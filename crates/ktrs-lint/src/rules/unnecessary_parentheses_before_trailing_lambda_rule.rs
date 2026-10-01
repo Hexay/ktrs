@@ -5,8 +5,10 @@ use ktrs_syntax::SyntaxKind::{CALL_EXPRESSION, FUNCTION_LITERAL, LAMBDA_ARGUMENT
 
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::AstNodeExtension;
-use crate::rule::{About, Emit, RuleId, RuleV2};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[VALUE_ARGUMENT_LIST]);
 
 /// Ensures there are no unnecessary parentheses before a trailing lambda.
 pub struct UnnecessaryParenthesesBeforeTrailingLambdaRule;
@@ -14,6 +16,10 @@ pub struct UnnecessaryParenthesesBeforeTrailingLambdaRule;
 impl RuleV2 for UnnecessaryParenthesesBeforeTrailingLambdaRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:unnecessary-parentheses-before-trailing-lambda")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {
