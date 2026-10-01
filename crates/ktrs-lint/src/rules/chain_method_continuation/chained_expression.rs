@@ -19,7 +19,7 @@ const CHAINABLE_ELEMENT_TYPES: TokenSet = TokenSet::create(&[
 ]);
 
 /// The chain operators of one expression, which live at different levels of the AST, flattened.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub(super) struct ChainedExpression {
     pub root_ast_node: NodeId,
     pub chain_operators: Vec<NodeId>,
@@ -29,12 +29,18 @@ pub(super) struct ChainedExpression {
 }
 
 impl ChainedExpression {
-    pub fn create_from(ast: &Ast, ast_node: NodeId) -> ChainedExpression {
+    /// The outermost chainable ancestor of the chain operator `ast_node`: the expression is built from it alone.
+    pub fn chain_parent(ast: &Ast, ast_node: NodeId) -> NodeId {
         assert!(CHAIN_OPERATOR_TOKEN_SET.contains(ast.element_type(ast_node)), "IllegalArgumentException: Failed requirement.");
         let mut chain_parent = ast.parent(ast_node).expect("IllegalArgumentException: Required value was null.");
         while let Some(parent) = ast.parent(chain_parent).filter(|&p| CHAINABLE_ELEMENT_TYPES.contains(ast.element_type(p))) {
             chain_parent = parent;
         }
+        chain_parent
+    }
+
+    /// `createFrom(astNode)`, given its [`Self::chain_parent`].
+    pub fn create_from(ast: &Ast, ast_node: NodeId, chain_parent: NodeId) -> ChainedExpression {
         to_chained_expression(ast, chain_parent).unwrap_or_else(|| {
             let text = ast.parent(ast_node).map(|p| ast.text(p)).unwrap_or_else(|| "null".to_owned());
             panic!("IllegalArgumentException: Failed to create chained expression from {text}")
