@@ -62,7 +62,10 @@ impl RuleV2 for FunctionNamingRule {
             && ast.element_type(node) == IMPORT_DIRECTIVE
             && KtImportDirective::of(ast, node)
                 .import_path(ast)
-                .is_some_and(|path| TEST_LIBRARIES_SET.iter().any(|it| path.path_str().starts_with(it)))
+                .is_some_and(|path| {
+                    let path_str = path.path_str();
+                    TEST_LIBRARIES_SET.iter().any(|it| path_str.starts_with(it))
+                })
         {
             self.is_test_class = true;
         }

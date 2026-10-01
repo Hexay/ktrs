@@ -1,7 +1,5 @@
 //! Port of `ImportSorter.kt`: orders imports by layout pattern, then alphabetically.
 
-use std::cmp::Ordering;
-
 use ktrs_ast::psi::ImportPath;
 
 use super::pattern_entry::PatternEntry;
@@ -15,12 +13,11 @@ impl ImportSorter {
         ImportSorter { patterns }
     }
 
-    /// `compare(import1, import2)`: `compareValuesBy(findImportIndex, toString().replace("`", ""))`, the
-    /// strings compared by UTF-16 unit like `String.compareTo`.
-    pub fn compare(&self, import_path1: &ImportPath, import_path2: &ImportPath) -> Ordering {
-        self.find_import_index(import_path1)
-            .cmp(&self.find_import_index(import_path2))
-            .then_with(|| sort_text(import_path1).encode_utf16().cmp(sort_text(import_path2).encode_utf16()))
+    /// `compare(import1, import2)` is the order of these keys: `compareValuesBy(findImportIndex,
+    /// toString().replace("`", ""))`, the strings compared by UTF-16 unit like `String.compareTo`. Computed
+    /// once per import, since both parts render the path.
+    pub fn sort_key(&self, import_path: &ImportPath) -> (i32, Vec<u16>) {
+        (self.find_import_index(import_path), import_path.to_string().replace('`', "").encode_utf16().collect())
     }
 
     pub fn find_import_index(&self, path: &ImportPath) -> i32 {
@@ -28,6 +25,7 @@ impl ImportSorter {
         let mut best_entry_match: Option<&PatternEntry> = None;
         let mut all_other_alias_index = -1;
         let mut all_other_index = -1;
+        let (has_alias, path_str) = (path.has_alias(), path.path_str());
 
         for (index, entry) in self.patterns.iter().enumerate() {
             let index = index as i32;
@@ -37,7 +35,7 @@ impl ImportSorter {
             if *entry == PatternEntry::all_other_imports_entry() {
                 all_other_index = index;
             }
-            if entry.is_better_match_for_package_than(best_entry_match, path) {
+            if entry.is_better_match_for_package_than(best_entry_match, has_alias, &path_str) {
                 best_entry_match = Some(entry);
                 best_index = index;
             }
@@ -49,8 +47,4 @@ impl ImportSorter {
         }
         best_index
     }
-}
-
-fn sort_text(import_path: &ImportPath) -> String {
-    import_path.to_string().replace('`', "")
 }

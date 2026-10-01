@@ -73,17 +73,16 @@ impl RuleV2 for ImportOrderingRule {
 
         // insert blank lines wherever needed, based on the patterns between the indexes of each pair of imports
         let mut sorted_imports_with_spaces: Vec<NodeId> = Vec::new();
-        let mut prev: Option<NodeId> = None;
-        for current in sorted_imports {
-            let index1 = prev.map_or(-1, |p| self.import_sorter.find_import_index(&import_path(ast, p)));
-            let index2 = self.import_sorter.find_import_index(&import_path(ast, current));
+        let mut prev: Option<(NodeId, i32)> = None;
+        for (current, index2) in sorted_imports {
+            let index1 = prev.map_or(-1, |(_, index)| index);
             let has_blank_lines =
                 ((index1 + 1)..index2).any(|i| self.import_sorter.patterns[i as usize].is_blank_line_entry());
             if has_blank_lines && prev.is_some() {
                 sorted_imports_with_spaces.push(ast.new_leaf(WHITE_SPACE, "\n\n"));
             }
             sorted_imports_with_spaces.push(current);
-            prev = Some(current);
+            prev = Some((current, index2));
         }
 
         if has_comments {
@@ -118,15 +117,16 @@ impl RuleV2 for ImportOrderingRule {
 }
 
 impl ImportOrderingRule {
-    /// The import directives sorted by the [`ImportSorter`] (a stable sort, like `sortedWith`).
-    fn sorted_imports(&self, ast: &Ast, imports: &[NodeId]) -> Vec<NodeId> {
-        let mut keyed: Vec<(NodeId, ImportPath)> = imports
+    /// The import directives sorted by the [`ImportSorter`] (a stable sort, like `sortedWith`), each with
+    /// its `findImportIndex`.
+    fn sorted_imports(&self, ast: &Ast, imports: &[NodeId]) -> Vec<(NodeId, i32)> {
+        let mut keyed: Vec<(NodeId, (i32, Vec<u16>))> = imports
             .iter()
             .filter(|&&it| KtImportDirective::is(ast, it))
-            .map(|&it| (it, import_path(ast, it)))
+            .map(|&it| (it, self.import_sorter.sort_key(&import_path(ast, it))))
             .collect();
-        keyed.sort_by(|(_, a), (_, b)| self.import_sorter.compare(a, b));
-        keyed.into_iter().map(|(it, _)| it).collect()
+        keyed.sort_by(|(_, a), (_, b)| a.cmp(b));
+        keyed.into_iter().map(|(it, (index, _))| (it, index)).collect()
     }
 
     /// `ERROR_MESSAGES.getOrDefault(importsLayout, CUSTOM_ERROR_MESSAGE)`.
