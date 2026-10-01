@@ -2,6 +2,8 @@ use std::cell::{Cell, RefCell};
 
 use ktrs_syntax::{Parse, SyntaxKind, Tree};
 
+use crate::text::{newline_count, utf16_surplus};
+
 /// An `ASTNode` reference. Ids are never reused, so a detached node stays addressable.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct NodeId(pub(crate) u32);
@@ -26,6 +28,8 @@ pub(crate) struct Node {
     pub(crate) len: u32,
     /// UTF-8 minus UTF-16 length of the text, kept like `len`: UTF-16 offsets and lengths without a walk.
     pub(crate) surplus: u32,
+    /// `\n` count of the text, kept like `len`: `textContains('\n')` without a walk.
+    pub(crate) newlines: u32,
     /// Java `String.hashCode()` of the text, lazily filled. A cached node's hash is current and an
     /// uncached node's ancestors are uncached: every link change clears its parent chain.
     pub(crate) text_hash: Cell<Option<u32>>,
@@ -115,15 +119,19 @@ impl Ast {
                 data,
                 len: range.len().into(),
                 surplus: 0,
+                newlines: 0,
                 text_hash: Cell::new(None),
                 offset_in_parent: Cell::new(offset),
             });
-            if flags == LEAF && !ascii {
-                let surplus = utf16_surplus(&tree.text()[range]);
+            if flags == LEAF {
+                let text = &tree.text()[range];
+                let (surplus, newlines) = (if ascii { 0 } else { utf16_surplus(text) }, newline_count(text));
                 let mut n = id;
-                while surplus != 0 && n != NONE {
-                    self.nodes[n as usize].surplus += surplus;
-                    n = self.nodes[n as usize].parent;
+                while (surplus != 0 || newlines != 0) && n != NONE {
+                    let node = &mut self.nodes[n as usize];
+                    node.surplus += surplus;
+                    node.newlines += newlines;
+                    n = node.parent;
                 }
             }
             if prev != NONE {
@@ -249,27 +257,27 @@ impl Ast {
         let data = self.text.len() as u32;
         self.text.push_str(text);
         self.ascii &= text.is_ascii();
-        self.push(kind, LEAF, data, text.len() as u32, utf16_surplus(text))
+        self.push(kind, LEAF, data, (text.len() as u32, utf16_surplus(text), newline_count(text)))
     }
 
     /// A detached, empty composite (`new KtBlockExpression(null)` and the like).
     pub fn new_composite(&mut self, kind: SyntaxKind) -> NodeId {
-        self.push(kind, 0, 0, 0, 0)
+        self.push(kind, 0, 0, (0, 0, 0))
     }
 
     /// `DummyHolderFactory.createHolder(...).getTreeElement()`.
     pub(crate) fn new_dummy_holder(&mut self) -> NodeId {
-        self.push(SyntaxKind::DUMMY_HOLDER, FILE_ELEMENT, 0, 0, 0)
+        self.push(SyntaxKind::DUMMY_HOLDER, FILE_ELEMENT, 0, (0, 0, 0))
     }
 
     /// A detached copy of `n`'s node record without links (`TreeElement.clone`'s shallow part).
     pub(crate) fn push_unlinked_copy(&mut self, n: NodeId) -> NodeId {
-        let Node { kind, flags, data, len, surplus, .. } = *self.node(n);
-        let (len, surplus) = if flags & LEAF != 0 { (len, surplus) } else { (0, 0) };
-        self.push(kind, flags, data, len, surplus)
+        let Node { kind, flags, data, len, surplus, newlines, .. } = *self.node(n);
+        self.push(kind, flags, data, if flags & LEAF != 0 { (len, surplus, newlines) } else { (0, 0, 0) })
     }
 
-    fn push(&mut self, kind: SyntaxKind, flags: u8, data: u32, len: u32, surplus: u32) -> NodeId {
+    /// A detached node with the text metrics `(len, surplus, newlines)`.
+    fn push(&mut self, kind: SyntaxKind, flags: u8, data: u32, (len, surplus, newlines): (u32, u32, u32)) -> NodeId {
         let id = NodeId(self.nodes.len() as u32);
         self.modification_count += 1;
         self.nodes.push(Node {
@@ -283,17 +291,10 @@ impl Ast {
             data,
             len,
             surplus,
+            newlines,
             text_hash: Cell::new(None),
             offset_in_parent: Cell::new(NONE),
         });
         id
     }
-}
-
-/// UTF-8 minus UTF-16 length of `text`.
-fn utf16_surplus(text: &str) -> u32 {
-    if text.is_ascii() {
-        return 0;
-    }
-    text.chars().map(|c| (c.len_utf8() - c.len_utf16()) as u32).sum()
 }
