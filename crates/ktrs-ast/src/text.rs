@@ -98,8 +98,11 @@ impl Ast {
         *found
     }
 
-    /// `textContains(c)`.
+    /// `textContains(c)`; O(1) for `\n` (every node keeps its newline count).
     pub fn text_contains(&self, n: NodeId, c: char) -> bool {
+        if c == '\n' {
+            return self.node(n).newlines != 0;
+        }
         self.text_chunks(n).any(|chunk| chunk.contains(c))
     }
 
@@ -150,4 +153,16 @@ impl Ast {
         }
         byte_offset - surplus
     }
+}
+
+/// UTF-8 minus UTF-16 length of `text`.
+pub(crate) fn utf16_surplus(text: &str) -> u32 {
+    if text.is_ascii() {
+        return 0;
+    }
+    text.chars().map(|c| (c.len_utf8() - c.len_utf16()) as u32).sum()
+}
+
+pub(crate) fn newline_count(text: &str) -> u32 {
+    text.bytes().filter(|&b| b == b'\n').count() as u32
 }

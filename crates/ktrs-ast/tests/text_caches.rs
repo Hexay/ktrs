@@ -1,4 +1,4 @@
-//! The incrementally kept text hash and UTF-16 surplus agree with a recomputation from the text, before
+//! The incrementally kept text hash, UTF-16 surplus and newline count agree with a recomputation from the text, before
 //! and after every kind of edit (non-ASCII text, so the UTF-16 paths are taken).
 
 mod common;
@@ -16,6 +16,7 @@ fn assert_caches(ast: &Ast) {
         let text = ast.text(n);
         assert_eq!(ast.text_hash_code(n), java_hash(&text), "hash of {:?} {text:?}", ast.element_type(n));
         assert_eq!(ast.text_length_utf16(n), text.encode_utf16().count(), "utf16 length of {text:?}");
+        assert_eq!(ast.text_contains(n, '\n'), text.contains('\n'), "newline in {text:?}");
     }
     let text = ast.text(ast.root());
     for (byte_offset, _) in text.char_indices().chain([(text.len(), ' ')]) {
