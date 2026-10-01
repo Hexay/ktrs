@@ -253,6 +253,10 @@ impl RuleV2 for SimpleTestRule {
         }
     }
 
+    fn visits_after_child_nodes(&self) -> bool {
+        true
+    }
+
     fn after_visit_child_nodes(&mut self, ast: &mut Ast, node: NodeId, _emit: &mut Emit<'_>) {
         self.record(self.to_rule_execution_call(ast, node, RuleMethod::AfterChildren));
         if (self.stop_traversal_in_after_visit_child_nodes)(ast, node) {

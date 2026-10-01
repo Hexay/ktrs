@@ -24,6 +24,11 @@ pub(crate) struct Node {
     data: u32,
     /// Text length; a composite's is the sum over its children, kept current on every relink.
     pub(crate) len: u32,
+    /// UTF-8 minus UTF-16 length of the text, kept like `len`: UTF-16 offsets and lengths without a walk.
+    pub(crate) surplus: u32,
+    /// Java `String.hashCode()` of the text, lazily filled. A cached node's hash is current and an
+    /// uncached node's ancestors are uncached: every link change clears its parent chain.
+    pub(crate) text_hash: Cell<Option<u32>>,
     /// `myStartOffsetInParent`, lazily filled; `NONE` = not computed. The valid entries of a child
     /// list are always a prefix of it, as in IntelliJ.
     pub(crate) offset_in_parent: Cell<u32>,
@@ -39,6 +44,8 @@ pub struct Ast {
     root: NodeId,
     ascii: bool,
     psi_file_name: String,
+    /// Bumped by every edit: `node_mut` and `push` are the only writers of links, lengths and leaves.
+    modification_count: u64,
 }
 
 pub(crate) fn opt(raw: u32) -> Option<NodeId> {
@@ -59,6 +66,7 @@ impl Ast {
             root: NodeId(0),
             ascii: true,
             psi_file_name: "File.kt".to_owned(),
+            modification_count: 0,
         };
         ast.root = ast.seed(parse);
         ast
@@ -67,10 +75,12 @@ impl Ast {
     /// Appends `parse`'s whole tree as a new detached file element and returns its root.
     pub(crate) fn seed(&mut self, parse: &Parse) -> NodeId {
         let tree: &Tree = &parse.tree;
+        self.modification_count += 1;
         let base = self.nodes.len() as u32;
         let text_base = self.text.len() as u32;
         self.text.push_str(tree.text());
-        self.ascii &= tree.text().is_ascii();
+        let ascii = tree.text().is_ascii();
+        self.ascii &= ascii;
         let mut error = self.errors.len() as u32;
         self.errors.extend(parse.error_messages.iter().cloned());
         for e in 0..tree.len() as u32 {
@@ -101,8 +111,18 @@ impl Ast {
                 next: NONE,
                 data,
                 len: range.len().into(),
+                surplus: 0,
+                text_hash: Cell::new(None),
                 offset_in_parent: Cell::new(offset),
             });
+            if flags == LEAF && !ascii {
+                let surplus = utf16_surplus(&tree.text()[range]);
+                let mut n = id;
+                while surplus != 0 && n != NONE {
+                    self.nodes[n as usize].surplus += surplus;
+                    n = self.nodes[n as usize].parent;
+                }
+            }
             if prev != NONE {
                 self.nodes[prev as usize].next = id;
             } else if parent != NONE {
@@ -137,12 +157,29 @@ impl Ast {
         self.nodes.len()
     }
 
+    /// The nodes allocated after the first `start` (attached or not); a node's type never changes.
+    pub fn nodes_allocated_since(&self, start: usize) -> impl Iterator<Item = NodeId> + use<> {
+        (start as u32..self.nodes.len() as u32).map(NodeId)
+    }
+
     pub(crate) fn node(&self, n: NodeId) -> &Node {
         &self.nodes[n.0 as usize]
     }
 
     pub(crate) fn node_mut(&mut self, n: NodeId) -> &mut Node {
+        self.modification_count += 1;
         &mut self.nodes[n.0 as usize]
+    }
+
+    /// Changes whenever the tree or any leaf does; equal counts mean an identical tree.
+    pub fn modification_count(&self) -> u64 {
+        self.modification_count
+    }
+
+    /// The text of every leaf ever allocated, in allocation order (append-only; a leaf's text is one
+    /// contiguous slice of it). Lets a caller cheaply ask whether any leaf could contain a word.
+    pub fn allocated_leaf_text(&self) -> &str {
+        &self.text
     }
 
     pub fn element_type(&self, n: NodeId) -> SyntaxKind {
@@ -209,28 +246,29 @@ impl Ast {
         let data = self.text.len() as u32;
         self.text.push_str(text);
         self.ascii &= text.is_ascii();
-        self.push(kind, LEAF, data, text.len() as u32)
+        self.push(kind, LEAF, data, text.len() as u32, utf16_surplus(text))
     }
 
     /// A detached, empty composite (`new KtBlockExpression(null)` and the like).
     pub fn new_composite(&mut self, kind: SyntaxKind) -> NodeId {
-        self.push(kind, 0, 0, 0)
+        self.push(kind, 0, 0, 0, 0)
     }
 
     /// `DummyHolderFactory.createHolder(...).getTreeElement()`.
     pub(crate) fn new_dummy_holder(&mut self) -> NodeId {
-        self.push(SyntaxKind::DUMMY_HOLDER, FILE_ELEMENT, 0, 0)
+        self.push(SyntaxKind::DUMMY_HOLDER, FILE_ELEMENT, 0, 0, 0)
     }
 
     /// A detached copy of `n`'s node record without links (`TreeElement.clone`'s shallow part).
     pub(crate) fn push_unlinked_copy(&mut self, n: NodeId) -> NodeId {
-        let Node { kind, flags, data, len, .. } = *self.node(n);
-        let len = if flags & LEAF != 0 { len } else { 0 };
-        self.push(kind, flags, data, len)
+        let Node { kind, flags, data, len, surplus, .. } = *self.node(n);
+        let (len, surplus) = if flags & LEAF != 0 { (len, surplus) } else { (0, 0) };
+        self.push(kind, flags, data, len, surplus)
     }
 
-    fn push(&mut self, kind: SyntaxKind, flags: u8, data: u32, len: u32) -> NodeId {
+    fn push(&mut self, kind: SyntaxKind, flags: u8, data: u32, len: u32, surplus: u32) -> NodeId {
         let id = NodeId(self.nodes.len() as u32);
+        self.modification_count += 1;
         self.nodes.push(Node {
             kind,
             flags,
@@ -241,8 +279,18 @@ impl Ast {
             next: NONE,
             data,
             len,
+            surplus,
+            text_hash: Cell::new(None),
             offset_in_parent: Cell::new(NONE),
         });
         id
     }
+}
+
+/// UTF-8 minus UTF-16 length of `text`.
+fn utf16_surplus(text: &str) -> u32 {
+    if text.is_ascii() {
+        return 0;
+    }
+    text.chars().map(|c| (c.len_utf8() - c.len_utf16()) as u32).sum()
 }

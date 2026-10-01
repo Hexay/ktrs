@@ -39,10 +39,7 @@ impl Ast {
 
     /// `getTextLength()` in UTF-16 units, the JVM's `String.length`: what columns and line lengths count.
     pub fn text_length_utf16(&self, n: NodeId) -> usize {
-        if self.is_ascii() {
-            return self.text_length(n);
-        }
-        self.text_chunks(n).map(|chunk| chunk.encode_utf16().count()).sum()
+        self.text_length(n) - self.node(n).surplus as usize
     }
 
     /// The leaf texts of `n`'s subtree in order.
@@ -55,6 +52,28 @@ impl Ast {
         let mut text = String::with_capacity(self.text_length(n));
         self.text_chunks(n).for_each(|chunk| text.push_str(chunk));
         text
+    }
+
+    /// `getText().hashCode()` (Java `String.hashCode()`), recomputed only along the paths edited since
+    /// the last call: `hash(ab) = hash(a) * 31^utf16_len(b) + hash(b)`.
+    pub fn text_hash_code(&self, n: NodeId) -> i32 {
+        if let Some(hash) = self.node(n).text_hash.get() {
+            return hash as i32;
+        }
+        let hash = if self.is_leaf_element(n) {
+            self.leaf_text(n).encode_utf16().fold(0u32, |h, c| h.wrapping_mul(31).wrapping_add(u32::from(c)))
+        } else {
+            let mut hash = 0u32;
+            let mut child = self.first_child_node(n);
+            while let Some(c) = child {
+                let c_hash = self.text_hash_code(c) as u32;
+                hash = hash.wrapping_mul(31u32.wrapping_pow(self.text_length_utf16(c) as u32)).wrapping_add(c_hash);
+                child = self.tree_next(c);
+            }
+            hash
+        };
+        self.node(n).text_hash.set(Some(hash));
+        hash as i32
     }
 
     /// `textContains(c)`.
@@ -78,23 +97,35 @@ impl Ast {
     }
 
     /// The UTF-16 offset (what the JVM's `startOffset` counts) of the UTF-8 `byte_offset` into the
-    /// text of `n`'s tree.
+    /// text of `n`'s tree. Descends by the per-node UTF-16 surplus: emits in a non-ASCII file would
+    /// otherwise each walk the whole file.
     pub fn utf16_offset(&self, n: NodeId, byte_offset: usize) -> usize {
         if self.is_ascii() {
             return byte_offset;
         }
-        let mut top = n;
-        while let Some(p) = self.tree_parent(top) {
-            top = p;
+        let mut cur = n;
+        while let Some(p) = self.tree_parent(cur) {
+            cur = p;
         }
-        let (mut bytes, mut units) = (0, 0);
-        for chunk in self.text_chunks(top) {
-            if bytes + chunk.len() >= byte_offset {
-                return units + chunk[..byte_offset - bytes].encode_utf16().count();
+        let byte_offset = byte_offset.min(self.text_length(cur));
+        let (mut rest, mut surplus) = (byte_offset, 0);
+        'descend: while rest > 0 {
+            if self.is_leaf_element(cur) {
+                surplus += self.leaf_text(cur)[..rest].chars().map(|c| c.len_utf8() - c.len_utf16()).sum::<usize>();
+                break;
             }
-            bytes += chunk.len();
-            units += chunk.encode_utf16().count();
+            let mut child = self.first_child_node(cur);
+            while let Some(c) = child {
+                if rest < self.text_length(c) {
+                    cur = c;
+                    continue 'descend;
+                }
+                rest -= self.text_length(c);
+                surplus += self.node(c).surplus as usize;
+                child = self.tree_next(c);
+            }
+            break;
         }
-        units
+        byte_offset - surplus
     }
 }
