@@ -1,14 +1,11 @@
 //! Port of ktlint-rule-engine `internal/CodeFormatter.kt` (the format loop) and `AutocorrectHandler.kt`.
 
-use std::collections::HashSet;
-
 use ktrs_ast::Ast;
 
 use crate::editorconfig::{END_OF_LINE_PROPERTY, EndOfLineValue};
 use crate::engine::code::{Code, KtLintException, LintError};
 use crate::engine::ktlint_rule_engine::{KtLintRuleEngine, UTF8_BOM};
 use crate::engine::rule_execution_context::{RuleExecutionContext, create_rule_execution_context};
-use crate::engine::visitor_provider::VisitorProvider;
 use crate::rule::AutocorrectDecision;
 
 pub(crate) enum AutocorrectHandler<'a> {
@@ -29,18 +26,30 @@ impl AutocorrectHandler<'_> {
     }
 }
 
-/// `mutableSetOf<Pair<LintError, Boolean>>()`: insertion-ordered, duplicates dropped.
+/// `mutableSetOf<Pair<LintError, Boolean>>()`: insertion-ordered, duplicates dropped. Collected with duplicates
+/// and deduplicated once by [`ErrorSet::into_distinct`], instead of cloning and hashing every error on add.
 #[derive(Default)]
 struct ErrorSet {
     order: Vec<(LintError, bool)>,
-    seen: HashSet<(LintError, bool)>,
 }
 
 impl ErrorSet {
     fn add(&mut self, error: (LintError, bool)) {
-        if self.seen.insert(error.clone()) {
-            self.order.push(error);
+        self.order.push(error);
+    }
+
+    /// The first occurrence of each error, in insertion order.
+    fn into_distinct(self) -> Vec<(LintError, bool)> {
+        let errors = self.order;
+        let mut by_value: Vec<usize> = (0..errors.len()).collect();
+        by_value.sort_unstable_by(|&a, &b| errors[a].cmp(&errors[b]).then(a.cmp(&b)));
+        let mut keep = vec![true; errors.len()];
+        for pair in by_value.windows(2) {
+            if errors[pair[0]] == errors[pair[1]] {
+                keep[pair[1]] = false;
+            }
         }
+        errors.into_iter().zip(keep).filter_map(|(error, keep)| keep.then_some(error)).collect()
     }
 }
 
@@ -85,7 +94,7 @@ fn format_code(
 ) -> Result<(String, Vec<(LintError, bool)>), KtLintException> {
     let mut context = create_rule_execution_context(engine, code)?;
     let line_separator =
-        determine_line_separator(code, context.editor_config.get(&END_OF_LINE_PROPERTY));
+        determine_line_separator(code, context.setup.editor_config.get(&END_OF_LINE_PROPERTY));
     let mut code_content = formatted_code(&context, line_separator);
     let mut errors = ErrorSet::default();
     let mut format_run_count = 0;
@@ -120,7 +129,7 @@ fn format_code(
     } else {
         code.content.clone()
     };
-    Ok((formatted, errors.order))
+    Ok((formatted, errors.into_distinct()))
 }
 
 fn formatted_code(context: &RuleExecutionContext, line_separator: &str) -> String {
@@ -135,7 +144,7 @@ fn format_pass(
     autocorrect_handler: &mut AutocorrectHandler<'_>,
     after_pass: &mut dyn FnMut(&Ast),
 ) -> Result<ErrorSet, KtLintException> {
-    let rules = VisitorProvider::new(&context.rule_providers).rules();
+    let rules = context.setup.visitor_provider.rules();
     execute_rules_collecting(context, rules, autocorrect_handler, after_pass)
 }
 
@@ -144,7 +153,7 @@ fn lint_after_format(
     context: &mut RuleExecutionContext,
     after_pass: &mut dyn FnMut(&Ast),
 ) -> Result<bool, KtLintException> {
-    let rules = VisitorProvider::new(&context.rule_providers).rules();
+    let rules = context.setup.visitor_provider.rules();
     let mut has_errors_which_can_be_autocorrected = false;
     context.execute_rules(rules, true, &mut |_, _, _, can_be_auto_corrected| {
         has_errors_which_can_be_autocorrected |= can_be_auto_corrected;

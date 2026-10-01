@@ -1,9 +1,12 @@
 //! Port of ktlint-rule-engine `api/KtLintRuleEngine.kt`.
 
 use std::path::Path;
+use std::sync::Arc;
 
 use ktrs_ast::Ast;
 
+use crate::editorconfig::EditorConfig;
+use crate::engine::rule_setup::{RuleSetup, RuleSetupCache};
 use crate::engine::code::{Code, KtLintException, LintError};
 use crate::engine::code_formatter::{AutocorrectHandler, format};
 use crate::engine::editor_config_cache::THREAD_SAFE_EDITOR_CONFIG_CACHE;
@@ -24,6 +27,7 @@ pub struct KtLintRuleEngine {
     /// Values that win over every `.editorconfig`.
     editor_config_override: EditorConfigOverride,
     editor_config_loader: EditorConfigLoader,
+    rule_setup_cache: RuleSetupCache,
 }
 
 impl KtLintRuleEngine {
@@ -54,11 +58,17 @@ impl KtLintRuleEngine {
             editor_config_defaults,
             editor_config_override,
             editor_config_loader,
+            rule_setup_cache: RuleSetupCache::default(),
         }
     }
 
     pub(crate) fn editor_config_loader(&self) -> &EditorConfigLoader {
         &self.editor_config_loader
+    }
+
+    /// The enabled rules and their `.editorconfig` views for a file's loaded config.
+    pub(crate) fn rule_setup(&self, editor_config: EditorConfig) -> Arc<RuleSetup> {
+        self.rule_setup_cache.get(editor_config, &self.rule_providers)
     }
 
     pub fn rule_providers(&self) -> &[RuleV2Provider] {

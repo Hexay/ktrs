@@ -71,8 +71,9 @@ impl PatternEntry {
         self.matches_package_name(path_str.strip_suffix(".*").unwrap_or(&path_str))
     }
 
-    pub fn is_better_match_for_package_than(&self, entry: Option<&PatternEntry>, import: &ImportPath) -> bool {
-        if self.has_alias != import.has_alias() || !self.matches_package_name(&import.path_str()) {
+    /// `isBetterMatchForPackageThan(entry, import)`, given the import's `hasAlias()` and `pathStr`.
+    pub fn is_better_match_for_package_than(&self, entry: Option<&PatternEntry>, has_alias: bool, path_str: &str) -> bool {
+        if self.has_alias != has_alias || !self.matches_package_name(path_str) {
             return false;
         }
         let Some(entry) = entry else { return true };
