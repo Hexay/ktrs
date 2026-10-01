@@ -12,6 +12,7 @@ use crate::rules::STANDARD_RULE_ABOUT;
 
 const ALLOWED_PARENT_ELEMENT_TYPES: TokenSet =
     TokenSet::create(&[CLASS, ENUM_ENTRY, FUN, OBJECT_DECLARATION, PROPERTY, SECONDARY_CONSTRUCTOR, TYPEALIAS, VALUE_PARAMETER]);
+const VISITED_TYPES: TokenSet = TokenSet::create(&[KDOC]);
 
 /// Disallow KDoc except of classes, functions and xxx
 pub struct KdocRule;
@@ -19,6 +20,10 @@ pub struct KdocRule;
 impl RuleV2 for KdocRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:kdoc")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

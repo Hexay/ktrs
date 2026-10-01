@@ -5,8 +5,10 @@ use ktrs_syntax::SyntaxKind::{self, FUN_KEYWORD, TYPE_ARGUMENT_LIST, TYPE_PARAME
 
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::AstNodeExtension;
-use crate::rule::{About, Emit, RuleId, RuleV2};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[TYPE_PARAMETER_LIST, TYPE_ARGUMENT_LIST]);
 
 const ELEMENT_TYPES_ALLOWING_PRECEDING_WHITESPACE: [SyntaxKind; 3] = [VAL_KEYWORD, VAR_KEYWORD, FUN_KEYWORD];
 
@@ -15,6 +17,10 @@ pub struct SpacingAroundAngleBracketsRule;
 impl RuleV2 for SpacingAroundAngleBracketsRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:spacing-around-angle-brackets")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

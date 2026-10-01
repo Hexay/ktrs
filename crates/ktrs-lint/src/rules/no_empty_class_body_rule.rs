@@ -5,14 +5,20 @@ use ktrs_syntax::SyntaxKind::{CLASS_BODY, LBRACE, OBJECT_LITERAL, RBRACE};
 
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::AstNodeExtension;
-use crate::rule::{About, Emit, RuleId, RuleV2};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[CLASS_BODY]);
 
 pub struct NoEmptyClassBodyRule;
 
 impl RuleV2 for NoEmptyClassBodyRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:no-empty-class-body")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

@@ -12,6 +12,7 @@ use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2};
 use crate::rules::STANDARD_RULE_ABOUT;
 
 const WRAPPABLE_OPERAND: TokenSet = TokenSet::create(&[ANDAND, OROR, PLUS, MINUS, MUL, DIV]);
+const VISITED_TYPES: TokenSet = TokenSet::create(&[BINARY_EXPRESSION]);
 
 /// Wraps each operand of a multiline expression (sub-expressions ignored) to a new line: `foo || bar ||\n baz` becomes
 /// `foo ||\n bar ||\n baz`.
@@ -34,6 +35,10 @@ impl Default for ExpressionOperandWrappingRule {
 impl RuleV2 for ExpressionOperandWrappingRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:expression-operand-wrapping")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

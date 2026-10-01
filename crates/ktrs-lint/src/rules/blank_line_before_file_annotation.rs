@@ -6,8 +6,10 @@ use ktrs_syntax::SyntaxKind::{FILE_ANNOTATION_LIST, IMPORT_LIST, PACKAGE_DIRECTI
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::AstNodeExtension;
 use crate::editorconfig::{CODE_STYLE_PROPERTY, CodeStyleValue, EditorConfig};
-use crate::rule::{About, Emit, RuleId, RuleV2, TraversalState};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet, TraversalState};
 use crate::rules::STANDARD_RULE_ABOUT;
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[FILE_ANNOTATION_LIST, PACKAGE_DIRECTIVE, IMPORT_LIST]);
 
 /// Insert a blank line before a file annotation.
 #[derive(Default)]
@@ -18,6 +20,10 @@ pub struct BlankLineBeforeFileAnnotation {
 impl RuleV2 for BlankLineBeforeFileAnnotation {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:blank-line-before-file-annotation")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

@@ -5,8 +5,10 @@ use ktrs_syntax::SyntaxKind::THEN;
 
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::{AstNodeExtension, AstNodeQueries};
-use crate::rule::{About, Emit, RuleId, RuleV2};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[THEN]);
 
 /// Checks spacing around then block in an if-statement
 pub struct ThenSpacingRule;
@@ -14,6 +16,10 @@ pub struct ThenSpacingRule;
 impl RuleV2 for ThenSpacingRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:then-spacing")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

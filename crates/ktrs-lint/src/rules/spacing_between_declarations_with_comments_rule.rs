@@ -4,7 +4,7 @@ use ktrs_ast::{Ast, NodeId};
 
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::{AstNodeExtension, AstNodeQueries};
-use crate::rule::{About, Emit, RuleId, RuleV2};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
 use crate::token_sets::COMMENTS;
 
@@ -14,6 +14,10 @@ pub struct SpacingBetweenDeclarationsWithCommentsRule;
 impl RuleV2 for SpacingBetweenDeclarationsWithCommentsRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:spacing-between-declarations-with-comments")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(COMMENTS)
     }
 
     fn about(&self) -> About {

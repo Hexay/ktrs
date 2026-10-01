@@ -12,10 +12,12 @@ use ktrs_syntax::SyntaxKind::{
 
 use crate::ast_node_extension::AstNodeExtension;
 use crate::editorconfig::{EditorConfigProperty, PropertyRef, comma_separated_list_value_parser};
-use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2};
+use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
 use crate::rules::internal::kotlin_string::remove_surrounding;
 use crate::rules::internal::{KotlinRegex, is_keyword, reg_ex_ignoring_diacritics_and_strokes_on_letters};
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[FUN, IMPORT_DIRECTIVE]);
 
 pub struct FunctionNamingRule {
     is_test_class: bool,
@@ -37,6 +39,10 @@ impl Default for FunctionNamingRule {
 impl RuleV2 for FunctionNamingRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:function-naming")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

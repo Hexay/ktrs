@@ -6,6 +6,7 @@ use std::borrow::Cow;
 use std::panic::{self, AssertUnwindSafe};
 use std::rc::Rc;
 use std::sync::LazyLock;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use ktrs_ast::{Ast, NodeId};
 use ktrs_parser::{FileKind, parse_file};
@@ -23,8 +24,17 @@ use crate::engine::rule_filter::{
     InternalRuleProvidersFilter, RuleExecutionRuleFilter, apply_rule_filters,
 };
 use crate::engine::suppression_locator::SuppressionLocator;
-use crate::rule::{About, AutocorrectDecision, RuleId, RuleV2};
+use crate::rule::{About, AutocorrectDecision, RuleId, RuleV2, TokenSet};
 use crate::rule_provider::RuleV2Provider;
+
+static VERIFY_VISITED_TYPES: AtomicBool = AtomicBool::new(false);
+
+/// Test hook: also run the `before_visit_child_nodes` calls that `visited_types` lets the engine skip,
+/// panicking if one emits or edits (`GOLDEN_VERIFY_VISITED_TYPES=1` in `tests/golden`).
+#[doc(hidden)]
+pub fn set_verify_visited_types(enabled: bool) {
+    VERIFY_VISITED_TYPES.store(enabled, Ordering::Relaxed);
+}
 
 /// `emitAndApprove(offset, ruleId, errorMessage, canBeAutoCorrected)`; `offset` in UTF-16 units.
 pub type EmitAndApprove<'a> = dyn FnMut(usize, RuleId, &str, bool) -> AutocorrectDecision + 'a;
@@ -48,6 +58,7 @@ struct RuleInstance {
     rule_id: RuleId,
     ignores_suppressions: bool,
     can_stop: bool,
+    visited_types: Option<TokenSet>,
     visits_after: bool,
 }
 
@@ -57,6 +68,7 @@ impl RuleInstance {
             rule_id: rule.rule_id(),
             ignores_suppressions: rule.ignores_ktlint_suppressions(),
             can_stop: rule.traversal_state().is_some(),
+            visited_types: rule.visited_types(),
             visits_after: rule.visits_after_child_nodes(),
             rule,
             stopped_at: None,
@@ -281,12 +293,20 @@ impl Traversal<'_, '_> {
     ) -> Result<(), RuleExecutionException> {
         self.seq += 1;
         let entry_seq = self.seq;
+        let kind = self.ast.element_type(node);
+        // Skipped hooks change nothing, so the replaced check only needs refreshing after a visit.
+        let mut replaced = is_replaced(self.ast, node);
         for r in rules.iter_mut().filter(|r| r.visits(entry_seq)) {
             // A node replaced by an earlier rule (e.g. `rawReplaceWithText`) is not processed further.
-            if is_replaced(self.ast, node) {
+            if replaced {
                 return Ok(());
             }
-            self.visit(node, r, true)?;
+            if r.visited_types.is_none_or(|types| types.contains(kind)) {
+                self.visit(node, r, true)?;
+                replaced = is_replaced(self.ast, node);
+            } else if VERIFY_VISITED_TYPES.load(Ordering::Relaxed) {
+                self.verify_skipped_visit(node, r);
+            }
         }
         let start = self.children.len();
         self.ast.get_children(node, &mut self.children);
@@ -304,6 +324,20 @@ impl Traversal<'_, '_> {
             self.visit(node, r, false)?;
         }
         Ok(())
+    }
+
+    /// Runs a hook that `visited_types` excludes and panics if it emits or edits the tree.
+    fn verify_skipped_visit(&mut self, node: NodeId, r: &mut RuleInstance) {
+        let (rule_id, kind) = (r.rule_id, self.ast.element_type(node));
+        let modification_count = self.ast.modification_count();
+        r.rule.before_visit_child_nodes(self.ast, node, &mut |_, _, message, _| {
+            panic!("{rule_id}: visited_types misses {kind:?} (emitted {message:?})")
+        });
+        assert_eq!(
+            self.ast.modification_count(),
+            modification_count,
+            "{rule_id}: visited_types misses {kind:?} (edited the tree)"
+        );
     }
 
     fn visit(

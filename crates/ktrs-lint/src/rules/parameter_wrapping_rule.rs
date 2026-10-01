@@ -7,10 +7,12 @@ use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::{AstNodeExtension, AstNodeLines, AstNodeQueries};
 use crate::editorconfig::{INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, MAX_LINE_LENGTH_PROPERTY, PropertyRef};
 use crate::indent_config::IndentConfig;
-use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2};
+use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
 use crate::rules::max_line_length_rule::max_line_length;
 use crate::rules::property_wrapping_rule::sum_of_text_length_until;
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[VALUE_PARAMETER]);
 
 /// Inserts missing newlines inside a value parameter, indented relative to the parent (a best effort for when the
 /// indentation rule does not run). Like `PropertyWrappingRule`, with subtle differences.
@@ -34,6 +36,10 @@ impl Default for ParameterWrappingRule {
 impl RuleV2 for ParameterWrappingRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:parameter-wrapping")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

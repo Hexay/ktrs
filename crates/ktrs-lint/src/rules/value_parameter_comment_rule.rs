@@ -5,8 +5,9 @@ use ktrs_syntax::SyntaxKind::VALUE_PARAMETER;
 
 use crate::ast_node_extension::AstNodeExtension;
 use crate::element_type::KDOC;
-use crate::rule::{About, Emit, RuleId, RuleV2};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
+use crate::token_sets::COMMENTS;
 
 /// Disallows comments inside a value parameter, except a leading KDoc. One of the rules split from
 /// `DiscouragedCommentLocationRule`.
@@ -15,6 +16,11 @@ pub struct ValueParameterCommentRule;
 impl RuleV2 for ValueParameterCommentRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:value-parameter-comment")
+    }
+
+    // A part-of-comment node whose parent is a VALUE_PARAMETER is itself a COMMENTS node.
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(COMMENTS)
     }
 
     fn about(&self) -> About {

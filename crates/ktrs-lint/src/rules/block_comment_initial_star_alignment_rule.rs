@@ -5,8 +5,10 @@ use ktrs_syntax::SyntaxKind::BLOCK_COMMENT;
 
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::AstNodeLines;
-use crate::rule::{About, Emit, RuleId, RuleV2};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[BLOCK_COMMENT]);
 
 /// When present, align the initial star in a block comment.
 pub struct BlockCommentInitialStarAlignmentRule;
@@ -14,6 +16,10 @@ pub struct BlockCommentInitialStarAlignmentRule;
 impl RuleV2 for BlockCommentInitialStarAlignmentRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:block-comment-initial-star-alignment")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

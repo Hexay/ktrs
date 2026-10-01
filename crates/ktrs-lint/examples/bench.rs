@@ -36,6 +36,7 @@ fn run(args: &[String]) {
     let reps: u32 = args.get(1).and_then(|s| s.parse().ok()).unwrap_or(3);
     let mode = args.get(2).map_or("all", String::as_str);
     let filter = args.get(3).cloned().unwrap_or_default();
+    ktrs_lint::engine::set_verify_visited_types(std::env::var_os("KTRS_BENCH_VERIFY").is_some_and(|v| v == "1"));
     let mut files = Vec::new();
     collect(&dir, &mut files);
     files.retain(|f| f.to_string_lossy().contains(&filter));
@@ -59,7 +60,8 @@ fn run(args: &[String]) {
     }
 }
 
-/// `KTRS_BENCH_STYLE=<code style>[-experimental]` overrides the code style (as `cargo lint-diff`'s run names).
+/// `KTRS_BENCH_STYLE=<code style>[-experimental]` overrides the code style (as `cargo lint-diff`'s run names);
+/// `KTRS_BENCH_VERIFY=1` checks every rule's `visited_types` (slow).
 fn engine(providers: Vec<RuleV2Provider>) -> KtLintRuleEngine {
     let Ok(style) = std::env::var("KTRS_BENCH_STYLE") else {
         return KtLintRuleEngine::new(providers);

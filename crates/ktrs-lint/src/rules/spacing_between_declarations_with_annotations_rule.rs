@@ -1,12 +1,15 @@
 //! Port of ktlint-ruleset-standard `SpacingBetweenDeclarationsWithAnnotationsRule.kt`.
 
+use ktrs_ast::psi::DECLARATION_TYPES;
 use ktrs_ast::{Ast, NodeId};
 use ktrs_syntax::SyntaxKind::{ANNOTATION_ENTRY, MODIFIER_LIST, PROPERTY_ACCESSOR};
 
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::{AstNodeExtension, AstNodeQueries};
-use crate::rule::{About, Emit, RuleId, RuleV2};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
+
+const VISITED_TYPES: TokenSet = TokenSet::or_set(&[DECLARATION_TYPES, TokenSet::create(&[PROPERTY_ACCESSOR])]);
 
 /// See <https://youtrack.jetbrains.com/issue/KT-35106>.
 pub struct SpacingBetweenDeclarationsWithAnnotationsRule;
@@ -14,6 +17,10 @@ pub struct SpacingBetweenDeclarationsWithAnnotationsRule;
 impl RuleV2 for SpacingBetweenDeclarationsWithAnnotationsRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:spacing-between-declarations-with-annotations")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

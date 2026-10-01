@@ -10,10 +10,12 @@ use ktrs_syntax::SyntaxKind::{BLOCK_COMMENT, EOL_COMMENT, IMPORT_DIRECTIVE, IMPO
 
 use crate::ast_node_extension::AstNodeExtension;
 use crate::editorconfig::{EditorConfigProperty, PropertyRef};
-use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2};
+use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
 use crate::rules::internal::importordering::{ImportSorter, PatternEntry, parse_imports_layout};
 use crate::rules::internal::kotlin_string::is_blank;
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[IMPORT_LIST]);
 
 pub struct ImportOrderingRule {
     imports_layout: Vec<PatternEntry>,
@@ -35,6 +37,10 @@ impl Default for ImportOrderingRule {
 impl RuleV2 for ImportOrderingRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:import-ordering")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

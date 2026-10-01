@@ -12,9 +12,11 @@ use crate::editorconfig::{
     CODE_STYLE_PROPERTY, CodeStyleValue, INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, MAX_LINE_LENGTH_PROPERTY, PropertyRef,
 };
 use crate::indent_config::IndentConfig;
-use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TraversalState};
+use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TokenSet, TraversalState};
 use crate::rules::STANDARD_RULE_ABOUT;
 use crate::rules::max_line_length_rule::max_line_length;
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[NULLABLE_TYPE, VALUE_PARAMETER_LIST]);
 
 pub struct ParameterListWrappingRule {
     code_style: CodeStyleValue,
@@ -43,6 +45,10 @@ impl Default for ParameterListWrappingRule {
 impl RuleV2 for ParameterListWrappingRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:parameter-list-wrapping")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

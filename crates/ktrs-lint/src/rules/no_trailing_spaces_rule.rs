@@ -1,19 +1,27 @@
 //! Port of ktlint-ruleset-standard `NoTrailingSpacesRule.kt`.
 
 use ktrs_ast::{Ast, NodeId};
-use ktrs_syntax::SyntaxKind::{EOL_COMMENT, KDOC_END, KDOC_LEADING_ASTERISK, KDOC_TEXT};
+use ktrs_parser::kt_tokens::COMMENTS;
+use ktrs_syntax::SyntaxKind::{EOL_COMMENT, KDOC_END, KDOC_LEADING_ASTERISK, KDOC_TEXT, WHITE_SPACE};
 
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::AstNodeExtension;
 use crate::element_type::KDOC;
-use crate::rule::{About, Emit, RuleId, RuleV2};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
+
+// Non-code outside a KDoc is whitespace or a (leaf) comment token.
+const VISITED_TYPES: TokenSet = TokenSet::or_set(&[COMMENTS, TokenSet::create(&[WHITE_SPACE, KDOC_TEXT])]);
 
 pub struct NoTrailingSpacesRule;
 
 impl RuleV2 for NoTrailingSpacesRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:no-trailing-spaces")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

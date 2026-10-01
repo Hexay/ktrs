@@ -10,15 +10,21 @@ use ktrs_syntax::SyntaxKind::{
 
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::AstNodeExtension;
-use crate::rule::{About, Emit, RuleId, RuleV2};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
 use crate::rules::internal::kotlin_string::is_letter_or_digit;
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[LONG_STRING_TEMPLATE_ENTRY]);
 
 pub struct StringTemplateRule;
 
 impl RuleV2 for StringTemplateRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:string-template")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

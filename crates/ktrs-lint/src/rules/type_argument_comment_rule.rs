@@ -9,6 +9,7 @@ use crate::rule::{About, Emit, RuleId, RuleV2};
 use crate::rules::STANDARD_RULE_ABOUT;
 
 const TYPE_ARGUMENT_TOKEN_SET: TokenSet = TokenSet::create(&[TYPE_PROJECTION, TYPE_ARGUMENT_LIST]);
+const VISITED_TYPES: TokenSet = TokenSet::create(&[EOL_COMMENT, BLOCK_COMMENT]);
 
 /// Disallows comments at places in a type argument (list) that make the code hard to read or the rules complex. One of
 /// the rules split from `DiscouragedCommentLocationRule`.
@@ -17,6 +18,10 @@ pub struct TypeArgumentCommentRule;
 impl RuleV2 for TypeArgumentCommentRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:type-argument-comment")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {
