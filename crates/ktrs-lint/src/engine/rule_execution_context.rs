@@ -219,7 +219,7 @@ fn traverse<C: Deref<Target = EditorConfig>>(
         emit_and_approve,
         children: Vec::new(),
         seq: 0,
-        dispatch: RuleDispatch::new(rules.len()),
+        dispatch: RuleDispatch::new(rules.iter().map(|r| r.visits_after)),
     };
     let root = traversal.ast.root();
     traversal.execute_rules_on_node_recursively(root, &mut rules)?;
@@ -336,7 +336,11 @@ impl Traversal<'_, '_> {
         }
         self.children.truncate(start);
         // A no-op hook neither emits nor stops, and the next rule repeats the replaced check.
-        for r in rules.iter_mut().filter(|r| r.visits_after && r.visits(entry_seq)) {
+        for position in 0..self.dispatch.after.len() {
+            let r = &mut rules[usize::from(self.dispatch.after[position])];
+            if !r.visits(entry_seq) {
+                continue;
+            }
             if is_replaced(self.ast, node) {
                 return Ok(());
             }

@@ -11,14 +11,18 @@ pub(crate) struct RuleDispatch {
     /// Per element type: the `(start, len)` of its rule indices in `indices`.
     spans: Vec<(u32, u32)>,
     indices: Vec<u16>,
+    /// The rules with an `after_visit_child_nodes`, in rule order (a few of all).
+    pub(crate) after: Vec<u16>,
 }
 
 impl RuleDispatch {
-    /// One flat buffer for every type's list, so a traversal allocates twice, not once per type.
-    pub(crate) fn new(rule_count: usize) -> RuleDispatch {
+    /// One flat buffer for every type's list, so a traversal allocates a fixed few times, not once per type.
+    pub(crate) fn new(visits_after: impl ExactSizeIterator<Item = bool>) -> RuleDispatch {
+        let rule_count = visits_after.len();
         RuleDispatch {
             spans: vec![UNBUILT; SyntaxKind::DUMMY_HOLDER as usize + 1],
             indices: Vec::with_capacity(rule_count * 32),
+            after: visits_after.enumerate().filter(|&(_, after)| after).map(|(i, _)| i as u16).collect(),
         }
     }
 
