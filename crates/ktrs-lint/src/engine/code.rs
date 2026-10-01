@@ -108,7 +108,7 @@ fn ends_with_kts(name: &str) -> bool {
 }
 
 /// `LintError` (`@Poko`: equality over all fields).
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct LintError {
     pub line: usize,
     pub col: usize,

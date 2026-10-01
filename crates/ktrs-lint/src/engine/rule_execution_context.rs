@@ -29,10 +29,16 @@ use crate::rule_provider::RuleV2Provider;
 static VERIFY_VISITED_TYPES: AtomicBool = AtomicBool::new(false);
 
 /// Test hook: also run the `before_visit_child_nodes` calls that `visited_types` lets the engine skip,
-/// panicking if one emits or edits (`GOLDEN_VERIFY_VISITED_TYPES=1` in `tests/golden`).
+/// panicking if one emits or edits (`GOLDEN_VERIFY_VISITED_TYPES=1` in `tests/golden`), and check the other
+/// exact shortcuts against the full computation ([`verifying_shortcuts`]).
 #[doc(hidden)]
 pub fn set_verify_visited_types(enabled: bool) {
     VERIFY_VISITED_TYPES.store(enabled, Ordering::Relaxed);
+}
+
+/// Whether a shortcut must also compute the full answer and assert they agree (see [`set_verify_visited_types`]).
+pub(crate) fn verifying_shortcuts() -> bool {
+    VERIFY_VISITED_TYPES.load(Ordering::Relaxed)
 }
 
 /// `emitAndApprove(offset, ruleId, errorMessage, canBeAutoCorrected)`; `offset` in UTF-16 units.

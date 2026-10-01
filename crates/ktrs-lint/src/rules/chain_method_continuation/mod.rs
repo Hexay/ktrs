@@ -5,6 +5,7 @@
 mod chained_expression;
 mod whitespace;
 
+use std::rc::Rc;
 use std::sync::LazyLock;
 
 use ktrs_ast::{Ast, NodeId};
@@ -18,6 +19,7 @@ use ktrs_syntax::SyntaxKind::{
 };
 
 use crate::ast_node_extension::{AstNodeExtension, AstNodeLines, AstNodeQueries};
+use crate::engine::verifying_shortcuts;
 use crate::editorconfig::{
     CODE_STYLE_PROPERTY, EditorConfigProperty, INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, MAX_LINE_LENGTH_PROPERTY, PropertyRef,
 };
@@ -69,6 +71,8 @@ pub struct ChainMethodContinuationRule {
     max_line_length: i32,
     force_multiline_when_chain_operator_count_greater_or_equal_than_property: i32,
     traversal: TraversalState,
+    /// The last chain built, keyed by its chain parent and the tree's modification count.
+    last_chained_expression: Option<((NodeId, u64), Rc<ChainedExpression>)>,
 }
 
 impl ChainMethodContinuationRule {
@@ -79,6 +83,7 @@ impl ChainMethodContinuationRule {
             force_multiline_when_chain_operator_count_greater_or_equal_than_property:
                 FORCE_MULTILINE_WHEN_CHAIN_OPERATOR_COUNT_GREATER_OR_EQUAL_THAN_PROPERTY.default_value,
             traversal: TraversalState::default(),
+            last_chained_expression: None,
         }
     }
 }
@@ -138,7 +143,7 @@ impl RuleV2 for ChainMethodContinuationRule {
         }
         let chain_operator = node;
         // The AST of a chain is restructured into a ChainedExpression; it is processed at its first chain operator only
-        let chained_expression = ChainedExpression::create_from(ast, chain_operator);
+        let chained_expression = self.chained_expression(ast, chain_operator);
         if chain_operator != chained_expression.chain_operators[0] {
             return;
         }
@@ -153,6 +158,24 @@ impl RuleV2 for ChainMethodContinuationRule {
 }
 
 impl ChainMethodContinuationRule {
+    /// `ChainedExpression.createFrom(chainOperator)`. Every operator of a chain builds the same expression, so it is
+    /// reused while the tree is unchanged (building only reads the tree); else a chain of n operators costs n².
+    fn chained_expression(&mut self, ast: &Ast, chain_operator: NodeId) -> Rc<ChainedExpression> {
+        let key = (ChainedExpression::chain_parent(ast, chain_operator), ast.modification_count());
+        if let Some((cached_key, cached)) = &self.last_chained_expression
+            && *cached_key == key
+        {
+            assert!(
+                !verifying_shortcuts() || **cached == ChainedExpression::create_from(ast, chain_operator, key.0),
+                "chained expression cache is stale"
+            );
+            return cached.clone();
+        }
+        let created = Rc::new(ChainedExpression::create_from(ast, chain_operator, key.0));
+        self.last_chained_expression = Some((key, created.clone()));
+        created
+    }
+
     fn fix_whitespace_before_chain_operators(&self, ast: &mut Ast, chained_expression: &ChainedExpression, emit: &mut Emit<'_>) {
         let wrap_before_each_chain_operator = self.wrap_before_chain_operator(ast, chained_expression);
         let exceeds_max_line_length = self.exceeds_max_line_length(ast, chained_expression);

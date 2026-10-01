@@ -6,6 +6,9 @@ use ktrs_ast::{Ast, NodeId};
 use ktrs_syntax::SyntaxKind::{self, *};
 
 use super::AstNodeExtension;
+use crate::engine::verifying_shortcuts;
+
+const MAX_LINE_LENGTH_SUPPRESSION_ID: &str = "ktlint:standard:max-line-length";
 
 pub trait AstNodeQueries {
     fn after_code_sibling(&self, n: NodeId, after_element_type: SyntaxKind) -> bool;
@@ -51,8 +54,16 @@ impl AstNodeQueries for Ast {
     }
 
     fn has_no_max_line_length_suppression(&self, n: NodeId) -> bool {
-        !is_annotated_with_max_line_length_suppression(self, n)
-            && !self.parents(n).any(|it| is_annotated_with_max_line_length_suppression(self, it))
+        let has_no_suppression = || {
+            !is_annotated_with_max_line_length_suppression(self, n)
+                && !self.parents(n).any(|it| is_annotated_with_max_line_length_suppression(self, it))
+        };
+        // A suppression needs a leaf with the rule id, which most files never have.
+        if !self.allocated_leaf_text_contains(MAX_LINE_LENGTH_SUPPRESSION_ID) {
+            assert!(!verifying_shortcuts() || has_no_suppression(), "max-line-length suppression gate missed a suppression");
+            return true;
+        }
+        has_no_suppression()
     }
 }
 

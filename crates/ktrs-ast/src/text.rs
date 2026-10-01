@@ -76,6 +76,28 @@ impl Ast {
         hash as i32
     }
 
+    /// Whether the text of the leaves allocated so far (seeded or new, attached or not) contains `needle`: a
+    /// monotonic gate for a search that needs a tree text containing it. Scans only the text allocated since the
+    /// last call with this needle. Gotcha: a match spanning leaves allocated at different times may be missed.
+    pub fn allocated_leaf_text_contains(&self, needle: &'static str) -> bool {
+        let text = self.allocated_leaf_text();
+        let mut scans = self.needle_scans.borrow_mut();
+        let i = scans.iter().position(|(n, ..)| *n == needle).unwrap_or_else(|| {
+            scans.push((needle, 0, false));
+            scans.len() - 1
+        });
+        let (_, scanned, found) = &mut scans[i];
+        if !*found && text.len() > *scanned {
+            let mut start = scanned.saturating_sub(needle.len() - 1);
+            while !text.is_char_boundary(start) {
+                start -= 1;
+            }
+            *found = text[start..].contains(needle);
+            *scanned = text.len();
+        }
+        *found
+    }
+
     /// `textContains(c)`.
     pub fn text_contains(&self, n: NodeId, c: char) -> bool {
         self.text_chunks(n).any(|chunk| chunk.contains(c))

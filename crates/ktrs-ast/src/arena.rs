@@ -1,4 +1,4 @@
-use std::cell::Cell;
+use std::cell::{Cell, RefCell};
 
 use ktrs_syntax::{Parse, SyntaxKind, Tree};
 
@@ -46,6 +46,8 @@ pub struct Ast {
     psi_file_name: String,
     /// Bumped by every edit: `node_mut` and `push` are the only writers of links, lengths and leaves.
     modification_count: u64,
+    /// Per needle of `allocated_leaf_text_contains`: bytes of `text` scanned, and whether it was found.
+    pub(crate) needle_scans: RefCell<Vec<(&'static str, usize, bool)>>,
 }
 
 pub(crate) fn opt(raw: u32) -> Option<NodeId> {
@@ -67,6 +69,7 @@ impl Ast {
             ascii: true,
             psi_file_name: "File.kt".to_owned(),
             modification_count: 0,
+            needle_scans: RefCell::default(),
         };
         ast.root = ast.seed(parse);
         ast

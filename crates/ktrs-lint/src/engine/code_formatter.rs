@@ -1,7 +1,5 @@
 //! Port of ktlint-rule-engine `internal/CodeFormatter.kt` (the format loop) and `AutocorrectHandler.kt`.
 
-use std::collections::HashSet;
-
 use ktrs_ast::Ast;
 
 use crate::editorconfig::{END_OF_LINE_PROPERTY, EndOfLineValue};
@@ -28,18 +26,30 @@ impl AutocorrectHandler<'_> {
     }
 }
 
-/// `mutableSetOf<Pair<LintError, Boolean>>()`: insertion-ordered, duplicates dropped.
+/// `mutableSetOf<Pair<LintError, Boolean>>()`: insertion-ordered, duplicates dropped. Collected with duplicates
+/// and deduplicated once by [`ErrorSet::into_distinct`], instead of cloning and hashing every error on add.
 #[derive(Default)]
 struct ErrorSet {
     order: Vec<(LintError, bool)>,
-    seen: HashSet<(LintError, bool)>,
 }
 
 impl ErrorSet {
     fn add(&mut self, error: (LintError, bool)) {
-        if self.seen.insert(error.clone()) {
-            self.order.push(error);
+        self.order.push(error);
+    }
+
+    /// The first occurrence of each error, in insertion order.
+    fn into_distinct(self) -> Vec<(LintError, bool)> {
+        let errors = self.order;
+        let mut by_value: Vec<usize> = (0..errors.len()).collect();
+        by_value.sort_unstable_by(|&a, &b| errors[a].cmp(&errors[b]).then(a.cmp(&b)));
+        let mut keep = vec![true; errors.len()];
+        for pair in by_value.windows(2) {
+            if errors[pair[0]] == errors[pair[1]] {
+                keep[pair[1]] = false;
+            }
         }
+        errors.into_iter().zip(keep).filter_map(|(error, keep)| keep.then_some(error)).collect()
     }
 }
 
@@ -119,7 +129,7 @@ fn format_code(
     } else {
         code.content.clone()
     };
-    Ok((formatted, errors.order))
+    Ok((formatted, errors.into_distinct()))
 }
 
 fn formatted_code(context: &RuleExecutionContext, line_separator: &str) -> String {
