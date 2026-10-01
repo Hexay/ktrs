@@ -43,10 +43,12 @@ impl Ast {
     pub(crate) fn set_first_child_node(&mut self, n: NodeId, first_child: u32) {
         self.node_mut(n).first = first_child;
         self.clear_relative_offsets(first_child);
+        self.clear_text_hashes(n.0);
     }
 
     pub(crate) fn set_last_child_node(&mut self, n: NodeId, last_child: u32) {
         self.node_mut(n).last = last_child;
+        self.clear_text_hashes(n.0);
     }
 
     /// `addChild(child, anchorBefore)`: moves `child` (alone) before `anchor_before`, or to the end.

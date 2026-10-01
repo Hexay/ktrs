@@ -44,15 +44,33 @@ pub(crate) struct RuleExecutionContext {
 struct RuleInstance {
     rule: Box<dyn RuleV2>,
     stopped_at: Option<u64>,
+    /// The rule's constant answers, asked once instead of at every visit.
+    rule_id: RuleId,
+    ignores_suppressions: bool,
+    can_stop: bool,
+    visits_after: bool,
 }
 
 impl RuleInstance {
+    fn new(rule: Box<dyn RuleV2>) -> RuleInstance {
+        RuleInstance {
+            rule_id: rule.rule_id(),
+            ignores_suppressions: rule.ignores_ktlint_suppressions(),
+            can_stop: rule.traversal_state().is_some(),
+            visits_after: rule.visits_after_child_nodes(),
+            rule,
+            stopped_at: None,
+        }
+    }
+
     fn visits(&self, entry_seq: u64) -> bool {
         self.stopped_at.is_none_or(|s| s >= entry_seq)
     }
 
     fn note_stop(&mut self, seq: u64) {
-        if self.stopped_at.is_none() && self.rule.traversal_state().is_some_and(|t| t.is_stopped())
+        if self.can_stop
+            && self.stopped_at.is_none()
+            && self.rule.traversal_state().is_some_and(|t| t.is_stopped())
         {
             self.stopped_at = Some(seq);
         }
@@ -168,10 +186,7 @@ fn traverse<'c>(
 ) -> Result<(), RuleExecutionException> {
     let mut rules: Vec<RuleInstance> = rules
         .into_iter()
-        .map(|rule| RuleInstance {
-            rule,
-            stopped_at: None,
-        })
+        .map(RuleInstance::new)
         .collect();
     for r in &mut rules {
         execute(&mut *r.rule, |rule| {
@@ -281,7 +296,8 @@ impl Traversal<'_, '_> {
             self.execute_rules_on_node_recursively(child, rules)?;
         }
         self.children.truncate(start);
-        for r in rules.iter_mut().filter(|r| r.visits(entry_seq)) {
+        // A no-op hook neither emits nor stops, and the next rule repeats the replaced check.
+        for r in rules.iter_mut().filter(|r| r.visits_after && r.visits(entry_seq)) {
             if is_replaced(self.ast, node) {
                 return Ok(());
             }
@@ -297,13 +313,14 @@ impl Traversal<'_, '_> {
         before: bool,
     ) -> Result<(), RuleExecutionException> {
         let root = self.ast.root();
-        let rule_id = r.rule.rule_id();
+        let rule_id = r.rule_id;
         let outcome = panic::catch_unwind(AssertUnwindSafe(|| {
             if !self.suppression_locator.suppress(
                 self.ast,
                 root,
-                self.ast.start_offset(node),
-                &*r.rule,
+                node,
+                rule_id,
+                r.ignores_suppressions,
             ) {
                 let emit_and_approve = &mut *self.emit_and_approve;
                 let mut emit =
