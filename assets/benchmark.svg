@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="250" viewBox="0 0 720 250" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" role="img" aria-label="okhttp, 617 files. Format: ktrs 0.47 s, ktfmt 9.58 s. Lint: ktrs 0.59 s, ktlint 11.77 s.">
+  <style>
+    .t { fill: #1f2328; font-size: 14px; }
+    .h { fill: #1f2328; font-size: 15px; font-weight: 600; }
+    .s { fill: #656d76; font-size: 12px; }
+    .ours { fill: #7f52ff; }
+    .jvm { fill: #b4b9c0; }
+    .axis { stroke: #d0d7de; }
+    @media (prefers-color-scheme: dark) {
+      .t, .h { fill: #e6edf3; }
+      .s { fill: #8d96a0; }
+      .jvm { fill: #545d68; }
+      .axis { stroke: #30363d; }
+    }
+  </style>
+  <text class="h" x="0" y="20">Format okhttp (617 files)</text>
+  <line class="axis" x1="120" y1="32" x2="120" y2="98"/>
+  <text class="t" x="110" y="53" text-anchor="end" font-weight="600">ktrs</text>
+  <rect class="ours" x="120" y="38" width="20" height="22" rx="2"/>
+  <text class="t" x="148" y="54" font-weight="600">0.47 s</text>
+  <text class="t" x="110" y="85" text-anchor="end">ktfmt 0.64</text>
+  <rect class="jvm" x="120" y="70" width="410" height="22" rx="2"/>
+  <text class="t" x="538" y="86">9.58 s</text>
+
+  <text class="h" x="0" y="135">Lint okhttp (617 files)</text>
+  <line class="axis" x1="120" y1="147" x2="120" y2="213"/>
+  <text class="t" x="110" y="168" text-anchor="end" font-weight="600">ktrs</text>
+  <rect class="ours" x="120" y="153" width="25" height="22" rx="2"/>
+  <text class="t" x="153" y="169" font-weight="600">0.59 s</text>
+  <text class="t" x="110" y="200" text-anchor="end">ktlint 2.0</text>
+  <rect class="jvm" x="120" y="185" width="504" height="22" rx="2"/>
+  <text class="t" x="632" y="201">11.77 s</text>
+
+  <text class="s" x="0" y="242">Wall time, command line, identical output. Median of 5 runs. Lower is better.</text>
+</svg>

@@ -3,7 +3,7 @@ resolver = "3"
 members = ["crates/*", "xtask"]
 
 [workspace.package]
-version = "0.2.0"
+version = "0.3.0"
 edition = "2024"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/Hexay/ktrs"
@@ -11,15 +11,15 @@ rust-version = "1.90"
 
 [workspace.dependencies]
 # crates.io requires a version on each; keep in step with workspace.package.version.
-ktrs-syntax = { path = "crates/ktrs-syntax", version = "0.2.0" }
-ktrs-lexer = { path = "crates/ktrs-lexer", version = "0.2.0" }
-ktrs-parser = { path = "crates/ktrs-parser", version = "0.2.0" }
-ktrs-psi = { path = "crates/ktrs-psi", version = "0.2.0" }
-ktrs-fmt = { path = "crates/ktrs-fmt", version = "0.2.0" }
-ktrs-cli = { path = "crates/ktrs-cli", version = "0.2.0" }
-ktrs-ast = { path = "crates/ktrs-ast", version = "0.2.0" }
-ktrs-lint = { path = "crates/ktrs-lint", version = "0.2.0" }
-ktrs-editorconfig = { path = "crates/ktrs-editorconfig", version = "0.2.0" }
+ktrs-syntax = { path = "crates/ktrs-syntax", version = "0.3.0" }
+ktrs-lexer = { path = "crates/ktrs-lexer", version = "0.3.0" }
+ktrs-parser = { path = "crates/ktrs-parser", version = "0.3.0" }
+ktrs-psi = { path = "crates/ktrs-psi", version = "0.3.0" }
+ktrs-fmt = { path = "crates/ktrs-fmt", version = "0.3.0" }
+ktrs-cli = { path = "crates/ktrs-cli", version = "0.3.0" }
+ktrs-ast = { path = "crates/ktrs-ast", version = "0.3.0" }
+ktrs-lint = { path = "crates/ktrs-lint", version = "0.3.0" }
+ktrs-editorconfig = { path = "crates/ktrs-editorconfig", version = "0.3.0" }
 text-size = "1.1"
 expect-test = "1.5"
 mimalloc = { version = "0.1", default-features = false }
@@ -28,9 +28,9 @@ mimalloc = { version = "0.1", default-features = false }
 # rust hooks, which run exactly that) work; the code is in crates/ktrs-cli.
 [package]
 name = "ktrs"
-description = "Fast Kotlin tooling: a ktfmt-identical formatter (`ktrs fmt`, drop-in `ktfmt`)"
+description = "Fast Kotlin formatter and linter: ktfmt-identical formatting and ktlint-identical linting, with drop-in `ktfmt` and `ktlint` binaries"
 readme = "README.md"
-keywords = ["kotlin", "formatter", "ktfmt"]
+keywords = ["kotlin", "formatter", "linter", "ktfmt", "ktlint"]
 categories = ["command-line-utilities", "development-tools"]
 version.workspace = true
 edition.workspace = true

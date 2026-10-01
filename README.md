@@ -1,104 +1,167 @@
+<div align="center">
+
 # ktrs
 
-Fast, native Kotlin tooling in Rust. The goal is ktfmt-identical formatting and ktlint-compatible
-linting without starting a JVM.
+**Kotlin formatting and linting in Rust, without starting a JVM.**
 
-**Status:** the formatter is done: output identical to ktfmt 0.64 on 6,121 of 6,123 real-world files
-(the other two are rejected by both), 7-100x faster than the ktfmt jar end to end ([numbers](#performance)).
-Underneath is a
-lossless Kotlin parser whose tree matches the Kotlin compiler's PSI node for node. The linter is a
-port of ktlint 2.0 with identical output on the same files ([details](#linting)).
+[![CI](https://github.com/Hexay/ktrs/actions/workflows/ci.yml/badge.svg)](https://github.com/Hexay/ktrs/actions/workflows/ci.yml)
+[![crates.io](https://img.shields.io/crates/v/ktrs.svg)](https://crates.io/crates/ktrs)
+[![License](https://img.shields.io/badge/license-MIT%20%2F%20Apache--2.0-blue.svg)](#license)
+[![Playground](https://img.shields.io/badge/try%20it-playground-7f52ff.svg)](https://hexay.github.io/ktrs/)
 
-## Formatting
+<img src="assets/benchmark.svg" alt="Format okhttp: ktrs 0.47 s vs ktfmt 9.58 s. Lint okhttp: ktrs 0.59 s vs ktlint 11.77 s." width="720">
 
-Output is byte-identical to ktfmt 0.64. Try it without installing anything in the
-[playground](https://hexay.github.io/ktrs/) (the formatter compiled to WebAssembly, running in your
-browser). One install gives two binaries, `ktrs` and `ktfmt`:
+</div>
+
+ktrs is a native replacement for [ktfmt](https://github.com/facebook/ktfmt) and
+[ktlint](https://github.com/pinterest/ktlint). It produces the same output, it is 7-120x faster, and
+it ships as small native binaries with no runtime.
+
+- ⚡ **Fast.** About 10 ms per file in an editor or pre-commit hook, against roughly a second of JVM
+  startup. On whole projects it uses every core and is still at least 7x faster.
+- 🎯 **Identical output.** Byte-identical to ktfmt 0.64 on 6,121 of 6,123 real-world files (both
+  tools reject the other two). Lint violations and `--format` output match ktlint 2.0 in all three
+  code styles.
+- 🔌 **Drop-in.** The `ktfmt` and `ktlint` binaries accept the originals' flags, messages and exit
+  codes, so existing scripts, hooks and CI keep working.
+- 🧩 **Fits your setup.** Integrations for GitHub Actions, pre-commit, Spotless, a ktfmt-gradle
+  drop-in plugin, and Neovim, Helix, Zed, Emacs and VS Code.
+- 🌳 **Built on a faithful parser.** ktrs includes a lossless Kotlin parser whose tree matches the
+  Kotlin compiler's PSI node for node.
+
+Try the formatter in your browser in the **[playground](https://hexay.github.io/ktrs/)**, which runs
+it as WebAssembly.
+
+## Installation
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/Hexay/ktrs/master/install.sh | sh   # prebuilt
-cargo install ktrs                                                                # from source (crates.io)
+curl -fsSL https://raw.githubusercontent.com/Hexay/ktrs/master/install.sh | sh   # prebuilt binaries
+cargo install ktrs                                                                # from crates.io
 brew tap hexay/ktrs https://github.com/Hexay/ktrs && brew install hexay/ktrs/ktrs  # Homebrew
 ```
 
-The script also works on Windows under Git Bash; otherwise unzip a release from the releases page.
-In GitHub Actions:
+One install puts three binaries on your PATH: `ktrs`, `ktfmt` and `ktlint`. The install script also
+works on Windows under Git Bash; otherwise, download a zip from
+[Releases](https://github.com/Hexay/ktrs/releases).
 
-```yaml
-- uses: Hexay/ktrs@v0.2.0          # installs ktrs and ktfmt on PATH (Linux, macOS, Windows)
-- run: ktrs fmt --check --style kotlinlang
-```
-
-As a [pre-commit](https://pre-commit.com) hook (no Rust needed: the hook downloads the release
-binaries for its `rev` on first run):
-
-```yaml
-- repo: https://github.com/Hexay/ktrs
-  rev: v0.2.0
-  hooks:
-    - id: ktrs-fmt          # or `ktrs-fmt-check`, or `ktfmt` with ktfmt's flags in `args`
-      args: [--style, kotlinlang]
-```
-
-Usage:
+## Usage
 
 ```sh
-
-ktrs fmt                              # format every .kt/.kts under the current directory (meta style)
+ktrs fmt                              # format every .kt/.kts under the current directory
 ktrs fmt --style kotlinlang src/      # styles: meta (default), google, kotlinlang
 ktrs fmt --check                      # CI: list files that would change, exit 1 if any
 ktrs fmt - < Foo.kt                   # stdin to stdout, for editors
 
-ktfmt --kotlinlang-style --set-exit-if-changed src/   # drop-in: ktfmt's own flags and messages
+ktrs lint                             # check every .kt/.kts under the current directory
+ktrs lint --format src/               # autocorrect what can be fixed, report the rest
+ktrs lint --reporter json - < Foo.kt  # reporters: plain, json, checkstyle, sarif, html, ...
 ```
 
-The `ktfmt` binary accepts ktfmt's CLI exactly (flags, `@argfile`, `-` for stdin, exit codes,
-`--enable-editorconfig`), so anything that runs the ktfmt jar can run it instead.
+### Drop-in for ktfmt and ktlint
+
+The `ktfmt` and `ktlint` binaries accept the original command lines exactly, so anything that runs
+the jars can run them instead:
+
+```sh
+ktfmt --kotlinlang-style --set-exit-if-changed src/
+ktlint --relative "src/**/*.kt" "!src/**/generated/**"
+```
+
+- `ktfmt` supports all of ktfmt's flags, plus `@argfile`, `-` for stdin and `--enable-editorconfig`.
+- `ktlint` supports `!` negation in patterns, `-F`, `--stdin`, `--patterns-from-stdin`, `--baseline`,
+  `--editorconfig`, every built-in reporter, and the git hook subcommands.
+- ktlint implements 2.0.0-ALPHA-4, with its engine and all 105 standard rules. JVM rule sets and
+  reporters (`-R`, `artifact=`) can't be loaded.
+
+## Integrations
+
+### GitHub Actions
+
+```yaml
+- uses: Hexay/ktrs@v0.3.0          # Linux, macOS and Windows
+- run: ktrs fmt --check --style kotlinlang
+- run: ktrs lint
+```
+
+### pre-commit
+
+No Rust needed: on first run, the hook downloads the release binaries for its `rev`.
+
+```yaml
+- repo: https://github.com/Hexay/ktrs
+  rev: v0.3.0
+  hooks:
+    - id: ktrs-fmt          # also: ktrs-fmt-check, ktfmt (with ktfmt's flags in `args`)
+      args: [--style, kotlinlang]
+    - id: ktrs-lint         # also: ktrs-lint-format, ktlint (with ktlint's flags in `args`)
+```
 
 ### Editors
 
-Editors format the buffer through stdin; `--stdin-name` passes its path so `.editorconfig` applies
-(add `--style google` or `--style kotlinlang` as needed). Formatting a file takes ~15 ms.
+Editors pass the buffer on stdin. `--stdin-name` gives ktrs the file's path so `.editorconfig`
+applies. Add `--style google` or `--style kotlinlang` if you need them.
 
-- **Neovim** ([conform.nvim](https://github.com/stevearc/conform.nvim)):
-  ```lua
-  formatters_by_ft = { kotlin = { "ktrs" } },
-  formatters = { ktrs = { command = "ktrs", args = { "fmt", "--editorconfig", "--stdin-name", "$FILENAME", "-" } } },
-  ```
-- **Helix** (`languages.toml`):
-  ```toml
-  [[language]]
-  name = "kotlin"
-  formatter = { command = "ktrs", args = ["fmt", "-"] }
-  auto-format = true
-  ```
-- **Zed** (`settings.json`):
-  ```json
-  "languages": { "Kotlin": { "formatter": { "external": {
-    "command": "ktrs", "arguments": ["fmt", "--editorconfig", "--stdin-name", "{buffer_path}", "-"] } } } }
-  ```
-- **Emacs** ([apheleia](https://github.com/radian-software/apheleia)):
-  ```elisp
-  (push '(ktrs . ("ktrs" "fmt" "--editorconfig" "--stdin-name" filepath "-")) apheleia-formatters)
-  (setf (alist-get 'kotlin-mode apheleia-mode-alist) 'ktrs)
-  ```
-- **VS Code** ([Custom Local Formatters](https://marketplace.visualstudio.com/items?itemName=jkillian.custom-local-formatters)):
-  ```json
-  "customLocalFormatters.formatters": [
-    { "command": "ktrs fmt --editorconfig --stdin-name \"${file}\" -", "languages": ["kotlin"] } ]
-  ```
+<details>
+<summary><b>Neovim</b> (conform.nvim), <b>Helix</b>, <b>Zed</b>, <b>Emacs</b> (apheleia), <b>VS Code</b></summary>
 
-### Gradle (Spotless) and the JVM
+**Neovim** ([conform.nvim](https://github.com/stevearc/conform.nvim)):
 
-`io.github.hexay:ktrs` is a small jar with the native binaries for Linux, macOS and Windows (x86-64
-and ARM) bundled in it, and no dependencies, served from this repository's Maven repo on GitHub Pages.
-Its Spotless step (Spotless 7+) replaces `ktfmt()`:
+```lua
+formatters_by_ft = { kotlin = { "ktrs" } },
+formatters = { ktrs = { command = "ktrs", args = { "fmt", "--editorconfig", "--stdin-name", "$FILENAME", "-" } } },
+```
+
+**Helix** (`languages.toml`):
+
+```toml
+[[language]]
+name = "kotlin"
+formatter = { command = "ktrs", args = ["fmt", "-"] }
+auto-format = true
+```
+
+**Zed** (`settings.json`):
+
+```json
+"languages": { "Kotlin": { "formatter": { "external": {
+  "command": "ktrs", "arguments": ["fmt", "--editorconfig", "--stdin-name", "{buffer_path}", "-"] } } } }
+```
+
+**Emacs** ([apheleia](https://github.com/radian-software/apheleia)):
+
+```elisp
+(push '(ktrs . ("ktrs" "fmt" "--editorconfig" "--stdin-name" filepath "-")) apheleia-formatters)
+(setf (alist-get 'kotlin-mode apheleia-mode-alist) 'ktrs)
+```
+
+**VS Code** ([Custom Local Formatters](https://marketplace.visualstudio.com/items?itemName=jkillian.custom-local-formatters)):
+
+```json
+"customLocalFormatters.formatters": [
+  { "command": "ktrs fmt --editorconfig --stdin-name \"${file}\" -", "languages": ["kotlin"] } ]
+```
+
+</details>
+
+### Gradle
+
+**ktfmt-gradle drop-in.** The `io.github.hexay.ktrs` plugin replaces
+[ktfmt-gradle](https://github.com/cortinico/ktfmt-gradle) 0.27.0. Change only the plugin id. The
+`ktfmt { }` block, the `ktfmtCheck`/`ktfmtFormat*` tasks, `--include-only` and the
+`com.ncorti.ktfmt.gradle.*` imports keep working.
 
 ```kotlin
-// build.gradle.kts
+plugins {
+    id("io.github.hexay.ktrs") version "0.3.0"   // was: id("com.ncorti.ktfmt.gradle") version "0.27.0"
+}
+```
+
+**Spotless.** `KtrsStep` replaces `ktfmt()` (Spotless 7+):
+
+```kotlin
 buildscript {
     repositories { maven("https://hexay.github.io/ktrs/maven") }
-    dependencies { classpath("io.github.hexay:ktrs:0.2.0") }
+    dependencies { classpath("io.github.hexay:ktrs:0.3.0") }
 }
 
 spotless {
@@ -108,29 +171,10 @@ spotless {
 }
 ```
 
-`KtrsOptions` mirrors ktfmt's options (`meta()`, `google()`, `kotlinlang()`, then `withMaxWidth`,
-`withBlockIndent`, `withContinuationIndent`, `withRemoveUnusedImports`, `withTrailingCommas`, and
-`withEditorConfig(true)` to honour `.editorconfig`). From other JVM code, `Ktrs.create()` gives a
-thread-safe formatter: `ktrs.format(code, KtrsOptions.google())`. Both keep long-lived `ktrs serve`
-processes, so a build starts the binary once, not once per file.
+<details>
+<summary>Plugin repository, JVM API and options</summary>
 
-Without the jar, Spotless's generic step runs the binary once per file:
-`nativeCmd("ktfmt", "/path/to/ktfmt", listOf("--kotlinlang-style", "-"))`.
-
-### Gradle plugin (drop-in for ktfmt-gradle)
-
-`io.github.hexay.ktrs` replaces [cortinico's ktfmt-gradle](https://github.com/cortinico/ktfmt-gradle)
-0.27.0. Swap the plugin id and keep the rest of the build as it is (the `ktfmt { }` block, the
-`ktfmtCheck`/`ktfmtFormat*` tasks, `--include-only`, and `com.ncorti.ktfmt.gradle.*` imports):
-
-```kotlin
-plugins {
-    // id("com.ncorti.ktfmt.gradle") version "0.27.0"
-    id("io.github.hexay.ktrs") version "0.2.0"
-}
-```
-
-Until it is on the Gradle Plugin Portal, add this repository in `settings.gradle.kts`:
+Until the plugin is on the Gradle Plugin Portal, add the repository in `settings.gradle.kts`:
 
 ```kotlin
 pluginManagement {
@@ -141,80 +185,109 @@ pluginManagement {
 }
 ```
 
-(From the Portal, its `io.github.hexay:ktrs` dependency comes from Maven Central.) Formatting runs in
-long-lived `ktrs` processes shared by the whole build. `useClassloaderIsolation`,
-`processIsolationJvmArgs` and `ktfmtClasspath` are accepted and ignored, and
-`debuggingPrintOpsAfterFormatting` only logs a warning. To use another binary than the bundled one,
-set the Gradle property `ktrs.executable` to its path.
+The `io.github.hexay:ktrs` jar has no dependencies. It bundles the native binaries for Linux, macOS
+and Windows (x86-64 and ARM) and keeps long-lived `ktrs serve` processes, so a build starts the
+binary once, not once per file.
 
-## Linting
+- `KtrsOptions` mirrors ktfmt's options: start from `meta()`, `google()` or `kotlinlang()`, then
+  chain `withMaxWidth`, `withBlockIndent`, `withContinuationIndent`, `withRemoveUnusedImports`,
+  `withTrailingCommas` and `withEditorConfig(true)`.
+- From other JVM code, `Ktrs.create()` returns a thread-safe formatter:
+  `ktrs.format(code, KtrsOptions.google())`.
+- The plugin accepts `useClassloaderIsolation`, `processIsolationJvmArgs` and `ktfmtClasspath` but
+  ignores them. `debuggingPrintOpsAfterFormatting` only logs a warning.
+- To use a different binary from the bundled one, set the Gradle property `ktrs.executable`.
+- Without the jar, Spotless's generic step runs the binary once per file:
+  `nativeCmd("ktfmt", "/path/to/ktfmt", listOf("--kotlinlang-style", "-"))`.
 
-A port of ktlint 2.0 (pinned at 2.0.0-ALPHA-4): its engine, all 105 standard rules, reporters and
-CLI. On the same 6,123 files, violations and `--format` output are identical to ktlint's in all three
-code styles (`ktlint_official`, `intellij_idea`, `android_studio`) and with experimental rules on,
-down to the files where ktlint itself crashes. The same install adds a `ktlint` binary:
-
-```sh
-ktrs lint                             # check every .kt/.kts under the current directory
-ktrs lint --format src/               # fix what can be autocorrected, report the rest
-ktrs lint --reporter json - < Foo.kt  # stdin; reporters: plain, json, checkstyle, sarif, html, ...
-
-ktlint --relative "src/**/*.kt" "!src/**/generated/**"   # drop-in: ktlint's own flags and messages
-```
-
-The `ktlint` binary accepts ktlint's CLI exactly (patterns with `!` negation, `-F`, `--stdin`,
-`--patterns-from-stdin`, `--baseline`, `--editorconfig`, every built-in reporter, exit codes and
-the git hook subcommands). JVM rule sets and reporters (`-R`, `artifact=`) can't be loaded. As
-pre-commit hooks: `id: ktrs-lint` (or `ktrs-lint-format`, or `ktlint` with ktlint's flags in `args`).
+</details>
 
 ## Performance
 
-The `ktfmt` binary against the ktfmt 0.64 jar, both run from the command line the way users run them
-(same flags, same files, identical output). Median of 5 alternating runs after a warm-up, on a Windows 11
-laptop (Intel Core Ultra, 22 threads, JDK 21):
+Each tool is run from the command line the way users run it: same flags, same files, identical
+output. Timings are wall time, the median of 5 alternating runs after a warm-up.
 
-| Scenario | ktrs | ktfmt 0.64 (JVM) | Speedup |
-|---|---|---|---|
-| Seven open-source projects (6,123 files, 31 MB), format in place | 3.69 s | 24.55 s | **7x** |
-| One project (okhttp, 617 files), format in place | 465 ms | 9.58 s | **21x** |
-| okhttp, format in place, 1 core | 1.48 s | 40.79 s | **28x** |
-| okhttp, CI check (`-n --set-exit-if-changed`) | 316 ms | 9.08 s | **29x** |
-| Pre-commit: 10 changed files | 26 ms | 2.57 s | **99x** |
+**Formatting** compares the `ktfmt` binary with the ktfmt 0.64 jar on a Windows 11 laptop (Intel Core
+Ultra, 22 threads, JDK 21):
+
+| Scenario | ktrs | ktfmt 0.64 | Speedup |
+|---|--:|--:|--:|
 | Editor: one 8 KB file on stdin | 16 ms | 1.49 s | **96x** |
+| Pre-commit: 10 changed files | 26 ms | 2.57 s | **99x** |
+| CI check on okhttp (617 files) | 316 ms | 9.08 s | **29x** |
+| Format okhttp in place | 465 ms | 9.58 s | **21x** |
+| Format okhttp in place, 1 core | 1.48 s | 40.79 s | **28x** |
+| Format 7 projects (6,123 files, 31 MB) | 3.69 s | 24.55 s | **7x** |
 
-Small runs are dominated by JVM startup; large ones by formatting work, where ktrs is still several
-times faster per core and uses all of them.
+**Linting** compares the `ktlint` binary with the ktlint 2.0.0-ALPHA-4 jar on Linux (Xeon E-2136, 10
+CPUs, JDK 21):
 
-Through Spotless (`spotlessApply` on okhttp's 573 files, identical output), the formatter's share
-after subtracting a Spotless run that only trims whitespace (54 s cold, 2.6-5 s warm on this machine):
+| Scenario | ktrs | ktlint 2.0 | Speedup |
+|---|--:|--:|--:|
+| Editor: one 8 KB file on stdin | 10 ms | 1.09 s | **109x** |
+| Lint one file | 10 ms | 870 ms | **87x** |
+| Lint okhttp (617 files) | 590 ms | 11.77 s | **20x** |
+| Autocorrect okhttp (`-F`) | 1.00 s | 121.01 s | **121x** |
+| Lint okhttp, 1 core | 2.42 s · 40 MB | 39.59 s · 341 MB | **16x** |
+| Lint 7 projects (6,123 files) | 3.03 s · 227 MB | 49.26 s · 514 MB | **16x** |
+| Autocorrect 7 projects (`-F`) | 6.92 s | 336.87 s | **49x** |
+
+JVM startup dominates small runs. On large runs ktrs is still several times faster per core, and it
+uses every core. The binary is a few MB with no runtime, compared with a 71 MB jar plus a JRE.
+
+<details>
+<summary>Methodology and Spotless numbers</summary>
+
+- **Corpus.** The 7 projects are okhttp, kotlinx.coroutines, nowinandroid, ktlint, ktfmt, Exposed
+  and ktor, pinned in `corpus/REVISIONS` and fetched by `tools/fetch-corpus.sh`.
+- **1 core.** Both processes are pinned to one CPU from launch. The JVM then sizes its GC and JIT
+  threads for one CPU, as it would in a 1-CPU container, and its JIT competes with the work.
+- **Identical output.** ktfmt rejects 2 of the 6,123 files, Exposed's `{{packageName}}`
+  code-generator templates, and ktrs rejects them with the same error.
+- **Reproduce.** Formatting: `py -3 tools/bench/e2e.py`. Linting: `tools/bench/lint-e2e.sh`, with
+  results and the comparison against ktlint 1.8 and ktlint-rs in
+  [research/20](research/20-ktlint-bench.md).
+
+**Spotless.** `spotlessApply` on okhttp's 573 files gives identical output. The figures are the
+formatter's share, after subtracting a Spotless run that only trims whitespace:
 
 | Spotless step | ktrs (`KtrsStep`) | ktfmt 0.64 (`ktfmt()`) |
-|---|---|---|
-| Fresh Gradle daemon, as in CI | ~4 s (58 s total) | ~52 s (106 s total) |
-| Warm daemon, repeated runs | ~2 s (6.5 s total) | ~6 s (10 s total) |
+|---|--:|--:|
+| Fresh Gradle daemon, as in CI | ~4 s | ~52 s |
+| Warm daemon, repeated runs | ~2 s | ~6 s |
 
-Spotless formats one file at a time, and a warm JVM has already compiled ktfmt, so the gap is
-widest in CI, where every build starts cold.
+</details>
 
-- **1 core**: both processes are restricted to one CPU from launch (the affinity mask is inherited, so
-  the JVM also sizes its GC and JIT threads for one CPU, as in a 1-CPU container). The JVM's JIT
-  compiler then competes with the formatting for that core, which is why it slows down more than ktrs.
-- **Identical output** means byte-identical files on 6,121 of the 6,123. The other two are Exposed's
-  code-generator templates (`package {{packageName}}`), which are not valid Kotlin: both tools reject
-  them with the same error, `Package name must be a '.'-separated identifier list` at 1:8. The binary is 1.6 MB with no runtime; the jar is 71 MB plus
-a JRE. Reproduce with `python3 tools/bench/e2e.py` (needs the corpus from `tools/fetch-corpus.sh` and
-the jar, which `tools/ktfmt-oracle/extract-goldens.sh` downloads).
+## How correctness is checked
 
-## Development
+Parity with the original tools is the spec. The ported test suites run in CI, and the corpus diffs
+(`cargo corpus-diff`, `cargo fmt-diff`, `cargo lint-diff`) compare against the real tools on ~6,000
+files:
+
+- **Parser.** The tree must match the Kotlin compiler's PSI (`DebugUtil.psiToString`) on the
+  compiler's own test fixtures and on every corpus file.
+- **Formatter.** ktfmt's test suite is ported. The output is also diffed byte for byte against the
+  ktfmt jar on the corpus in the meta, google and kotlinlang styles.
+- **Linter.** ktlint's rule tests are ported. Violations and `--format` output are diffed against
+  the ktlint jar on the corpus in the `ktlint_official`, `intellij_idea` and `android_studio` code
+  styles, with and without experimental rules.
+- **CLIs.** The `ktfmt` and `ktlint` binaries are compared with the jars on stdout, stderr, exit
+  code and written files across a scenario suite.
+
+## Contributing
 
 ```sh
-tools/sync-kotlin.sh                  # pinned upstream sources + vendored fixtures
+tools/sync-kotlin.sh                  # pinned upstream sources + vendored test fixtures
 tools/psi-dump/psi-dump.sh one X.kt   # reference PSI tree from the real compiler (needs a JDK)
 cargo xtask codegen                   # regenerate SyntaxKind from crates/ktrs-syntax/kinds.tsv
 cargo test
 ```
 
+[`CLAUDE.md`](CLAUDE.md) lists the crate layout and every parity gate. Design notes are in
+[`research/`](research/).
+
 ## License
 
-Dual-licensed under MIT or Apache-2.0, at your option. Contains code ported from, and test data
-copied from, the Kotlin compiler and IntelliJ Platform (Apache-2.0); see [NOTICE](NOTICE).
+Dual-licensed under [MIT](LICENSE-MIT) or [Apache-2.0](LICENSE-APACHE), at your option. ktrs
+contains code and test data ported from the Kotlin compiler, the IntelliJ Platform, ktfmt,
+google-java-format, ec4j (Apache-2.0), ktlint and ktfmt-gradle (MIT). See [NOTICE](NOTICE).
