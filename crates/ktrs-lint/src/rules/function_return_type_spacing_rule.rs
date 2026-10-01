@@ -6,9 +6,11 @@ use ktrs_syntax::SyntaxKind::{COLON, FUN};
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::AstNodeExtension;
 use crate::editorconfig::{EditorConfig, MAX_LINE_LENGTH_PROPERTY, PropertyRef};
-use crate::rule::{About, Emit, RuleId, RuleV2};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
 use crate::rules::max_line_length_rule::max_line_length;
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[FUN]);
 
 pub struct FunctionReturnTypeSpacingRule {
     max_line_length: i32,
@@ -29,6 +31,10 @@ impl Default for FunctionReturnTypeSpacingRule {
 impl RuleV2 for FunctionReturnTypeSpacingRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:function-return-type-spacing")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

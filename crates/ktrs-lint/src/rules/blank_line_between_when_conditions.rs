@@ -10,7 +10,7 @@ use ktrs_syntax::SyntaxKind::{WHEN, WHEN_ENTRY};
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::{AstNodeExtension, AstNodeLines};
 use crate::editorconfig::{EditorConfigProperty, PropertyRef};
-use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2};
+use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
 
 static LINE_BREAK_AFTER_WHEN_CONDITION_PROPERTY_TYPE: PropertyType<bool> = PropertyType {
@@ -46,9 +46,15 @@ impl Default for BlankLineBetweenWhenConditions {
     }
 }
 
+const VISITED_TYPES: TokenSet = TokenSet::create(&[WHEN]);
+
 impl RuleV2 for BlankLineBetweenWhenConditions {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:blank-line-between-when-conditions")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

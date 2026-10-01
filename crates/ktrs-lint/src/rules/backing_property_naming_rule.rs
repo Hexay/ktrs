@@ -11,7 +11,7 @@ use ktrs_syntax::SyntaxKind::{
 
 use crate::ast_node_extension::AstNodeExtension;
 use crate::editorconfig::{CODE_STYLE_PROPERTY, CodeStyleValue, PropertyRef};
-use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2};
+use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
 use crate::rules::internal::kotlin_string::replace_first_char_uppercase;
 use crate::rules::internal::{KotlinRegex, reg_ex_ignoring_diacritics_and_strokes_on_letters};
@@ -32,9 +32,15 @@ impl Default for BackingPropertyNamingRule {
     }
 }
 
+const VISITED_TYPES: TokenSet = TokenSet::create(&[PROPERTY]);
+
 impl RuleV2 for BackingPropertyNamingRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:backing-property-naming")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

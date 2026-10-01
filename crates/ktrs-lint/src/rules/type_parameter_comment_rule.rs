@@ -9,6 +9,7 @@ use crate::rule::{About, Emit, RuleId, RuleV2};
 use crate::rules::STANDARD_RULE_ABOUT;
 
 const TYPE_PARAMETER_TOKEN_SET: TokenSet = TokenSet::create(&[TYPE_PARAMETER, TYPE_PARAMETER_LIST]);
+const VISITED_TYPES: TokenSet = TokenSet::create(&[EOL_COMMENT, BLOCK_COMMENT]);
 
 /// Disallows comments at places in a type parameter (list) that make the code hard to read or the rules complex. One of
 /// the rules split from `DiscouragedCommentLocationRule`.
@@ -17,6 +18,10 @@ pub struct TypeParameterCommentRule;
 impl RuleV2 for TypeParameterCommentRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:type-parameter-comment")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

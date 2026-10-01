@@ -6,7 +6,7 @@ use std::sync::LazyLock;
 use ktrs_ast::{Ast, NodeId};
 use ktrs_syntax::SyntaxKind::{CLASS, DOT_QUALIFIED_EXPRESSION, IDENTIFIER, IMPORT_DIRECTIVE, OBJECT_DECLARATION};
 
-use crate::rule::{About, Emit, RuleId, RuleV2};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
 use crate::rules::internal::kotlin_string::remove_surrounding;
 use crate::rules::internal::{KotlinRegex, is_keyword, reg_ex_ignoring_diacritics_and_strokes_on_letters};
@@ -16,9 +16,15 @@ pub struct ClassNamingRule {
     allow_backticked_class_name: bool,
 }
 
+const VISITED_TYPES: TokenSet = TokenSet::create(&[IMPORT_DIRECTIVE, CLASS, OBJECT_DECLARATION]);
+
 impl RuleV2 for ClassNamingRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:class-naming")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

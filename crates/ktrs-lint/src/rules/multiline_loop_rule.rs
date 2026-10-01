@@ -7,8 +7,10 @@ use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::AstNodeExtension;
 use crate::editorconfig::{INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, PropertyRef};
 use crate::indent_config::IndentConfig;
-use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2};
+use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[BODY]);
 
 /// https://developer.android.com/kotlin/style-guide#braces
 pub struct MultilineLoopRule {
@@ -30,6 +32,10 @@ impl Default for MultilineLoopRule {
 impl RuleV2 for MultilineLoopRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:multiline-loop")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

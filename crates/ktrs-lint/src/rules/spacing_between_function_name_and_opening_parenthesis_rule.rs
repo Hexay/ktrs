@@ -5,14 +5,20 @@ use ktrs_syntax::SyntaxKind::{FUN, IDENTIFIER};
 
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::AstNodeExtension;
-use crate::rule::{About, Emit, RuleId, RuleV2};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[FUN]);
 
 pub struct SpacingBetweenFunctionNameAndOpeningParenthesisRule;
 
 impl RuleV2 for SpacingBetweenFunctionNameAndOpeningParenthesisRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:spacing-between-function-name-and-opening-parenthesis")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

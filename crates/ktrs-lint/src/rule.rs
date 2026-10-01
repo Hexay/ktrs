@@ -2,6 +2,7 @@
 //! interfaces), `IgnoreKtlintSuppressions.kt`, `internal/IdNamingPolicy.kt` and `AutocorrectDecision.kt`.
 
 use ktrs_ast::{Ast, NodeId};
+pub use ktrs_parser::token_set::TokenSet;
 
 pub use crate::editorconfig::EditorConfig;
 use crate::editorconfig::PropertyRef;
@@ -175,6 +176,13 @@ pub trait RuleV2 {
     }
 
     fn before_first_node(&mut self, _editor_config: &EditorConfig) {}
+
+    /// The element types [`Self::before_visit_child_nodes`] acts on (`None`: every node). For a node of
+    /// any other type the hook must do nothing at all (no emit, edit, state change or stop), so the
+    /// engine skips the call. Asked once per traversal.
+    fn visited_types(&self) -> Option<TokenSet> {
+        None
+    }
 
     fn before_visit_child_nodes(&mut self, _ast: &mut Ast, _node: NodeId, _emit: &mut Emit<'_>) {}
 

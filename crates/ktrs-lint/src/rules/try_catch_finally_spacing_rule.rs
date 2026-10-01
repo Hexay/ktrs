@@ -10,8 +10,11 @@ use crate::editorconfig::{INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, PropertyR
 use crate::indent_config::IndentConfig;
 use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2};
 use crate::rules::STANDARD_RULE_ABOUT;
+use crate::token_sets::COMMENTS;
 
 const TRY_CATCH_FINALLY_TOKEN_SET: TokenSet = TokenSet::create(&[TRY, CATCH, FINALLY]);
+// A part-of-comment node whose parent is TRY/CATCH/FINALLY is itself a COMMENTS node.
+const VISITED_TYPES: TokenSet = TokenSet::or_set(&[COMMENTS, TokenSet::create(&[BLOCK, CATCH, FINALLY])]);
 
 /// Checks spacing and wrapping of try-catch-finally.
 pub struct TryCatchFinallySpacingRule {
@@ -33,6 +36,10 @@ impl Default for TryCatchFinallySpacingRule {
 impl RuleV2 for TryCatchFinallySpacingRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:try-catch-finally-spacing")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

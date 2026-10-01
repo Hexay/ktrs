@@ -10,7 +10,7 @@ use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::{AstNodeExtension, AstNodeLines, AstNodeQueries};
 use crate::editorconfig::{INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, MAX_LINE_LENGTH_PROPERTY, PropertyRef};
 use crate::indent_config::IndentConfig;
-use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2};
+use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
 use crate::rules::max_line_length_rule::max_line_length;
 
@@ -35,9 +35,15 @@ impl Default for BinaryExpressionWrappingRule {
     }
 }
 
+const VISITED_TYPES: TokenSet = TokenSet::create(&[BINARY_EXPRESSION]);
+
 impl RuleV2 for BinaryExpressionWrappingRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:binary-expression-wrapping")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

@@ -45,12 +45,17 @@ const ORDERED_MODIFIERS: [SyntaxKind; 27] = [
     // NOINLINE_KEYWORD, CROSSINLINE_KEYWORD, OUT_KEYWORD, IN_KEYWORD, REIFIED_KEYWORD
 ];
 const TOKEN_SET: TokenSet = TokenSet::create(&ORDERED_MODIFIERS);
+const VISITED_TYPES: TokenSet = TokenSet::create(&[MODIFIER_LIST]);
 
 pub struct ModifierOrderRule;
 
 impl RuleV2 for ModifierOrderRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:modifier-order")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

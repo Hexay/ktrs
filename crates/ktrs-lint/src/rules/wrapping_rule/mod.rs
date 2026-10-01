@@ -44,6 +44,10 @@ impl RuleV2 for WrappingRule {
         RuleId("standard:wrapping")
     }
 
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
+    }
+
     fn about(&self) -> About {
         STANDARD_RULE_ABOUT
     }
@@ -83,6 +87,19 @@ impl RuleV2 for WrappingRule {
         self.after_visit_block(ast, node, emit);
     }
 }
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[
+    BLOCK,
+    LPAR,
+    LBRACKET,
+    SUPER_TYPE_LIST,
+    VALUE_PARAMETER_LIST,
+    VALUE_ARGUMENT_LIST,
+    TYPE_ARGUMENT_LIST,
+    TYPE_PARAMETER_LIST,
+    ARROW,
+    CLOSING_QUOTE,
+]);
 
 const LTOKEN_SET: TokenSet = TokenSet::create(&[LPAR, LBRACE, LBRACKET, LT]);
 

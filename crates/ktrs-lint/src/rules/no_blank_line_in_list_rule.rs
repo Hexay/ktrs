@@ -3,13 +3,15 @@
 use ktrs_ast::{Ast, NodeId};
 use ktrs_syntax::SyntaxKind::{
     self, CLASS_BODY, SUPER_TYPE_LIST, TYPE_ARGUMENT_LIST, TYPE_CONSTRAINT_LIST, TYPE_PARAMETER_LIST, VALUE_ARGUMENT_LIST,
-    VALUE_PARAMETER_LIST,
+    VALUE_PARAMETER_LIST, WHITE_SPACE,
 };
 
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::AstNodeExtension;
-use crate::rule::{About, Emit, RuleId, RuleV2};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[WHITE_SPACE]);
 
 // The MODIFIER_LIST is handled by ModifierListSpacingRule.
 const LIST_TYPES: [SyntaxKind; 6] =
@@ -20,6 +22,10 @@ pub struct NoBlankLineInListRule;
 impl RuleV2 for NoBlankLineInListRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:no-blank-line-in-list")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

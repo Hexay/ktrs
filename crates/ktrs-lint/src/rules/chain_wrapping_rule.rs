@@ -18,6 +18,7 @@ use crate::rules::STANDARD_RULE_ABOUT;
 const SAME_LINE_TOKENS: TokenSet = TokenSet::create(&[MUL, DIV, PERC, ANDAND, OROR]);
 const PREFIX_TOKENS: TokenSet = TokenSet::create(&[PLUS, MINUS]);
 const NEXT_LINE_TOKENS: TokenSet = TokenSet::create(&[DOT, SAFE_ACCESS, ELVIS]);
+const VISITED_TYPES: TokenSet = TokenSet::or_set(&[NEXT_LINE_TOKENS, SAME_LINE_TOKENS, PREFIX_TOKENS]);
 
 pub struct ChainWrappingRule {
     indent_config: IndentConfig,
@@ -38,6 +39,10 @@ impl Default for ChainWrappingRule {
 impl RuleV2 for ChainWrappingRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:chain-wrapping")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

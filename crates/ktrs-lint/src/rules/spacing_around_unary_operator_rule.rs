@@ -5,8 +5,10 @@ use ktrs_syntax::SyntaxKind::{POSTFIX_EXPRESSION, PREFIX_EXPRESSION};
 
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::AstNodeExtension;
-use crate::rule::{About, Emit, RuleId, RuleV2};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[PREFIX_EXPRESSION, POSTFIX_EXPRESSION]);
 
 /// Ensures there are no spaces around unary operators.
 ///
@@ -16,6 +18,10 @@ pub struct SpacingAroundUnaryOperatorRule;
 impl RuleV2 for SpacingAroundUnaryOperatorRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:unary-op-spacing")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

@@ -19,9 +19,17 @@ use crate::editorconfig::{
     comma_separated_list_value_parser,
 };
 use crate::indent_config::IndentConfig;
-use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2};
+use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
 
+const VISITED_TYPES: TokenSet = TokenSet::create(&[
+    FILE_ANNOTATION_LIST,
+    ANNOTATED_EXPRESSION,
+    MODIFIER_LIST,
+    ANNOTATION,
+    ANNOTATION_ENTRY,
+    TYPE_ARGUMENT_LIST,
+]);
 const ANNOTATION_CONTAINER: [SyntaxKind; 3] = [ANNOTATED_EXPRESSION, FILE_ANNOTATION_LIST, MODIFIER_LIST];
 const FAILED_REQUIREMENT: &str = "IllegalArgumentException: Failed requirement.";
 
@@ -67,6 +75,10 @@ impl Default for AnnotationRule {
 impl RuleV2 for AnnotationRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:annotation")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

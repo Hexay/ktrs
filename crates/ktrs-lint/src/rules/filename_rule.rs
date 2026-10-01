@@ -11,10 +11,12 @@ use ktrs_ast::{Ast, NodeId};
 use ktrs_syntax::SyntaxKind::{self, CLASS, FUN, IDENTIFIER, MODIFIER_LIST, OBJECT_DECLARATION, PROPERTY, TYPEALIAS, TYPE_REFERENCE};
 
 use crate::ast_node_extension::AstNodeExtension;
-use crate::rule::{About, Emit, RuleId, RuleV2, TraversalState};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet, TraversalState};
 use crate::rules::STANDARD_RULE_ABOUT;
 use crate::rules::internal::kotlin_string::{remove_surrounding, replace_first_char_uppercase_char, substring_after_last, substring_before};
 use crate::rules::internal::{KotlinRegex, reg_ex_ignoring_diacritics_and_strokes_on_letters};
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[SyntaxKind::FILE]);
 
 #[derive(Default)]
 pub struct FilenameRule {
@@ -24,6 +26,10 @@ pub struct FilenameRule {
 impl RuleV2 for FilenameRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:filename")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

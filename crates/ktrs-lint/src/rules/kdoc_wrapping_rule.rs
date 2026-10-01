@@ -7,8 +7,10 @@ use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::AstNodeExtension;
 use crate::element_type::KDOC;
 use crate::editorconfig::{INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, PropertyRef};
-use crate::rule::{About, Emit, RuleId, RuleV2};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[KDOC]);
 
 /// Checks external wrapping of KDoc comment. Wrapping inside the KDoc comment is not altered.
 pub struct KdocWrappingRule;
@@ -16,6 +18,10 @@ pub struct KdocWrappingRule;
 impl RuleV2 for KdocWrappingRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:kdoc-wrapping")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

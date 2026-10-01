@@ -9,7 +9,7 @@ use ktrs_syntax::SyntaxKind::{
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::{AstNodeExtension, AstNodeQueries};
 use crate::editorconfig::{CODE_STYLE_PROPERTY, CodeStyleValue, EditorConfig};
-use crate::rule::{About, Emit, RuleId, RuleV2, TraversalState};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet, TraversalState};
 use crate::rules::STANDARD_RULE_ABOUT;
 
 /// Insert a blank line before declarations. No blank line is inserted before between a class or method signature and the
@@ -19,9 +19,16 @@ pub struct BlankLineBeforeDeclarationRule {
     traversal_state: TraversalState,
 }
 
+const VISITED_TYPES: TokenSet =
+    TokenSet::create(&[CLASS, CLASS_INITIALIZER, FUN, OBJECT_DECLARATION, PROPERTY, PROPERTY_ACCESSOR]);
+
 impl RuleV2 for BlankLineBeforeDeclarationRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:blank-line-before-declaration")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

@@ -12,7 +12,7 @@ use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::{AstNodeExtension, AstNodeLines};
 use crate::editorconfig::{INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, PropertyRef};
 use crate::indent_config::IndentConfig;
-use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2};
+use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
 use crate::rules::function_signature::{FUNCTION_BODY_EXPRESSION_WRAPPING_PROPERTY, FunctionBodyExpressionWrapping};
 
@@ -32,6 +32,7 @@ const CHAINABLE_EXPRESSION: [SyntaxKind; 13] = [
     TRY,
     WHEN,
 ];
+const VISITED_TYPES: TokenSet = TokenSet::or_set(&[TokenSet::create(&CHAINABLE_EXPRESSION), TokenSet::create(&[BINARY_EXPRESSION])]);
 
 /// Wraps each multiline expression to a new line.
 pub struct MultilineExpressionWrappingRule {
@@ -57,6 +58,10 @@ impl Default for MultilineExpressionWrappingRule {
 impl RuleV2 for MultilineExpressionWrappingRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:multiline-expression-wrapping")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

@@ -1,14 +1,18 @@
 //! Port of ktlint-ruleset-standard `IfElseWrappingRule.kt`.
 
 use ktrs_ast::{Ast, NodeId};
+use ktrs_parser::kt_tokens::COMMENTS;
 use ktrs_syntax::SyntaxKind::{self, BLOCK, ELSE, ELSE_KEYWORD, IF, IF_KEYWORD, LBRACE, RBRACE, RPAR, THEN};
 
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::{AstNodeExtension, AstNodeQueries};
 use crate::editorconfig::{INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, PropertyRef};
 use crate::indent_config::IndentConfig;
-use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2};
+use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
+
+// A comment whose parent is an IF is itself a comment node, so `is_part_of_comment` narrows to COMMENTS.
+const VISITED_TYPES: TokenSet = TokenSet::or_set(&[TokenSet::create(&[IF]), COMMENTS]);
 
 const IF_THEN_ELSE_ELEMENT_TYPES: [SyntaxKind; 3] = [IF, THEN, ELSE];
 
@@ -33,6 +37,10 @@ impl Default for IfElseWrappingRule {
 impl RuleV2 for IfElseWrappingRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:if-else-wrapping")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {

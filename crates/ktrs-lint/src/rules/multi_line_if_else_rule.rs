@@ -9,8 +9,10 @@ use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::AstNodeExtension;
 use crate::indent_config::IndentConfig;
 use crate::editorconfig::{INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, PropertyRef};
-use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2};
+use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
+
+const VISITED_TYPES: TokenSet = TokenSet::create(&[THEN, ELSE]);
 
 /// https://kotlinlang.org/docs/reference/coding-conventions.html#formatting-control-flow-statements
 pub struct MultiLineIfElseRule {
@@ -32,6 +34,10 @@ impl Default for MultiLineIfElseRule {
 impl RuleV2 for MultiLineIfElseRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:multiline-if-else")
+    }
+
+    fn visited_types(&self) -> Option<TokenSet> {
+        Some(VISITED_TYPES)
     }
 
     fn about(&self) -> About {
