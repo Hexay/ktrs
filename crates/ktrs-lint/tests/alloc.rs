@@ -109,7 +109,7 @@ fn navigation_and_traversal_do_not_allocate_per_node() {
     ]);
     let mut suppression_locator = SuppressionLocator::new(&config);
     // The suppression hints are built once per text, not per node.
-    suppression_locator.suppress(&ast, ast.root(), 0, &*rules[0]);
+    suppression_locator.suppress(&ast, ast.root(), ast.root(), rules[0].rule_id(), false);
     let mut emits = 0;
     let traversal = allocations_during(|| {
         execute_rules(&mut ast, rules, &config, &mut suppression_locator, &mut |_, _, _, _| {

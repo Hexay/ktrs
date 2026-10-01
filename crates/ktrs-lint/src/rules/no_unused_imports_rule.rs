@@ -25,6 +25,8 @@ pub struct NoUnusedImportsRule {
     parent_expressions: Vec<String>,
     /// A `LinkedHashMap`.
     imports: Vec<(ImportPath, NodeId)>,
+    /// `importPath.pathStr.removeBackticksAndTrim()` of each of `imports`, rendered once.
+    import_paths: Vec<String>,
     package_name: String,
     found_by_keyword: bool,
 }
@@ -35,6 +37,7 @@ impl NoUnusedImportsRule {
             r#ref: [HashSet::from(["*".to_owned()]), HashSet::new()],
             parent_expressions: Vec::new(),
             imports: Vec::new(),
+            import_paths: Vec::new(),
             package_name: String::new(),
             found_by_keyword: false,
         }
@@ -77,6 +80,7 @@ impl RuleV2 for NoUnusedImportsRule {
                     // Emit directly when same import occurs more than once
                     emit(ast, ast.start_offset(node), "Unused import", true).if_autocorrect_allowed(|| psi::delete(ast, node));
                 } else {
+                    self.import_paths.push(remove_backticks_and_trim(&import_path.path_str()).into_owned());
                     self.imports.push((import_path, node));
                 }
             }
@@ -114,6 +118,10 @@ impl RuleV2 for NoUnusedImportsRule {
         }
     }
 
+    fn visits_after_child_nodes(&self) -> bool {
+        true
+    }
+
     fn after_visit_child_nodes(&mut self, ast: &mut Ast, node: NodeId, emit: &mut Emit<'_>) {
         if ast.element_type(node) != FILE {
             return;
@@ -123,16 +131,19 @@ impl RuleV2 for NoUnusedImportsRule {
             let matching: Vec<(ImportPath, NodeId)> = self
                 .imports
                 .iter()
-                .filter(|(import, _)| {
-                    let path_str = import.path_str();
-                    let import_path = remove_backticks_and_trim(&path_str);
+                .zip(&self.import_paths)
+                .filter(|(_, import_path)| {
                     import_path.ends_with(&format!(".{parent}")) && !direct_calls.iter().any(|it| import_path.ends_with(&format!(".{it}")))
                 })
-                .cloned()
+                .map(|(import, _)| import.clone())
                 .collect();
             for (import_path, import_node) in matching {
                 emit(ast, ast.start_offset(import_node), "Unused import", true).if_autocorrect_allowed(|| {
-                    self.imports.retain(|(p, n)| !(*p == import_path && *n == import_node));
+                    // Keys are unique: a repeated import is emitted at once, never added.
+                    if let Some(i) = self.imports.iter().position(|(p, n)| *p == import_path && *n == import_node) {
+                        self.imports.remove(i);
+                        self.import_paths.remove(i);
+                    }
                     remove_import_directive(ast, import_node);
                 });
             }
@@ -213,6 +224,11 @@ impl NoUnusedImportsRule {
         if self.imports.is_empty() {
             return false;
         }
+        // The uppercase test below sees the text's first char unless the last `(` starts the text.
+        let first = ast.text_chunks(node).find(|chunk| !chunk.is_empty()).map(|chunk| chunk.as_bytes()[0]);
+        if first.is_none_or(|b| b != b'(' && !b.is_ascii_uppercase()) {
+            return false;
+        }
         let text = ast.text(node);
         if !contains_method_call(&text) {
             return false;
@@ -226,7 +242,7 @@ impl NoUnusedImportsRule {
             return false;
         }
 
-        let paths: Vec<String> = self.imports.iter().map(|(it, _)| remove_backticks_and_trim(&it.path_str()).into_owned()).collect();
+        let paths = &self.import_paths;
         for import in paths.iter().filter(|it| it.ends_with(&format!(".{method_call_expression}"))) {
             let prefix = substring_before(import, method_call_expression);
             let count = paths.iter().filter(|it| it.starts_with(prefix)).count();
@@ -240,7 +256,7 @@ impl NoUnusedImportsRule {
 
     /// Whether the import being checked is present in the filtered import list.
     fn is_a_valid_import(&self, import_path: &str) -> bool {
-        self.imports.iter().any(|(it, _)| remove_backticks_and_trim(&it.path_str()).contains(import_path))
+        self.import_paths.iter().any(|it| it.contains(import_path))
     }
 }
 
