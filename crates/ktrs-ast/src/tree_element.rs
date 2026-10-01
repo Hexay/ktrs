@@ -70,10 +70,10 @@ impl Ast {
         if old == parent {
             return;
         }
-        let (len, surplus) = (self.node(n).len, self.node(n).surplus);
-        self.add_length_to_ancestors(old, len, surplus, false);
+        let metrics = (self.node(n).len, self.node(n).surplus, self.node(n).newlines);
+        self.add_length_to_ancestors(old, metrics, false);
         self.node_mut(n).parent = parent;
-        self.add_length_to_ancestors(parent, len, surplus, true);
+        self.add_length_to_ancestors(parent, metrics, true);
         self.clear_text_hashes(old);
         self.clear_text_hashes(parent);
     }
@@ -86,7 +86,8 @@ impl Ast {
         }
     }
 
-    fn add_length_to_ancestors(&mut self, mut ancestor: u32, len: u32, surplus: u32, add: bool) {
+    /// Adds (or removes) a subtree's `(len, surplus, newlines)` to every ancestor.
+    fn add_length_to_ancestors(&mut self, mut ancestor: u32, (len, surplus, newlines): (u32, u32, u32), add: bool) {
         if len == 0 {
             return;
         }
@@ -94,6 +95,7 @@ impl Ast {
             let node = &mut self.nodes[ancestor as usize];
             node.len = if add { node.len + len } else { node.len - len };
             node.surplus = if add { node.surplus + surplus } else { node.surplus - surplus };
+            node.newlines = if add { node.newlines + newlines } else { node.newlines - newlines };
             let (next, parent) = (node.next, node.parent);
             self.clear_relative_offsets(next);
             ancestor = parent;
