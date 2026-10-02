@@ -67,7 +67,7 @@ impl KtLintRuleEngine {
         }
     }
 
-    /// Routes the engine's warnings (only ktlint 1.8 mode has any) to `engine_warnings`.
+    /// Routes the engine's warnings (logger name, message) to `engine_warnings`.
     pub fn with_engine_warnings(self, engine_warnings: EngineWarnings) -> KtLintRuleEngine {
         KtLintRuleEngine { engine_warnings: Some(engine_warnings), ..self }
     }

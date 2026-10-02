@@ -54,6 +54,9 @@ impl ErrorSet {
     }
 }
 
+const CODE_FORMATTER_LOGGER: &str = "io.github.ktlint.core.rule.engine.internal.CodeFormatter";
+const NOT_RESOLVED: &str = "Format was not able to resolve all violations which (theoretically) can be autocorrected in file";
+
 /// `format(code, autocorrectHandler, callback, maxFormatRunsPerFile)`.
 pub(crate) fn format(
     engine: &KtLintRuleEngine,
@@ -119,6 +122,7 @@ fn format_code(
         // Rule errors can cancel out, so the text decides whether the code changed.
         let updated_code_content = formatted_code(&context, line_separator);
         if updated_code_content == code_content {
+            engine.warn(CODE_FORMATTER_LOGGER, || format!("{NOT_RESOLVED} {}", code.file_path_or_stdin()));
             break;
         }
         code_content = updated_code_content;
@@ -130,6 +134,9 @@ fn format_code(
     }
     if mutated && format_run_count == max_format_runs_per_file && !autocorrect_handler.is_none() {
         lint_after_format(&mut context, after_pass)?;
+        engine.warn(CODE_FORMATTER_LOGGER, || {
+            format!("{NOT_RESOLVED} {} in {max_format_runs_per_file} consecutive runs of format.", code.file_path_or_stdin())
+        });
     }
     let formatted = if mutated {
         formatted_code(&context, line_separator)

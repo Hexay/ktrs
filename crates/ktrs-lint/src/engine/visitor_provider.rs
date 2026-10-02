@@ -36,16 +36,17 @@ const KTLINT_1_8_LATE_RULES: [&str; 16] = [
     "standard:max-line-length",
 ];
 
-/// A rule's place in 1.8's rule-major execution order: the suppression rule, the others by id, then
-/// [`KTLINT_1_8_LATE_RULES`]. Lint uses it to order errors at the same position as 1.8 emits them; the `-F`
-/// traversal itself is still 2.0's (phase 2: research/26-ktlint-18-mode.md).
+/// A rule's place in 1.8's rule-major execution order: the suppression rule, the other standard rules by id, other
+/// rule sets' rules (`-R`) by id, then [`KTLINT_1_8_LATE_RULES`]. Lint uses it to order errors at the same position
+/// as 1.8 emits them; the `-F` traversal itself is still 2.0's (phase 2: research/26-ktlint-18-mode.md).
 pub(crate) fn ktlint_1_8_rule_rank(rule_id: RuleId) -> (u8, usize, &'static str) {
-    if rule_id.rule_set_id() != RuleSetId::STANDARD {
-        return (0, 0, rule_id.value());
-    }
-    match KTLINT_1_8_LATE_RULES.iter().position(|it| *it == rule_id.value()) {
-        Some(index) => (2, index, ""),
-        None => (1, 0, rule_id.value()),
+    match rule_id.rule_set_id() {
+        RuleSetId("internal") => (0, 0, rule_id.value()),
+        RuleSetId::STANDARD => match KTLINT_1_8_LATE_RULES.iter().position(|it| *it == rule_id.value()) {
+            Some(index) => (3, index, ""),
+            None => (1, 0, rule_id.value()),
+        },
+        _ => (2, 0, rule_id.value()),
     }
 }
 
