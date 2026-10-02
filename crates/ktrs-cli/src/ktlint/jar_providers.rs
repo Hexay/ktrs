@@ -13,6 +13,7 @@ use ktrs_lint::rules::standard_rule_providers;
 use crate::ktlint::KtlintCli;
 use crate::ktlint::args::KtlintArgs;
 use crate::ktlint::command_line::{Exit, ExitCode};
+use crate::ktlint::compose_jar::native_compose_rules_release;
 use crate::ktlint::file_utils::expand_tilde_to_full_path;
 use crate::ktlint::jpath::JPath;
 use crate::ktlint::logger::{KTLINT_COMMAND_LINE, KTLINT_SERVICE_LOADER, LOAD_RULE_PROVIDERS, Level, Logger};
@@ -37,17 +38,24 @@ pub fn jvm_only_jar(args: &KtlintArgs, working_dir: &JPath, user_home: &str) -> 
         .iter()
         .filter_map(|c| c.split(',').rev().find_map(|e| e.strip_prefix("artifact=")).map(str::to_owned))
         .collect();
-    first_declaring(&args.ruleset_jar_paths, rule_set_interfaces(version), working_dir, user_home)
-        .or_else(|| first_declaring(&artifacts, &[&reporter_interface], working_dir, user_home))
+    first_declaring(&args.ruleset_jar_paths, rule_set_interfaces(version), working_dir, user_home, |jar| {
+        native_compose_rules_release(jar).is_some()
+    })
+    .or_else(|| first_declaring(&artifacts, &[&reporter_interface], working_dir, user_home, |_| false))
 }
 
-/// `None` when any path is missing too, so that the native run reports it as upstream does.
-fn first_declaring(paths: &[String], interfaces: &[&str], working_dir: &JPath, user_home: &str) -> Option<String> {
+/// The first of `paths` that declares one of `interfaces` and isn't `native`. `None` when any path is missing
+/// too, so that the native run reports it as upstream does.
+fn first_declaring(paths: &[String], interfaces: &[&str], working_dir: &JPath, user_home: &str, native: impl Fn(&Path) -> bool) -> Option<String> {
     let files: Option<Vec<_>> = paths
         .iter()
         .map(|path| working_dir.resolve(&expand_tilde_to_full_path(path, user_home)).map(|f| f.to_path_buf()).filter(|f| f.exists()))
         .collect();
-    files?.iter().zip(paths).find(|(file, _)| declares_any_service(file, interfaces)).map(|(_, path)| path.clone())
+    files?
+        .iter()
+        .zip(paths)
+        .find(|(file, _)| !native(file) && declares_any_service(file, interfaces))
+        .map(|(_, path)| path.clone())
 }
 
 /// `List<String>.toFilesURIList()`: each path must exist (else FILE_NOT_FOUND); the URL paths, distinct.
@@ -74,19 +82,33 @@ fn url_path(file: &JPath) -> String {
 }
 
 impl KtlintCli {
-    /// `ruleProviders`: the standard rules. A `-R` JAR that gets here declares no loadable provider (the
-    /// others were handed to the ktlint jar), so it fails as upstream does.
+    /// `ruleProviders`: the standard rules, plus the native port of each compose-rules JAR. Any other `-R` JAR
+    /// that gets here declares no loadable provider (the others were handed to the ktlint jar), so it fails as
+    /// upstream does.
     pub(crate) fn rule_providers(&self, args: &KtlintArgs, logger: &Logger) -> Result<Vec<RuleV2Provider>, Exit> {
         let urls = to_files_uri_list(&args.ruleset_jar_paths, &self.working_dir, &self.user_home, logger)?;
-        if args.ktlint_version.is_1_8() {
-            logger.debug(KTLINT_SERVICE_LOADER, || "Discovered RuleSetProviderV3 with id 'standard' in ktlint JAR".to_owned());
-            if let Some(url) = urls.first() {
+        let is_1_8 = args.ktlint_version.is_1_8();
+        let standard = if is_1_8 { "RuleSetProviderV3" } else { "RuleSetV2Provider" };
+        logger.debug(KTLINT_SERVICE_LOADER, || format!("Discovered {standard} with id 'standard' in ktlint JAR"));
+        let mut providers = standard_rule_providers();
+        for url in &urls {
+            let file = if cfg!(windows) { url.trim_start_matches('/') } else { url.as_str() };
+            if native_compose_rules_release(Path::new(file)).is_some() {
+                if !is_1_8 {
+                    logger.debug(LOAD_RULE_PROVIDERS, || format!("Try loading ruleset provider of type 'RuleSetProviderV3' for file:{url}"));
+                    warn_deprecated_rule_set_provider(url, logger);
+                }
+                let compose = ktrs_compose::compose_rule_providers();
+                if !is_1_8 {
+                    let count = compose.len();
+                    logger.debug(LOAD_RULE_PROVIDERS, || format!("Found {count} rule providers of type 'RuleSetProviderV3' for file:{url}"));
+                }
+                providers.extend(compose);
+                continue;
+            }
+            if is_1_8 {
                 return Err(load_from_jar_file(url, RULE_SET_PROVIDER_V3, logger));
             }
-            return Ok(standard_rule_providers());
-        }
-        logger.debug(KTLINT_SERVICE_LOADER, || "Discovered RuleSetV2Provider with id 'standard' in ktlint JAR".to_owned());
-        if let Some(url) = urls.first() {
             for message in [
                 format!("Try loading ruleset provider of type 'RuleSetProviderV3' for file:{url}"),
                 format!("Found 0 rule providers of type 'RuleSetProviderV3' for file:{url}"),
@@ -96,8 +118,32 @@ impl KtlintCli {
             }
             return Err(load_from_jar_file(url, RULE_SET_V2_PROVIDER, logger));
         }
-        Ok(standard_rule_providers())
+        Ok(providers)
     }
+}
+
+/// 2.0's `loadFromJarFile(..., WARN_WHEN_DEPRECATED_PROVIDER_IS_FOUND)` for a `RuleSetProviderV3` JAR.
+fn warn_deprecated_rule_set_provider(url_path: &str, logger: &Logger) {
+    logger.warn(KTLINT_SERVICE_LOADER, || {
+        if logger.is_enabled(Level::Debug) {
+            [
+                format!("JAR file '{url_path}' contains a class implementing a deprecated interface '{RULE_SET_PROVIDER_V3}'"),
+                "    KtLint uses a ServiceLoader to dynamically load classes from JAR files specified at the command line of KtLint.".to_owned(),
+                "    The JAR file below contains an implementation of a deprecated interface which is no longer fully supported by".to_owned(),
+                "    this version of KtLint. Verify the logging for errors.".to_owned(),
+                "    Use a newer version of the JAR file, or when not available contact the maintainer of this JAR file (not".to_owned(),
+                "    maintained by KtLint) to upgrade the JAR file.".to_owned(),
+                format!("        Interface: {RULE_SET_PROVIDER_V3}"),
+                format!("        JAR file : {url_path}"),
+            ]
+            .join("\n")
+        } else {
+            format!(
+                "JAR file '{url_path}' contains a class implementing a deprecated interface '{RULE_SET_PROVIDER_V3}' \
+                 (run with '--log-level=debug' for more information)"
+            )
+        }
+    });
 }
 
 /// `loadFromJarFile(url, ..., ERROR_WHEN_REQUIRED_PROVIDER_IS_MISSING)` for a custom JAR without an
