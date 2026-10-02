@@ -75,6 +75,7 @@ dependencies = [
  "ktrs-editorconfig",
  "ktrs-fmt",
  "ktrs-lint",
+ "ktrs-syntax",
  "regex",
 ]
 

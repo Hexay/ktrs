@@ -139,7 +139,7 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
                     v.builder.close();
                 } else {
                     if index != 0 {
-                        return v.throw_runtime("Check failed.");
+                        return v.throw_runtime("java.lang.IllegalStateException: Check failed.");
                     }
                     v.visit(Some(kt_expression));
                 }

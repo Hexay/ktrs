@@ -147,7 +147,8 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
                     } else if let Some(component) = component.cast::<KtBackingField>() {
                         v.emit_backing_field(&component);
                     } else {
-                        return v.throw_runtime("Unexpected property component");
+                        // Upstream appends `component::class`, a JVM class name we don't model.
+                        return v.throw_runtime("java.lang.IllegalStateException: Unexpected property component");
                     }
                 }
             });
