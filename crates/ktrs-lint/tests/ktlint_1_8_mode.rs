@@ -15,6 +15,13 @@ fn fixtures() -> PathBuf {
 
 /// The plain reporter's `--relative` rows of every fixture, sorted like `LC_ALL=C sort`.
 fn rows(engine: &KtLintRuleEngine) -> Vec<String> {
+    let mut rows = rows_in_order(engine);
+    rows.sort();
+    rows
+}
+
+/// The rows file by file, each file's in the engine's order.
+fn rows_in_order(engine: &KtLintRuleEngine) -> Vec<String> {
     let mut files: Vec<PathBuf> = std::fs::read_dir(fixtures())
         .unwrap()
         .map(|e| e.unwrap().path())
@@ -29,7 +36,6 @@ fn rows(engine: &KtLintRuleEngine) -> Vec<String> {
             .lint(&code, &mut |e| rows.push(format!("{name}:{}:{}: {} ({})", e.line, e.col, e.detail, e.rule_id)))
             .unwrap();
     }
-    rows.sort();
     rows
 }
 
@@ -46,6 +52,13 @@ fn engine_in(ktlint_version: KtlintVersion) -> KtLintRuleEngine {
 #[test]
 fn version_1_8_lints_like_the_1_8_jar() {
     assert_eq!(rows(&engine_in(KtlintVersion::V1_8)), expected("1.8"));
+}
+
+/// Errors at one position in 1.8's rule-major order (`expected-1.8-order.txt`: the jar's rows, grouped by file
+/// with a stable sort, so each file keeps the jar's order).
+#[test]
+fn version_1_8_orders_errors_at_one_position_like_the_jar() {
+    assert_eq!(rows_in_order(&engine_in(KtlintVersion::V1_8)), expected("1.8-order"));
 }
 
 #[test]

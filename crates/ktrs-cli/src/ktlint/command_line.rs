@@ -5,7 +5,7 @@ use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
 use ktrs_lint::editorconfig::{KtlintVersion, RuleExecution, create_rule_execution_editor_config_property};
-use ktrs_lint::rule_provider::{RuleV2Provider, property_types, rule_providers_in};
+use ktrs_lint::rule_provider::{RuleV2Provider, property_types};
 use ktrs_lint::rules::standard_rule_providers;
 use ktrs_lint::{Code, EditorConfigDefaults, EditorConfigOverride, KtLintRuleEngine};
 
@@ -79,10 +79,9 @@ impl KtlintCli {
         let logger = Logger::new(self.console.clone(), args.min_log_level, args.ktlint_version);
         let result = match subcommand {
             None => self.lint_or_format(&args, &logger),
-            Some(Subcommand::GenerateEditorConfig(code_style)) => self.rule_providers(&args, &logger).and_then(|providers| {
-                let providers = rule_providers_in(&providers, args.ktlint_version);
-                subcommands::generate_editor_config(self, providers, code_style, &logger)
-            }),
+            Some(Subcommand::GenerateEditorConfig(code_style)) => self
+                .rule_providers(&args, &logger)
+                .and_then(|providers| subcommands::generate_editor_config(self, providers, code_style, &logger, args.ktlint_version)),
             Some(Subcommand::InstallGitPreCommitHook) => subcommands::install_git_hook(self, subcommands::pre_commit(args.ktlint_version)),
             Some(Subcommand::InstallGitPrePushHook) => subcommands::install_git_hook(self, subcommands::pre_push(args.ktlint_version)),
         };
@@ -213,6 +212,14 @@ impl KtlintCli {
     /// `ruleProviders`: the standard rules; a `-R` JAR can't be loaded (see [`load_from_jar_file`]).
     pub(crate) fn rule_providers(&self, args: &KtlintArgs, logger: &Logger) -> Result<Vec<RuleV2Provider>, Exit> {
         let urls = to_files_uri_list(&args.ruleset_jar_paths, &self.working_dir, &self.user_home, logger)?;
+        if args.ktlint_version.is_1_8() {
+            // 1.8 only knows `RuleSetProviderV3`.
+            logger.debug(KTLINT_SERVICE_LOADER, || "Discovered RuleSetProviderV3 with id 'standard' in ktlint JAR".to_owned());
+            if let Some(url) = urls.first() {
+                return Err(load_from_jar_file(url, RULE_SET_PROVIDER_V3, &[], logger));
+            }
+            return Ok(standard_rule_providers());
+        }
         logger.debug(KTLINT_SERVICE_LOADER, || "Discovered RuleSetV2Provider with id 'standard' in ktlint JAR".to_owned());
         if let Some(url) = urls.first() {
             for message in [

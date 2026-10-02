@@ -6,24 +6,26 @@ use std::process::Command;
 
 use ktrs_editorconfig::EnumValue;
 use ktrs_lint::editorconfig::{CODE_STYLE_PROPERTY, CodeStyleValue, KtlintVersion, PropertyRef};
-use ktrs_lint::rule_provider::RuleV2Provider;
+use ktrs_lint::rule_provider::{RuleV2Provider, rule_providers_in};
 use ktrs_lint::{EditorConfigDefaults, EditorConfigOverride, KtLintRuleEngine};
 
 use crate::ktlint::command_line::{Exit, ExitCode, KtlintCli};
 use crate::ktlint::logger::{GENERATE_EDITOR_CONFIG_SUB_COMMAND, Logger};
 use crate::ktlint::sha256::sha256;
-use crate::ktlint::version::repository;
+use crate::ktlint::version::{repository, with_ktlint_version};
 
 pub fn generate_editor_config(
     cli: &KtlintCli,
     rule_providers: Vec<RuleV2Provider>,
     code_style: CodeStyleValue,
     logger: &Logger,
+    ktlint_version: KtlintVersion,
 ) -> Result<(), Exit> {
+    let code_style = EditorConfigOverride::from(vec![(PropertyRef::from(&*CODE_STYLE_PROPERTY), Some(code_style.name().to_owned()))]);
     let engine = KtLintRuleEngine::with_editor_config(
-        rule_providers,
+        rule_providers_in(&rule_providers, ktlint_version),
         EditorConfigDefaults::empty(),
-        EditorConfigOverride::from(vec![(PropertyRef::from(&*CODE_STYLE_PROPERTY), Some(code_style.name().to_owned()))]),
+        with_ktlint_version(code_style, ktlint_version),
     );
     let generated_editor_config = engine
         .generate_kotlin_editor_config_section(&cli.working_dir.to_path_buf())
