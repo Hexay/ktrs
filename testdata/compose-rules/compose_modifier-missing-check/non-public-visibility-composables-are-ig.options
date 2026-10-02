@@ -1,0 +1,5 @@
+ktlint=1.8
+rules=compose:modifier-missing-check
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=ModifierMissingCheckTest.non-public visibility Composables are ignored (by default)

@@ -1,0 +1,1 @@
+val msof = movableContentOf { Text("X") }

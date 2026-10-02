@@ -1,0 +1,7 @@
+ktlint=1.8
+rules=compose:content-trailing-lambda
+ec.compose_treat_as_composable_lambda=Potato
+ec.compose_treat_as_lambda=Plum
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=ContentTrailingLambdaCheckTest.passes when content is the last parameter
