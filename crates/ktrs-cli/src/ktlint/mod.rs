@@ -19,6 +19,7 @@ mod java_printf;
 pub mod java_glob;
 pub mod jpath;
 pub mod ktlint_jar;
+mod legacy_rule_set;
 pub mod logger;
 mod parallel;
 mod patterns;
