@@ -1,0 +1,6 @@
+1:13	compose:compositionlocal-allowlist	manual	CompositionLocals are implicit dependencies and creating new ones should be avoided.\nSee https://mrmans0n.github.io/compose-rules/rules/#compositionlocals for more information.
+2:14	compose:compositionlocal-allowlist	manual	CompositionLocals are implicit dependencies and creating new ones should be avoided.\nSee https://mrmans0n.github.io/compose-rules/rules/#compositionlocals for more information.
+3:5	compose:compositionlocal-allowlist	manual	CompositionLocals are implicit dependencies and creating new ones should be avoided.\nSee https://mrmans0n.github.io/compose-rules/rules/#compositionlocals for more information.
+4:13	compose:compositionlocal-allowlist	manual	CompositionLocals are implicit dependencies and creating new ones should be avoided.\nSee https://mrmans0n.github.io/compose-rules/rules/#compositionlocals for more information.
+5:13	compose:compositionlocal-allowlist	manual	CompositionLocals are implicit dependencies and creating new ones should be avoided.\nSee https://mrmans0n.github.io/compose-rules/rules/#compositionlocals for more information.
+6:13	compose:compositionlocal-allowlist	manual	CompositionLocals are implicit dependencies and creating new ones should be avoided.\nSee https://mrmans0n.github.io/compose-rules/rules/#compositionlocals for more information.

@@ -1,0 +1,2 @@
+2:18	compose:composable-annotation-naming	manual	Composable annotations (e.g. tagged with `@ComposableTargetMarker`) should have the `Composable` suffix.\nSee https://mrmans0n.github.io/compose-rules/rules/#naming-composable-annotations-properly for more information.
+4:18	compose:composable-annotation-naming	manual	Composable annotations (e.g. tagged with `@ComposableTargetMarker`) should have the `Composable` suffix.\nSee https://mrmans0n.github.io/compose-rules/rules/#naming-composable-annotations-properly for more information.

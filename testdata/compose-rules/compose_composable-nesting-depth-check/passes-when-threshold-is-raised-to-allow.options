@@ -1,0 +1,7 @@
+ktlint=1.8
+rules=compose:composable-nesting-depth-check
+ec.compose_composable_nesting_depth_enabled=true
+ec.compose_composable_nesting_depth_threshold=10
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=ComposableNestingDepthCheckTest.passes when threshold is raised to allow deep nesting

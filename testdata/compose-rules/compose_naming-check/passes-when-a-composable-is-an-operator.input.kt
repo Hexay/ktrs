@@ -1,0 +1,2 @@
+@Composable
+operator fun invoke() { }

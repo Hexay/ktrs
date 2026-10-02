@@ -1,0 +1,6 @@
+ktlint=1.8
+rules=compose:lambda-param-in-effect
+ec.compose_treat_as_lambda=MyLambda
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=LambdaParameterInRestartableEffectCheckTest.passes when a lambda is properly handled before using it in an effect
