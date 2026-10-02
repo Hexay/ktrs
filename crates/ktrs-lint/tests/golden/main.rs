@@ -30,7 +30,7 @@ fn ktlint_goldens() {
     ktrs_lint::engine::set_verify_visited_types(env::var_os("GOLDEN_VERIFY_VISITED_TYPES").is_some_and(|v| v == "1"));
 
     let outcomes = runner::run_all(&cases, |case| {
-        runner::run_case(case, || engine::setup(&case.options, &case.input, &standard_rule_provider, None))
+        runner::run_case(case, || engine::setup(&case.options, &case.input, &standard_rule_provider, &[], None))
     });
     let results: Vec<_> = cases.iter().map(|c| c.name.as_str()).zip(outcomes).collect();
     runner::print_summary(&results);

@@ -54,7 +54,7 @@ fn compose_rules_goldens() {
         standard_rule_provider(id).or_else(|| compose.iter().find(|p| p.rule_id().value() == id).cloned())
     };
     let outcomes = runner::run_all(&runs, |run| {
-        runner::run_case(&run.case, || engine::setup(&run.case.options, &run.case.input, &resolve, Some(run.version)))
+        runner::run_case(&run.case, || engine::setup(&run.case.options, &run.case.input, &resolve, &compose, Some(run.version)))
     });
     let results: Vec<_> = runs.iter().map(|r| r.name.as_str()).zip(outcomes).collect();
     runner::print_summary(&results);

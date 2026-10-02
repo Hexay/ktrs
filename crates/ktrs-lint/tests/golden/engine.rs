@@ -21,7 +21,7 @@ pub enum Skip {
 }
 
 /// The property named `name`, as the JVM harness passed it (`EditorConfigProperty.name`).
-fn property(name: &str, value: &str, providers: &[RuleV2Provider]) -> Option<PropertyRef> {
+fn property(name: &str, value: &str, providers: &[RuleV2Provider], property_pool: &[RuleV2Provider]) -> Option<PropertyRef> {
     let statics: [PropertyRef; 7] = [
         (&*CODE_STYLE_PROPERTY).into(),
         (&*END_OF_LINE_PROPERTY).into(),
@@ -31,7 +31,7 @@ fn property(name: &str, value: &str, providers: &[RuleV2Provider]) -> Option<Pro
         (&*INSERT_FINAL_NEWLINE_PROPERTY).into(),
         (&*MAX_LINE_LENGTH_PROPERTY).into(),
     ];
-    let used = providers.iter().flat_map(|p| p.uses_editor_config_properties().iter().cloned());
+    let used = providers.iter().chain(property_pool).flat_map(|p| p.uses_editor_config_properties().iter().cloned());
     if let Some(p) = statics.into_iter().chain(used).find(|p| p.name() == name) {
         return Some(p);
     }
@@ -45,11 +45,13 @@ fn property(name: &str, value: &str, providers: &[RuleV2Provider]) -> Option<Pro
 }
 
 /// The engine for a case: its rules resolved by `resolve`, its overrides, and `ktlint_version` (else the case's
-/// recorded release, else 2.0) as `ktrs_ktlint_version`.
+/// recorded release, else 2.0) as `ktrs_ktlint_version`. An override may also name a property only a rule of
+/// `property_pool` declares (the JVM harness passes it to the engine, which ignores it).
 pub fn setup(
     options: &Options,
     input: &str,
     resolve: &dyn Fn(&str) -> Option<RuleV2Provider>,
+    property_pool: &[RuleV2Provider],
     ktlint_version: Option<KtlintVersion>,
 ) -> Result<(KtLintRuleEngine, Code), Skip> {
     let providers = options
@@ -60,7 +62,7 @@ pub fn setup(
     let overrides = options
         .editor_config
         .iter()
-        .map(|(name, value)| property(name, value, &providers).map(|p| (p, Some(value.clone()))).ok_or_else(|| Skip::EditorConfig(name.clone())))
+        .map(|(name, value)| property(name, value, &providers, property_pool).map(|p| (p, Some(value.clone()))).ok_or_else(|| Skip::EditorConfig(name.clone())))
         .collect::<Result<Vec<_>, _>>()?;
     let mut editor_config_override = if overrides.is_empty() { EditorConfigOverride::empty() } else { EditorConfigOverride::from(overrides) };
     let recorded = options.ktlint.as_deref().map(|v| if v == "1.8" { KtlintVersion::V1_8 } else { KtlintVersion::V2_0 });
