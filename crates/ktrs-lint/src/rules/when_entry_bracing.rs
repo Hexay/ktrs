@@ -5,6 +5,7 @@ use ktrs_syntax::SyntaxKind::{ARROW, BLOCK, WHEN, WHEN_ENTRY};
 
 use crate::ast_node_extension::AstNodeExtension;
 use crate::editorconfig::{INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, PropertyRef};
+use crate::engine::kotlin_text::trim_margin;
 use crate::indent_config::IndentConfig;
 use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
@@ -145,7 +146,8 @@ fn has_multiline_body(ast: &Ast, n: NodeId) -> bool {
 }
 
 fn create_when_entry_node(ast: &mut Ast, when_entry: &str) -> Option<NodeId> {
-    let text = format!("when {{\n{when_entry}\n}}");
+    // Upstream trims the margin after interpolating, so `|` margins inside the entry's own raw strings go too.
+    let text = trim_margin(&format!("\n|when {{\n|{when_entry}\n|}}\n"));
     ast.create_ast_node_from_text(&text)
         .and_then(|it| ast.find_child_by_type(it, WHEN))
         .and_then(|it| ast.find_child_by_type(it, WHEN_ENTRY))

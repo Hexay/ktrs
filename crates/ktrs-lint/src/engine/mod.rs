@@ -17,6 +17,7 @@ mod ktlint_suppression_annotation;
 mod position_in_text_locator;
 mod rule_dispatch;
 mod rule_execution_context;
+mod rule_panic;
 mod rule_setup;
 pub mod rule_filter;
 mod suppression_locator;
@@ -33,4 +34,5 @@ pub use ktlint_rule_engine_suppression::{
 pub use position_in_text_locator::PositionInTextLocator;
 pub use rule_execution_context::{EmitAndApprove, execute_rules, set_verify_visited_types};
 pub(crate) use rule_execution_context::verifying_shortcuts;
+pub use rule_panic::silence_caught_rule_panics;
 pub use suppression_locator::SuppressionLocator;

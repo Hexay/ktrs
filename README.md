@@ -70,8 +70,18 @@ ktlint --relative "src/**/*.kt" "!src/**/generated/**"
 - `ktfmt` supports all of ktfmt's flags, plus `@argfile`, `-` for stdin and `--enable-editorconfig`.
 - `ktlint` supports `!` negation in patterns, `-F`, `--stdin`, `--patterns-from-stdin`, `--baseline`,
   `--editorconfig`, every built-in reporter, and the git hook subcommands.
-- ktlint implements 2.0.0-ALPHA-4, with its engine and all 105 standard rules. JVM rule sets and
-  reporters (`-R`, `artifact=`) can't be loaded.
+- ktlint implements 2.0.0-ALPHA-4, with its engine and all 105 standard rules.
+
+**Limits.**
+
+- **ktlint 1.x.** ktrs matches ktlint 2.0, and 1.8 reports differ in a few rules. In
+  `ktlint_official` and `intellij_idea` under 1% of violations differ. In `android_studio` about 5%
+  differ, mostly in `argument-list-wrapping`, `function-literal` and `blank-line-before-declaration`.
+  `--format` output differs on 2-22% of files, depending on the style. 2.0 also changed some exit
+  codes and baseline matching. Details and causes are in
+  [research/22](research/22-ktlint-1x-gap.md).
+- **Custom rule sets.** JVM rule sets and reporters (`-R`, `artifact=`) can't be loaded. Run the
+  ktlint jar for those.
 
 ## Integrations
 
@@ -273,6 +283,24 @@ files:
   styles, with and without experimental rules.
 - **CLIs.** The `ktfmt` and `ktlint` binaries are compared with the jars on stdout, stderr, exit
   code and written files across a scenario suite.
+- **Held-out corpus.** To check that the corpus work didn't overfit, the CLIs also run against a
+  second corpus that never drove a fix. It has 15,287 files from 20 other projects, pinned in
+  [`tools/holdout/REVISIONS`](tools/holdout/REVISIONS). In the first run:
+  - All 2.2M lint violations matched ktlint in all three styles.
+  - ktfmt output matched on every file in all three styles.
+  - `--format` output differed on 3 files, from one rule. That bug is now fixed.
+
+  Details are in [research/21](research/21-holdout.md); `tools/holdout/run.sh` reruns it.
+- **Upstream releases.** A weekly workflow opens an issue when ktfmt, ktlint or Kotlin publishes a
+  release newer than the pinned version.
+
+## Maintenance
+
+ktrs is maintained by [@Hexay](https://github.com/Hexay). It tracks ktfmt 0.64, ktlint
+2.0.0-ALPHA-4 and the Kotlin 2.4.20 parser. New upstream releases are ported and re-checked against
+the parity gates before a ktrs release. If ktrs output ever differs from ktfmt or ktlint on your
+code, that's a bug: please [open an issue](https://github.com/Hexay/ktrs/issues) with the file, or
+a snippet that reproduces it, and the command line you used.
 
 ## Contributing
 

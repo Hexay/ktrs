@@ -28,5 +28,6 @@ pub use command_line::{ExitCode, KtlintCli};
 
 /// The `ktlint` binary: `args` without the program name; returns the exit code.
 pub fn main(args: &[String]) -> i32 {
+    ktrs_lint::engine::silence_caught_rule_panics();
     KtlintCli::from_env().run(args)
 }

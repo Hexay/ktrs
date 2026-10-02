@@ -66,6 +66,9 @@ Milestone 1: the parser's tree must be identical to the Kotlin compiler's PSI (`
   totals; `--experimental` = `ktlint_experimental = enabled`. Oracle (JVM, testbox, background): `KTLINT_CODE_STYLE=<style>
   [KTLINT_EXPERIMENTAL=enabled] tools/ktlint-oracle/ktlint-probe.sh corpus target/ktlint-oracle/<style>[-experimental]
   --rules <ported>`; status and commands research/19-ktlint-parity.md. Pass-by-pass tree diff: `tools/ktlint-tests/oracle-diff.sh` (`cargo ktlint-probe`).
+- `tools/holdout/run.sh` (testbox, background, hours) — held-out corpus: the `ktlint`/`ktfmt` binaries vs the jars on
+  20 repos never used for fixes (`tools/holdout/REVISIONS`), via `tools/parity/{ktlint,ktfmt}-compare.sh`; research/21.
+  `ktlint-compare.sh` also diffs two ktlint versions (1.8 vs 2.0: research/22).
 - `cargo test -p ktrs-cli` — ktfmt's and ktlint's CLI and reporter tests, ported. `tools/ktfmt-oracle/cli-diff.sh` (JVM, ~2 min) — the
   `ktfmt` binary vs the ktfmt jar on stdout/stderr/exit code/files (`ONLY=<regex>`, `KEEP=1`).
   `tools/ktlint-oracle/cli-diff.sh [ktlint-binary]` (JVM, testbox, background) — same for `ktlint` vs the ktlint jar;

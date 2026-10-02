@@ -3,7 +3,6 @@
 //! `after` at that node), preceded by a traversal of the internal suppression rule alone.
 
 use std::ops::Deref;
-use std::panic::{self, AssertUnwindSafe};
 use std::rc::Rc;
 use std::sync::{Arc, LazyLock};
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -21,6 +20,7 @@ use crate::engine::internal_rules::KTLINT_SUPPRESSION_RULE_ID;
 use crate::engine::ktlint_rule_engine::{KtLintRuleEngine, UTF8_BOM};
 use crate::engine::position_in_text_locator::PositionInTextLocator;
 use crate::engine::rule_dispatch::RuleDispatch;
+use crate::engine::rule_panic::catch_rule_panic;
 use crate::engine::rule_setup::RuleSetup;
 use crate::engine::suppression_locator::SuppressionLocator;
 use crate::rule::{About, AutocorrectDecision, RuleId, RuleV2, TokenSet};
@@ -260,7 +260,7 @@ fn execute(
     action: impl FnOnce(&mut dyn RuleV2),
 ) -> Result<(), RuleExecutionException> {
     let (rule_id, about) = (rule.rule_id(), rule.about());
-    panic::catch_unwind(AssertUnwindSafe(|| action(rule))).map_err(|payload| {
+    catch_rule_panic(|| action(rule)).map_err(|payload| {
         RuleExecutionException {
             rule_id,
             about,
@@ -371,7 +371,7 @@ impl Traversal<'_, '_> {
     ) -> Result<(), RuleExecutionException> {
         let root = self.ast.root();
         let rule_id = r.rule_id;
-        let outcome = panic::catch_unwind(AssertUnwindSafe(|| {
+        let outcome = catch_rule_panic(|| {
             if !self.suppression_locator.suppress(
                 self.ast,
                 root,
@@ -395,7 +395,7 @@ impl Traversal<'_, '_> {
                     r.rule.after_visit_child_nodes(self.ast, node, &mut emit);
                 }
             }
-        }));
+        });
         r.note_stop(self.seq);
         outcome.map_err(|payload| {
             // In format mode the node may not be in the original text, so no position is given.
