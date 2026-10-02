@@ -11,6 +11,7 @@ pub mod args;
 pub mod baseline;
 mod clikt;
 pub mod command_line;
+mod compose_jar;
 pub mod console;
 pub mod file_utils;
 mod jar_providers;
@@ -28,6 +29,7 @@ mod run;
 mod sha256;
 mod subcommands;
 pub mod version;
+mod zip_directory;
 
 pub use command_line::{ExitCode, KtlintCli};
 
