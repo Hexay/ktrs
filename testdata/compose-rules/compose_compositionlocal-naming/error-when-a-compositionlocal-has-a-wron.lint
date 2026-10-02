@@ -1,0 +1,3 @@
+1:5	compose:compositionlocal-naming	manual	CompositionLocals should be named using the `Local` prefix as an adjective, followed by a descriptive noun.\nSee https://mrmans0n.github.io/compose-rules/rules/#naming-compositionlocals-properly for more information.
+2:5	compose:compositionlocal-naming	manual	CompositionLocals should be named using the `Local` prefix as an adjective, followed by a descriptive noun.\nSee https://mrmans0n.github.io/compose-rules/rules/#naming-compositionlocals-properly for more information.
+3:13	compose:compositionlocal-naming	manual	CompositionLocals should be named using the `Local` prefix as an adjective, followed by a descriptive noun.\nSee https://mrmans0n.github.io/compose-rules/rules/#naming-compositionlocals-properly for more information.

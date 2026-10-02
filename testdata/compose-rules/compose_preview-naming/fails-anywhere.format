@@ -1,0 +1,1 @@
+3:5	compose:preview-naming	auto	Preview functions should contain `Preview` in their names, per your project's configuration.\nSee https://mrmans0n.github.io/compose-rules/rules/#naming-previews-properly for more information.

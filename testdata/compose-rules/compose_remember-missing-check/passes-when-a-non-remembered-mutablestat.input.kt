@@ -1,0 +1,1 @@
+val msof = mutableStateOf("X")

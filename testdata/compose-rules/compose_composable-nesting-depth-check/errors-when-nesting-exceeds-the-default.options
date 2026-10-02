@@ -1,0 +1,6 @@
+ktlint=1.8
+rules=compose:composable-nesting-depth-check
+ec.compose_composable_nesting_depth_enabled=true
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=ComposableNestingDepthCheckTest.errors when nesting exceeds the default threshold

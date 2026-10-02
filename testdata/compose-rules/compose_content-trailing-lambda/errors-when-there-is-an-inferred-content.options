@@ -1,0 +1,6 @@
+ktlint=1.8
+rules=compose:content-trailing-lambda
+ec.compose_treat_as_composable_lambda=Potato
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=ContentTrailingLambdaCheckTest.errors when there is an inferred content parameter not being last

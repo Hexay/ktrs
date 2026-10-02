@@ -1,0 +1,5 @@
+ktlint=1.8
+rules=compose:modifier-without-default-check
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=ModifierWithoutDefaultCheckTest.errors when a Composable has modifiers but without default values, and is able to auto fix it

@@ -1,0 +1,7 @@
+ktlint=1.8
+rules=compose:parameter-naming
+ec.compose_treat_as_lambda=Potato
+ec.compose_allowed_lambda_parameter_names=onSizeChanged,onGloballyPositioned
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=ParameterNamingCheckTest.passes when a param lambda is in the past tense but it's in the allowlist

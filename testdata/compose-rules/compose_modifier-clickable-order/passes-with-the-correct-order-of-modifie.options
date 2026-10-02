@@ -1,0 +1,5 @@
+ktlint=1.8
+rules=compose:modifier-clickable-order
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=ModifierClickableOrderCheckTest.passes with the correct order of modifiers

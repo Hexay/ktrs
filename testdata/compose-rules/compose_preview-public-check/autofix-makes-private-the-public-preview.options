@@ -1,0 +1,5 @@
+ktlint=1.8
+rules=compose:preview-public-check
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=PreviewPublicCheckTest.autofix makes private the public preview
