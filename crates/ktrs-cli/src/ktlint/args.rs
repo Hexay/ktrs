@@ -153,7 +153,7 @@ pub fn parse_args(tokens: &[String], working_dir: &Path) -> Parsed {
         // Clikt runs eager options (help, version) before it reports a usage error.
         Err(_) if has_token(&tokens, &["--help", "-h"]) => return Parsed::Message(help_main(ktlint_version)),
         Err(_) if has_token(&tokens, &["--version", "-v"]) => return version(ktlint_version),
-        Err(message) => return usage_error(USAGE_MAIN, message),
+        Err(message) => return usage_error(USAGE_MAIN, with_subcommand_hint(message)),
     };
     let has = |name: &str| parsed.invocations.iter().any(|i| i.name == name);
     if has("--help") {
@@ -251,6 +251,16 @@ fn parse_subcommand(name: &'static str, tokens: &[String]) -> Result<Subcommand,
         }
         INSTALL_GIT_PRE_COMMIT_HOOK => Ok(Subcommand::InstallGitPreCommitHook),
         _ => Ok(Subcommand::InstallGitPrePushHook),
+    }
+}
+
+/// Clikt's hint when an unknown option without suggestions is one of a subcommand's.
+fn with_subcommand_hint(message: String) -> String {
+    match message.strip_prefix("no such option ") {
+        Some(name) if GENERATE_EDITOR_CONFIG_OPTIONS.iter().any(|o| o.names.contains(&name) && !o.names.contains(&"--help")) => {
+            format!("{message}. hint: {GENERATE_EDITOR_CONFIG} has an option {name}")
+        }
+        _ => message,
     }
 }
 

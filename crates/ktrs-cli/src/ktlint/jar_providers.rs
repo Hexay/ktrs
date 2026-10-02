@@ -10,7 +10,6 @@ use crate::ktlint::jpath::JPath;
 use crate::ktlint::logger::{KTLINT_COMMAND_LINE, KTLINT_SERVICE_LOADER, Level, Logger};
 
 pub const RULE_SET_V2_PROVIDER: &str = "io.github.ktlint.core.cli.ruleset.core.api.RuleSetV2Provider";
-pub const REPORTER_PROVIDER_V2: &str = "io.github.ktlint.core.cli.reporter.core.api.ReporterProviderV2";
 
 /// `List<String>.toFilesURIList()`: each path must exist (else FILE_NOT_FOUND); the URL paths, distinct.
 pub fn to_files_uri_list(paths: &[String], working_dir: &JPath, user_home: &str, logger: &Logger) -> Result<Vec<String>, Exit> {
@@ -68,10 +67,9 @@ pub fn load_from_jar_file(url_path: &str, interface: &str, also_loadable: &[&str
             .join("\n")
         });
     } else {
+        let hint = if logger.ktlint_version().is_1_8() { "run in debug mode" } else { "run with '--log-level=debug'" };
         logger.error(KTLINT_SERVICE_LOADER, || {
-            format!(
-                "JAR file '{url_path}' is missing a class implementing interface '{interface}' (run with '--log-level=debug' for more information)"
-            )
+            format!("JAR file '{url_path}' is missing a class implementing interface '{interface}' ({hint} for more information)")
         });
     }
     Exit::Code(ExitCode::InvalidRulesetJar)

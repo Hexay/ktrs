@@ -64,6 +64,10 @@ impl Logger {
         Logger { console, min_level, ktlint_version }
     }
 
+    pub fn ktlint_version(&self) -> KtlintVersion {
+        self.ktlint_version
+    }
+
     pub fn is_enabled(&self, level: Level) -> bool {
         level != Level::Off && level >= self.min_level
     }

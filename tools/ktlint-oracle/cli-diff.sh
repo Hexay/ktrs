@@ -7,7 +7,8 @@
 # (`ktrs lint --list-rules` vs the jar's RuleIds.java), so rule differences don't hide CLI ones.
 # ONLY=<regex> selects scenarios, KEEP=1 keeps outputs, VERBOSE=1 prints diffs. Exit 1 on any mismatch.
 # KTLINT_VERSION=1.8: against the 1.8.0 jar (JAR=<path>, default lib/ktlint-cli-1.8.0-all.jar, fetched), ktrs in
-# 1.8 mode through the fixture's `ktrs_ktlint_version = 1.8` (research/26-ktlint-18-mode.md).
+# 1.8 mode through the fixture's `ktrs_ktlint_version = 1.8` (research/26-ktlint-18-mode.md). Known 1.8 mismatch:
+# rep_summary_format (`-F` runs 2.0's rule order).
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
 repo="$(cd "$here/../.." && pwd)"

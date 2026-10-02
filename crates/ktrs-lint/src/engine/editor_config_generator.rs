@@ -6,7 +6,7 @@ use ktrs_editorconfig::{EnumValue, ParseException};
 
 use crate::editorconfig::{
     CODE_STYLE_PROPERTY, CODE_STYLE_PROPERTY_TYPE, CodeStyleValue, END_OF_LINE_PROPERTY,
-    EXPERIMENTAL_RULES_EXECUTION_PROPERTY, PropertyRef,
+    EXPERIMENTAL_RULES_EXECUTION_PROPERTY, KTLINT_VERSION_PROPERTY, KTLINT_VERSION_PROPERTY_TYPE, KtlintVersion, PropertyRef,
 };
 use crate::engine::editor_config_defaults::{EditorConfigDefaults, EditorConfigOverride};
 use crate::engine::editor_config_loader::{EditorConfigLoader, EditorConfigLoaderEc4j};
@@ -34,11 +34,24 @@ impl KtLintRuleEngine {
                 used_editor_config_properties.push(property.clone());
             }
         }
+        let mut kept_names: Vec<String> = used_editor_config_properties.iter().map(|p| p.name().to_owned()).collect();
+        kept_names.extend(GENERATOR_DEFAULT_PROPERTIES.iter().map(|p| p.to_string()));
         used_editor_config_properties.extend(default_editor_config_properties());
         let editor_config = load_editor_config(self, code_style, file_path)?
             .add_properties_with_default_value_if_missing(&used_editor_config_properties);
+        // 1.8's `filterBy` keeps only the used properties; 2.0's keeps whatever was loaded too.
+        let ktlint_1_8 = self
+            .editor_config_override()
+            .get(&PropertyRef::from(&*KTLINT_VERSION_PROPERTY))
+            .and_then(|value| KTLINT_VERSION_PROPERTY_TYPE.parse(value.source()).into_parsed())
+            .is_some_and(KtlintVersion::is_1_8);
         let mut lines: Vec<String> = Vec::new();
-        for line in editor_config.map(|p| format!("{} = {}", p.name(), p.source_value().unwrap_or("null"))) {
+        for line in editor_config
+            .map(|p| (p.name().to_owned(), format!("{} = {}", p.name(), p.source_value().unwrap_or("null"))))
+            .into_iter()
+            .filter(|(name, _)| !ktlint_1_8 || kept_names.contains(name))
+            .map(|(_, line)| line)
+        {
             if !lines.contains(&line) {
                 lines.push(line);
             }
@@ -47,6 +60,10 @@ impl KtLintRuleEngine {
         Ok(lines.join(LINE_SEPARATOR))
     }
 }
+
+/// `DEFAULT_EDITOR_CONFIG_PROPERTIES` of `DefaultEditorConfigProperties.kt`, which the generator adds to the rules'.
+const GENERATOR_DEFAULT_PROPERTIES: [&str; 6] =
+    ["ktlint_code_style", "end_of_line", "indent_style", "indent_size", "insert_final_newline", "max_line_length"];
 
 /// `DEFAULT_EDITOR_CONFIG_PROPERTIES` (`EditorConfigLoader.kt`).
 fn default_editor_config_properties() -> [PropertyRef; 6] {
