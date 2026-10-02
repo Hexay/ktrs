@@ -1,0 +1,11 @@
+root = true
+
+[*.{kt,kts}]
+ktlint_code_style = ktlint_official
+max_line_length = 50
+
+[R3BlankLineBeforeDeclaration.kt]
+ktlint_code_style = android_studio
+
+[X4IndentWhereTabs.kt]
+indent_style = tab

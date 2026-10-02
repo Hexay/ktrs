@@ -81,11 +81,12 @@ impl ClassSignatureRule {
                                 ast.upsert_whitespace_before_me(super_type_first_child_node, &indent)
                             });
                     }
-                } else if ast
-                    .prev_leaf(super_type_first_child_node)
-                    .and_then(|it| ast.prev_sibling(it))
-                    .map(|it| ast.element_type(it))
-                    != Some(EOL_COMMENT)
+                } else if self.ktlint_version.is_1_8() // 1.8 joins the supertype even after an EOL comment (#3312)
+                    || ast
+                        .prev_leaf(super_type_first_child_node)
+                        .and_then(|it| ast.prev_sibling(it))
+                        .map(|it| ast.element_type(it))
+                        != Some(EOL_COMMENT)
                 {
                     let expected_whitespace = " ";
                     if white_space_before_identifier.is_none_or(|it| !ast.text_matches(it, expected_whitespace)) {
@@ -141,7 +142,7 @@ impl ClassSignatureRule {
         let length = actual_class_signature_length
             // Calculate the white space correction in case the signature would be rewritten to a single line
             + self.fix_white_spaces_in_value_parameter_list(ast, node, emit, false, true);
-        ast.has_no_max_line_length_suppression(node) && length > self.max_line_length
+        ast.has_no_max_line_length_suppression_in(node, self.ktlint_version) && length > self.max_line_length
     }
 }
 

@@ -13,7 +13,8 @@ use ktrs_ast::{Ast, NodeId};
 
 use crate::ast_node_extension::{AstNodeExtension, AstNodeLines, AstNodeQueries};
 use crate::editorconfig::{
-    CODE_STYLE_PROPERTY, CodeStyleValue, EditorConfig, INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, MAX_LINE_LENGTH_PROPERTY, PropertyRef,
+    CODE_STYLE_PROPERTY, CodeStyleValue, EditorConfig, INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, KtlintVersion, MAX_LINE_LENGTH_PROPERTY,
+    PropertyRef,
 };
 use crate::element_type::{
     ANNOTATION, ANNOTATION_ENTRY, CLASS, CLASS_BODY, COLON, COMMA, EOL_COMMENT, MODIFIER_LIST, SUPER_TYPE_LIST, VALUE_PARAMETER,
@@ -36,6 +37,7 @@ pub struct ClassSignatureRule {
     indent_config: IndentConfig,
     max_line_length: i32,
     class_signature_wrapping_minimum_parameters: i32,
+    ktlint_version: KtlintVersion,
 }
 
 impl ClassSignatureRule {
@@ -45,6 +47,7 @@ impl ClassSignatureRule {
             indent_config: IndentConfig::default_indent_config(),
             max_line_length: MAX_LINE_LENGTH_PROPERTY.default_value,
             class_signature_wrapping_minimum_parameters: FORCE_MULTILINE_WHEN_PARAMETER_COUNT_GREATER_OR_EQUAL_THAN_PROPERTY.default_value,
+            ktlint_version: KtlintVersion::default(),
         }
     }
 }
@@ -85,6 +88,7 @@ impl RuleV2 for ClassSignatureRule {
             editor_config.get(&FORCE_MULTILINE_WHEN_PARAMETER_COUNT_GREATER_OR_EQUAL_THAN_PROPERTY);
         self.indent_config = IndentConfig::new(editor_config.get(&INDENT_STYLE_PROPERTY), editor_config.get(&INDENT_SIZE_PROPERTY));
         self.max_line_length = max_line_length(editor_config);
+        self.ktlint_version = KtlintVersion::of(editor_config);
     }
 
     fn before_visit_child_nodes(&mut self, ast: &mut Ast, node: NodeId, emit: &mut Emit<'_>) {
@@ -153,7 +157,7 @@ impl ClassSignatureRule {
             || contains_multiline_parameter(ast, node)
             || (self.code_style == CodeStyleValue::KtlintOfficial && contains_annotated_parameter(ast, node))
             || (self.is_max_line_length_set()
-                && ast.has_no_max_line_length_suppression(node)
+                && ast.has_no_max_line_length_suppression_in(node, self.ktlint_version)
                 && self.class_signature_excluding_super_types_exceeds_max_line_length(ast, node, emit))
             || (!self.is_max_line_length_set() && class_signature_excluding_super_types_is_multiline(ast, node))
             || contains_eol_comment(ast, node);
@@ -176,7 +180,7 @@ impl ClassSignatureRule {
         let length = actual_class_signature_length
             // Calculate the white space correction in case the signature would be rewritten to a single line
             + self.fix_white_spaces_in_value_parameter_list(ast, node, emit, false, true);
-        ast.has_no_max_line_length_suppression(node) && length > self.max_line_length
+        ast.has_no_max_line_length_suppression_in(node, self.ktlint_version) && length > self.max_line_length
     }
 }
 

@@ -1,13 +1,14 @@
 //! The options of `KtlintCommandLine` and its subcommands (`Main.kt`), parsed the way Clikt does.
 
 use std::path::Path;
+use std::sync::LazyLock;
 
 use ktrs_editorconfig::EnumValue;
-use ktrs_lint::editorconfig::CodeStyleValue;
+use ktrs_lint::editorconfig::{CodeStyleValue, KtlintVersion};
 
 use crate::ktlint::clikt::{Arity, Invocation, OptionSpec, expand_argument_files, parse_tokens};
 use crate::ktlint::logger::Level;
-use crate::ktlint::reporter::KTLINT_VERSION;
+use crate::ktlint::version::{KTLINT_VERSION_OPTION, release, resolve_ktlint_version};
 
 pub const HELP_MAIN: &str = include_str!("help/help-main.txt");
 const HELP_GENERATE_EDITOR_CONFIG: &str = include_str!("help/help-gen.txt");
@@ -23,7 +24,7 @@ const fn spec(names: &'static [&'static str], arity: Arity) -> OptionSpec {
     OptionSpec { names, arity, hidden: false }
 }
 
-static MAIN_OPTIONS: [OptionSpec; 17] = [
+static MAIN_OPTIONS: [OptionSpec; 18] = [
     spec(&["--version", "-v"], Arity::Flag),
     spec(&["--color"], Arity::Flag),
     spec(&["--color-name"], Arity::Value),
@@ -41,7 +42,34 @@ static MAIN_OPTIONS: [OptionSpec; 17] = [
     spec(&["--baseline"], Arity::Value),
     spec(&["--log-level", "-l"], Arity::Value),
     spec(&["--help", "-h"], Arity::Flag),
+    OptionSpec { names: &[KTLINT_VERSION_OPTION], arity: Arity::Value, hidden: true },
 ];
+
+/// 1.8 still declares `--code-style` (deprecated, an error when used) right after `--version`.
+static MAIN_OPTIONS_1_8: LazyLock<Vec<OptionSpec>> = LazyLock::new(|| {
+    let mut options = MAIN_OPTIONS.to_vec();
+    options.insert(1, spec(&[CODE_STYLE_OPTION], Arity::Value));
+    options
+});
+
+const CODE_STYLE_OPTION: &str = "--code-style";
+const CODE_STYLE_CHOICES: &str = "(choose from android_studio, intellij_idea, ktlint_official)";
+
+fn main_options(ktlint_version: KtlintVersion) -> &'static [OptionSpec] {
+    if ktlint_version.is_1_8() { &MAIN_OPTIONS_1_8 } else { &MAIN_OPTIONS }
+}
+
+/// 1.8's help: the old documentation URL and the `--code-style` entry.
+pub fn help_main(ktlint_version: KtlintVersion) -> String {
+    if !ktlint_version.is_1_8() {
+        return HELP_MAIN.to_owned();
+    }
+    HELP_MAIN.replace("(https://ktlint.github.io/ktlint/latest/)", "(https://pinterest.github.io/ktlint/latest/)").replace(
+        "  -v, --version                  Show the version and exit\n",
+        "  -v, --version                  Show the version and exit\n  \
+         --code-style=(android_studio|intellij_idea|ktlint_official)\n                                 (deprecated)\n",
+    )
+}
 
 static GENERATE_EDITOR_CONFIG_OPTIONS: [OptionSpec; 2] =
     [spec(&["--code-style"], Arity::Value), spec(&["--help", "-h"], Arity::Flag)];
@@ -66,6 +94,7 @@ pub struct KtlintArgs {
     pub baseline_path: String,
     pub arguments: Vec<String>,
     pub min_log_level: Level,
+    pub ktlint_version: KtlintVersion,
 }
 
 impl Default for KtlintArgs {
@@ -87,6 +116,7 @@ impl Default for KtlintArgs {
             baseline_path: String::new(),
             arguments: Vec::new(),
             min_log_level: Level::Info,
+            ktlint_version: KtlintVersion::default(),
         }
     }
 }
@@ -104,6 +134,8 @@ pub enum Parsed {
     Message(String),
     /// A usage error: the command's usage line and the message, for stderr, exit 1.
     UsageError { usage: String, message: String },
+    /// A plain `CliktError`: the message alone, for stderr, exit 1.
+    Error(String),
 }
 
 pub fn parse_args(tokens: &[String], working_dir: &Path) -> Parsed {
@@ -111,22 +143,37 @@ pub fn parse_args(tokens: &[String], working_dir: &Path) -> Parsed {
         Ok(tokens) => tokens,
         Err(message) => return usage_error(USAGE_MAIN, message),
     };
+    let ktlint_version = match resolve_ktlint_version(&tokens, working_dir) {
+        Ok(ktlint_version) => ktlint_version,
+        Err(message) => return usage_error(USAGE_MAIN, message),
+    };
     let subcommands = [GENERATE_EDITOR_CONFIG, INSTALL_GIT_PRE_COMMIT_HOOK, INSTALL_GIT_PRE_PUSH_HOOK];
-    let parsed = match parse_tokens(&tokens, &MAIN_OPTIONS, &subcommands) {
+    let parsed = match parse_tokens(&tokens, main_options(ktlint_version), &subcommands) {
         Ok(parsed) => parsed,
         // Clikt runs eager options (help, version) before it reports a usage error.
-        Err(_) if has_token(&tokens, &["--help", "-h"]) => return Parsed::Message(HELP_MAIN.to_owned()),
-        Err(_) if has_token(&tokens, &["--version", "-v"]) => return version(),
+        Err(_) if has_token(&tokens, &["--help", "-h"]) => return Parsed::Message(help_main(ktlint_version)),
+        Err(_) if has_token(&tokens, &["--version", "-v"]) => return version(ktlint_version),
         Err(message) => return usage_error(USAGE_MAIN, message),
     };
     let has = |name: &str| parsed.invocations.iter().any(|i| i.name == name);
     if has("--help") {
-        return Parsed::Message(HELP_MAIN.to_owned());
+        return Parsed::Message(help_main(ktlint_version));
     }
     if has("--version") {
-        return version();
+        return version(ktlint_version);
     }
-    let args = match to_ktlint_args(&parsed.invocations, parsed.arguments) {
+    if let Some(code_style) = parsed.invocations.iter().rev().find(|i| i.name == CODE_STYLE_OPTION).and_then(|i| i.value.as_deref()) {
+        return if code_style_value(code_style).is_some() {
+            Parsed::Error(
+                "Parameter '--code-style' is no longer valid. The code style should be defined as '.editorconfig' property \
+                 'ktlint_code_style='"
+                    .to_owned(),
+            )
+        } else {
+            usage_error(USAGE_MAIN, format!("invalid value for {CODE_STYLE_OPTION}: invalid choice: {code_style}. {CODE_STYLE_CHOICES}"))
+        };
+    }
+    let args = match to_ktlint_args(&parsed.invocations, parsed.arguments, ktlint_version) {
         Ok(args) => args,
         Err(message) => return usage_error(USAGE_MAIN, message),
     };
@@ -140,8 +187,8 @@ pub fn parse_args(tokens: &[String], working_dir: &Path) -> Parsed {
     Parsed::Run(args, subcommand)
 }
 
-fn to_ktlint_args(invocations: &[Invocation], arguments: Vec<String>) -> Result<KtlintArgs, String> {
-    let mut args = KtlintArgs { arguments, ..KtlintArgs::default() };
+fn to_ktlint_args(invocations: &[Invocation], arguments: Vec<String>, ktlint_version: KtlintVersion) -> Result<KtlintArgs, String> {
+    let mut args = KtlintArgs { arguments, ktlint_version, ..KtlintArgs::default() };
     let last = |name: &str| invocations.iter().rev().find(|i| i.name == name).and_then(|i| i.value.clone());
     let all = |name: &'static str| invocations.iter().filter(move |i| i.name == name).filter_map(|i| i.value.clone());
     let has = |name: &str| invocations.iter().any(|i| i.name == name);
@@ -198,28 +245,22 @@ fn parse_subcommand(name: &'static str, tokens: &[String]) -> Result<Subcommand,
         GENERATE_EDITOR_CONFIG => {
             let code_style = parsed.invocations.iter().rev().find_map(|i| i.value.clone());
             let code_style = code_style.ok_or_else(|| usage_error(&usage, "missing option --code-style".to_owned()))?;
-            CodeStyleValue::ENTRIES
-                .iter()
-                .copied()
-                .find(|c| c.name().eq_ignore_ascii_case(&code_style))
-                .map(Subcommand::GenerateEditorConfig)
-                .ok_or_else(|| {
-                    usage_error(
-                        &usage,
-                        format!(
-                            "invalid value for --code-style: invalid choice: {code_style}. (choose from android_studio, \
-                             intellij_idea, ktlint_official)"
-                        ),
-                    )
-                })
+            code_style_value(&code_style).map(Subcommand::GenerateEditorConfig).ok_or_else(|| {
+                usage_error(&usage, format!("invalid value for {CODE_STYLE_OPTION}: invalid choice: {code_style}. {CODE_STYLE_CHOICES}"))
+            })
         }
         INSTALL_GIT_PRE_COMMIT_HOOK => Ok(Subcommand::InstallGitPreCommitHook),
         _ => Ok(Subcommand::InstallGitPrePushHook),
     }
 }
 
-fn version() -> Parsed {
-    Parsed::Message(format!("ktlint version {KTLINT_VERSION}\n"))
+/// Clikt's `enum<CodeStyleValue>()`: the names, ignoring case.
+fn code_style_value(value: &str) -> Option<CodeStyleValue> {
+    CodeStyleValue::ENTRIES.iter().copied().find(|c| c.name().eq_ignore_ascii_case(value))
+}
+
+fn version(ktlint_version: KtlintVersion) -> Parsed {
+    Parsed::Message(format!("ktlint version {}\n", release(ktlint_version)))
 }
 
 fn has_token(tokens: &[String], names: &[&str]) -> bool {

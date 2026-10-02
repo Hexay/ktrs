@@ -12,8 +12,9 @@ use std::{
     time::{Duration, Instant},
 };
 
+use ktrs_lint::rule_provider::rule_providers_in;
 use ktrs_lint::rules::standard_rule_providers;
-use ktrs_lint::editorconfig::{CODE_STYLE_PROPERTY, EXPERIMENTAL_RULES_EXECUTION_PROPERTY, PropertyRef};
+use ktrs_lint::editorconfig::{CODE_STYLE_PROPERTY, EXPERIMENTAL_RULES_EXECUTION_PROPERTY, KtlintVersion, PropertyRef};
 use ktrs_lint::{AutocorrectDecision, Code, EditorConfigDefaults, EditorConfigOverride, KtLintRuleEngine, RuleV2Provider};
 
 #[global_allocator]
@@ -136,7 +137,7 @@ fn per_rule(clock: &Clock, reps: u32, codes: &[(PathBuf, Code)]) {
     };
     let (base_lint, base_format) = time(vec![baseline()]);
     println!("baseline ({BASELINE_RULE}): lint {base_lint:.3} s, format {base_format:.3} s");
-    let mut rows: Vec<(String, f64, f64)> = standard_rule_providers()
+    let mut rows: Vec<(String, f64, f64)> = rule_providers_in(&standard_rule_providers(), KtlintVersion::V2_0)
         .into_iter()
         .map(|p| {
             let id = p.rule_id().value().to_owned();

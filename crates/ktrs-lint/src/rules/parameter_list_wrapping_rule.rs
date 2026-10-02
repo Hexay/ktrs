@@ -9,7 +9,8 @@ use ktrs_syntax::SyntaxKind::{
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::{AstNodeExtension, AstNodeLines, AstNodeQueries};
 use crate::editorconfig::{
-    CODE_STYLE_PROPERTY, CodeStyleValue, INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, MAX_LINE_LENGTH_PROPERTY, PropertyRef,
+    CODE_STYLE_PROPERTY, CodeStyleValue, INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, KtlintVersion, MAX_LINE_LENGTH_PROPERTY,
+    PropertyRef,
 };
 use crate::indent_config::IndentConfig;
 use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TokenSet, TraversalState};
@@ -23,6 +24,7 @@ pub struct ParameterListWrappingRule {
     indent_config: IndentConfig,
     max_line_length: i32,
     traversal: TraversalState,
+    ktlint_version: KtlintVersion,
 }
 
 impl ParameterListWrappingRule {
@@ -32,6 +34,7 @@ impl ParameterListWrappingRule {
             indent_config: IndentConfig::default_indent_config(),
             max_line_length: MAX_LINE_LENGTH_PROPERTY.default_value,
             traversal: TraversalState::default(),
+            ktlint_version: KtlintVersion::default(),
         }
     }
 }
@@ -71,6 +74,7 @@ impl RuleV2 for ParameterListWrappingRule {
     fn before_first_node(&mut self, editor_config: &EditorConfig) {
         self.code_style = editor_config.get(&CODE_STYLE_PROPERTY);
         self.max_line_length = max_line_length(editor_config);
+        self.ktlint_version = KtlintVersion::of(editor_config);
         self.indent_config = IndentConfig::new(editor_config.get(&INDENT_STYLE_PROPERTY), editor_config.get(&INDENT_SIZE_PROPERTY));
         if self.indent_config.disabled() {
             self.traversal.stop_traversal_of_ast();
@@ -90,7 +94,7 @@ impl ParameterListWrappingRule {
     fn visit_nullable_type(&self, ast: &mut Ast, node: NodeId, emit: &mut Emit<'_>) {
         require(ast.element_type(node) == NULLABLE_TYPE);
         let Some(nullable_type) = Some(node)
-            .filter(|&it| ast.has_no_max_line_length_suppression(it))
+            .filter(|&it| ast.has_no_max_line_length_suppression_in(it, self.ktlint_version))
             // skip when max line length is not exceeded
             .filter(|_| (ast.column(node) as i64 - 1 + ast.text_length_utf16(node) as i64) > self.max_line_length as i64)
             .filter(|&it| !ast.is_white_space_with_newline(it))
@@ -207,7 +211,7 @@ impl ParameterListWrappingRule {
     }
 
     fn is_on_line_exceeding_max_line_length(&self, ast: &Ast, node: NodeId) -> bool {
-        if !ast.has_no_max_line_length_suppression(node) {
+        if !ast.has_no_max_line_length_suppression_in(node, self.ktlint_version) {
             return false;
         }
         let stop_leaf = ast.next_leaf_matching(node, |it| ast.is_white_space_with_newline(it)).and_then(|it| ast.next_leaf(it));

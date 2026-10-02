@@ -7,6 +7,7 @@ use ktrs_cli::ktlint::baseline::{Baseline, BaselineStatus, contains_lint_error, 
 use ktrs_cli::ktlint::console::Console;
 use ktrs_cli::ktlint::logger::{Level, Logger};
 use ktrs_cli::ktlint::reporter::{KtlintCliError, Status};
+use ktrs_lint::editorconfig::KtlintVersion;
 
 const VALID: &str = r#"<?xml version="1.0" encoding="utf-8"?>
 <baseline version="1.0">
@@ -24,14 +25,46 @@ const INVALID: &str = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<baseline v
 
 /// Loads `content` as `baseline.xml`; returns the baseline, stdout (logs), stderr and whether the file survived.
 fn load(content: Option<&str>) -> (Baseline, String, String, bool) {
+    load_as(content, KtlintVersion::V2_0)
+}
+
+fn load_as(content: Option<&str>, ktlint_version: KtlintVersion) -> (Baseline, String, String, bool) {
     let dir = TempDir::new("ktlint-baseline");
     if let Some(content) = content {
         std::fs::write(dir.path().join("baseline.xml"), content).unwrap();
     }
     let (console, out, err) = Console::capture(b"");
-    let logger = Logger::new(console.clone(), Level::Info);
-    let baseline = load_baseline("baseline.xml", dir.path(), &logger, &console);
+    let logger = Logger::new(console.clone(), Level::Info, ktlint_version);
+    let baseline = load_baseline("baseline.xml", dir.path(), &logger, &console, ktlint_version);
     (baseline, out.text(), err.text(), dir.path().join("baseline.xml").exists())
+}
+
+const WITHOUT_RULE_SET: &str = r#"<?xml version="1.0" encoding="utf-8"?>
+<baseline version="1.0">
+    <file name="Foo.kt">
+        <error line="1" column="1" source="max-line-length" />
+        <error line="2" column="1" source="standard:no-semi" />
+        <error line="3" column="1" source="custom:x" />
+    </file>
+</baseline>
+"#;
+
+#[test]
+fn ktlint_1_8_prefixes_rule_ids_without_rule_set_and_warns() {
+    let (baseline, out, _, _) = load_as(Some(WITHOUT_RULE_SET), KtlintVersion::V1_8);
+    let ids: Vec<&str> = baseline.lint_errors_per_file["Foo.kt"].iter().map(|e| e.rule_id.as_str()).collect();
+    assert_eq!(ids, ["standard:max-line-length", "standard:no-semi", "custom:x"]);
+    assert!(out.contains(
+        " WARN com.pinterest.ktlint.cli.reporter.baseline.Baseline -- Baseline file 'baseline.xml' contains 1 reference(s) to rule ids \
+         without a rule set id. For those references the rule set id 'standard' is assumed. It is advised to regenerate this baseline file."
+    ), "{out}");
+}
+
+#[test]
+fn ktlint_2_0_keeps_rule_ids_without_rule_set() {
+    let (baseline, out, _, _) = load_as(Some(WITHOUT_RULE_SET), KtlintVersion::V2_0);
+    assert_eq!(baseline.lint_errors_per_file["Foo.kt"][0].rule_id, "max-line-length");
+    assert_eq!(out, "");
 }
 
 fn ignored(line: usize, col: usize, rule: &str) -> KtlintCliError {

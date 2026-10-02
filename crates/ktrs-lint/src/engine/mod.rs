@@ -20,6 +20,7 @@ mod rule_execution_context;
 mod rule_panic;
 mod rule_setup;
 pub mod rule_filter;
+mod suppression_ids;
 mod suppression_locator;
 pub mod visitor_provider;
 

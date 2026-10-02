@@ -133,7 +133,7 @@ impl FunctionSignatureRule {
             if multiline {
                 let expected_parameter_indent = self.indent_config.child_indent_of(ast, node);
                 if white_space_before_identifier.is_none_or(|it| !ast.text_matches(it, &expected_parameter_indent)) {
-                    if !dry_run && ast.has_no_max_line_length_suppression(value_parameter_list) {
+                    if !dry_run && ast.has_no_max_line_length_suppression_in(value_parameter_list, self.ktlint_version) {
                         emit(ast, ast.start_offset(value_parameter), "Parameter should start on a newline", true).if_autocorrect_allowed(|| {
                             let first = first_child_node_in_value_parameter.expect("NullPointerException: firstChildNode");
                             ast.upsert_whitespace_before_me(first, &expected_parameter_indent)

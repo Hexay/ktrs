@@ -16,6 +16,8 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::{fs, thread};
 
+use ktrs_lint::editorconfig::KtlintVersion;
+use ktrs_lint::rule_provider::rule_providers_in;
 use ktrs_lint::rules::standard_rule_providers;
 use ktrs_lint::{AutocorrectDecision, Code, KtLintException, KtLintRuleEngine, LintError};
 
@@ -92,7 +94,7 @@ fn stage(corpus: &Path, files: &[PathBuf], staged: &Path, args: &Args) -> Result
 
 pub(crate) fn run(root: &Path, args: &[String]) -> Result<(), String> {
     let args = parse_args(root, args)?;
-    let providers = standard_rule_providers();
+    let providers = rule_providers_in(&standard_rule_providers(), KtlintVersion::V2_0);
     let ported: HashSet<&str> = providers.iter().map(|p| p.rule_id().value()).collect();
     let oracle = lint_oracle::load(&args.oracle).map_err(|e| {
         format!(

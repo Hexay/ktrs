@@ -17,6 +17,14 @@ use crate::rules::STANDARD_RULE_ABOUT;
 #[derive(Default)]
 pub struct BlankLineBeforeDeclarationRule {
     traversal_state: TraversalState,
+    /// 1.8: an `OfficialCodeStyle` rule, without the intellij_idea stop (#3318).
+    ktlint_1_8: bool,
+}
+
+impl BlankLineBeforeDeclarationRule {
+    pub fn ktlint_1_8() -> BlankLineBeforeDeclarationRule {
+        BlankLineBeforeDeclarationRule { ktlint_1_8: true, ..Default::default() }
+    }
 }
 
 const VISITED_TYPES: TokenSet =
@@ -39,8 +47,12 @@ impl RuleV2 for BlankLineBeforeDeclarationRule {
         Some(self.traversal_state)
     }
 
+    fn is_official_code_style(&self) -> bool {
+        self.ktlint_1_8
+    }
+
     fn before_first_node(&mut self, editor_config: &EditorConfig) {
-        if editor_config.get(&CODE_STYLE_PROPERTY) == CodeStyleValue::IntellijIdea {
+        if !self.ktlint_1_8 && editor_config.get(&CODE_STYLE_PROPERTY) == CodeStyleValue::IntellijIdea {
             self.traversal_state.stop_traversal_of_ast();
         }
     }

@@ -7,7 +7,7 @@ use std::path::PathBuf;
 use ktrs_cli::ktlint::console::{LINE_SEPARATOR, Printer};
 use ktrs_cli::ktlint::reporter::html::HtmlReporter;
 use ktrs_cli::ktlint::reporter::sarif::{SarifReporter, sanitize};
-use ktrs_cli::ktlint::reporter::{KtlintCliError, ReporterEnvironment, ReporterV2, get_reporter};
+use ktrs_cli::ktlint::reporter::{KTLINT_VERSION, KtlintCliError, ReporterEnvironment, ReporterV2, get_reporter};
 use ktlint_reporters_support::*;
 
 const HTML_HEAD: &str = "<html>\n<head>\n<link href=\"https://fonts.googleapis.com/css?family=Source+Code+Pro\" \
@@ -59,7 +59,7 @@ fn sarif_report_generation() {
     let home = std::env::temp_dir();
     let working_directory = sanitize(&home.to_string_lossy());
     let (out, captured) = Printer::buffer();
-    let mut reporter = SarifReporter::new(out, Some(home.clone()));
+    let mut reporter = SarifReporter::new(out, Some(home.clone()), KTLINT_VERSION);
     reporter.before_all();
     feed_standard(&mut reporter, &working_directory);
     reporter.after_all();
@@ -88,7 +88,7 @@ fn sarif_report_generation() {
 #[test]
 fn sarif_empty_report_layout() {
     let (out, captured) = Printer::buffer();
-    let mut reporter = SarifReporter::new(out, Some(PathBuf::from("/home/ubuntu")));
+    let mut reporter = SarifReporter::new(out, Some(PathBuf::from("/home/ubuntu")), KTLINT_VERSION);
     reporter.before_all();
     reporter.after_all();
     let text = captured.text();
@@ -100,7 +100,7 @@ fn sarif_empty_report_layout() {
 #[test]
 fn baseline_reporter_report_generation() {
     let (out, captured) = Printer::buffer();
-    let env = ReporterEnvironment { user_home: None, working_dir: std::env::current_dir().unwrap() };
+    let env = ReporterEnvironment { user_home: None, working_dir: std::env::current_dir().unwrap(), ktlint_release: KTLINT_VERSION };
     let mut reporter = get_reporter("baseline", out, &opts(&[]), &env).unwrap().unwrap();
     feed_standard(reporter.as_mut(), "");
     reporter.after_all();
@@ -119,7 +119,7 @@ fn baseline_reporter_report_generation() {
 fn baseline_reporter_relativizes_absolute_paths() {
     let (out, captured) = Printer::buffer();
     let cwd = std::env::current_dir().unwrap();
-    let env = ReporterEnvironment { user_home: None, working_dir: cwd.clone() };
+    let env = ReporterEnvironment { user_home: None, working_dir: cwd.clone(), ktlint_release: KTLINT_VERSION };
     let mut reporter = get_reporter("baseline", out, &opts(&[]), &env).unwrap().unwrap();
     let file = cwd.join("src").join("A.kt");
     reporter.on_lint_error(&file.to_string_lossy(), &e(1, 1, "r", "d", CAN));
@@ -146,6 +146,6 @@ fn java_concurrent_hash_map_iteration_order() {
 
 #[test]
 fn unknown_reporter_id() {
-    let env = ReporterEnvironment { user_home: None, working_dir: PathBuf::from(".") };
+    let env = ReporterEnvironment { user_home: None, working_dir: PathBuf::from("."), ktlint_release: KTLINT_VERSION };
     assert!(get_reporter("nope", Printer::buffer().0, &opts(&[]), &env).is_none());
 }

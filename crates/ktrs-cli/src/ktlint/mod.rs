@@ -1,5 +1,6 @@
 //! Port of the ktlint 2.0.0-ALPHA-4 CLI (`ktlint-cli`): the `ktlint` binary's flags, messages, reporters
 //! and exit codes, over ktrs-lint's engine and standard rules. Differential test: tools/ktlint-oracle/cli-diff.sh.
+//! With `--ktlint-version=1.8` (or `ktrs_ktlint_version = 1.8`) it is the 1.8.0 CLI instead: [`version`].
 //!
 //! Deviations: rule sets (`-R`) and reporter JARs (`artifact=`) can't be loaded (a JAR declaring the
 //! service exits with 6, as a JAR without one does upstream); `--log-level=debug|trace` prints only the
@@ -13,6 +14,7 @@ pub mod command_line;
 pub mod console;
 pub mod file_utils;
 mod jar_providers;
+mod java_printf;
 pub mod java_glob;
 pub mod jpath;
 pub mod logger;
@@ -21,8 +23,10 @@ mod patterns;
 mod process;
 pub mod reporter;
 mod reporter_aggregator;
+mod run;
 mod sha256;
 mod subcommands;
+pub mod version;
 
 pub use command_line::{ExitCode, KtlintCli};
 

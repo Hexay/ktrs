@@ -1,13 +1,15 @@
 //! `ktrs lint`: maps its flags onto the `ktlint` drop-in's options and runs the same command, so output,
 //! reporters and exit codes are ktlint's. Paths are shown relative to the working directory.
 
+use ktrs_lint::rule_provider::rule_providers_in;
 use ktrs_lint::rules::standard_rule_providers;
 
 use crate::ktlint::KtlintCli;
 use crate::ktlint::args::KtlintArgs;
+use crate::ktlint::version::{KTLINT_VERSION_OPTION, resolve_ktlint_version};
 
 pub const HELP: &str = "\
-Lint options (ktrs lint; the flags of the ktlint drop-in, 2.0.0-ALPHA-4):
+Lint options (ktrs lint; the flags of the ktlint drop-in):
   -F, --format                      Fix what can be autocorrected, report the rest
   --reporter <id[,output=file]>     plain (default), plain?group_by_file, plain-summary, json,
                                       checkstyle, sarif, html, format; repeatable
@@ -15,21 +17,26 @@ Lint options (ktrs lint; the flags of the ktlint drop-in, 2.0.0-ALPHA-4):
   --editorconfig <file>             Defaults for properties no .editorconfig on a file's path sets
   --stdin-name <path>               Path of the stdin input (-), for .editorconfig and file name rules
   --limit <n>                       Report at most <n> violations
-  --list-rules                      Print the ids of the available rules (porting is in progress)";
+  --ktlint-version <1.8|2.0>        The ktlint release to match (default: ktrs_ktlint_version in
+                                      .editorconfig, else 2.0)
+  --list-rules                      Print the ids of the rules of that release";
 
 /// `Err` is a usage error message.
 pub fn run(args: &[String]) -> Result<i32, String> {
+    let cli = KtlintCli::from_env();
+    let ktlint_version = resolve_ktlint_version(args, &cli.working_dir.to_path_buf())?;
     if args.iter().any(|a| a == "--list-rules") {
-        for provider in standard_rule_providers() {
+        for provider in rule_providers_in(&standard_rule_providers(), ktlint_version) {
             println!("{}", provider.rule_id().value());
         }
         return Ok(0);
     }
-    let parsed = parse_lint_args(args)?;
+    let parsed = KtlintArgs { ktlint_version, ..parse_lint_args(args)? };
     ktrs_lint::engine::silence_caught_rule_panics();
-    Ok(KtlintCli::from_env().run_lint(&parsed))
+    Ok(cli.run_lint(&parsed))
 }
 
+/// The options without `--ktlint-version`, which [`resolve_ktlint_version`] reads.
 pub fn parse_lint_args(args: &[String]) -> Result<KtlintArgs, String> {
     let mut parsed = KtlintArgs { relative: true, ..KtlintArgs::default() };
     let mut args = args.iter();
@@ -45,6 +52,7 @@ pub fn parse_lint_args(args: &[String]) -> Result<KtlintArgs, String> {
             "--baseline" => parsed.baseline_path = value()?,
             "--editorconfig" => parsed.editor_config_path = Some(value()?),
             "--stdin-name" => parsed.stdin_path = Some(value()?),
+            KTLINT_VERSION_OPTION => drop(value()?),
             "--limit" => {
                 let limit = value()?;
                 parsed.limit = limit.parse().ok().filter(|n| *n > 0).ok_or(format!("--limit needs a positive number, not {limit}"))?;
