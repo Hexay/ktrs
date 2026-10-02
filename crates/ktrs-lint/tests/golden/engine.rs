@@ -1,20 +1,20 @@
 //! The only glue between a golden case's `.options` and the ktrs-lint API (rule registry, editorconfig
-//! override), so engine API changes touch one file.
+//! override), so engine API changes touch one file. Shared with `crates/ktrs-compose/tests/golden` (`#[path]`).
 
 use std::path::Path;
 
 use ktrs_lint::editorconfig::{
     CODE_STYLE_PROPERTY, END_OF_LINE_PROPERTY, EXPERIMENTAL_RULES_EXECUTION_PROPERTY, INDENT_SIZE_PROPERTY,
-    INDENT_STYLE_PROPERTY, INSERT_FINAL_NEWLINE_PROPERTY, MAX_LINE_LENGTH_PROPERTY, PropertyRef, RuleExecution,
-    create_rule_execution_editor_config_property, create_rule_set_execution_editor_config_property,
+    INDENT_STYLE_PROPERTY, INSERT_FINAL_NEWLINE_PROPERTY, KTLINT_VERSION_PROPERTY, KtlintVersion, MAX_LINE_LENGTH_PROPERTY,
+    PropertyRef, RuleExecution, create_rule_execution_editor_config_property,
+    create_rule_set_execution_editor_config_property,
 };
-use ktrs_lint::rules::standard_rule_provider;
 use ktrs_lint::{Code, EditorConfigDefaults, EditorConfigOverride, KtLintRuleEngine, RuleV2Provider};
 
 use crate::case::Options;
 
 pub enum Skip {
-    /// A rule of the case is not registered in ktrs-lint.
+    /// A rule of the case is not registered.
     Rule(String),
     /// No ported rule or engine property has this `.editorconfig` name.
     EditorConfig(String),
@@ -44,18 +44,29 @@ fn property(name: &str, value: &str, providers: &[RuleV2Provider]) -> Option<Pro
     })
 }
 
-pub fn setup(options: &Options, input: &str) -> Result<(KtLintRuleEngine, Code), Skip> {
+/// The engine for a case: its rules resolved by `resolve`, its overrides, and `ktlint_version` (else the case's
+/// recorded release, else 2.0) as `ktrs_ktlint_version`.
+pub fn setup(
+    options: &Options,
+    input: &str,
+    resolve: &dyn Fn(&str) -> Option<RuleV2Provider>,
+    ktlint_version: Option<KtlintVersion>,
+) -> Result<(KtLintRuleEngine, Code), Skip> {
     let providers = options
         .rules
         .iter()
-        .map(|id| standard_rule_provider(id).ok_or_else(|| Skip::Rule(id.clone())))
+        .map(|id| resolve(id).ok_or_else(|| Skip::Rule(id.clone())))
         .collect::<Result<Vec<_>, _>>()?;
     let overrides = options
         .editor_config
         .iter()
         .map(|(name, value)| property(name, value, &providers).map(|p| (p, Some(value.clone()))).ok_or_else(|| Skip::EditorConfig(name.clone())))
         .collect::<Result<Vec<_>, _>>()?;
-    let editor_config_override = if overrides.is_empty() { EditorConfigOverride::empty() } else { EditorConfigOverride::from(overrides) };
+    let mut editor_config_override = if overrides.is_empty() { EditorConfigOverride::empty() } else { EditorConfigOverride::from(overrides) };
+    let recorded = options.ktlint.as_deref().map(|v| if v == "1.8" { KtlintVersion::V1_8 } else { KtlintVersion::V2_0 });
+    if let Some(version) = ktlint_version.or(recorded) {
+        editor_config_override = editor_config_override.with(&KTLINT_VERSION_PROPERTY, version);
+    }
     let code = match &options.path {
         Some(path) => Code::from_file_content(Path::new(path), input.to_owned()),
         None => Code::from_snippet(input, options.script),
