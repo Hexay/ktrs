@@ -21,7 +21,8 @@ use ktrs_syntax::SyntaxKind::{
 use crate::ast_node_extension::{AstNodeExtension, AstNodeLines, AstNodeQueries};
 use crate::engine::verifying_shortcuts;
 use crate::editorconfig::{
-    CODE_STYLE_PROPERTY, EditorConfigProperty, INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, MAX_LINE_LENGTH_PROPERTY, PropertyRef,
+    CODE_STYLE_PROPERTY, EditorConfigProperty, INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, KtlintVersion, MAX_LINE_LENGTH_PROPERTY,
+    PropertyRef,
 };
 use crate::indent_config::IndentConfig;
 use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TraversalState};
@@ -73,6 +74,7 @@ pub struct ChainMethodContinuationRule {
     traversal: TraversalState,
     /// The last chain built, keyed by its chain parent and the tree's modification count.
     last_chained_expression: Option<((NodeId, u64), Rc<ChainedExpression>)>,
+    ktlint_version: KtlintVersion,
 }
 
 impl ChainMethodContinuationRule {
@@ -84,6 +86,7 @@ impl ChainMethodContinuationRule {
                 FORCE_MULTILINE_WHEN_CHAIN_OPERATOR_COUNT_GREATER_OR_EQUAL_THAN_PROPERTY.default_value,
             traversal: TraversalState::default(),
             last_chained_expression: None,
+            ktlint_version: KtlintVersion::default(),
         }
     }
 }
@@ -133,6 +136,7 @@ impl RuleV2 for ChainMethodContinuationRule {
         self.max_line_length = max_line_length(editor_config);
         self.force_multiline_when_chain_operator_count_greater_or_equal_than_property =
             editor_config.get(&FORCE_MULTILINE_WHEN_CHAIN_OPERATOR_COUNT_GREATER_OR_EQUAL_THAN_PROPERTY);
+        self.ktlint_version = KtlintVersion::of(editor_config);
     }
 
     fn before_visit_child_nodes(&mut self, ast: &mut Ast, node: NodeId, emit: &mut Emit<'_>) {
@@ -254,10 +258,14 @@ impl ChainMethodContinuationRule {
             let last_chain_operator = *chained_expression.chain_operators.last().expect("NoSuchElementException: List is empty.");
             let stop_at_leaf = start_of_lambda_argument_in_call_expression_or_null(ast, last_chain_operator)
                 .or_else(|| ast.next_leaf(ast.last_child_leaf_or_self(root)));
-            ast.has_no_max_line_length_suppression(root)
-                && ast.line_length(ast.drop_trailing_eol_comment(ast.leaves_on_line(root)).take_while(|&it| ast.prev_leaf(it) != stop_at_leaf))
-                    as i64
-                    > self.max_line_length as i64
+            let leaves = ast.drop_trailing_eol_comment(ast.leaves_on_line(root));
+            // 1.8 stops before `stop_at_leaf`; 2.0 includes it (#3253).
+            let line_length = if self.ktlint_version.is_1_8() {
+                ast.line_length(leaves.take_while(|&it| Some(it) != stop_at_leaf))
+            } else {
+                ast.line_length(leaves.take_while(|&it| ast.prev_leaf(it) != stop_at_leaf))
+            };
+            ast.has_no_max_line_length_suppression_in(root, self.ktlint_version) && line_length as i64 > self.max_line_length as i64
         }
     }
 }

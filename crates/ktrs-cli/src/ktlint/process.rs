@@ -2,13 +2,16 @@
 
 use std::sync::atomic::{AtomicBool, Ordering};
 
+use ktrs_lint::editorconfig::KtlintVersion;
 use ktrs_lint::{AutocorrectDecision, Code, KtLintException, KtLintRuleEngine, LintError};
 
 use crate::ktlint::baseline::does_not_contain;
 use crate::ktlint::command_line::{Exit, ExitCode};
 use crate::ktlint::console::{Console, LINE_SEPARATOR};
+use crate::ktlint::java_printf::java_printf;
 use crate::ktlint::logger::{KTLINT_COMMAND_LINE, Logger};
 use crate::ktlint::reporter::{KtlintCliError, Status};
+use crate::ktlint::version::{package, repository};
 
 pub struct Processor<'a> {
     pub engine: &'a KtLintRuleEngine,
@@ -17,6 +20,7 @@ pub struct Processor<'a> {
     pub format: bool,
     pub ignore_autocorrect_failures: bool,
     pub force_lint_after_format: bool,
+    pub ktlint_version: KtlintVersion,
     pub contains_unfixed_lint_errors: AtomicBool,
 }
 
@@ -58,7 +62,10 @@ impl Processor<'_> {
                 if self.force_lint_after_format && code.content != formatted_file_content {
                     self.lint_after_format(code, &formatted_file_content)?;
                 }
-                if code.is_std_in {
+                if code.is_std_in && self.ktlint_version.is_1_8() {
+                    // 1.8 `printf`s the code: a `%` conversion in it fails (#3281); the exception escapes.
+                    self.console.out(&java_printf(&formatted_file_content).map_err(Exit::Crash)?);
+                } else if code.is_std_in {
                     self.console.out(&formatted_file_content);
                 } else if code.content != formatted_file_content
                     && let Some(path) = &code.file_path
@@ -67,7 +74,10 @@ impl Processor<'_> {
                     return Err(Exit::Crash(format!("java.io.FileNotFoundException: {} ({e})", path.display())));
                 }
             }
-            Err(e) if code.is_std_in => {
+            Err(e @ KtLintException::Parse(_)) if code.is_std_in && self.ktlint_version.is_1_8() => {
+                return self.stdin_parse_exception_1_8(&e, code, |code| self.format(code, baseline_lint_errors));
+            }
+            Err(e) if code.is_std_in && !self.ktlint_version.is_1_8() => {
                 return match e {
                     KtLintException::Parse(_) if code.script => {
                         self.log_stdin_script_parse_error(&e, code);
@@ -103,8 +113,11 @@ impl Processor<'_> {
                 self.logger.error(KTLINT_COMMAND_LINE, || {
                     format!(
                         "After formatting code in file '{file_path}' it cannot be successfully parsed anymore.{LINE_SEPARATOR}\
-                         io.github.ktlint.core.rule.engine.api.KtLintParseException: {}:{} {}",
-                        e.line, e.col, e.message
+                         {}.rule.engine.api.KtLintParseException: {}:{} {}",
+                        package(self.ktlint_version),
+                        e.line,
+                        e.col,
+                        e.message
                     )
                 });
                 Err(Exit::Code(ExitCode::ParseExceptionAfterFormat))
@@ -127,7 +140,10 @@ impl Processor<'_> {
         });
         match result {
             Ok(()) => {}
-            Err(e) if code.is_std_in => {
+            Err(e @ KtLintException::Parse(_)) if code.is_std_in && self.ktlint_version.is_1_8() => {
+                return self.stdin_parse_exception_1_8(&e, code, |code| self.lint(code, baseline_lint_errors));
+            }
+            Err(e) if code.is_std_in && !self.ktlint_version.is_1_8() => {
                 return match e {
                     KtLintException::Parse(_) if code.script => {
                         self.log_stdin_script_parse_error(&e, code);
@@ -150,6 +166,23 @@ impl Processor<'_> {
             Err(_) => {}
         }
         Ok(ktlint_cli_errors)
+    }
+
+    /// 1.8: retry as a script, then log the error (still "as Kotlin") and report the parse error as a row;
+    /// nothing goes to stdout and the exit code stays 0.
+    fn stdin_parse_exception_1_8(
+        &self,
+        e: &KtLintException,
+        code: &Code,
+        retry_as_script: impl FnOnce(&Code) -> Result<Vec<KtlintCliError>, Exit>,
+    ) -> Result<Vec<KtlintCliError>, Exit> {
+        if !code.script {
+            self.log_stdin_retry_as_script(e, code);
+            return retry_as_script(&Code::from_snippet(&code.content, true));
+        }
+        let detail = self.detail(e, code);
+        self.logger.error(KTLINT_COMMAND_LINE, || format!("Can not parse input from <stdin> as Kotlin, due to error below:\n    {detail}"));
+        Ok(vec![self.to_ktlint_cli_error(e, code)?])
     }
 
     fn log_stdin_script_parse_error(&self, e: &KtLintException, code: &Code) {
@@ -197,11 +230,18 @@ impl Processor<'_> {
                 self.logger.debug(KTLINT_COMMAND_LINE, || {
                     format!("Internal Error ({}) in {file} at position '{}:{}", r.rule_id, r.line, r.col)
                 });
+                // The engine names 2.0's repository in the standard rules' `About`; 1.8's is pinterest's.
+                let message = r.message.replace(repository(KtlintVersion::V2_0), repository(self.ktlint_version));
                 let detail = format!(
                     "Internal Error (rule '{}') in {file} at position '{}:{}. Please create a ticket at \
-                     https://github.com/ktlint/ktlint/issues and provide the source code that triggered an error.\n\
-                     io.github.ktlint.core.rule.engine.api.KtLintRuleException: {}{LINE_SEPARATOR}Caused by: {}{LINE_SEPARATOR}",
-                    r.rule_id, r.line, r.col, r.message, r.cause
+                     {}/issues and provide the source code that triggered an error.\n\
+                     {}.rule.engine.api.KtLintRuleException: {message}{LINE_SEPARATOR}Caused by: {}{LINE_SEPARATOR}",
+                    r.rule_id,
+                    r.line,
+                    r.col,
+                    repository(self.ktlint_version),
+                    package(self.ktlint_version),
+                    r.cause
                 );
                 Ok(KtlintCliError::new(r.line, r.col, "", &detail, Status::KtlintRuleEngineException))
             }

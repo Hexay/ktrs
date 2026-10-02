@@ -5,6 +5,7 @@
 mod code_style;
 mod editor_config;
 mod editor_config_property;
+mod ktlint_version;
 mod rule_execution;
 mod standard_properties;
 mod value_parsers;
@@ -15,6 +16,7 @@ pub use editor_config_property::{
     AnyEditorConfigProperty, EditorConfigProperty, PropertyRef, PropertyValueType,
     to_property_with_parsed_value, to_property_with_value,
 };
+pub use ktlint_version::{KTLINT_VERSION_PROPERTY, KTLINT_VERSION_PROPERTY_TYPE, KtlintVersion};
 pub use ktrs_editorconfig::{EndOfLineValue, IndentStyleValue};
 pub use rule_execution::{
     ALL_RULES_EXECUTION_PROPERTY, EXPERIMENTAL_RULES_EXECUTION_PROPERTY,

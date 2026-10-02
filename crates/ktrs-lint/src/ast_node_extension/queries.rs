@@ -6,6 +6,7 @@ use ktrs_ast::{Ast, NodeId};
 use ktrs_syntax::SyntaxKind::{self, *};
 
 use super::AstNodeExtension;
+use crate::editorconfig::KtlintVersion;
 use crate::engine::verifying_shortcuts;
 
 const MAX_LINE_LENGTH_SUPPRESSION_ID: &str = "ktlint:standard:max-line-length";
@@ -21,6 +22,10 @@ pub trait AstNodeQueries {
     /// (`tests/data/extension.jvm.txt`).
     fn is_declaration(&self, n: impl Into<Option<NodeId>>) -> bool;
     fn has_no_max_line_length_suppression(&self, n: NodeId) -> bool;
+    /// ktlint 1.8 has no such check (#3255 added it to every "line too long" test), so it always holds.
+    fn has_no_max_line_length_suppression_in(&self, n: NodeId, ktlint_version: KtlintVersion) -> bool {
+        ktlint_version.is_1_8() || self.has_no_max_line_length_suppression(n)
+    }
 }
 
 impl AstNodeQueries for Ast {

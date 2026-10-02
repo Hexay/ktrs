@@ -4,7 +4,7 @@
 use std::path::{Path, PathBuf};
 
 use crate::ktlint::console::Printer;
-use crate::ktlint::reporter::{KTLINT_VERSION, KtlintCliError, ReporterV2, relative_to_or_self};
+use crate::ktlint::reporter::{KtlintCliError, ReporterV2, relative_to_or_self};
 
 const SRCROOT: &str = "%SRCROOT%";
 
@@ -30,12 +30,14 @@ pub struct SarifReporter {
     user_home: Option<PathBuf>,
     results: Vec<Json>,
     working_directory: Option<PathBuf>,
+    ktlint_release: &'static str,
 }
 
 impl SarifReporter {
-    /// `user_home`: `System.getProperty("user.home")`, which upstream uses as the working directory.
-    pub fn new(out: Printer, user_home: Option<PathBuf>) -> SarifReporter {
-        SarifReporter { out, user_home, results: Vec::new(), working_directory: None }
+    /// `user_home`: `System.getProperty("user.home")`, which upstream uses as the working directory;
+    /// `ktlint_release`: `ktlintVersion(...)`, the jar's version.
+    pub fn new(out: Printer, user_home: Option<PathBuf>, ktlint_release: &'static str) -> SarifReporter {
+        SarifReporter { out, user_home, results: Vec::new(), working_directory: None, ktlint_release }
     }
 }
 
@@ -69,7 +71,7 @@ impl ReporterV2 for SarifReporter {
     }
 
     fn after_all(&mut self) {
-        let version = KTLINT_VERSION;
+        let version = self.ktlint_release;
         let driver = Json::Obj(vec![
             ("downloadUri", Json::Str(format!("https://github.com/ktlint/ktlint/releases/tag/{version}"))),
             ("fullName", str("ktlint")),

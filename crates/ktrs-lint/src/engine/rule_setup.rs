@@ -5,12 +5,12 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
-use crate::editorconfig::EditorConfig;
+use crate::editorconfig::{EditorConfig, KtlintVersion};
 use crate::engine::rule_execution_context::rule_editor_config;
 use crate::engine::rule_filter::{InternalRuleProvidersFilter, RuleExecutionRuleFilter, apply_rule_filters};
 use crate::engine::visitor_provider::VisitorProvider;
 use crate::rule::{RuleId, RuleV2};
-use crate::rule_provider::RuleV2Provider;
+use crate::rule_provider::{RuleV2Provider, rule_providers_in};
 
 /// Distinct configs kept; a run usually has one per `.editorconfig` directory.
 const CAPACITY: usize = 16;
@@ -45,6 +45,9 @@ impl RuleSetupCache {
         if let Some(hit) = self.entries.lock().unwrap().iter().find(|s| s.editor_config == editor_config) {
             return hit.clone();
         }
+        // The version's rule set stands in for the engine's providers, so suppressions of rules it lacks
+        // are "unknown or not loaded" as in that release.
+        let engine_rule_providers = &rule_providers_in(engine_rule_providers, KtlintVersion::of(&editor_config));
         let rule_providers = apply_rule_filters(
             engine_rule_providers,
             &[

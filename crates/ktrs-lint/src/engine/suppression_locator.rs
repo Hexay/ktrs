@@ -10,9 +10,10 @@ use ktrs_syntax::SyntaxKind::{
 };
 
 use crate::ast_node_extension::AstNodeExtension;
-use crate::editorconfig::EditorConfig;
+use crate::editorconfig::{EditorConfig, KtlintVersion};
 use crate::engine::ast_helpers::{is_kt_annotated, recursive_children, text_range};
 use crate::engine::formatter_tags::FormatterTags;
+use crate::engine::suppression_ids::{ALL_KTLINT_RULES_SUPPRESSION_ID, find_rule_suppression_ids, remove_surrounding};
 use crate::rule::RuleId;
 
 /// `range` is inclusive, in UTF-8 offsets of the tree the hints were built from; empty ids = all rules.
@@ -31,6 +32,7 @@ struct CommentSuppressionHint {
 
 pub struct SuppressionLocator {
     formatter_tags: FormatterTags,
+    ktlint_version: KtlintVersion,
     /// `rootNode.text.hashCode()` of the text the hints were built from, and the tree version it was
     /// last checked against.
     hashcode_ast_node_text: Option<i32>,
@@ -53,6 +55,7 @@ impl SuppressionLocator {
         SuppressionLocator {
             may_have_hints: formatter_tags.formatter_tag_off.is_some(),
             formatter_tags,
+            ktlint_version: KtlintVersion::of(editor_config),
             hashcode_ast_node_text: None,
             checked_modification_count: None,
             suppression_hints: Vec::new(),
@@ -135,7 +138,7 @@ impl SuppressionLocator {
             .iter()
             .filter(|&&n| n != root_node && ast.parent_matching(n, |p| p == root_node).is_some())
             .filter(|&&n| is_suppress_annotation(ast, n))
-            .filter_map(|&n| create_suppression_hint_from_annotations(ast, n))
+            .filter_map(|&n| create_suppression_hint_from_annotations(ast, n, self.ktlint_version))
             .collect()
     }
 
@@ -150,7 +153,7 @@ impl SuppressionLocator {
                 }
             } else if element_type == ANNOTATION_ENTRY
                 && is_suppress_annotation(ast, node)
-                && let Some(hint) = create_suppression_hint_from_annotations(ast, node)
+                && let Some(hint) = create_suppression_hint_from_annotations(ast, node, self.ktlint_version)
             {
                 suppression_hints.push(hint);
             }
@@ -246,7 +249,6 @@ fn rbrace_of_containing_block(ast: &Ast, n: NodeId) -> Option<NodeId> {
 }
 
 const SUPPRESS_ANNOTATIONS: [&str; 2] = ["Suppress", "SuppressWarnings"];
-const ALL_KTLINT_RULES_SUPPRESSION_ID: &str = "ktlint:suppress-all-rules";
 
 fn is_suppress_annotation(ast: &Ast, n: NodeId) -> bool {
     ast.find_child_by_type(n, CONSTRUCTOR_CALLEE)
@@ -254,11 +256,11 @@ fn is_suppress_annotation(ast: &Ast, n: NodeId) -> bool {
         .is_some_and(|it| SUPPRESS_ANNOTATIONS.contains(&ast.text(it).as_str()))
 }
 
-fn create_suppression_hint_from_annotations(ast: &Ast, n: NodeId) -> Option<SuppressionHint> {
+fn create_suppression_hint_from_annotations(ast: &Ast, n: NodeId, ktlint_version: KtlintVersion) -> Option<SuppressionHint> {
     let suppressed_rule_ids: Vec<String> = recursive_children(ast, n)
         .into_iter()
         .filter(|&it| ast.element_type(it) == VALUE_ARGUMENT)
-        .flat_map(|it| find_rule_suppression_ids(remove_surrounding(&ast.text(it), "\"")))
+        .flat_map(|it| find_rule_suppression_ids(remove_surrounding(&ast.text(it), "\""), ktlint_version))
         .collect();
     if suppressed_rule_ids.is_empty() {
         return None;
@@ -281,45 +283,4 @@ fn create_suppression_hint_from_annotations(ast: &Ast, n: NodeId) -> Option<Supp
 
 fn start_offset(ast: &Ast, n: NodeId) -> i64 {
     ast.start_offset(n) as i64
-}
-
-fn find_rule_suppression_ids(value: &str) -> Vec<String> {
-    if value == "ktlint" {
-        vec![ALL_KTLINT_RULES_SUPPRESSION_ID.to_owned()]
-    } else if let Some(rule_id) = value.strip_prefix("ktlint:") {
-        vec![rule_id.to_owned()]
-    } else {
-        suppress_annotation_rule_map(value)
-            .iter()
-            .map(|s| s.to_string())
-            .collect()
-    }
-}
-
-/// Non-ktlint suppressions that also suppress the matching ktlint rules.
-fn suppress_annotation_rule_map(annotation_value: &str) -> &'static [&'static str] {
-    match annotation_value {
-        "EnumEntryName" => &["standard:enum-entry-name-case"],
-        "RemoveCurlyBracesFromTemplate" => &["standard:string-template"],
-        "ClassName" => &["standard:class-naming"],
-        "FunctionName" => &["standard:function-naming"],
-        "LocalVariableName" => &["standard:backing-property-naming"],
-        "PackageName" => &["standard:package-name"],
-        "PropertyName" | "ObjectPropertyName" => &[
-            "standard:property-naming",
-            "standard:backing-property-naming",
-        ],
-        "ConstPropertyName" | "PrivatePropertyName" => &["standard:property-naming"],
-        "UnusedImport" => &["standard:no-unused-imports"],
-        _ => &[],
-    }
-}
-
-/// Kotlin `removeSurrounding(delimiter)`: only when both ends have it and they don't overlap.
-pub(crate) fn remove_surrounding<'a>(s: &'a str, delimiter: &str) -> &'a str {
-    if s.len() >= 2 * delimiter.len() && s.starts_with(delimiter) && s.ends_with(delimiter) {
-        &s[delimiter.len()..s.len() - delimiter.len()]
-    } else {
-        s
-    }
 }

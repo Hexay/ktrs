@@ -10,7 +10,7 @@ use ktrs_syntax::SyntaxKind::{
 };
 
 use crate::ast_node_extension::{AstNodeExtension, AstNodeLines, AstNodeQueries};
-use crate::editorconfig::{CODE_STYLE_PROPERTY, INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, MAX_LINE_LENGTH_PROPERTY, PropertyRef};
+use crate::editorconfig::{CODE_STYLE_PROPERTY, INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, KtlintVersion, MAX_LINE_LENGTH_PROPERTY, PropertyRef};
 use crate::indent_config::IndentConfig;
 use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TokenSet, TraversalState};
 use crate::rules::STANDARD_RULE_ABOUT;
@@ -25,6 +25,7 @@ pub struct FunctionLiteralRule {
     indent_config: IndentConfig,
     max_line_length: i32,
     traversal: TraversalState,
+    ktlint_version: KtlintVersion,
 }
 
 impl FunctionLiteralRule {
@@ -33,6 +34,7 @@ impl FunctionLiteralRule {
             indent_config: IndentConfig::default_indent_config(),
             max_line_length: MAX_LINE_LENGTH_PROPERTY.default_value,
             traversal: TraversalState::default(),
+            ktlint_version: KtlintVersion::default(),
         }
     }
 }
@@ -71,6 +73,7 @@ impl RuleV2 for FunctionLiteralRule {
 
     fn before_first_node(&mut self, editor_config: &EditorConfig) {
         self.max_line_length = max_line_length(editor_config);
+        self.ktlint_version = KtlintVersion::of(editor_config);
         self.indent_config = IndentConfig::new(editor_config.get(&INDENT_STYLE_PROPERTY), editor_config.get(&INDENT_SIZE_PROPERTY));
         if self.indent_config.disabled() {
             self.traversal.stop_traversal_of_ast();
@@ -122,7 +125,7 @@ impl FunctionLiteralRule {
             + 1 // space before parameter list
             + length_of_parameter_list_when_on_single_line(ast, node)
             + 3; // space after parameter list followed by ->
-        ast.has_no_max_line_length_suppression(node) && line_length as i64 > self.max_line_length as i64
+        ast.has_no_max_line_length_suppression_in(node, self.ktlint_version) && line_length as i64 > self.max_line_length as i64
     }
 }
 
@@ -153,10 +156,14 @@ fn length_of_parameter_list_when_on_single_line(ast: &Ast, node: NodeId) -> usiz
 }
 
 impl FunctionLiteralRule {
+    /// 1.8 measures the whole line, not just up to the lambda's `}` (#3252).
     fn exceeds_max_line_length(&self, ast: &Ast, node: NodeId) -> bool {
+        if self.ktlint_version.is_1_8() {
+            return (self.max_line_length as i64) < ast.line_length(ast.drop_trailing_eol_comment(ast.leaves_on_line(node))) as i64;
+        }
         assert!(ast.element_type(node) == BLOCK, "IllegalArgumentException: Failed requirement.");
         let stop_at_leaf = ast.next_sibling_matching(node, |it| ast.element_type(it) == RBRACE);
-        ast.has_no_max_line_length_suppression(node)
+        ast.has_no_max_line_length_suppression_in(node, self.ktlint_version)
             && (self.max_line_length as i64)
                 < ast.line_length(ast.drop_trailing_eol_comment(ast.leaves_on_line(node)).take_while(|&it| ast.prev_leaf(it) != stop_at_leaf))
                     as i64
@@ -164,7 +171,7 @@ impl FunctionLiteralRule {
 
     /// Disallow when max line is exceeded: `val foo = someCallExpression { someLongParameterName ->`.
     fn wrap_first_parameter_to_newline(&self, ast: &Ast, node: NodeId) -> bool {
-        if is_function_literal_lambda_with_non_empty_value_parameter_list(ast, node) && ast.has_no_max_line_length_suppression(node) {
+        if is_function_literal_lambda_with_non_empty_value_parameter_list(ast, node) && ast.has_no_max_line_length_suppression_in(node, self.ktlint_version) {
             let first_parameter = ast
                 .children(node)
                 .find(|&it| ast.element_type(it) == VALUE_PARAMETER)

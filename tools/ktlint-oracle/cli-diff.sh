@@ -6,11 +6,22 @@
 # tree left behind. The fixture's root .editorconfig disables the standard rules ktrs hasn't ported
 # (`ktrs lint --list-rules` vs the jar's RuleIds.java), so rule differences don't hide CLI ones.
 # ONLY=<regex> selects scenarios, KEEP=1 keeps outputs, VERBOSE=1 prints diffs. Exit 1 on any mismatch.
+# KTLINT_VERSION=1.8: against the 1.8.0 jar (JAR=<path>, default lib/ktlint-cli-1.8.0-all.jar, fetched), ktrs in
+# 1.8 mode through the fixture's `ktrs_ktlint_version = 1.8` (research/26-ktlint-18-mode.md).
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
 repo="$(cd "$here/../.." && pwd)"
-jar="$here/lib/ktlint-cli-2.0.0-ALPHA-4-all.jar"
-[[ -f $jar ]] || "$repo/tools/sync-ktlint.sh" >&2
+version=${KTLINT_VERSION:-2.0}
+if [[ $version == 1.8 ]]; then
+  jar=${JAR:-$here/lib/ktlint-cli-1.8.0-all.jar}
+  [[ -f $jar ]] || curl -sfL --create-dirs -o "$jar" \
+    https://repo1.maven.org/maven2/com/pinterest/ktlint/ktlint-cli/1.8.0/ktlint-cli-1.8.0-all.jar
+  provider=com.pinterest.ktlint.ruleset.standard.StandardRuleSetProvider
+else
+  jar=${JAR:-$here/lib/ktlint-cli-2.0.0-ALPHA-4-all.jar}
+  [[ -f $jar ]] || "$repo/tools/sync-ktlint.sh" >&2
+  provider=io.github.ktlint.core.ruleset.standard.StandardRuleSetProvider
+fi
 java=java
 bundled=$(ls -d "$here"/../jdk/*/bin 2>/dev/null | head -1 || true)
 if [[ -n $bundled ]]; then java="$bundled/java"; fi
@@ -23,8 +34,8 @@ command -v cygpath >/dev/null && jar=$(cygpath -m "$jar")
 scratch=$(mktemp -d)
 if [[ -n ${KEEP:-} ]]; then echo "outputs in $scratch"; else trap 'rm -rf "$scratch"' EXIT; fi
 
-"$java" -cp "$jar" "$here/RuleIds.java" 2>/dev/null | grep -a '^standard:' | sort > "$scratch/jar-rules"
-"$ktrs" lint --list-rules | tr -d '\r' | sort > "$scratch/our-rules"
+"$java" -cp "$jar" "$here/RuleIds.java" "$provider" 2>/dev/null | grep -a '^standard:' | sort > "$scratch/jar-rules"
+"$ktrs" lint --list-rules --ktlint-version="$version" | tr -d '\r' | sort > "$scratch/our-rules"
 unported=$(comm -23 "$scratch/jar-rules" "$scratch/our-rules")
 echo "rules: $(wc -l < "$scratch/our-rules") ported, $(echo "$unported" | grep -c .) disabled on both sides"
 
@@ -34,6 +45,7 @@ fixture() {
   {
     # `[*]`: an explicitly named non-Kotlin file is linted too.
     printf 'root = true\n\n[*]\n'
+    [[ $version == 1.8 ]] && printf 'ktrs_ktlint_version = 1.8\n'
     for id in $unported; do printf 'ktlint_%s = disabled\n' "${id/:/_}"; done
   } > "$w/.editorconfig"
   printf 'fun foo( ) {\n  val x=1;\n}\n' > "$w/src/A.kt"
@@ -121,6 +133,13 @@ scenario interspersed "" "" src --relative
 scenario help_wins "" "" --bogus --help
 scenario version_wins "" "" --bogus -v
 scenario help_wins_sub "" "" generateEditorConfig --bogus -h
+# Options 2.0 removed: 1.8 still declares --code-style (an error when used); the other two were never registered.
+scenario code_style "" "" --code-style=ktlint_official src
+scenario code_style_bad "" "" --code-style=foo src
+scenario code_style_help "" "" --code-style=foo --help
+scenario code_style_typo "" "" --codestyle src
+scenario disabled_rules_option "" "" --disabled_rules=no-semi src
+scenario experimental_option "" "" --experimental src
 
 # Patterns and file selection.
 scenario no_args "" ""
@@ -210,6 +229,9 @@ scenario stdin_json stdin.kt "" --stdin --reporter=json
 scenario stdin_relative stdin.kt "" --stdin --relative
 scenario stdin_baseline stdin.kt "" --stdin --baseline=bl.xml
 scenario stdin_unicode src/sub/B.kt "" --stdin -F
+scenario stdin_percent pct.kt "printf 'val a = \"%%d\"\\n' > pct.kt" --stdin -F
+scenario stdin_percent_literal pct.kt "printf 'val a = \"100%%%%\"\\n' > pct.kt" --stdin -F
+scenario stdin_obsolete_property stdin.kt "printf 'disabled_rules = no-semi\\nktlint_disabled_rules = x\\n' >> .editorconfig" --stdin
 scenario stdin_and_patterns "" "" --stdin --patterns-from-stdin
 scenario stdin_ignored_args stdin.kt "" --stdin src/A.kt
 scenario patterns_nul pats "printf 'src/A.kt\0src/sub/B.kt\0' > pats" --relative --patterns-from-stdin

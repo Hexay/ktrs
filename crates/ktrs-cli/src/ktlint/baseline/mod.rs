@@ -5,6 +5,8 @@ pub mod xml;
 use std::collections::HashMap;
 use std::path::Path;
 
+use ktrs_lint::editorconfig::KtlintVersion;
+
 use crate::ktlint::console::Console;
 use crate::ktlint::logger::{BASELINE, Logger};
 use crate::ktlint::reporter::{KtlintCliError, Status};
@@ -45,10 +47,24 @@ struct LoadError {
 }
 
 /// `loadBaseline(path, BaselineErrorHandling.LOG)`: a baseline that can't be loaded is deleted, its error
-/// logged, and reported as [`BaselineStatus::Invalid`]. `path` is resolved against `working_dir`.
-pub fn load_baseline(path: &str, working_dir: &Path, logger: &Logger, console: &Console) -> Baseline {
+/// logged, and reported as [`BaselineStatus::Invalid`]. `path` is resolved against `working_dir`. 1.8 takes a
+/// rule id without rule set as `standard:` and warns once (2.0 matches ids exactly).
+pub fn load_baseline(path: &str, working_dir: &Path, logger: &Logger, console: &Console, ktlint_version: KtlintVersion) -> Baseline {
     let baseline_path = Some(working_dir.join(path)).filter(|p| p.exists());
     match load(path, baseline_path.as_deref()) {
+        Ok(mut baseline) if ktlint_version.is_1_8() => {
+            let rule_reference_without_rule_set_id_prefix = prefix_rule_ids_without_rule_set(&mut baseline);
+            if rule_reference_without_rule_set_id_prefix > 0 {
+                logger.warn(BASELINE, || {
+                    format!(
+                        "Baseline file '{path}' contains {rule_reference_without_rule_set_id_prefix} reference(s) to rule ids \
+                         without a rule set id. For those references the rule set id 'standard' is assumed. It is advised to \
+                         regenerate this baseline file."
+                    )
+                });
+            }
+            baseline
+        }
         Ok(baseline) => baseline,
         Err(e) => {
             if let Some(fatal) = &e.fatal_error {
@@ -102,6 +118,18 @@ fn parse_baseline_error_element(element: &xml::Element) -> Result<KtlintCliError
         detail: String::new(),
         status: Status::BaselineIgnored,
     })
+}
+
+/// 1.8 `RuleId.prefixWithStandardRuleSetIdWhenMissing` on every `source`; the number of ids changed.
+fn prefix_rule_ids_without_rule_set(baseline: &mut Baseline) -> usize {
+    let mut prefixed = 0;
+    for error in baseline.lint_errors_per_file.values_mut().flatten() {
+        if !error.rule_id.contains(':') {
+            error.rule_id = format!("standard:{}", error.rule_id);
+            prefixed += 1;
+        }
+    }
+    prefixed
 }
 
 /// Kotlin's `String.toInt()`; `Err` is the `NumberFormatException` message. Negative values (valid ints

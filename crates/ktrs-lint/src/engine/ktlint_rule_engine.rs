@@ -19,6 +19,9 @@ use crate::rule_provider::{RuleV2Provider, property_types};
 pub const MAX_FORMAT_RUNS_PER_FILE: usize = 3;
 pub const UTF8_BOM: char = '\u{FEFF}';
 
+/// Receives the engine's own warnings as (logger name, message): upstream logs them with SLF4J.
+pub type EngineWarnings = Arc<dyn Fn(&str, &str) + Send + Sync>;
+
 pub struct KtLintRuleEngine {
     /// The rules to run; each provider creates a fresh rule per traversal.
     pub(crate) rule_providers: Vec<RuleV2Provider>,
@@ -28,6 +31,7 @@ pub struct KtLintRuleEngine {
     editor_config_override: EditorConfigOverride,
     editor_config_loader: EditorConfigLoader,
     rule_setup_cache: RuleSetupCache,
+    engine_warnings: Option<EngineWarnings>,
 }
 
 impl KtLintRuleEngine {
@@ -59,6 +63,18 @@ impl KtLintRuleEngine {
             editor_config_override,
             editor_config_loader,
             rule_setup_cache: RuleSetupCache::default(),
+            engine_warnings: None,
+        }
+    }
+
+    /// Routes the engine's warnings (only ktlint 1.8 mode has any) to `engine_warnings`.
+    pub fn with_engine_warnings(self, engine_warnings: EngineWarnings) -> KtLintRuleEngine {
+        KtLintRuleEngine { engine_warnings: Some(engine_warnings), ..self }
+    }
+
+    pub(crate) fn warn(&self, logger: &str, message: impl FnOnce() -> String) {
+        if let Some(engine_warnings) = &self.engine_warnings {
+            engine_warnings(logger, &message());
         }
     }
 

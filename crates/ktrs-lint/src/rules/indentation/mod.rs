@@ -29,7 +29,7 @@ use ktrs_syntax::SyntaxKind::{
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::AstNodeExtension;
 use crate::editorconfig::{
-    CODE_STYLE_PROPERTY, CodeStyleValue, EditorConfigProperty, INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, PropertyRef,
+    CODE_STYLE_PROPERTY, CodeStyleValue, EditorConfigProperty, INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, KtlintVersion, PropertyRef,
 };
 use crate::element_type::{KDOC, TYPEALIAS};
 use crate::indent_config::IndentConfig;
@@ -63,6 +63,7 @@ pub struct IndentationRule {
     indent_context_stack: Vec<IndentContext>,
     string_template_indenter: Option<StringTemplateIndenter>,
     traversal: TraversalState,
+    ktlint_version: KtlintVersion,
 }
 
 impl IndentationRule {
@@ -74,6 +75,7 @@ impl IndentationRule {
             indent_context_stack: Vec::new(),
             string_template_indenter: None,
             traversal: TraversalState::default(),
+            ktlint_version: KtlintVersion::default(),
         }
     }
 
@@ -117,6 +119,7 @@ impl RuleV2 for IndentationRule {
             self.traversal.stop_traversal_of_ast();
         }
         self.indent_when_arrow_on_new_line = editor_config.get(&INDENT_WHEN_ARROW_ON_NEW_LINE);
+        self.ktlint_version = KtlintVersion::of(editor_config);
     }
 
     fn before_visit_child_nodes(&mut self, ast: &mut Ast, node: NodeId, emit: &mut Emit<'_>) {
