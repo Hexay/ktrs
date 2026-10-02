@@ -1,0 +1,2 @@
+2:15	compose:modifier-without-default-check	auto	This @Composable function has a modifier parameter but it doesn't have a default value.\nSee https://mrmans0n.github.io/compose-rules/rules/#modifiers-should-have-default-parameters for more information.
+4:57	compose:modifier-without-default-check	auto	This @Composable function has a modifier parameter but it doesn't have a default value.\nSee https://mrmans0n.github.io/compose-rules/rules/#modifiers-should-have-default-parameters for more information.

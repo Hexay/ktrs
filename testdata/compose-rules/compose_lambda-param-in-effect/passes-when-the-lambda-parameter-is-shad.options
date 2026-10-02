@@ -1,0 +1,5 @@
+ktlint=1.8
+rules=compose:lambda-param-in-effect
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=LambdaParameterInRestartableEffectCheckTest.passes when the lambda parameter is shadowed before using it in an effect

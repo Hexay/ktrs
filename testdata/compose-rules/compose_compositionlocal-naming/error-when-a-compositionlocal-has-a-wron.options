@@ -1,0 +1,5 @@
+ktlint=1.8
+rules=compose:compositionlocal-naming
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=CompositionLocalNamingCheckTest.error when a CompositionLocal has a wrong name

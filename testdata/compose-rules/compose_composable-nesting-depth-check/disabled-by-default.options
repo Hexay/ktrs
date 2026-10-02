@@ -1,0 +1,5 @@
+ktlint=1.8
+rules=compose:composable-nesting-depth-check
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=ComposableNestingDepthCheckTest.disabled by default

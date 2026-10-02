@@ -1,0 +1,5 @@
+ktlint=1.8
+rules=compose:content-trailing-lambda
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=ContentTrailingLambdaCheckTest.errors when there is a content parameter not being last

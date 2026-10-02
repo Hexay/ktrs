@@ -1,0 +1,6 @@
+ktlint=1.8
+rules=compose:content-emitter-returning-values-check
+ec.compose_content_emitters=Potato,Banana
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=ContentEmitterReturningValuesCheckTest.error out when detecting a content emitting composable that returns something other than unit

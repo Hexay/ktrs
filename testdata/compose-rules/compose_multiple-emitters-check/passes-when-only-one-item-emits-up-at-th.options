@@ -1,0 +1,5 @@
+ktlint=1.8
+rules=compose:multiple-emitters-check
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=MultipleContentEmittersCheckTest.passes when only one item emits up at the top level

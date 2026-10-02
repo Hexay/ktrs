@@ -1,0 +1,5 @@
+ktlint=1.8
+rules=compose:mutable-state-autoboxing
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=MutableStateAutoboxingCheckTest.no errors when a mutableStateOf is used for other things

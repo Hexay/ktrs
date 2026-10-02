@@ -1,0 +1,1 @@
+2:16	compose:modifier-naming	manual	Modifier parameters should be called `modifier`.\nSee https://mrmans0n.github.io/compose-rules/rules/#naming-modifiers-properly for more information.

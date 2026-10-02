@@ -1,0 +1,2 @@
+@Composable
+fun myComposable(): Something { }

@@ -1,0 +1,5 @@
+ktlint=1.8
+rules=compose:compositionlocal-allowlist
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=CompositionLocalAllowlistCheckTest.error when a CompositionLocal is defined
