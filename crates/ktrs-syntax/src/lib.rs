@@ -1,6 +1,7 @@
 //! Lossless Kotlin syntax tree. Node and token kinds mirror the Kotlin compiler's PSI element
 //! types one-to-one (see `kinds.tsv`), so trees can be diffed against `DebugUtil.psiToString`.
 
+pub mod caught_panic;
 mod dump;
 mod generated {
     pub(crate) mod kinds;

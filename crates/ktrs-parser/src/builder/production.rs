@@ -1,8 +1,10 @@
-//! Port of `MarkerProduction` + `MarkerOptionalData` + the marker objects of `PsiBuilderImpl`.
+//! Port of `MarkerProduction` + `MarkerOptionalData` + `MarkerPool` + the marker objects of `PsiBuilderImpl`.
 //!
 //! The production is the flat event list IntelliJ builds the tree from: `+id` is a start marker or
-//! an error item, `-id` the "done" of start marker `id`. Marker ids are never reused (IntelliJ pools
-//! them; reuse is unobservable), so a freed marker just gets `lexeme = -1`.
+//! an error item, `-id` the "done" of start marker `id`. Like `MarkerPool`, ids of dropped and
+//! rolled-back markers are reused (start markers and error items separately, last freed first), so
+//! `markers` is bounded by the live markers: backtracking that is exponential in time stays
+//! linear in memory.
 
 use std::num::NonZeroU32;
 
@@ -80,6 +82,11 @@ pub(crate) struct Production {
     pub(crate) markers: Vec<MarkerData>,
     pub(crate) list: Vec<i32>,
     messages: Vec<String>,
+    /// `MarkerPool.myFreeStartMarkers` / `myFreeErrorItems`.
+    free_start_markers: Vec<i32>,
+    free_error_items: Vec<i32>,
+    /// Slots of `messages` whose marker was freed (`MarkerOptionalData.clean`).
+    free_messages: Vec<NonZeroU32>,
     /// Error items ever allocated (dropped or rolled back ones included).
     error_items: u32,
 }
@@ -88,7 +95,15 @@ impl Production {
     /// Over (empty, possibly recycled) vectors; see `pool.rs`.
     pub(crate) fn from_vecs(markers: Vec<MarkerData>, list: Vec<i32>) -> Production {
         debug_assert!(markers.is_empty() && list.is_empty());
-        Production { markers, list, messages: Vec::new(), error_items: 0 }
+        Production {
+            markers,
+            list,
+            messages: Vec::new(),
+            free_start_markers: Vec::new(),
+            free_error_items: Vec::new(),
+            free_messages: Vec::new(),
+            error_items: 0,
+        }
     }
 
     pub(crate) fn has_error_items(&self) -> bool {
@@ -100,16 +115,35 @@ impl Production {
     }
 
     pub(crate) fn set_message(&mut self, id: i32, message: &str) {
-        self.messages.push(message.to_owned());
-        self.marker_mut(id).message = NonZeroU32::new(self.messages.len() as u32);
+        let slot = match self.free_messages.pop() {
+            Some(slot) => {
+                let text = &mut self.messages[slot.get() as usize - 1];
+                text.clear();
+                text.push_str(message);
+                slot
+            }
+            None => {
+                self.messages.push(message.to_owned());
+                NonZeroU32::new(self.messages.len() as u32).unwrap()
+            }
+        };
+        if let Some(old) = self.marker_mut(id).message.replace(slot) {
+            self.free_messages.push(old);
+        }
     }
 
     pub(crate) fn message(&self, id: i32) -> Option<&str> {
         self.marker(id).message.map(|i| self.messages[i.get() as usize - 1].as_str())
     }
 
+    /// `MarkerPool.allocateStartMarker` / `allocateErrorItem`.
     pub(crate) fn allocate(&mut self, is_error_item: bool, lexeme: i32) -> i32 {
         self.error_items += u32::from(is_error_item);
+        let free = if is_error_item { &mut self.free_error_items } else { &mut self.free_start_markers };
+        if let Some(id) = free.pop() {
+            *self.marker_mut(id) = MarkerData::new(is_error_item, lexeme);
+            return id;
+        }
         self.markers.push(MarkerData::new(is_error_item, lexeme));
         self.markers.len() as i32
     }
@@ -195,8 +229,15 @@ impl Production {
         self.marker(id).get_lexeme_index(id < 0)
     }
 
-    /// Only the disposed flag matters: a freed id is never read again except by the asserts.
+    /// `MarkerPool.freeMarker`. `allocate` re-initializes the slot; until then only the disposed
+    /// flag is read (by the asserts on stale handles).
     fn free_marker(&mut self, id: i32) {
-        self.marker_mut(id).lexeme = -1;
+        let data = self.marker_mut(id);
+        data.lexeme = -1;
+        let is_error_item = data.is_error_item;
+        if let Some(message) = data.message.take() {
+            self.free_messages.push(message);
+        }
+        if is_error_item { self.free_error_items.push(id) } else { self.free_start_markers.push(id) }
     }
 }

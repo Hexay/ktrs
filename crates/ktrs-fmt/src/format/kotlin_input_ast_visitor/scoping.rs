@@ -181,6 +181,8 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
             return;
         }
 
-        self.throw_runtime("AssertionError");
+        // `AssertionError(carry)`: a Kt element's `toString()` is its element type.
+        let carry = carry.map_or("null".to_owned(), |c| format!("{:?}", c.kind()));
+        self.throw_runtime(&format!("java.lang.AssertionError: {carry}"));
     }
 }
