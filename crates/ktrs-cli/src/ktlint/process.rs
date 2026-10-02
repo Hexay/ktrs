@@ -246,13 +246,23 @@ impl Processor<'_> {
                 Ok(KtlintCliError::new(r.line, r.col, "", &detail, Status::KtlintRuleEngineException))
             }
             KtLintException::EditorConfig(_) => Err(crash(e)),
+            // Files are processed on a thread pool, whose `Future.get` wraps the exception.
+            KtLintException::IllegalState(_) if !code.is_std_in => {
+                Err(Exit::Crash(format!("java.util.concurrent.ExecutionException: {}", crash_text(e))))
+            }
+            KtLintException::IllegalState(_) => Err(crash(e)),
         }
     }
 }
 
 fn crash(e: &KtLintException) -> Exit {
-    Exit::Crash(match e {
+    Exit::Crash(crash_text(e))
+}
+
+fn crash_text(e: &KtLintException) -> String {
+    match e {
         KtLintException::EditorConfig(e) => format!("org.ec4j.core.parser.ParseException: {e}"),
+        KtLintException::IllegalState(message) => format!("java.lang.IllegalStateException: {message}"),
         e => e.to_string(),
-    })
+    }
 }

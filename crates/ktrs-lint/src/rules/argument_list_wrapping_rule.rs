@@ -14,7 +14,7 @@ use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::{AstNodeExtension, AstNodeLines, AstNodeQueries};
 use crate::editorconfig::{EditorConfigProperty, INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, KtlintVersion, MAX_LINE_LENGTH_PROPERTY, PropertyRef};
 use crate::indent_config::IndentConfig;
-use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TokenSet};
+use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TokenSet, VisitorModifier};
 use crate::rules::STANDARD_RULE_ABOUT;
 use crate::rules::max_line_length_rule::max_line_length;
 use crate::token_sets::CONTROL_FLOW_KEYWORDS;
@@ -52,6 +52,16 @@ impl Default for ArgumentListWrappingRule {
 impl RuleV2 for ArgumentListWrappingRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:argument-list-wrapping")
+    }
+
+    fn visitor_modifiers(&self) -> &'static [VisitorModifier] {
+        const MODIFIERS: &[VisitorModifier] = &[
+            VisitorModifier::run_after("standard:value-argument-comment"),
+            VisitorModifier::run_after("standard:wrapping"),
+            VisitorModifier::run_after("standard:class-signature"),
+            VisitorModifier::run_after("standard:function-signature"),
+        ];
+        MODIFIERS
     }
 
     fn visited_types(&self) -> Option<TokenSet> {

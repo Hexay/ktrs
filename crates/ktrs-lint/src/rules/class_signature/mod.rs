@@ -21,7 +21,7 @@ use crate::element_type::{
     WHITE_SPACE,
 };
 use crate::indent_config::IndentConfig;
-use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet, VisitorModifier};
 use crate::rules::STANDARD_RULE_ABOUT;
 use crate::rules::function_signature::{children_between, collect_leaves_recursively, join_text_length};
 use crate::rules::max_line_length_rule::max_line_length;
@@ -63,6 +63,15 @@ const VISITED_TYPES: TokenSet = TokenSet::create(&[CLASS]);
 impl RuleV2 for ClassSignatureRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:class-signature")
+    }
+
+    fn visitor_modifiers(&self) -> &'static [VisitorModifier] {
+        const MODIFIERS: &[VisitorModifier] = &[
+            VisitorModifier::run_after("standard:type-parameter-comment"),
+            VisitorModifier::run_after("standard:value-parameter-comment"),
+            VisitorModifier::RunAsLateAsPossible,
+        ];
+        MODIFIERS
     }
 
     fn visited_types(&self) -> Option<TokenSet> {

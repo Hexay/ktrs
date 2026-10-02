@@ -2,8 +2,7 @@
 
 use ktrs_ast::Ast;
 
-use crate::editorconfig::{END_OF_LINE_PROPERTY, EndOfLineValue, KtlintVersion};
-use crate::engine::visitor_provider::ktlint_1_8_rule_rank;
+use crate::editorconfig::{END_OF_LINE_PROPERTY, EndOfLineValue};
 use crate::engine::code::{Code, KtLintException, LintError};
 use crate::engine::ktlint_rule_engine::{KtLintRuleEngine, UTF8_BOM};
 use crate::engine::rule_execution_context::{RuleExecutionContext, create_rule_execution_context};
@@ -63,19 +62,14 @@ pub(crate) fn format(
     max_format_runs_per_file: usize,
     after_pass: &mut dyn FnMut(&Ast),
 ) -> Result<String, KtLintException> {
-    let (formatted_code, mut errors, ktlint_version) = format_code(
+    let (formatted_code, mut errors) = format_code(
         engine,
         code,
         autocorrect_handler,
         max_format_runs_per_file,
         after_pass,
     )?;
-    if ktlint_version.is_1_8() {
-        // 1.8 runs rule after rule: errors at one position come in its rule order.
-        errors.sort_by_key(|(e, _)| (e.line, e.col, ktlint_1_8_rule_rank(e.rule_id)));
-    } else {
-        errors.sort_by_key(|(e, _)| (e.line, e.col));
-    }
+    errors.sort_by_key(|(e, _)| (e.line, e.col));
     for (e, corrected) in &errors {
         callback(e, *corrected);
     }
@@ -97,9 +91,8 @@ fn format_code(
     mut autocorrect_handler: AutocorrectHandler<'_>,
     max_format_runs_per_file: usize,
     after_pass: &mut dyn FnMut(&Ast),
-) -> Result<(String, Vec<(LintError, bool)>, KtlintVersion), KtLintException> {
+) -> Result<(String, Vec<(LintError, bool)>), KtLintException> {
     let mut context = create_rule_execution_context(engine, code)?;
-    let ktlint_version = KtlintVersion::of(&context.setup.editor_config);
     let line_separator =
         determine_line_separator(code, context.setup.editor_config.get(&END_OF_LINE_PROPERTY));
     let mut code_content = formatted_code(&context, line_separator);
@@ -136,7 +129,7 @@ fn format_code(
     } else {
         code.content.clone()
     };
-    Ok((formatted, errors.into_distinct(), ktlint_version))
+    Ok((formatted, errors.into_distinct()))
 }
 
 fn formatted_code(context: &RuleExecutionContext, line_separator: &str) -> String {

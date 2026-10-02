@@ -33,7 +33,7 @@ use crate::editorconfig::{
 };
 use crate::element_type::{KDOC, TYPEALIAS};
 use crate::indent_config::IndentConfig;
-use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TraversalState};
+use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TraversalState, VisitorModifier};
 use crate::rules::STANDARD_RULE_ABOUT;
 
 use string_template_indenter::StringTemplateIndenter;
@@ -93,6 +93,17 @@ impl Default for IndentationRule {
 impl RuleV2 for IndentationRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:indent")
+    }
+
+    fn visitor_modifiers(&self) -> &'static [VisitorModifier] {
+        const MODIFIERS: &[VisitorModifier] = &[
+            VisitorModifier::RunAsLateAsPossible,
+            VisitorModifier::run_after("standard:class-signature"),
+            VisitorModifier::run_after("standard:function-signature"),
+            VisitorModifier::run_after("standard:trailing-comma-on-call-site"),
+            VisitorModifier::run_after("standard:trailing-comma-on-declaration-site"),
+        ];
+        MODIFIERS
     }
 
     fn about(&self) -> About {

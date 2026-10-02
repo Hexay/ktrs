@@ -19,7 +19,7 @@ use crate::editorconfig::{
     comma_separated_list_value_parser,
 };
 use crate::indent_config::IndentConfig;
-use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TokenSet};
+use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TokenSet, VisitorModifier};
 use crate::rules::STANDARD_RULE_ABOUT;
 
 const VISITED_TYPES: TokenSet = TokenSet::create(&[
@@ -77,6 +77,11 @@ impl Default for AnnotationRule {
 impl RuleV2 for AnnotationRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:annotation")
+    }
+
+    fn visitor_modifiers(&self) -> &'static [VisitorModifier] {
+        const MODIFIERS: &[VisitorModifier] = &[VisitorModifier::run_after("standard:enum-wrapping")];
+        MODIFIERS
     }
 
     fn visited_types(&self) -> Option<TokenSet> {
