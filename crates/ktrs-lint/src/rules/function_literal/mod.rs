@@ -12,7 +12,7 @@ use ktrs_syntax::SyntaxKind::{
 use crate::ast_node_extension::{AstNodeExtension, AstNodeLines, AstNodeQueries};
 use crate::editorconfig::{CODE_STYLE_PROPERTY, INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, KtlintVersion, MAX_LINE_LENGTH_PROPERTY, PropertyRef};
 use crate::indent_config::IndentConfig;
-use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TokenSet, TraversalState};
+use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TokenSet, TraversalState, VisitorModifier};
 use crate::rules::STANDARD_RULE_ABOUT;
 use crate::rules::max_line_length_rule::max_line_length;
 
@@ -48,6 +48,11 @@ impl Default for FunctionLiteralRule {
 impl RuleV2 for FunctionLiteralRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:function-literal")
+    }
+
+    fn visitor_modifiers(&self) -> &'static [VisitorModifier] {
+        const MODIFIERS: &[VisitorModifier] = &[VisitorModifier::run_after("standard:chain-method-continuation")];
+        MODIFIERS
     }
 
     fn visited_types(&self) -> Option<TokenSet> {

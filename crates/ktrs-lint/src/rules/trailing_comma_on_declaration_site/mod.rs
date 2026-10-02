@@ -17,7 +17,7 @@ use ktrs_syntax::SyntaxKind::{
 
 use crate::ast_node_extension::{AstNodeExtension, AstNodeLines};
 use crate::editorconfig::{EditorConfigProperty, PropertyRef};
-use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2};
+use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, VisitorModifier};
 use crate::rules::STANDARD_RULE_ABOUT;
 
 use report::{closing_element_destructuring_declaration_entries, report_and_correct_trailing_comma_node_before};
@@ -73,6 +73,14 @@ impl Default for TrailingCommaOnDeclarationSiteRule {
 impl RuleV2 for TrailingCommaOnDeclarationSiteRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:trailing-comma-on-declaration-site")
+    }
+
+    fn visitor_modifiers(&self) -> &'static [VisitorModifier] {
+        const MODIFIERS: &[VisitorModifier] = &[
+            VisitorModifier::run_after_loaded_and_enabled("standard:wrapping"),
+            VisitorModifier::RunAsLateAsPossible,
+        ];
+        MODIFIERS
     }
 
     fn visited_types(&self) -> Option<TokenSet> {
