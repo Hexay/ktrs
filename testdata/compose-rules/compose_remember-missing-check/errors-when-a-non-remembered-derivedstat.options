@@ -1,0 +1,5 @@
+ktlint=1.8
+rules=compose:remember-missing-check
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=RememberStateMissingCheckTest.errors when a non-remembered derivedStateOf is used in a Composable

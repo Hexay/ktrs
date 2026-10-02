@@ -1,0 +1,6 @@
+ktlint=1.8
+rules=compose:vm-forwarding-check
+ec.compose_allowed_state_holder_names=.*Component,.*ViewModel
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=ViewModelForwardingCheckTest.errors when a ViewModel is forwarded to another Composable

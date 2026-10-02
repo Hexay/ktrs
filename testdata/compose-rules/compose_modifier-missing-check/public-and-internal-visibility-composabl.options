@@ -1,0 +1,6 @@
+ktlint=1.8
+rules=compose:modifier-missing-check
+ec.compose_check_modifiers_for_visibility=public_and_internal
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=ModifierMissingCheckTest.public and internal visibility Composables are checked for 'public_and_internal' configuration

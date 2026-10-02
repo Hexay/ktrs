@@ -1,0 +1,2 @@
+3:5	compose:preview-public-check	auto	Composables annotated with @Preview that are used only for previewing the UI should not be public.\nSee https://mrmans0n.github.io/compose-rules/rules/#preview-composables-should-not-be-public for more information.
+7:5	compose:preview-public-check	auto	Composables annotated with @Preview that are used only for previewing the UI should not be public.\nSee https://mrmans0n.github.io/compose-rules/rules/#preview-composables-should-not-be-public for more information.

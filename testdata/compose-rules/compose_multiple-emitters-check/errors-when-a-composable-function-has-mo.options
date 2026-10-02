@@ -1,0 +1,6 @@
+ktlint=1.8
+rules=compose:multiple-emitters-check
+ec.compose_content_emitters=Potato,Banana
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=MultipleContentEmittersCheckTest.errors when a Composable function has more than one indirect UI emitter at the top level

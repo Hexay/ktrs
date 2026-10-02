@@ -1,0 +1,2 @@
+3:5	compose:vm-forwarding-check	manual	Forwarding a ViewModel/Presenter through multiple @Composable functions should be avoided. Consider using state hoisting.\nSee https://mrmans0n.github.io/compose-rules/rules/#hoist-all-the-things for more information.
+7:5	compose:vm-forwarding-check	manual	Forwarding a ViewModel/Presenter through multiple @Composable functions should be avoided. Consider using state hoisting.\nSee https://mrmans0n.github.io/compose-rules/rules/#hoist-all-the-things for more information.
