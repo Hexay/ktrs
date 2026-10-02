@@ -1,0 +1,5 @@
+ktlint=1.8
+rules=compose:modifier-composed-check
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=ModifierComposedCheckTest.errors when a composable Modifier extension is detected

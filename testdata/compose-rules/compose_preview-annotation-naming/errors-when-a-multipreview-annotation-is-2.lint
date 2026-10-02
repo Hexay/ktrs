@@ -1,0 +1,3 @@
+2:18	compose:preview-annotation-naming	manual	MultiPreview annotations should start with `Preview` as prefix.\nSee https://mrmans0n.github.io/compose-rules/rules/#naming-multipreview-annotations-properly for more information.
+4:18	compose:preview-annotation-naming	manual	MultiPreview annotations should start with `Preview` as prefix.\nSee https://mrmans0n.github.io/compose-rules/rules/#naming-multipreview-annotations-properly for more information.
+6:18	compose:preview-annotation-naming	manual	MultiPreview annotations should start with `Preview` as prefix.\nSee https://mrmans0n.github.io/compose-rules/rules/#naming-multipreview-annotations-properly for more information.

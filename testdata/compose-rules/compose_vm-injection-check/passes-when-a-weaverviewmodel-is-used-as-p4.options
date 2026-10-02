@@ -1,0 +1,6 @@
+ktlint=1.8
+rules=compose:vm-injection-check
+ec.compose_view_model_factories=bananaViewModel,potatoViewModel
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=ViewModelInjectionCheckTest.passes when a weaverViewModel is used as a default param[4]

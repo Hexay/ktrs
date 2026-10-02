@@ -1,0 +1,6 @@
+ktlint=1.8
+rules=compose:compositionlocal-allowlist
+ec.compose_allowed_composition_locals=LocalPotato,LocalBanana,LocalPeach
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=CompositionLocalAllowlistCheckTest.passes when a CompositionLocal is defined but it's in the allowlist

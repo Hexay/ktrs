@@ -1,0 +1,7 @@
+ktlint=1.8
+rules=compose:material-two
+ec.compose_disallow_material2=true
+ec.compose_allowed_from_m2=TopAppBar
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=Material2CheckTest.passes when there is a M2 reference in imports but it's in the allowlist
