@@ -18,6 +18,8 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::{env, fs, process, thread};
 
 use ktrs_lint::KtLintRuleEngine;
+use ktrs_lint::editorconfig::KtlintVersion;
+use ktrs_lint::rule_provider::rule_providers_in;
 use ktrs_lint::rules::{standard_rule_provider, standard_rule_providers};
 use probe::FileResult;
 
@@ -59,7 +61,7 @@ fn parse_args(args: &[String]) -> Option<Options> {
     let mut opts = Options {
         src: PathBuf::from(args.first()?),
         out: PathBuf::from(args.get(1)?),
-        rules: standard_rule_providers().iter().map(|p| p.rule_id().value().to_owned()).collect(),
+        rules: rule_providers_in(&standard_rule_providers(), KtlintVersion::V2_0).iter().map(|p| p.rule_id().value().to_owned()).collect(),
         dumps: false,
         lint: true,
         threads: thread::available_parallelism().map_or(1, |n| n.get()),

@@ -8,7 +8,7 @@ use ktrs_syntax::SyntaxKind::{
 
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::{AstNodeExtension, AstNodeLines, AstNodeQueries};
-use crate::editorconfig::{INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, MAX_LINE_LENGTH_PROPERTY, PropertyRef};
+use crate::editorconfig::{INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, KtlintVersion, MAX_LINE_LENGTH_PROPERTY, PropertyRef};
 use crate::indent_config::IndentConfig;
 use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
@@ -18,6 +18,7 @@ use crate::rules::max_line_length_rule::max_line_length;
 pub struct BinaryExpressionWrappingRule {
     indent_config: IndentConfig,
     max_line_length: i32,
+    ktlint_version: KtlintVersion,
 }
 
 impl BinaryExpressionWrappingRule {
@@ -25,6 +26,7 @@ impl BinaryExpressionWrappingRule {
         BinaryExpressionWrappingRule {
             indent_config: IndentConfig::default_indent_config(),
             max_line_length: MAX_LINE_LENGTH_PROPERTY.default_value,
+            ktlint_version: KtlintVersion::default(),
         }
     }
 }
@@ -61,6 +63,7 @@ impl RuleV2 for BinaryExpressionWrappingRule {
     fn before_first_node(&mut self, editor_config: &EditorConfig) {
         self.indent_config = IndentConfig::new(editor_config.get(&INDENT_STYLE_PROPERTY), editor_config.get(&INDENT_SIZE_PROPERTY));
         self.max_line_length = max_line_length(editor_config);
+        self.ktlint_version = KtlintVersion::of(editor_config);
     }
 
     fn before_visit_child_nodes(&mut self, ast: &mut Ast, node: NodeId, emit: &mut Emit<'_>) {
@@ -199,12 +202,12 @@ impl BinaryExpressionWrappingRule {
     }
 
     fn is_on_line_exceeding_max_line_length(&self, ast: &Ast, node: NodeId) -> bool {
-        ast.has_no_max_line_length_suppression(node)
+        ast.has_no_max_line_length_suppression_in(node, self.ktlint_version)
             && (self.max_line_length as i64) < ast.line_length(ast.drop_trailing_eol_comment(ast.leaves_on_line(node))) as i64
     }
 
     fn causes_max_line_length_to_be_exceeded(&self, ast: &Ast, node: NodeId) -> bool {
-        if !ast.has_no_max_line_length_suppression(node) {
+        if !ast.has_no_max_line_length_suppression_in(node, self.ktlint_version) {
             return false;
         }
         let last_child_leaf = ast.last_child_leaf_or_self(node);

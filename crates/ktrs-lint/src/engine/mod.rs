@@ -18,8 +18,10 @@ mod position_in_text_locator;
 mod rule_dispatch;
 mod rule_execution_context;
 mod rule_panic;
+pub mod rule_provider_sorter_1_8;
 mod rule_setup;
 pub mod rule_filter;
+mod suppression_ids;
 mod suppression_locator;
 pub mod visitor_provider;
 

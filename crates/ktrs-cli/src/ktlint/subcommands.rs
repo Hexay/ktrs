@@ -5,24 +5,27 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use ktrs_editorconfig::EnumValue;
-use ktrs_lint::editorconfig::{CODE_STYLE_PROPERTY, CodeStyleValue, PropertyRef};
-use ktrs_lint::rule_provider::RuleV2Provider;
+use ktrs_lint::editorconfig::{CODE_STYLE_PROPERTY, CodeStyleValue, KtlintVersion, PropertyRef};
+use ktrs_lint::rule_provider::{RuleV2Provider, rule_providers_in};
 use ktrs_lint::{EditorConfigDefaults, EditorConfigOverride, KtLintRuleEngine};
 
 use crate::ktlint::command_line::{Exit, ExitCode, KtlintCli};
 use crate::ktlint::logger::{GENERATE_EDITOR_CONFIG_SUB_COMMAND, Logger};
 use crate::ktlint::sha256::sha256;
+use crate::ktlint::version::{repository, with_ktlint_version};
 
 pub fn generate_editor_config(
     cli: &KtlintCli,
     rule_providers: Vec<RuleV2Provider>,
     code_style: CodeStyleValue,
     logger: &Logger,
+    ktlint_version: KtlintVersion,
 ) -> Result<(), Exit> {
+    let code_style = EditorConfigOverride::from(vec![(PropertyRef::from(&*CODE_STYLE_PROPERTY), Some(code_style.name().to_owned()))]);
     let engine = KtLintRuleEngine::with_editor_config(
-        rule_providers,
+        rule_providers_in(&rule_providers, ktlint_version),
         EditorConfigDefaults::empty(),
-        EditorConfigOverride::from(vec![(PropertyRef::from(&*CODE_STYLE_PROPERTY), Some(code_style.name().to_owned()))]),
+        with_ktlint_version(code_style, ktlint_version),
     );
     let generated_editor_config = engine
         .generate_kotlin_editor_config_section(&cli.working_dir.to_path_buf())
@@ -38,20 +41,30 @@ pub fn generate_editor_config(
 
 pub struct GitHook {
     name: &'static str,
-    content: &'static str,
+    content: String,
 }
 
-pub const PRE_COMMIT: GitHook = GitHook {
-    name: "pre-commit",
-    content: "#!/bin/sh\n\n# <https://github.com/ktlint/ktlint> pre-commit hook\n\n\
-              git diff --name-only -z --cached --relative -- '*.kt' '*.kts' | ktlint --relative --patterns-from-stdin=''",
-};
+pub fn pre_commit(ktlint_version: KtlintVersion) -> GitHook {
+    GitHook {
+        name: "pre-commit",
+        content: format!(
+            "#!/bin/sh\n\n# <{}> pre-commit hook\n\n\
+             git diff --name-only -z --cached --relative -- '*.kt' '*.kts' | ktlint --relative --patterns-from-stdin=''",
+            repository(ktlint_version)
+        ),
+    }
+}
 
-pub const PRE_PUSH: GitHook = GitHook {
-    name: "pre-push",
-    content: "#!/bin/sh\n\n# <https://github.com/ktlint/ktlint> pre-push hook\n\n\
-              git diff --name-only -z HEAD \"origin/$(git rev-parse --abbrev-ref HEAD)\" -- '*.kt' '*.kts' | ktlint --relative --patterns-from-stdin=''",
-};
+pub fn pre_push(ktlint_version: KtlintVersion) -> GitHook {
+    GitHook {
+        name: "pre-push",
+        content: format!(
+            "#!/bin/sh\n\n# <{}> pre-push hook\n\n\
+             git diff --name-only -z HEAD \"origin/$(git rev-parse --abbrev-ref HEAD)\" -- '*.kt' '*.kts' | ktlint --relative --patterns-from-stdin=''",
+            repository(ktlint_version)
+        ),
+    }
+}
 
 /// `installGitHook`: writes the hook into the repository's hooks directory, backing up a different one.
 pub fn install_git_hook(cli: &KtlintCli, hook: GitHook) -> Result<(), Exit> {

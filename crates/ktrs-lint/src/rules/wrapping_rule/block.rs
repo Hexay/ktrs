@@ -37,7 +37,7 @@ impl WrappingRule {
             self.require_newline_after_leaf(ast, lbrace, emit, None);
         }
 
-        if self.max_line_length != MAX_LINE_LENGTH_PROPERTY_OFF && ast.has_no_max_line_length_suppression(node) {
+        if self.max_line_length != MAX_LINE_LENGTH_PROPERTY_OFF && ast.has_no_max_line_length_suppression_in(node, self.ktlint_version) {
             let length_until_begin_of_line: usize = ast
                 .leaves(node, false)
                 .take_while(|&it| !ast.is_white_space_with_newline(it))

@@ -8,7 +8,8 @@ use crate::ktlint::baseline::{Baseline, BaselineStatus};
 use crate::ktlint::command_line::{Exit, ExitCode};
 use crate::ktlint::console::{Console, Printer, Sink};
 use crate::ktlint::file_utils::location;
-use crate::ktlint::jar_providers::{REPORTER_PROVIDER_V2, load_from_jar_file, to_files_uri_list};
+use crate::ktlint::jar_providers::{load_from_jar_file, to_files_uri_list};
+use crate::ktlint::version::package;
 use crate::ktlint::jpath::JPath;
 use crate::ktlint::logger::{Logger, REPORTER_AGGREGATOR};
 use crate::ktlint::reporter::{
@@ -60,7 +61,8 @@ pub fn aggregated_reporter(baseline: &Baseline, settings: &ReporterSettings, cx:
     }
     let artifacts: Vec<String> = parsed.iter().filter_map(|c| c.artifact.clone()).collect();
     if let Some(url) = to_files_uri_list(&artifacts, cx.working_dir, cx.user_home, cx.logger)?.first() {
-        return Err(load_from_jar_file(url, REPORTER_PROVIDER_V2, &[], cx.logger));
+        let interface = format!("{}.cli.reporter.core.api.ReporterProviderV2", package(cx.logger.ktlint_version()));
+        return Err(load_from_jar_file(url, &interface, &[], cx.logger));
     }
     let mut reporters: Vec<Box<dyn ReporterV2>> = Vec::new();
     for configuration in &parsed {

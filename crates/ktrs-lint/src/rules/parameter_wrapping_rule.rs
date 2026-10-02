@@ -5,7 +5,7 @@ use ktrs_syntax::SyntaxKind::{CALL_EXPRESSION, COLON, COMMA, EQ, IDENTIFIER, TYP
 
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::{AstNodeExtension, AstNodeLines, AstNodeQueries};
-use crate::editorconfig::{INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, MAX_LINE_LENGTH_PROPERTY, PropertyRef};
+use crate::editorconfig::{INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, KtlintVersion, MAX_LINE_LENGTH_PROPERTY, PropertyRef};
 use crate::indent_config::IndentConfig;
 use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
@@ -19,11 +19,16 @@ const VISITED_TYPES: TokenSet = TokenSet::create(&[VALUE_PARAMETER]);
 pub struct ParameterWrappingRule {
     indent_config: IndentConfig,
     max_line_length: i32,
+    ktlint_version: KtlintVersion,
 }
 
 impl ParameterWrappingRule {
     pub fn new() -> ParameterWrappingRule {
-        ParameterWrappingRule { indent_config: IndentConfig::default_indent_config(), max_line_length: MAX_LINE_LENGTH_PROPERTY.default_value }
+        ParameterWrappingRule {
+            indent_config: IndentConfig::default_indent_config(),
+            max_line_length: MAX_LINE_LENGTH_PROPERTY.default_value,
+            ktlint_version: KtlintVersion::default(),
+        }
     }
 }
 
@@ -58,6 +63,7 @@ impl RuleV2 for ParameterWrappingRule {
     fn before_first_node(&mut self, editor_config: &EditorConfig) {
         self.indent_config = IndentConfig::new(editor_config.get(&INDENT_STYLE_PROPERTY), editor_config.get(&INDENT_SIZE_PROPERTY));
         self.max_line_length = max_line_length(editor_config);
+        self.ktlint_version = KtlintVersion::of(editor_config);
     }
 
     fn before_visit_child_nodes(&mut self, ast: &mut Ast, node: NodeId, emit: &mut Emit<'_>) {
@@ -85,7 +91,7 @@ impl ParameterWrappingRule {
         let max_line_length = self.max_line_length as i64;
 
         if let Some(colon) = ast.find_child_by_type(node, COLON)
-            && ast.has_no_max_line_length_suppression(colon)
+            && ast.has_no_max_line_length_suppression_in(colon, self.ktlint_version)
             && base_indent_length + sum_of_text_length_until(ast, from_node, colon) > max_line_length
         {
             self.require_newline_after_leaf(ast, colon, emit);
@@ -93,7 +99,7 @@ impl ParameterWrappingRule {
         }
 
         if let Some(type_reference) = ast.find_child_by_type(node, TYPE_REFERENCE)
-            && ast.has_no_max_line_length_suppression(type_reference)
+            && ast.has_no_max_line_length_suppression_in(type_reference, self.ktlint_version)
             && base_indent_length + sum_of_text_length_until(ast, from_node, or_trailing_comma(ast, type_reference)) > max_line_length
         {
             require_newline_before_leaf(ast, type_reference, emit);
@@ -101,7 +107,7 @@ impl ParameterWrappingRule {
         }
 
         if let Some(equal) = ast.find_child_by_type(node, EQ)
-            && ast.has_no_max_line_length_suppression(equal)
+            && ast.has_no_max_line_length_suppression_in(equal, self.ktlint_version)
             && base_indent_length + sum_of_text_length_until(ast, from_node, or_trailing_comma(ast, equal)) > max_line_length
         {
             self.require_newline_after_leaf(ast, equal, emit);
@@ -109,7 +115,7 @@ impl ParameterWrappingRule {
         }
 
         if let Some(call_expression) = ast.find_child_by_type(node, CALL_EXPRESSION)
-            && ast.has_no_max_line_length_suppression(call_expression)
+            && ast.has_no_max_line_length_suppression_in(call_expression, self.ktlint_version)
             && base_indent_length + sum_of_text_length_until(ast, from_node, or_trailing_comma(ast, call_expression)) > max_line_length
         {
             require_newline_before_leaf(ast, call_expression, emit);

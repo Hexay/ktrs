@@ -15,7 +15,7 @@ use std::path::{Path, PathBuf};
 
 use crate::ktlint::console::Printer;
 
-/// `ktlintVersion(...)`: the version reporters (sarif) and `--version` print.
+/// `ktlintVersion(...)` of the 2.0 jar; the run's release: `version::release`.
 pub const KTLINT_VERSION: &str = "2.0.0-ALPHA-4";
 
 /// `KtlintCliError.Status`.
@@ -77,11 +77,13 @@ impl ReporterOptions {
     }
 }
 
-/// What reporters read from the environment: `user.home` (sarif) and the working directory (baseline).
+/// What reporters read from the environment: `user.home` and the ktlint release (sarif) and the working
+/// directory (baseline).
 #[derive(Clone, Debug)]
 pub struct ReporterEnvironment {
     pub user_home: Option<PathBuf>,
     pub working_dir: PathBuf,
+    pub ktlint_release: &'static str,
 }
 
 /// The ids of the built-in `ReporterProviderV2`s.
@@ -104,7 +106,7 @@ pub fn get_reporter(
         "json" => Ok(Box::new(json::JsonReporter::new(out))),
         "plain" => plain::PlainReporterProvider::get(out, opt).map(|r| Box::new(r) as Box<dyn ReporterV2>),
         "plain-summary" => Ok(Box::new(plain_summary::PlainSummaryReporter::new(out))),
-        "sarif" => Ok(Box::new(sarif::SarifReporter::new(out, env.user_home.clone()))),
+        "sarif" => Ok(Box::new(sarif::SarifReporter::new(out, env.user_home.clone(), env.ktlint_release))),
         _ => return None,
     };
     Some(reporter)

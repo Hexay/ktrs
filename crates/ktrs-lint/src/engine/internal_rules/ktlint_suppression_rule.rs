@@ -26,7 +26,7 @@ use crate::engine::ktlint_suppression::{
     insert_ktlint_rule_suppression, is_ktlint_suppression_id, qualified_rule_id_string,
     to_fully_qualified_ktlint_suppression_id,
 };
-use crate::engine::suppression_locator::remove_surrounding;
+use crate::engine::suppression_ids::remove_surrounding;
 use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet};
 
 const VISITED_TYPES: TokenSet = TokenSet::create(&[STRING_TEMPLATE, EOL_COMMENT, BLOCK_COMMENT]);

@@ -14,7 +14,7 @@ use ktrs_syntax::SyntaxKind::{
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::AstNodeExtension;
 use crate::editorconfig::{EditorConfigProperty, PropertyRef};
-use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2};
+use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, VisitorModifier};
 use crate::rules::STANDARD_RULE_ABOUT;
 
 static TRAILING_COMMA_ON_CALL_SITE_PROPERTY_TYPE: PropertyType<bool> = PropertyType {
@@ -56,6 +56,14 @@ impl Default for TrailingCommaOnCallSiteRule {
 impl RuleV2 for TrailingCommaOnCallSiteRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:trailing-comma-on-call-site")
+    }
+
+    fn visitor_modifiers(&self) -> &'static [VisitorModifier] {
+        const MODIFIERS: &[VisitorModifier] = &[
+            VisitorModifier::run_after_loaded_and_enabled("standard:wrapping"),
+            VisitorModifier::RunAsLateAsPossible,
+        ];
+        MODIFIERS
     }
 
     fn visited_types(&self) -> Option<TokenSet> {

@@ -12,7 +12,7 @@ use crate::editorconfig::{
     EditorConfig, EditorConfigProperty, MAX_LINE_LENGTH_PROPERTY, MAX_LINE_LENGTH_PROPERTY_OFF, PropertyRef,
     RULE_EXECUTION_PROPERTY_TYPE, RuleExecution, rule_execution_property_name,
 };
-use crate::rule::{About, Emit, RuleId, RuleV2, TraversalState};
+use crate::rule::{About, Emit, RuleId, RuleV2, TraversalState, VisitorModifier};
 use crate::rules::STANDARD_RULE_ABOUT;
 
 pub struct MaxLineLengthRule {
@@ -40,6 +40,15 @@ impl Default for MaxLineLengthRule {
 impl RuleV2 for MaxLineLengthRule {
     fn rule_id(&self) -> RuleId {
         MAX_LINE_LENGTH_RULE_ID
+    }
+
+    fn visitor_modifiers(&self) -> &'static [VisitorModifier] {
+        const MODIFIERS: &[VisitorModifier] = &[
+            VisitorModifier::run_after("standard:trailing-comma-on-call-site"),
+            VisitorModifier::run_after("standard:trailing-comma-on-declaration-site"),
+            VisitorModifier::RunAsLateAsPossible,
+        ];
+        MODIFIERS
     }
 
     fn about(&self) -> About {

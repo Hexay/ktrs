@@ -11,6 +11,7 @@ pub enum Arity {
     OptionalAttached,
 }
 
+#[derive(Clone, Copy)]
 pub struct OptionSpec {
     pub names: &'static [&'static str],
     pub arity: Arity,

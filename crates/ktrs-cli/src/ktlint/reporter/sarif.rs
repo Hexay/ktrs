@@ -4,7 +4,10 @@
 use std::path::{Path, PathBuf};
 
 use crate::ktlint::console::Printer;
-use crate::ktlint::reporter::{KTLINT_VERSION, KtlintCliError, ReporterV2, relative_to_or_self};
+use ktrs_lint::editorconfig::KtlintVersion;
+
+use crate::ktlint::reporter::{KtlintCliError, ReporterV2, relative_to_or_self};
+use crate::ktlint::version::release;
 
 const SRCROOT: &str = "%SRCROOT%";
 
@@ -30,12 +33,14 @@ pub struct SarifReporter {
     user_home: Option<PathBuf>,
     results: Vec<Json>,
     working_directory: Option<PathBuf>,
+    ktlint_release: &'static str,
 }
 
 impl SarifReporter {
-    /// `user_home`: `System.getProperty("user.home")`, which upstream uses as the working directory.
-    pub fn new(out: Printer, user_home: Option<PathBuf>) -> SarifReporter {
-        SarifReporter { out, user_home, results: Vec::new(), working_directory: None }
+    /// `user_home`: `System.getProperty("user.home")`, which upstream uses as the working directory;
+    /// `ktlint_release`: `ktlintVersion(...)`, the jar's version.
+    pub fn new(out: Printer, user_home: Option<PathBuf>, ktlint_release: &'static str) -> SarifReporter {
+        SarifReporter { out, user_home, results: Vec::new(), working_directory: None, ktlint_release }
     }
 }
 
@@ -69,14 +74,17 @@ impl ReporterV2 for SarifReporter {
     }
 
     fn after_all(&mut self) {
-        let version = KTLINT_VERSION;
+        let version = self.ktlint_release;
+        // 1.8 still names pinterest's repository, and its kotlinx.serialization breaks empty arrays.
+        let ktlint_1_8 = version == release(KtlintVersion::V1_8);
+        let organization = if ktlint_1_8 { "pinterest" } else { "ktlint" };
         let driver = Json::Obj(vec![
-            ("downloadUri", Json::Str(format!("https://github.com/ktlint/ktlint/releases/tag/{version}"))),
+            ("downloadUri", Json::Str(format!("https://github.com/{organization}/ktlint/releases/tag/{version}"))),
             ("fullName", str("ktlint")),
-            ("informationUri", str("https://github.com/ktlint/ktlint/")),
+            ("informationUri", Json::Str(format!("https://github.com/{organization}/ktlint/"))),
             ("language", str("en")),
             ("name", str("ktlint")),
-            ("organization", str("ktlint")),
+            ("organization", str(organization)),
             ("rules", Json::Arr(Vec::new())),
             ("semanticVersion", str(version)),
             ("version", str(version)),
@@ -94,7 +102,7 @@ impl ReporterV2 for SarifReporter {
             ("runs", Json::Arr(vec![Json::Obj(run)])),
         ]);
         let mut text = String::new();
-        write_json(&mut text, &schema, 0);
+        write_json(&mut text, &schema, 0, ktlint_1_8);
         // `SarifSerializer.toJson` ends with a newline of its own (the jar prints a blank last line).
         text.push('\n');
         self.out.println(&text);
@@ -102,12 +110,18 @@ impl ReporterV2 for SarifReporter {
 }
 
 /// kotlinx.serialization's pretty printer (`prettyPrintIndent = "  "`); lines end with `\n` on every OS.
-fn write_json(out: &mut String, value: &Json, depth: usize) {
+/// `empty_array_on_two_lines`: the version in ktlint 1.8 prints `[]` as `[`, newline, indent, `]`.
+fn write_json(out: &mut String, value: &Json, depth: usize, empty_array_on_two_lines: bool) {
     let indent = |out: &mut String, depth: usize| (0..depth).for_each(|_| out.push_str("  "));
     match value {
         Json::Str(s) => write_quoted(out, s),
         Json::Num(n) => out.push_str(&n.to_string()),
         Json::Obj(fields) if fields.is_empty() => out.push_str("{}"),
+        Json::Arr(items) if items.is_empty() && empty_array_on_two_lines => {
+            out.push_str("[\n");
+            indent(out, depth);
+            out.push(']');
+        }
         Json::Arr(items) if items.is_empty() => out.push_str("[]"),
         Json::Obj(fields) => {
             out.push('{');
@@ -116,7 +130,7 @@ fn write_json(out: &mut String, value: &Json, depth: usize) {
                 indent(out, depth + 1);
                 write_quoted(out, key);
                 out.push_str(": ");
-                write_json(out, field, depth + 1);
+                write_json(out, field, depth + 1, empty_array_on_two_lines);
             }
             out.push('\n');
             indent(out, depth);
@@ -127,7 +141,7 @@ fn write_json(out: &mut String, value: &Json, depth: usize) {
             for (i, item) in items.iter().enumerate() {
                 out.push_str(if i == 0 { "\n" } else { ",\n" });
                 indent(out, depth + 1);
-                write_json(out, item, depth + 1);
+                write_json(out, item, depth + 1, empty_array_on_two_lines);
             }
             out.push('\n');
             indent(out, depth);
