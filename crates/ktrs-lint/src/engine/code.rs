@@ -143,6 +143,8 @@ pub enum KtLintException {
     Rule(KtLintRuleException),
     /// An `.editorconfig` file could not be read or has a syntax error.
     EditorConfig(ktrs_editorconfig::ParseException),
+    /// ktlint 1.8: an `IllegalStateException` from its `RunAfterRuleFilter` (a required rule is disabled).
+    IllegalState(String),
 }
 
 impl From<KtLintParseException> for KtLintException {
@@ -169,6 +171,7 @@ impl std::fmt::Display for KtLintException {
             KtLintException::Parse(e) => write!(f, "{}:{} {}", e.line, e.col, e.message),
             KtLintException::Rule(e) => f.write_str(&e.message),
             KtLintException::EditorConfig(e) => write!(f, "{e}"),
+            KtLintException::IllegalState(message) => f.write_str(message),
         }
     }
 }

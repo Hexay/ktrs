@@ -135,6 +135,34 @@ impl TraversalState {
     }
 }
 
+/// ktlint 1.8 `Rule.VisitorModifier` (removed in 2.0, #3252): only the 1.8 rule order reads it
+/// (`engine/rule_provider_sorter_1_8.rs`).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum VisitorModifier {
+    RunAfterRule(RuleId, RunAfterRuleMode),
+    RunAsLateAsPossible,
+}
+
+impl VisitorModifier {
+    /// `RunAfterRule(ruleId, REGARDLESS_WHETHER_RUN_AFTER_RULE_IS_LOADED_OR_DISABLED)`.
+    pub const fn run_after(rule_id: &'static str) -> VisitorModifier {
+        VisitorModifier::RunAfterRule(RuleId(rule_id), RunAfterRuleMode::RegardlessWhetherRunAfterRuleIsLoadedOrDisabled)
+    }
+
+    /// `RunAfterRule(ruleId, ONLY_WHEN_RUN_AFTER_RULE_IS_LOADED_AND_ENABLED)`.
+    pub const fn run_after_loaded_and_enabled(rule_id: &'static str) -> VisitorModifier {
+        VisitorModifier::RunAfterRule(RuleId(rule_id), RunAfterRuleMode::OnlyWhenRunAfterRuleIsLoadedAndEnabled)
+    }
+}
+
+/// `Rule.VisitorModifier.RunAfterRule.Mode`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum RunAfterRuleMode {
+    /// The rule is not run at all (1.8 throws) when the other rule is not loaded or disabled.
+    OnlyWhenRunAfterRuleIsLoadedAndEnabled,
+    RegardlessWhetherRunAfterRuleIsLoadedOrDisabled,
+}
+
 /// `RuleV2`. A new instance runs every pass (`RuleV2Provider.createNewRuleInstance`), so it may keep state.
 /// The Kotlin marker interfaces are the `is_*` methods.
 pub trait RuleV2 {
@@ -163,6 +191,11 @@ pub trait RuleV2 {
     /// `RuleV2.OnlyWhenEnabledInEditorconfig`.
     fn is_only_when_enabled_in_editorconfig(&self) -> bool {
         false
+    }
+
+    /// The rule's `visitorModifiers` in ktlint 1.8.0.
+    fn visitor_modifiers(&self) -> &'static [VisitorModifier] {
+        &[]
     }
 
     /// `IgnoreKtlintSuppressions`: not subject to `@Suppress` or formatter tags.

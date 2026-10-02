@@ -46,6 +46,9 @@ pub(crate) fn create_rule_execution_context(
         warn_if_property_is_obsolete(engine, &editor_config, "ktlint_disabled_rules", "0.49");
     }
     let setup = engine.rule_setup(editor_config);
+    if let Some(message) = &setup.rule_filter_error {
+        return Err(KtLintException::IllegalState(message.clone()));
+    }
     Ok(RuleExecutionContext {
         // 1.8 names the file, 2.0 gives its path.
         file_path_or_stdin: if ktlint_version.is_1_8() { code.file_name_or_stdin() } else { code.file_path_or_stdin() },

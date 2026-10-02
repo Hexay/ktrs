@@ -13,7 +13,7 @@ use crate::ast_node_extension::AstNodeExtension;
 use crate::editorconfig::{INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, PropertyRef};
 use crate::engine::kotlin_text::is_kotlin_blank;
 use crate::indent_config::IndentConfig;
-use crate::rule::{About, EditorConfig, Emit, IndentStyle, RuleId, RuleV2, TokenSet};
+use crate::rule::{About, EditorConfig, Emit, IndentStyle, RuleId, RuleV2, TokenSet, VisitorModifier};
 use crate::rules::STANDARD_RULE_ABOUT;
 
 use indent::{contains_literal_string_template_entry_with_newline, indent_length, is_followed_by_trim_indent, split_indent_at};
@@ -63,6 +63,11 @@ impl Default for StringTemplateIndentRule {
 impl RuleV2 for StringTemplateIndentRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:string-template-indent")
+    }
+
+    fn visitor_modifiers(&self) -> &'static [VisitorModifier] {
+        const MODIFIERS: &[VisitorModifier] = &[VisitorModifier::run_after_loaded_and_enabled("standard:indent")];
+        MODIFIERS
     }
 
     fn visited_types(&self) -> Option<TokenSet> {

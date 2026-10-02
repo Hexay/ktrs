@@ -1,10 +1,10 @@
 //! Port of ktlint-ruleset-standard `WhenEntryBracing.kt`.
 
 use ktrs_ast::{Ast, NodeId};
-use ktrs_syntax::SyntaxKind::{ARROW, BLOCK, WHEN, WHEN_ENTRY};
+use ktrs_syntax::SyntaxKind::{ARROW, BLOCK, WHEN, WHEN_ENTRY, WHITE_SPACE};
 
 use crate::ast_node_extension::AstNodeExtension;
-use crate::editorconfig::{INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, PropertyRef};
+use crate::editorconfig::{INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, KtlintVersion, PropertyRef};
 use crate::engine::kotlin_text::trim_margin;
 use crate::indent_config::IndentConfig;
 use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TokenSet};
@@ -15,11 +15,12 @@ const VISITED_TYPES: TokenSet = TokenSet::create(&[WHEN]);
 /// If any when condition is using curly braces, then all other when conditions should use braces as well.
 pub struct WhenEntryBracing {
     indent_config: IndentConfig,
+    ktlint_version: KtlintVersion,
 }
 
 impl WhenEntryBracing {
     pub fn new() -> WhenEntryBracing {
-        WhenEntryBracing { indent_config: IndentConfig::default_indent_config() }
+        WhenEntryBracing { indent_config: IndentConfig::default_indent_config(), ktlint_version: KtlintVersion::default() }
     }
 }
 
@@ -52,6 +53,7 @@ impl RuleV2 for WhenEntryBracing {
 
     fn before_first_node(&mut self, editor_config: &EditorConfig) {
         self.indent_config = IndentConfig::new(editor_config.get(&INDENT_STYLE_PROPERTY), editor_config.get(&INDENT_SIZE_PROPERTY));
+        self.ktlint_version = KtlintVersion::of(editor_config);
     }
 
     fn before_visit_child_nodes(&mut self, ast: &mut Ast, node: NodeId, emit: &mut Emit<'_>) {
@@ -84,7 +86,13 @@ impl WhenEntryBracing {
                      or has a multiline body",
                     true,
                 )
-                .if_autocorrect_allowed(|| self.surround_with_braces(ast, arrow));
+                .if_autocorrect_allowed(|| {
+                    if self.ktlint_version.is_1_8() {
+                        self.surround_with_braces_1_8(ast, arrow);
+                    } else {
+                        self.surround_with_braces(ast, arrow);
+                    }
+                });
             }
             child = ast.next_sibling(when_entry);
         }
@@ -123,6 +131,32 @@ impl WhenEntryBracing {
         ast.remove_range(when_entry, when_entry, Some(stop_leaf));
         if let Some(parent) = ast.parent(sibling_before_when_entry) {
             ast.add_child(parent, when_entry_node.expect("NullPointerException: whenEntryNode!!"), Some(stop_leaf));
+        }
+    }
+
+    /// 1.8's `surroundWithBraces`, before #3261: the body after the arrow becomes a block in place, so every
+    /// condition stays (2.0 rebuilds the entry from the last condition only).
+    fn surround_with_braces_1_8(&self, ast: &mut Ast, arrow: NodeId) {
+        assert!(ast.element_type(arrow) == ARROW, "IllegalArgumentException: Failed requirement.");
+        let parent_indent = self.indent_config.parent_indent_of(ast, arrow);
+        let when_entry_indent = parent_indent.strip_prefix('\n').unwrap_or(&parent_indent).to_owned();
+        let body: String =
+            ast.siblings(arrow, true).skip_while(|&it| ast.is_white_space(it)).map(|it| ast.text(it)).collect();
+        let text = format!(
+            "{when_entry_indent}true -> {{{}{body}\n{when_entry_indent}}}",
+            self.indent_config.child_indent_of(ast, arrow),
+        );
+        let block_expression =
+            create_when_entry_node(ast, &text).and_then(|when_entry| ast.find_child_by_type(when_entry, BLOCK));
+        if let Some(when_entry) = ast.parent(arrow) {
+            let next_sibling = ast.next_sibling(arrow).expect("NullPointerException: nextSibling!!");
+            ast.remove_range(when_entry, next_sibling, None);
+        }
+        let prev_sibling = ast.prev_sibling(arrow).expect("NullPointerException: prevSibling!!");
+        if let Some(when_entry) = ast.parent(prev_sibling) {
+            let white_space = ast.new_leaf(WHITE_SPACE, " ");
+            ast.add_child(when_entry, white_space, None);
+            ast.add_child(when_entry, block_expression.expect("NullPointerException: blockExpression!!"), None);
         }
     }
 }

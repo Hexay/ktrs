@@ -7,7 +7,7 @@ use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::AstNodeExtension;
 use crate::editorconfig::{INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, PropertyRef};
 use crate::indent_config::IndentConfig;
-use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TokenSet};
+use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TokenSet, VisitorModifier};
 use crate::rules::STANDARD_RULE_ABOUT;
 
 const VISITED_TYPES: TokenSet = TokenSet::create(&[MODIFIER_LIST]);
@@ -32,6 +32,14 @@ impl Default for ModifierListSpacingRule {
 impl RuleV2 for ModifierListSpacingRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:modifier-list-spacing")
+    }
+
+    fn visitor_modifiers(&self) -> &'static [VisitorModifier] {
+        const MODIFIERS: &[VisitorModifier] = &[
+            VisitorModifier::run_after("standard:annotation"),
+            VisitorModifier::run_after("standard:modifier-order"),
+        ];
+        MODIFIERS
     }
 
     fn visited_types(&self) -> Option<TokenSet> {

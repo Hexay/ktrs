@@ -25,7 +25,7 @@ use crate::editorconfig::{
     PropertyRef,
 };
 use crate::indent_config::IndentConfig;
-use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TraversalState};
+use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TraversalState, VisitorModifier};
 use crate::rules::STANDARD_RULE_ABOUT;
 use crate::rules::max_line_length_rule::max_line_length;
 
@@ -100,6 +100,11 @@ impl Default for ChainMethodContinuationRule {
 impl RuleV2 for ChainMethodContinuationRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:chain-method-continuation")
+    }
+
+    fn visitor_modifiers(&self) -> &'static [VisitorModifier] {
+        const MODIFIERS: &[VisitorModifier] = &[VisitorModifier::run_after("standard:argument-list-wrapping")];
+        MODIFIERS
     }
 
     fn visited_types(&self) -> Option<TokenSet> {

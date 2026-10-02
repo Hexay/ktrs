@@ -35,6 +35,7 @@ pub use engine::code::{
 pub use engine::editor_config_defaults::{EditorConfigDefaults, EditorConfigOverride};
 pub use engine::ktlint_rule_engine::KtLintRuleEngine;
 pub use rule::{
-    About, AutocorrectDecision, EditorConfig, Emit, RuleId, RuleSetId, RuleV2, TraversalState,
+    About, AutocorrectDecision, EditorConfig, Emit, RuleId, RuleSetId, RuleV2, RunAfterRuleMode, TraversalState,
+    VisitorModifier,
 };
 pub use rule_provider::RuleV2Provider;
