@@ -1,0 +1,6 @@
+ktlint=1.8
+rules=compose:parameter-naming
+ec.compose_treat_as_composable_lambda=Potato
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=ParameterNamingCheckTest.passes when param lambdas are in present tense

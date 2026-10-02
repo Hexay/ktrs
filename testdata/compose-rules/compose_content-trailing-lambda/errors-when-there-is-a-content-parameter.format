@@ -1,0 +1,1 @@
+2:7	compose:content-trailing-lambda	manual	A @Composable `content` parameter should be moved to be the trailing lambda in a composable function.\nSee https://mrmans0n.github.io/compose-rules/rules/#slots-for-main-content-should-be-the-trailing-lambda for more information.

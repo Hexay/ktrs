@@ -1,0 +1,6 @@
+ktlint=1.8
+rules=compose:naming-check
+ec.compose_allowed_composable_function_names=.*Presenter
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=NamingCheckTest.passes when a composable that returns values is uppercase but allowed
