@@ -15,11 +15,11 @@ use ktrs_syntax::SyntaxKind::{
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::AstNodeExtension;
 use crate::editorconfig::{
-    CODE_STYLE_PROPERTY, CodeStyleValue, EditorConfigProperty, INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, PropertyRef,
+    CODE_STYLE_PROPERTY, CodeStyleValue, EditorConfigProperty, INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, KtlintVersion, PropertyRef,
     comma_separated_list_value_parser,
 };
 use crate::indent_config::IndentConfig;
-use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TokenSet};
+use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TokenSet, VisitorModifier};
 use crate::rules::STANDARD_RULE_ABOUT;
 
 const VISITED_TYPES: TokenSet = TokenSet::create(&[
@@ -49,6 +49,7 @@ pub struct AnnotationRule {
     code_style: CodeStyleValue,
     indent_config: IndentConfig,
     annotations_with_parameters_no_to_be_wrapped: Vec<String>,
+    ktlint_version: KtlintVersion,
 }
 
 impl AnnotationRule {
@@ -57,6 +58,7 @@ impl AnnotationRule {
             code_style: CODE_STYLE_PROPERTY.default_value,
             indent_config: IndentConfig::default_indent_config(),
             annotations_with_parameters_no_to_be_wrapped: ANNOTATIONS_WITH_PARAMETERS_NOT_TO_BE_WRAPPED_PROPERTY.default_value.clone(),
+            ktlint_version: KtlintVersion::default(),
         }
     }
 
@@ -75,6 +77,11 @@ impl Default for AnnotationRule {
 impl RuleV2 for AnnotationRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:annotation")
+    }
+
+    fn visitor_modifiers(&self) -> &'static [VisitorModifier] {
+        const MODIFIERS: &[VisitorModifier] = &[VisitorModifier::run_after("standard:enum-wrapping")];
+        MODIFIERS
     }
 
     fn visited_types(&self) -> Option<TokenSet> {
@@ -97,6 +104,7 @@ impl RuleV2 for AnnotationRule {
         self.code_style = editor_config.get(&CODE_STYLE_PROPERTY);
         self.indent_config = IndentConfig::new(editor_config.get(&INDENT_STYLE_PROPERTY), editor_config.get(&INDENT_SIZE_PROPERTY));
         self.annotations_with_parameters_no_to_be_wrapped = editor_config.get(&ANNOTATIONS_WITH_PARAMETERS_NOT_TO_BE_WRAPPED_PROPERTY);
+        self.ktlint_version = KtlintVersion::of(editor_config);
     }
 
     fn before_visit_child_nodes(&mut self, ast: &mut Ast, node: NodeId, emit: &mut Emit<'_>) {
@@ -192,8 +200,9 @@ impl AnnotationRule {
         }
     }
 
+    /// 1.8 also wraps an annotated expression before a lambda (#3268).
     fn should_wrap_annotations(&self, ast: &Ast, n: NodeId) -> bool {
-        if is_annotated_expression_before_lambda_expression(ast, n) {
+        if !self.ktlint_version.is_1_8() && is_annotated_expression_before_lambda_expression(ast, n) {
             false
         } else {
             self.has_annotation_with_parameter(ast, n)

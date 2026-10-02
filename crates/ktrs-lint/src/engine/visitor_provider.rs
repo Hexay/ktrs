@@ -1,5 +1,7 @@
 //! Ports of ktlint-rule-engine `internal/VisitorProvider.kt` and `internal/RuleProviderSorter.kt`.
 
+use crate::editorconfig::KtlintVersion;
+use crate::engine::rule_provider_sorter_1_8::get_sorted_rule_providers_1_8;
 use crate::rule::{RuleSetId, RuleV2};
 use crate::rule_provider::RuleV2Provider;
 
@@ -22,8 +24,17 @@ pub struct VisitorProvider {
 
 impl VisitorProvider {
     pub fn new(rule_providers: &[RuleV2Provider]) -> VisitorProvider {
+        VisitorProvider::for_version(rule_providers, KtlintVersion::V2_0)
+    }
+
+    /// With that release's sorter (1.8 honours the rules' `VisitorModifier`s).
+    pub fn for_version(rule_providers: &[RuleV2Provider], ktlint_version: KtlintVersion) -> VisitorProvider {
         VisitorProvider {
-            rule_providers_sorted: get_sorted_rule_providers(rule_providers),
+            rule_providers_sorted: if ktlint_version.is_1_8() {
+                get_sorted_rule_providers_1_8(rule_providers)
+            } else {
+                get_sorted_rule_providers(rule_providers)
+            },
         }
     }
 
@@ -32,5 +43,9 @@ impl VisitorProvider {
             .iter()
             .map(RuleV2Provider::create_new_rule_instance)
             .collect()
+    }
+
+    pub fn rule_ids(&self) -> impl Iterator<Item = &'static str> + '_ {
+        self.rule_providers_sorted.iter().map(|p| p.rule_id().value())
     }
 }

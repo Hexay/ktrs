@@ -12,9 +12,9 @@ use ktrs_syntax::SyntaxKind::{
 
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::{AstNodeExtension, AstNodeLines, AstNodeQueries};
-use crate::editorconfig::{EditorConfigProperty, INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, MAX_LINE_LENGTH_PROPERTY, PropertyRef};
+use crate::editorconfig::{EditorConfigProperty, INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, KtlintVersion, MAX_LINE_LENGTH_PROPERTY, PropertyRef};
 use crate::indent_config::IndentConfig;
-use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TokenSet};
+use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TokenSet, VisitorModifier};
 use crate::rules::STANDARD_RULE_ABOUT;
 use crate::rules::max_line_length_rule::max_line_length;
 use crate::token_sets::CONTROL_FLOW_KEYWORDS;
@@ -29,6 +29,7 @@ pub struct ArgumentListWrappingRule {
     editor_config_indent: IndentConfig,
     max_line_length: i32,
     ignore_when_parameter_count_greater_or_equal_than_property: i32,
+    ktlint_version: KtlintVersion,
 }
 
 impl ArgumentListWrappingRule {
@@ -37,6 +38,7 @@ impl ArgumentListWrappingRule {
             editor_config_indent: IndentConfig::default_indent_config(),
             max_line_length: MAX_LINE_LENGTH_PROPERTY.default_value,
             ignore_when_parameter_count_greater_or_equal_than_property: UNSET_IGNORE_WHEN_PARAMETER_COUNT_GREATER_OR_EQUAL_THAN_PROPERTY,
+            ktlint_version: KtlintVersion::default(),
         }
     }
 }
@@ -50,6 +52,16 @@ impl Default for ArgumentListWrappingRule {
 impl RuleV2 for ArgumentListWrappingRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:argument-list-wrapping")
+    }
+
+    fn visitor_modifiers(&self) -> &'static [VisitorModifier] {
+        const MODIFIERS: &[VisitorModifier] = &[
+            VisitorModifier::run_after("standard:value-argument-comment"),
+            VisitorModifier::run_after("standard:wrapping"),
+            VisitorModifier::run_after("standard:class-signature"),
+            VisitorModifier::run_after("standard:function-signature"),
+        ];
+        MODIFIERS
     }
 
     fn visited_types(&self) -> Option<TokenSet> {
@@ -75,6 +87,7 @@ impl RuleV2 for ArgumentListWrappingRule {
         self.max_line_length = max_line_length(editor_config);
         self.ignore_when_parameter_count_greater_or_equal_than_property =
             editor_config.get(&IGNORE_WHEN_PARAMETER_COUNT_GREATER_OR_EQUAL_THAN_PROPERTY);
+        self.ktlint_version = KtlintVersion::of(editor_config);
     }
 
     fn before_visit_child_nodes(&mut self, ast: &mut Ast, node: NodeId, emit: &mut Emit<'_>) {
@@ -111,7 +124,12 @@ impl ArgumentListWrappingRule {
         }
     }
 
+    /// 1.8 measures the whole line, not just up to the list's `)` (#3252).
     fn exceeds_max_line_length(&self, ast: &Ast, node: NodeId) -> bool {
+        if self.ktlint_version.is_1_8() {
+            return ast.line_length(ast.drop_trailing_eol_comment(ast.leaves_on_line(node))) as i64 > self.max_line_length as i64
+                && !ast.text_contains(node, '\n');
+        }
         if ast.text_contains(node, '\n') {
             return false;
         }

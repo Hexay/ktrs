@@ -154,6 +154,10 @@ path instead of the file name ([#3355](https://github.com/ktlint/ktlint/pull/335
 
 ## What a 1.x mode would take
 
+Phase 1 (lint rows + CLI) is implemented: research/26-ktlint-18-mode.md (it also corrects two CLI rows above: 1.8
+stdin parse failures exit 0, and `--disabled_rules`/`--experimental` are "no such option" in 1.8.0 too).
+
+
 Lint (rows): **small** — about 1–2 days plus a 1.8 oracle.
 - One mode flag (e.g. `ktlint_compat = 1` / `--ktlint-version 1.8`) read by: `has_no_max_line_length_suppression` (R2,
   one site), three `exceeds_max_line_length` bodies (R1), blank-line-between-when-conditions ×2 (R4),

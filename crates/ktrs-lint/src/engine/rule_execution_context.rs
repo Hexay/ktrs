@@ -1,6 +1,7 @@
 //! Port of ktlint-rule-engine `internal/RuleExecutionContext.kt`: the parsed file, its `.editorconfig`
 //! and enabled rules, and the 2.0 traversal (every rule at a node, then the children, then every rule's
-//! `after` at that node), preceded by a traversal of the internal suppression rule alone.
+//! `after` at that node), preceded by a traversal of the internal suppression rule alone; in 1.8 mode
+//! 1.8's rule after rule (`rule_major.rs`).
 
 use std::ops::Deref;
 use std::rc::Rc;
@@ -8,16 +9,14 @@ use std::sync::{Arc, LazyLock};
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use ktrs_ast::{Ast, NodeId};
-use ktrs_parser::{FileKind, parse_file};
-use ktrs_syntax::SyntaxKind::{ERROR_ELEMENT, FILE};
+use ktrs_syntax::SyntaxKind::FILE;
 
 use crate::editorconfig::{
     CODE_STYLE_PROPERTY, EditorConfig, EditorConfigProperty, PropertyRef, RuleExecution,
     create_rule_execution_editor_config_property,
 };
-use crate::engine::code::{Code, KtLintException, KtLintParseException, KtLintRuleException};
+use crate::engine::code::KtLintRuleException;
 use crate::engine::internal_rules::KTLINT_SUPPRESSION_RULE_ID;
-use crate::engine::ktlint_rule_engine::{KtLintRuleEngine, UTF8_BOM};
 use crate::engine::position_in_text_locator::PositionInTextLocator;
 use crate::engine::rule_dispatch::RuleDispatch;
 use crate::engine::rule_panic::catch_rule_panic;
@@ -25,6 +24,11 @@ use crate::engine::rule_setup::RuleSetup;
 use crate::engine::suppression_locator::SuppressionLocator;
 use crate::rule::{About, AutocorrectDecision, RuleId, RuleV2, TokenSet};
 use crate::rule_provider::RuleV2Provider;
+
+mod create;
+mod rule_major;
+
+pub(crate) use create::create_rule_execution_context;
 
 static VERIFY_VISITED_TYPES: AtomicBool = AtomicBool::new(false);
 
@@ -126,6 +130,12 @@ impl RuleExecutionContext {
         lint_mode: bool,
         emit_and_approve: &mut EmitAndApprove<'_>,
     ) -> Result<(), KtLintRuleException> {
+        if self.setup.ktlint_version.is_1_8() {
+            for rule in rules {
+                self.execute_rule_1_8(rule, lint_mode, emit_and_approve)?;
+            }
+            return Ok(());
+        }
         let (suppression, others): (Vec<_>, Vec<_>) = rules
             .into_iter()
             .partition(|r| r.rule_id() == KTLINT_SUPPRESSION_RULE_ID);
@@ -147,14 +157,18 @@ impl RuleExecutionContext {
             lint_mode,
         };
         let rule_editor_config = |rule: &dyn RuleV2| setup.rule_editor_config(rule);
-        let file_path_or_stdin = &self.file_path_or_stdin;
-        traverse(parts, rules, &rule_editor_config, emit_and_approve).map_err(|e| KtLintRuleException {
+        traverse(parts, rules, &rule_editor_config, emit_and_approve).map_err(|e| self.to_ktlint_rule_exception(e))
+    }
+
+    fn to_ktlint_rule_exception(&self, e: RuleExecutionException) -> KtLintRuleException {
+        KtLintRuleException {
             line: e.line,
             col: e.col,
             rule_id: e.rule_id.value().to_owned(),
             message: format!(
-                "Rule '{}' throws exception in file '{file_path_or_stdin}' at position ({}:{})\n   Rule maintainer: {}\n   Issue tracker  : {}\n   Repository     : {}",
+                "Rule '{}' throws exception in file '{}' at position ({}:{})\n   Rule maintainer: {}\n   Issue tracker  : {}\n   Repository     : {}",
                 e.rule_id.value(),
+                self.file_path_or_stdin,
                 e.line,
                 e.col,
                 e.about.maintainer,
@@ -162,7 +176,7 @@ impl RuleExecutionContext {
                 e.about.repository_url
             ),
             cause: e.cause,
-        })
+        }
     }
 }
 
@@ -419,61 +433,4 @@ impl Traversal<'_, '_> {
 /// The 2.0 bail-out: a node without parent that is not the file was replaced.
 fn is_replaced(ast: &Ast, node: NodeId) -> bool {
     ast.tree_parent(node).is_none() && ast.element_type(node) != FILE
-}
-
-pub(crate) fn create_rule_execution_context(
-    engine: &KtLintRuleEngine,
-    code: &Code,
-) -> Result<RuleExecutionContext, KtLintException> {
-    let normalized_text = normalize_text(&code.content);
-    let position_in_text_locator = PositionInTextLocator::new(&normalized_text);
-    let psi_file_name = code.psi_file_name();
-    let parse = parse_file(&normalized_text, FileKind::from_file_name(&psi_file_name));
-    let mut ast = Ast::from_parse(&parse);
-    ast.set_psi_file_name(&psi_file_name);
-    if let Some(error_element) = find_error_element(&ast, ast.root()) {
-        let (line, col) = position_in_text_locator
-            .locate(ast.utf16_offset(error_element, ast.start_offset(error_element)));
-        return Err(KtLintParseException {
-            line,
-            col,
-            message: ast.error_description(error_element).to_owned(),
-        }
-        .into());
-    }
-    let editor_config = engine
-        .editor_config_loader()
-        .load(code.file_path.as_deref())?;
-    let setup = engine.rule_setup(editor_config);
-    Ok(RuleExecutionContext {
-        file_path_or_stdin: code.file_path_or_stdin(),
-        ast,
-        suppression_locator: SuppressionLocator::new(&setup.editor_config),
-        setup,
-        position_in_text_locator: Rc::new(position_in_text_locator),
-    })
-}
-
-fn normalize_text(text: &str) -> String {
-    let text = text.replace("\r\n", "\n").replace('\r', "\n");
-    match text.strip_prefix(UTF8_BOM) {
-        Some(rest) => rest.to_owned(),
-        None => text,
-    }
-}
-
-/// The first `PsiErrorElement` depth-first; error elements are composites, so the PSI walk over
-/// `children` and a node walk agree.
-fn find_error_element(ast: &Ast, node: NodeId) -> Option<NodeId> {
-    if ast.element_type(node) == ERROR_ELEMENT && !ast.is_leaf_element(node) {
-        return Some(node);
-    }
-    let mut child = ast.first_child_node(node);
-    while let Some(c) = child {
-        if let Some(error_element) = find_error_element(ast, c) {
-            return Some(error_element);
-        }
-        child = ast.tree_next(c);
-    }
-    None
 }

@@ -5,20 +5,24 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
-use crate::editorconfig::EditorConfig;
+use crate::editorconfig::{EditorConfig, KtlintVersion};
 use crate::engine::rule_execution_context::rule_editor_config;
 use crate::engine::rule_filter::{InternalRuleProvidersFilter, RuleExecutionRuleFilter, apply_rule_filters};
+use crate::engine::rule_provider_sorter_1_8::run_after_rule_filter;
 use crate::engine::visitor_provider::VisitorProvider;
 use crate::rule::{RuleId, RuleV2};
-use crate::rule_provider::RuleV2Provider;
+use crate::rule_provider::{RuleV2Provider, rule_providers_in};
 
 /// Distinct configs kept; a run usually has one per `.editorconfig` directory.
 const CAPACITY: usize = 16;
 
 pub(crate) struct RuleSetup {
     pub(crate) editor_config: EditorConfig,
+    pub(crate) ktlint_version: KtlintVersion,
     pub(crate) rule_providers: Vec<RuleV2Provider>,
     pub(crate) visitor_provider: VisitorProvider,
+    /// 1.8's `RunAfterRuleFilter` failed: the `IllegalStateException` message every file then throws.
+    pub(crate) rule_filter_error: Option<String>,
     rule_editor_configs: Mutex<HashMap<RuleId, Arc<EditorConfig>>>,
 }
 
@@ -45,17 +49,33 @@ impl RuleSetupCache {
         if let Some(hit) = self.entries.lock().unwrap().iter().find(|s| s.editor_config == editor_config) {
             return hit.clone();
         }
-        let rule_providers = apply_rule_filters(
+        let ktlint_version = KtlintVersion::of(&editor_config);
+        // The version's rule set stands in for the engine's providers, so suppressions of rules it lacks
+        // are "unknown or not loaded" as in that release.
+        let engine_rule_providers = &rule_providers_in(engine_rule_providers, ktlint_version);
+        let mut rule_providers = apply_rule_filters(
             engine_rule_providers,
             &[
                 &InternalRuleProvidersFilter::new(engine_rule_providers),
                 &RuleExecutionRuleFilter::new(&editor_config),
             ],
         );
+        let mut rule_filter_error = None;
+        if ktlint_version.is_1_8() {
+            match run_after_rule_filter(rule_providers) {
+                Ok(filtered) => rule_providers = filtered,
+                Err(message) => {
+                    rule_filter_error = Some(message);
+                    rule_providers = Vec::new();
+                }
+            }
+        }
         let setup = Arc::new(RuleSetup {
-            visitor_provider: VisitorProvider::new(&rule_providers),
+            visitor_provider: VisitorProvider::for_version(&rule_providers, ktlint_version),
             editor_config,
+            ktlint_version,
             rule_providers,
+            rule_filter_error,
             rule_editor_configs: Mutex::default(),
         });
         let mut entries = self.entries.lock().unwrap();

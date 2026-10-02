@@ -8,7 +8,7 @@ use ktrs_syntax::SyntaxKind::{
 
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::{AstNodeExtension, AstNodeLines, AstNodeQueries};
-use crate::editorconfig::{INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, MAX_LINE_LENGTH_PROPERTY, PropertyRef};
+use crate::editorconfig::{INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, KtlintVersion, MAX_LINE_LENGTH_PROPERTY, PropertyRef};
 use crate::indent_config::IndentConfig;
 use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
@@ -17,16 +17,25 @@ use crate::rules::max_line_length_rule::max_line_length;
 /// Wrapping of context receiver list to a separate line. Only affects a context receiver list without a context receiver
 /// (those are wrapped by `context-receiver-wrapping`).
 pub struct ContextParameterListWrappingRule {
+    rule_id: RuleId,
     indent_config: IndentConfig,
     max_line_length: i32,
+    ktlint_version: KtlintVersion,
 }
 
 impl ContextParameterListWrappingRule {
     pub fn new() -> ContextParameterListWrappingRule {
         ContextParameterListWrappingRule {
+            rule_id: RuleId("standard:context-parameter-list-wrapping"),
             indent_config: IndentConfig::default_indent_config(),
             max_line_length: MAX_LINE_LENGTH_PROPERTY.default_value,
+            ktlint_version: KtlintVersion::default(),
         }
+    }
+
+    /// 1.8's `ContextReceiverListWrappingRule`: the same rule under its id before the rename (#3367).
+    pub fn context_receiver_list_wrapping() -> ContextParameterListWrappingRule {
+        ContextParameterListWrappingRule { rule_id: RuleId("standard:context-receiver-list-wrapping"), ..Self::new() }
     }
 }
 
@@ -40,7 +49,7 @@ const VISITED_TYPES: TokenSet = TokenSet::create(&[CONTEXT_PARAMETER_LIST, TYPE_
 
 impl RuleV2 for ContextParameterListWrappingRule {
     fn rule_id(&self) -> RuleId {
-        RuleId("standard:context-parameter-list-wrapping")
+        self.rule_id
     }
 
     fn visited_types(&self) -> Option<TokenSet> {
@@ -62,6 +71,7 @@ impl RuleV2 for ContextParameterListWrappingRule {
     fn before_first_node(&mut self, editor_config: &EditorConfig) {
         self.indent_config = IndentConfig::new(editor_config.get(&INDENT_STYLE_PROPERTY), editor_config.get(&INDENT_SIZE_PROPERTY));
         self.max_line_length = max_line_length(editor_config);
+        self.ktlint_version = KtlintVersion::of(editor_config);
     }
 
     fn before_visit_child_nodes(&mut self, ast: &mut Ast, node: NodeId, emit: &mut Emit<'_>) {
@@ -97,7 +107,7 @@ impl ContextParameterListWrappingRule {
 
         // Check line length assuming that the context receiver is indented correctly. Wrapping rule must however run before indenting.
         if !ast.text_contains(node, '\n')
-            && ast.has_no_max_line_length_suppression(node)
+            && ast.has_no_max_line_length_suppression_in(node, self.ktlint_version)
             && (ast.indent_without_newline_prefix(node).encode_utf16().count() + ast.text_length_utf16(node)) as i64
                 > self.max_line_length as i64
         {
@@ -126,7 +136,7 @@ impl ContextParameterListWrappingRule {
         // Check line length assuming that the context receiver is indented correctly. Wrapping rule must however run
         // before indenting.
         if !context_receiver_text.contains('\n')
-            && ast.has_no_max_line_length_suppression(node)
+            && ast.has_no_max_line_length_suppression_in(node, self.ktlint_version)
             && (ast.indent_without_newline_prefix(node).encode_utf16().count() + context_receiver_text.encode_utf16().count()) as i64
                 > self.max_line_length as i64
         {

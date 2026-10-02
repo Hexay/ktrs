@@ -1,7 +1,10 @@
 //! ktlint's logging: kotlin-logging over logback with its default `TTLLLayout` console appender, which
 //! writes `HH:mm:ss.SSS [thread] LEVEL logger -- message` to *stdout* (also with `--stdin`).
 
+use ktrs_lint::editorconfig::KtlintVersion;
+
 use crate::ktlint::console::{Console, LINE_SEPARATOR};
+use crate::ktlint::version;
 
 pub const KTLINT_COMMAND_LINE: &str = "io.github.ktlint.core.cli.internal.KtlintCommandLine";
 pub const FILE_UTILS: &str = "io.github.ktlint.core.cli.internal.FileUtils";
@@ -53,20 +56,30 @@ impl Level {
 pub struct Logger {
     console: Console,
     min_level: Level,
+    ktlint_version: KtlintVersion,
 }
 
 impl Logger {
-    pub fn new(console: Console, min_level: Level) -> Logger {
-        Logger { console, min_level }
+    pub fn new(console: Console, min_level: Level, ktlint_version: KtlintVersion) -> Logger {
+        Logger { console, min_level, ktlint_version }
+    }
+
+    pub fn ktlint_version(&self) -> KtlintVersion {
+        self.ktlint_version
     }
 
     pub fn is_enabled(&self, level: Level) -> bool {
         level != Level::Off && level >= self.min_level
     }
 
-    /// Logs `message()` from `logger` on the main thread, if `level` is enabled.
+    /// Logs `message()` from `logger` (a 2.0 class name, renamed to the run's package) on the main
+    /// thread, if `level` is enabled.
     pub fn log(&self, level: Level, logger: &str, message: impl FnOnce() -> String) {
         if self.is_enabled(level) {
+            let logger = match logger.strip_prefix(version::package(KtlintVersion::V2_0)) {
+                Some(class) => format!("{}{class}", version::package(self.ktlint_version)),
+                None => logger.to_owned(),
+            };
             self.console
                 .out(&format!("{} [main] {} {logger} -- {}{LINE_SEPARATOR}", local_time(), level.name(), message()));
         }

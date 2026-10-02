@@ -18,7 +18,7 @@ use crate::engine::ast_helpers::{
 use crate::engine::ktlint_suppression_annotation::{
     SuppressAnnotationType, create_suppress_annotation, find_suppression_annotations, merge_into,
 };
-use crate::engine::suppression_locator::remove_surrounding;
+use crate::engine::suppression_ids::remove_surrounding;
 
 const KTLINT_PREFIX: &str = "ktlint";
 const RULE_ID_SEPARATOR: &str = ":";

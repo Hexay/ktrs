@@ -10,6 +10,7 @@ use ktrs_cli::ktlint::console::Console;
 use ktrs_cli::ktlint::file_utils::{DEFAULT_PATTERNS, file_sequence};
 use ktrs_cli::ktlint::jpath::JPath;
 use ktrs_cli::ktlint::logger::{Level, Logger};
+use ktrs_lint::editorconfig::KtlintVersion;
 
 const JAVA_FILE_ROOT_DIRECTORY: &str = "Root.java";
 const KT_FILE_ROOT_DIRECTORY: &str = "Root.kt";
@@ -76,7 +77,7 @@ impl Fs {
     fn get_files_with_home(&self, patterns: &[&str], root_dir: Option<&str>, user_home: &str) -> Vec<String> {
         let patterns: Vec<String> = patterns.iter().map(|p| p.to_string()).collect();
         let root_dir = self.resolve(root_dir.unwrap_or(""));
-        let logger = Logger::new(Console::capture(b"").0, Level::Off);
+        let logger = Logger::new(Console::capture(b"").0, Level::Off, KtlintVersion::V2_0);
         let base = JPath::from_path(self.root());
         let mut files: Vec<String> = file_sequence(&patterns, &root_dir, user_home, &logger)
             .unwrap()

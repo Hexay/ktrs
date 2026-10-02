@@ -67,7 +67,7 @@ impl FunctionSignatureRule {
                     emit(ast, ast.start_offset(first), "Single whitespace expected before expression body", true)
                         .if_autocorrect_allowed(|| ast.upsert_whitespace_before_me(first, " "));
                 }
-            } else if (ast.has_no_max_line_length_suppression(node)
+            } else if (ast.has_no_max_line_length_suppression_in(node, self.ktlint_version)
                 && first_line_of_body_expression + 1 > max_length_remaining_for_first_line_of_body_expression)
                 || (wrapping == FunctionBodyExpressionWrapping::Multiline && function_body_expression_lines.len() > 1)
                 || wrapping == FunctionBodyExpressionWrapping::Always

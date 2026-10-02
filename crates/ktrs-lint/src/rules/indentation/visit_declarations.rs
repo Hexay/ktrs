@@ -181,7 +181,8 @@ impl IndentationRule {
                 ast.element_type(type_constraint_list) == TYPE_CONSTRAINT_LIST,
                 "IllegalArgumentException: Code sibling after WHERE in CLASS is not a TYPE_CONSTRAINT_LIST"
             );
-            let child_indent = if ast.prev_leaf(where_).is_some_and(|it| ast.is_white_space_with_newline(it)) {
+            // 1.8 always aligns with the `where` column (#3363 indents a wrapped `where`).
+            let child_indent = if !self.ktlint_version.is_1_8() && ast.prev_leaf(where_).is_some_and(|it| ast.is_white_space_with_newline(it)) {
                 self.indent_config.indent.clone()
             } else {
                 let column = ast.column(where_) as i64 - 1 - ast.indent_without_newline_prefix(node).len() as i64;

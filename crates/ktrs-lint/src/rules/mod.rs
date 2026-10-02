@@ -18,8 +18,10 @@ mod class_naming_rule;
 pub mod class_signature;
 mod comment_spacing_rule;
 mod comment_wrapping_rule;
+mod condition_wrapping_rule;
 mod context_parameter_list_wrapping_rule;
 mod context_receiver_wrapping_rule;
+mod discouraged_comment_location_rule;
 mod enum_entry_name_case_rule;
 mod enum_wrapping_rule;
 mod expression_operand_wrapping_rule;
@@ -125,8 +127,10 @@ pub use class_naming_rule::ClassNamingRule;
 pub use class_signature::ClassSignatureRule;
 pub use comment_spacing_rule::CommentSpacingRule;
 pub use comment_wrapping_rule::CommentWrappingRule;
+pub use condition_wrapping_rule::ConditionWrappingRule;
 pub use context_parameter_list_wrapping_rule::ContextParameterListWrappingRule;
 pub use context_receiver_wrapping_rule::ContextReceiverWrappingRule;
+pub use discouraged_comment_location_rule::DiscouragedCommentLocationRule;
 pub use enum_entry_name_case_rule::EnumEntryNameCaseRule;
 pub use enum_wrapping_rule::EnumWrappingRule;
 pub use expression_operand_wrapping_rule::ExpressionOperandWrappingRule;
@@ -213,6 +217,7 @@ pub use value_parameter_comment_rule::ValueParameterCommentRule;
 pub use when_entry_bracing::WhenEntryBracing;
 pub use wrapping_rule::WrappingRule;
 
+use crate::editorconfig::KtlintVersion::{V1_8, V2_0};
 use crate::rule::{About, RuleV2};
 use crate::rule_provider::RuleV2Provider;
 
@@ -223,7 +228,8 @@ pub const STANDARD_RULE_ABOUT: About = About {
     issue_tracker_url: "https://github.com/ktlint/ktlint/issues",
 };
 
-/// The ported slice of `StandardRuleSetProvider().getRuleProviders()`, in its order.
+/// The ported slice of `StandardRuleSetProvider().getRuleProviders()`, in its order, plus the rules that only
+/// ktlint 1.8's rule set has (`only_in(V1_8)`; the 2.0 counterparts are `only_in(V2_0)`).
 pub fn standard_rule_providers() -> Vec<RuleV2Provider> {
     vec![
         RuleV2Provider::new(|| Box::new(AnnotationRule::new())),
@@ -231,21 +237,25 @@ pub fn standard_rule_providers() -> Vec<RuleV2Provider> {
         RuleV2Provider::new(|| Box::new(ArgumentListWrappingRule::new())),
         RuleV2Provider::new(|| Box::new(BackingPropertyNamingRule::new()) as Box<dyn RuleV2>),
         RuleV2Provider::new(|| Box::new(BinaryExpressionWrappingRule::new())),
-        RuleV2Provider::new(|| Box::new(BlankLineBeforeDeclarationRule::default())),
-        RuleV2Provider::new(|| Box::new(BlankLineBeforeFileAnnotation::default())),
-        RuleV2Provider::new(|| Box::new(BlankLineBeforeImports::default())),
-        RuleV2Provider::new(|| Box::new(BlankLineBeforePackage::default())),
+        RuleV2Provider::new(|| Box::new(BlankLineBeforeDeclarationRule::default())).only_in(V2_0),
+        RuleV2Provider::new(|| Box::new(BlankLineBeforeDeclarationRule::ktlint_1_8())).only_in(V1_8),
+        RuleV2Provider::new(|| Box::new(BlankLineBeforeFileAnnotation::default())).only_in(V2_0),
+        RuleV2Provider::new(|| Box::new(BlankLineBeforeImports::default())).only_in(V2_0),
+        RuleV2Provider::new(|| Box::new(BlankLineBeforePackage::default())).only_in(V2_0),
         RuleV2Provider::new(|| Box::new(BlankLineBetweenWhenConditions::new())),
         RuleV2Provider::new(|| Box::new(BlockCommentInitialStarAlignmentRule)),
-        RuleV2Provider::new(|| Box::new(CallExpressionWrappingRule::new())),
+        RuleV2Provider::new(|| Box::new(CallExpressionWrappingRule::new())).only_in(V2_0),
         RuleV2Provider::new(|| Box::new(ChainMethodContinuationRule::new())),
         RuleV2Provider::new(|| Box::new(ChainWrappingRule::new())),
         RuleV2Provider::new(|| Box::new(ClassNamingRule::default())),
         RuleV2Provider::new(|| Box::new(ClassSignatureRule::new())),
         RuleV2Provider::new(|| Box::new(CommentSpacingRule)),
         RuleV2Provider::new(|| Box::new(CommentWrappingRule)),
-        RuleV2Provider::new(|| Box::new(ContextParameterListWrappingRule::new())),
+        RuleV2Provider::new(|| Box::new(ConditionWrappingRule)).only_in(V1_8),
+        RuleV2Provider::new(|| Box::new(ContextParameterListWrappingRule::new())).only_in(V2_0),
+        RuleV2Provider::new(|| Box::new(ContextParameterListWrappingRule::context_receiver_list_wrapping())).only_in(V1_8),
         RuleV2Provider::new(|| Box::new(ContextReceiverWrappingRule::new())),
+        RuleV2Provider::new(|| Box::new(DiscouragedCommentLocationRule)).only_in(V1_8),
         RuleV2Provider::new(|| Box::new(EnumEntryNameCaseRule::default())),
         RuleV2Provider::new(|| Box::new(EnumWrappingRule::new())),
         RuleV2Provider::new(|| Box::new(ExpressionOperandWrappingRule::new())),
@@ -266,7 +276,7 @@ pub fn standard_rule_providers() -> Vec<RuleV2Provider> {
         RuleV2Provider::new(|| Box::new(IndentationRule::new())),
         RuleV2Provider::new(|| Box::new(KdocRule)),
         RuleV2Provider::new(|| Box::new(KdocWrappingRule)),
-        RuleV2Provider::new(|| Box::new(LambdaReturnRule)),
+        RuleV2Provider::new(|| Box::new(LambdaReturnRule)).only_in(V2_0),
         RuleV2Provider::new(|| Box::new(MaxLineLengthRule::new())),
         RuleV2Provider::new(|| Box::new(MixedConditionOperatorsRule)),
         RuleV2Provider::new(|| Box::new(ModifierListSpacingRule::new())),
@@ -274,7 +284,7 @@ pub fn standard_rule_providers() -> Vec<RuleV2Provider> {
         RuleV2Provider::new(|| Box::new(MultiLineIfElseRule::new())),
         RuleV2Provider::new(|| Box::new(MultilineExpressionWrappingRule::new())),
         RuleV2Provider::new(|| Box::new(MultilineLoopRule::new())),
-        RuleV2Provider::new(|| Box::new(NoBlankLineAtStartOfFileRule::default())),
+        RuleV2Provider::new(|| Box::new(NoBlankLineAtStartOfFileRule::default())).only_in(V2_0),
         RuleV2Provider::new(|| Box::new(NoBlankLineBeforeRbraceRule)),
         RuleV2Provider::new(|| Box::new(NoBlankLineInListRule)),
         RuleV2Provider::new(|| Box::new(NoBlankLinesInChainedMethodCallsRule)),
@@ -308,7 +318,7 @@ pub fn standard_rule_providers() -> Vec<RuleV2Provider> {
         RuleV2Provider::new(|| Box::new(SpacingAroundDoubleColonRule)),
         RuleV2Provider::new(|| Box::new(SpacingAroundKeywordRule)),
         RuleV2Provider::new(|| Box::new(SpacingAroundOperatorsRule)),
-        RuleV2Provider::new(|| Box::new(SpacingAroundParensRule)),
+        RuleV2Provider::new(|| Box::new(SpacingAroundParensRule::default())),
         RuleV2Provider::new(|| Box::new(SpacingAroundRangeOperatorRule)),
         RuleV2Provider::new(|| Box::new(SpacingAroundSquareBracketsRule)),
         RuleV2Provider::new(|| Box::new(SpacingAroundUnaryOperatorRule)),

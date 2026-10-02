@@ -1,10 +1,10 @@
 //! Port of ktlint-cli `internal/KtlintCommandLine.kt` (and `Main.kt`): the `ktlint` command.
 
-use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
-use ktrs_lint::editorconfig::{RuleExecution, create_rule_execution_editor_config_property};
+use ktrs_lint::editorconfig::{KtlintVersion, RuleExecution, create_rule_execution_editor_config_property};
 use ktrs_lint::rule_provider::{RuleV2Provider, property_types};
 use ktrs_lint::rules::standard_rule_providers;
 use ktrs_lint::{Code, EditorConfigDefaults, EditorConfigOverride, KtLintRuleEngine};
@@ -21,9 +21,11 @@ use crate::ktlint::logger::{
 };
 use crate::ktlint::parallel::parallel;
 use crate::ktlint::process::Processor;
-use crate::ktlint::reporter::{KtlintCliError, ReporterEnvironment, ReporterV2, Status};
+use crate::ktlint::reporter::{ReporterEnvironment, ReporterV2};
 use crate::ktlint::reporter_aggregator::{Context, ReporterSettings, aggregated_reporter};
+use crate::ktlint::run::Run;
 use crate::ktlint::subcommands;
+use crate::ktlint::version::{exit_value, release, with_ktlint_version};
 
 /// `ExitCode`: values external integrations depend on.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -68,33 +70,38 @@ impl KtlintCli {
                 return 0;
             }
             Parsed::UsageError { usage, message } => return self.usage_error(&usage, &message),
+            Parsed::Error(message) => {
+                self.console.println_err(&message);
+                return 1;
+            }
             Parsed::Run(args, subcommand) => (args, subcommand),
         };
-        let logger = Logger::new(self.console.clone(), args.min_log_level);
+        let logger = Logger::new(self.console.clone(), args.min_log_level, args.ktlint_version);
         let result = match subcommand {
             None => self.lint_or_format(&args, &logger),
-            Some(Subcommand::GenerateEditorConfig(code_style)) => {
-                self.rule_providers(&args, &logger).and_then(|providers| subcommands::generate_editor_config(self, providers, code_style, &logger))
-            }
-            Some(Subcommand::InstallGitPreCommitHook) => subcommands::install_git_hook(self, subcommands::PRE_COMMIT),
-            Some(Subcommand::InstallGitPrePushHook) => subcommands::install_git_hook(self, subcommands::PRE_PUSH),
+            Some(Subcommand::GenerateEditorConfig(code_style)) => self
+                .rule_providers(&args, &logger)
+                .and_then(|providers| subcommands::generate_editor_config(self, providers, code_style, &logger, args.ktlint_version)),
+            Some(Subcommand::InstallGitPreCommitHook) => subcommands::install_git_hook(self, subcommands::pre_commit(args.ktlint_version)),
+            Some(Subcommand::InstallGitPrePushHook) => subcommands::install_git_hook(self, subcommands::pre_push(args.ktlint_version)),
         };
-        self.exit_code(result, &logger)
+        self.exit_code(result, &logger, args.ktlint_version)
     }
 
     /// Lints (or formats) with already parsed options: `ktrs lint`.
     pub fn run_lint(&self, args: &KtlintArgs) -> i32 {
-        let logger = Logger::new(self.console.clone(), args.min_log_level);
+        let logger = Logger::new(self.console.clone(), args.min_log_level, args.ktlint_version);
         let result = self.lint_or_format(args, &logger);
-        self.exit_code(result, &logger)
+        self.exit_code(result, &logger, args.ktlint_version)
     }
 
-    fn exit_code(&self, result: Result<(), Exit>, logger: &Logger) -> i32 {
+    fn exit_code(&self, result: Result<(), Exit>, logger: &Logger, ktlint_version: KtlintVersion) -> i32 {
         match result {
             Ok(()) => 0,
             Err(Exit::Code(code)) => {
-                logger.debug(KTLINT_COMMAND_LINE, || format!("Exit ktlint with exit code: {}", code as i32));
-                code as i32
+                let value = exit_value(ktlint_version, code);
+                logger.debug(KTLINT_COMMAND_LINE, || format!("Exit ktlint with exit code: {value}"));
+                value
             }
             Err(Exit::Usage(message)) => self.usage_error(USAGE_MAIN, &message),
             Err(Exit::Crash(exception)) => {
@@ -124,15 +131,22 @@ impl KtlintCli {
             let filename = create_rule_execution_editor_config_property("standard:filename", RuleExecution::Disabled);
             editor_config_override = EditorConfigOverride::from(vec![(filename.into(), Some("disabled".to_owned()))]);
         }
+        let editor_config_override = with_ktlint_version(editor_config_override, args.ktlint_version);
         let start = Instant::now();
         let editor_config_defaults = self.editor_config_defaults(args, &rule_providers, logger)?;
-        let engine = KtLintRuleEngine::with_editor_config(rule_providers, editor_config_defaults, editor_config_override);
+        let engine_logger = logger.clone();
+        let engine = KtLintRuleEngine::with_editor_config(rule_providers, editor_config_defaults, editor_config_override)
+            .with_engine_warnings(Arc::new(move |name, message| engine_logger.warn(name, || message.to_owned())));
         let baseline = if args.stdin || args.baseline_path.trim().is_empty() {
             Baseline::disabled()
         } else {
-            load_baseline(&args.baseline_path, &self.working_dir.to_path_buf(), logger, &self.console)
+            load_baseline(&args.baseline_path, &self.working_dir.to_path_buf(), logger, &self.console, args.ktlint_version)
         };
-        let env = ReporterEnvironment { user_home: Some(self.user_home.clone().into()), working_dir: self.working_dir.to_path_buf() };
+        let env = ReporterEnvironment {
+            user_home: Some(self.user_home.clone().into()),
+            working_dir: self.working_dir.to_path_buf(),
+            ktlint_release: release(args.ktlint_version),
+        };
         let settings = ReporterSettings {
             reporter_configurations: &args.reporter_configurations,
             color: args.color,
@@ -151,6 +165,7 @@ impl KtlintCli {
                 format: args.format,
                 ignore_autocorrect_failures: args.ignore_autocorrect_failures,
                 force_lint_after_format: args.force_lint_after_format,
+                ktlint_version: args.ktlint_version,
                 contains_unfixed_lint_errors: AtomicBool::new(false),
             },
             args,
@@ -197,6 +212,14 @@ impl KtlintCli {
     /// `ruleProviders`: the standard rules; a `-R` JAR can't be loaded (see [`load_from_jar_file`]).
     pub(crate) fn rule_providers(&self, args: &KtlintArgs, logger: &Logger) -> Result<Vec<RuleV2Provider>, Exit> {
         let urls = to_files_uri_list(&args.ruleset_jar_paths, &self.working_dir, &self.user_home, logger)?;
+        if args.ktlint_version.is_1_8() {
+            // 1.8 only knows `RuleSetProviderV3`.
+            logger.debug(KTLINT_SERVICE_LOADER, || "Discovered RuleSetProviderV3 with id 'standard' in ktlint JAR".to_owned());
+            if let Some(url) = urls.first() {
+                return Err(load_from_jar_file(url, RULE_SET_PROVIDER_V3, &[], logger));
+            }
+            return Ok(standard_rule_providers());
+        }
         logger.debug(KTLINT_SERVICE_LOADER, || "Discovered RuleSetV2Provider with id 'standard' in ktlint JAR".to_owned());
         if let Some(url) = urls.first() {
             for message in [
@@ -270,32 +293,5 @@ impl KtlintCli {
         let errors = run.processor.process(&code, &[])?;
         run.report("<stdin>", &errors, reporter);
         Ok(())
-    }
-}
-
-/// The per-run state `lintOrFormat` shares with the file workers.
-struct Run<'a> {
-    processor: Processor<'a>,
-    args: &'a KtlintArgs,
-    file_number: AtomicUsize,
-    error_number: AtomicUsize,
-    advise_to_use_format: AtomicBool,
-}
-
-impl Run<'_> {
-    fn report(&self, relative_route: &str, ktlint_cli_errors: &[KtlintCliError], reporter: &mut dyn ReporterV2) {
-        self.file_number.fetch_add(1, Ordering::SeqCst);
-        let err_list_limit = ktlint_cli_errors.len().min(self.args.limit.saturating_sub(self.error_number.load(Ordering::SeqCst)));
-        self.error_number.fetch_add(err_list_limit, Ordering::SeqCst);
-        if ktlint_cli_errors.iter().any(|e| e.status == Status::LintCanBeAutocorrected) {
-            self.advise_to_use_format.store(true, Ordering::SeqCst);
-        }
-        reporter.before(relative_route);
-        ktlint_cli_errors
-            .iter()
-            .take(err_list_limit)
-            .filter(|e| !(self.args.ignore_autocorrect_failures && e.status == Status::LintCanNotBeAutocorrected))
-            .for_each(|e| reporter.on_lint_error(relative_route, e));
-        reporter.after(relative_route);
     }
 }
