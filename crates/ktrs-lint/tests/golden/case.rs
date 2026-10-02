@@ -7,6 +7,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
+#[derive(Clone)]
 pub struct Options {
     /// Rule under test first, then the additional rules.
     pub rules: Vec<String>,
@@ -14,8 +15,11 @@ pub struct Options {
     pub script: bool,
     /// Every override the test harness passes to the engine, forced ones included.
     pub editor_config: Vec<(String, String)>,
+    /// The ktlint release the case was recorded on (`ktlint=1.8`; absent: the 2.0 line).
+    pub ktlint: Option<String>,
 }
 
+#[derive(Clone)]
 pub struct Case {
     pub name: String,
     pub input: String,
@@ -46,11 +50,11 @@ fn collect_into(dir: &Path, out: &mut Vec<PathBuf>) {
     }
 }
 
-fn read(base: &Path, suffix: &str) -> Option<String> {
+pub fn read(base: &Path, suffix: &str) -> Option<String> {
     fs::read_to_string(format!("{}{suffix}", base.display())).ok()
 }
 
-fn rows(text: Option<String>) -> Vec<String> {
+pub fn rows(text: Option<String>) -> Vec<String> {
     text.map(|t| t.lines().map(str::to_owned).collect()).unwrap_or_default()
 }
 
@@ -75,11 +79,12 @@ pub fn load(root: &Path, base: &Path) -> Case {
 }
 
 fn parse_options(text: &str, script: bool) -> Options {
-    let mut options = Options { rules: Vec::new(), path: None, script, editor_config: Vec::new() };
+    let mut options = Options { rules: Vec::new(), path: None, script, editor_config: Vec::new(), ktlint: None };
     for (key, value) in text.lines().filter_map(|l| l.split_once('=')) {
         match key {
             "rules" => options.rules = value.split(',').map(str::to_owned).collect(),
             "path" => options.path = Some(value.to_owned()),
+            "ktlint" => options.ktlint = Some(value.to_owned()),
             "test" => {}
             _ => match key.strip_prefix("ec.") {
                 Some(name) => options.editor_config.push((name.to_owned(), value.to_owned())),
