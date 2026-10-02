@@ -7,9 +7,10 @@
 #
 # A, B: commands (word-split, so "java -jar x.jar" works). TREE: .kt/.kts only, no .editorconfig of its own
 # below the root; its root .editorconfig is overwritten per style. Styles default to all three.
-# Env: NO_FORMAT=1 skips -F; TMO = per-run timeout in seconds (default 3600).
+# Env: NO_FORMAT=1 skips -F; TMO = per-run timeout in seconds (default 3600); EC_EXTRA = more .editorconfig lines
+# (`\n`-separated), e.g. 'ktlint_standard = disabled' to compare a custom rule set alone (with -R in A and B).
 set -uo pipefail
-(($# >= 4)) || { sed -n 2,11p "$0"; exit 2; }
+(($# >= 4)) || { sed -n 2,12p "$0"; exit 2; }
 A=$1 B=$2 TREE=$(cd "$3" && pwd) OUT=$4; shift 4
 STYLES=("$@"); ((${#STYLES[@]})) || STYLES=(ktlint_official intellij_idea android_studio)
 TMO=${TMO:-3600}
@@ -23,7 +24,14 @@ run() { # cmd cwd prefix args... -> prefix.out/.err/.exit
   local cmd=$1 cwd=$2 p=$3; shift 3
   (cd "$cwd" && timeout "$TMO" $cmd "$@" > "$p.out" 2> "$p.err"); echo $? > "$p.exit"
 }
-rows() { grep -aE '^[^ ]+:[0-9]+:[0-9]+: ' "$1" | LC_ALL=C sort; }
+# A multi-line detail (compose-rules' "…\nSee https://…") continues on the next lines: joined with a literal \n.
+rows() {
+  awk 'BEGIN { bs = sprintf("%c", 92) }
+       /^[^ ]+:[0-9]+:[0-9]+: / { if (r != "") print r; r = $0; next }
+       r != "" && $0 != "" && !/^[0-9][0-9]:[0-9][0-9]:[0-9][0-9]\.[0-9]+ / { r = r bs "n" $0; next }
+       { if (r != "") print r; r = "" }
+       END { if (r != "") print r }' "$1" | LC_ALL=C sort
+}
 rule_counts() { sed -nE 's/.*\(([^()]+)\)$/\1/p' "$1" | sort | uniq -c | awk '{print $2, $1}'; }
 
 {
@@ -34,7 +42,7 @@ rule_counts() { sed -nE 's/.*\(([^()]+)\)$/\1/p' "$1" | sort | uniq -c | awk '{p
 
 for style in "${STYLES[@]}"; do
   d=$OUT/$style; mkdir -p "$d"
-  printf 'root = true\n\n[*.{kt,kts}]\nktlint_code_style = %s\n' "$style" > "$TREE/.editorconfig"
+  printf 'root = true\n\n[*.{kt,kts}]\nktlint_code_style = %s\n%b' "$style" "${EC_EXTRA:+$EC_EXTRA\n}" > "$TREE/.editorconfig"
   run "$A" "$TREE" "$d/lint.a" --relative; run "$B" "$TREE" "$d/lint.b" --relative
   rows "$d/lint.a.out" > "$d/rows.a"; rows "$d/lint.b.out" > "$d/rows.b"
   LC_ALL=C comm -23 "$d/rows.a" "$d/rows.b" > "$d/only.a"; LC_ALL=C comm -13 "$d/rows.a" "$d/rows.b" > "$d/only.b"

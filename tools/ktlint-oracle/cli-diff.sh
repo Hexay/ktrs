@@ -82,10 +82,13 @@ scenario() {
     local input=/dev/null
     [[ -n $stdin ]] && input="$dir/w/$stdin"
     (cd "$dir/w" && "${cmd[@]}" "$@" < "$input" > "$dir/out.raw" 2> "$dir/err.raw"; echo $? > "$dir/code")
-    local w_abs; w_abs="$(cd "$dir/w" && pwd)"
+    local w_abs w_win=x; w_abs="$(cd "$dir/w" && pwd)"
+    command -v cygpath >/dev/null && w_win=$(cygpath -m "$w_abs")
     for s in out err; do
+      # JVM lambda identities (`RuleKt$$Lambda/0x…@1a2b`) differ per run; on Windows the tree shows as C:/… and C:\….
       grep -av $'^\tat \|^\t\.\.\. [0-9]* more' "$dir/$s.raw" \
-        | sed -E -e 's/^[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3} /HH:MM:SS.mmm /' -e "s#$w_abs#<W>#g" \
+        | sed -E -e 's/^[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3} /HH:MM:SS.mmm /' -e "s#$w_abs#<W>#g" -e "s#$w_win#<W>#g" \
+        -e "s#${w_win//\//\\\\}#<W>#g" -e 's/\$\$Lambda\/0x[0-9a-f]+@[0-9a-f]+/$$Lambda@<id>/g' \
         -e 's/ktlint-backup\.[-0-9a-f]+/ktlint-backup.<hash>/' > "$dir/$s"
     done
     # Reports written into the tree can hold absolute paths too.
