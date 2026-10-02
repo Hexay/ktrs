@@ -1,0 +1,5 @@
+ktlint=1.8
+rules=compose:defaults-visibility
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=DefaultsVisibilityCheckTest.passes when a defaults object has the same visibility as any of the overloaded composables that match it

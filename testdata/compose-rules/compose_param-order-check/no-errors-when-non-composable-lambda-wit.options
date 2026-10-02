@@ -1,0 +1,5 @@
+ktlint=1.8
+rules=compose:param-order-check
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=ParameterOrderCheckTest.no errors when non-composable lambda with default value comes before required params - issue 416
