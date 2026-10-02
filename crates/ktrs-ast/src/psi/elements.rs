@@ -1,4 +1,4 @@
-//! Accessors of the declaration, expression and file classes the standard rules cast to.
+//! Accessors of the file, `when` and super type classes the standard rules cast to.
 
 use ktrs_psi::SUPER_TYPE_LIST_ENTRIES;
 use ktrs_syntax::SyntaxKind::*;
@@ -15,46 +15,6 @@ impl KtFile {
     /// `containingFile.virtualFile.name`: the `psiFileName` as given.
     pub fn virtual_file_name(self, ast: &Ast) -> &str {
         ast.psi_file_name()
-    }
-}
-
-impl KtFunction {
-    /// `getNameIdentifier()`; only `KtNamedFunction` has one.
-    pub fn name_identifier(self, ast: &Ast) -> Option<NodeId> {
-        match ast.element_type(self.node()) {
-            FUN => ast.find_child_by_type(self.node(), IDENTIFIER),
-            _ => None,
-        }
-    }
-
-    /// `getName()` of a `KtNamedFunction` (`KtNamedDeclarationStub`): the unquoted identifier.
-    /// Constructors (named after their class upstream) and function literals give `None`.
-    pub fn name(self, ast: &Ast) -> Option<String> {
-        Some(ktrs_psi::unquote_identifier(&ast.text(self.name_identifier(ast)?)))
-    }
-
-    /// `getTypeReference()`: for `fun`, the first type reference after the first `:` (TypeRefHelpers.kt).
-    pub fn type_reference(self, ast: &Ast) -> Option<KtTypeReference> {
-        if ast.element_type(self.node()) != FUN {
-            return None;
-        }
-        ast.children(self.node())
-            .skip_while(|&c| ast.element_type(c) != COLON)
-            .find_map(|c| KtTypeReference::cast(ast, c))
-    }
-
-    /// `hasDeclaredReturnType()`: `typeReference != null` for `fun`; false otherwise.
-    pub fn has_declared_return_type(self, ast: &Ast) -> bool {
-        self.type_reference(ast).is_some()
-    }
-
-    /// `getBodyExpression()`: the first `KtExpression` child (a block for secondary constructors).
-    pub fn body_expression(self, ast: &Ast) -> Option<NodeId> {
-        match ast.element_type(self.node()) {
-            PRIMARY_CONSTRUCTOR => None,
-            SECONDARY_CONSTRUCTOR => ast.find_child_by_type(self.node(), BLOCK),
-            _ => ast.children(self.node()).find(|&c| KtExpression::is(ast, c)),
-        }
     }
 }
 
