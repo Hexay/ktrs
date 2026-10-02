@@ -1,0 +1,4 @@
+@ComposableTargetMarker
+annotation class BananaComposable
+@ComposableTargetMarker
+annotation class AppleComposable

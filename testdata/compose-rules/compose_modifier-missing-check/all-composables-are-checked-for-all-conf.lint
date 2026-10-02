@@ -1,0 +1,4 @@
+2:5	compose:modifier-missing-check	manual	This @Composable function emits content but doesn't have a modifier parameter.\nSee https://mrmans0n.github.io/compose-rules/rules/#when-should-i-expose-modifier-parameters for more information.
+7:15	compose:modifier-missing-check	manual	This @Composable function emits content but doesn't have a modifier parameter.\nSee https://mrmans0n.github.io/compose-rules/rules/#when-should-i-expose-modifier-parameters for more information.
+12:14	compose:modifier-missing-check	manual	This @Composable function emits content but doesn't have a modifier parameter.\nSee https://mrmans0n.github.io/compose-rules/rules/#when-should-i-expose-modifier-parameters for more information.
+19:13	compose:modifier-missing-check	manual	This @Composable function emits content but doesn't have a modifier parameter.\nSee https://mrmans0n.github.io/compose-rules/rules/#when-should-i-expose-modifier-parameters for more information.
