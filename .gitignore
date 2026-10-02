@@ -1,6 +1,7 @@
 /target
 /third_party/
 /corpus/
+/corpus-holdout/
 /tools/psi-dump/lib/
 /tools/psi-dump/build/
 /tools/ktfmt-oracle/lib/

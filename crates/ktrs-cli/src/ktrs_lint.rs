@@ -26,6 +26,7 @@ pub fn run(args: &[String]) -> Result<i32, String> {
         return Ok(0);
     }
     let parsed = parse_lint_args(args)?;
+    ktrs_lint::engine::silence_caught_rule_panics();
     Ok(KtlintCli::from_env().run_lint(&parsed))
 }
 
