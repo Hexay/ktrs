@@ -1,0 +1,6 @@
+ktlint=1.8
+rules=compose:modifier-missing-check
+ec.compose_custom_modifiers=BananaModifier
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=ModifierMissingCheckTest.errors when a Composable has a layout inside and it doesn't have a modifier

@@ -1,0 +1,6 @@
+ktlint=1.8
+rules=compose:modifier-missing-check
+ec.compose_content_emitters_denylist=PotatoDialog
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=ModifierMissingCheckTest.non content emitting root composables are ignored

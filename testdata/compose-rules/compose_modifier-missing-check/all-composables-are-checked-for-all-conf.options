@@ -1,0 +1,6 @@
+ktlint=1.8
+rules=compose:modifier-missing-check
+ec.compose_check_modifiers_for_visibility=all
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=ModifierMissingCheckTest.all Composables are checked for 'all' configuration

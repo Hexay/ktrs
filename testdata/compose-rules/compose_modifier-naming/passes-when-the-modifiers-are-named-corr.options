@@ -1,0 +1,5 @@
+ktlint=1.8
+rules=compose:modifier-naming
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=ModifierNamingCheckTest.passes when the modifiers are named correctly

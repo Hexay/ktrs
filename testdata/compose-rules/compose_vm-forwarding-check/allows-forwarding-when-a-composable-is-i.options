@@ -1,0 +1,6 @@
+ktlint=1.8
+rules=compose:vm-forwarding-check
+ec.compose_allowed_forwarding=.*Content
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=ViewModelForwardingCheckTest.allows forwarding when a composable is in the allowlist
