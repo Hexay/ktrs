@@ -5,7 +5,7 @@ use ktrs_syntax::SyntaxKind::BLOCK_COMMENT;
 
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::AstNodeLines;
-use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet, VisitorModifier};
 use crate::rules::STANDARD_RULE_ABOUT;
 
 const VISITED_TYPES: TokenSet = TokenSet::create(&[BLOCK_COMMENT]);
@@ -16,6 +16,11 @@ pub struct BlockCommentInitialStarAlignmentRule;
 impl RuleV2 for BlockCommentInitialStarAlignmentRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:block-comment-initial-star-alignment")
+    }
+
+    fn visitor_modifiers(&self) -> &'static [VisitorModifier] {
+        const MODIFIERS: &[VisitorModifier] = &[VisitorModifier::run_after("standard:indent")];
+        MODIFIERS
     }
 
     fn visited_types(&self) -> Option<TokenSet> {

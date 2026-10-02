@@ -16,7 +16,7 @@ use ktrs_syntax::SyntaxKind::{
 
 use crate::editorconfig::{INDENT_SIZE_PROPERTY, INDENT_STYLE_PROPERTY, KtlintVersion, MAX_LINE_LENGTH_PROPERTY, PropertyRef};
 use crate::indent_config::IndentConfig;
-use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2};
+use crate::rule::{About, EditorConfig, Emit, RuleId, RuleV2, VisitorModifier};
 use crate::rules::STANDARD_RULE_ABOUT;
 use crate::rules::max_line_length_rule::max_line_length;
 
@@ -47,6 +47,11 @@ impl Default for WrappingRule {
 impl RuleV2 for WrappingRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:wrapping")
+    }
+
+    fn visitor_modifiers(&self) -> &'static [VisitorModifier] {
+        const MODIFIERS: &[VisitorModifier] = &[VisitorModifier::run_after("standard:annotation")];
+        MODIFIERS
     }
 
     fn visited_types(&self) -> Option<TokenSet> {

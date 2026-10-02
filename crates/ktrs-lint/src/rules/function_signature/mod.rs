@@ -22,7 +22,7 @@ use crate::element_type::{
     VALUE_PARAMETER, VALUE_PARAMETER_LIST, WHITE_SPACE,
 };
 use crate::indent_config::IndentConfig;
-use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet};
+use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet, VisitorModifier};
 use crate::rules::STANDARD_RULE_ABOUT;
 use crate::rules::max_line_length_rule::max_line_length;
 
@@ -63,6 +63,17 @@ impl Default for FunctionSignatureRule {
 impl RuleV2 for FunctionSignatureRule {
     fn rule_id(&self) -> RuleId {
         RuleId("standard:function-signature")
+    }
+
+    fn visitor_modifiers(&self) -> &'static [VisitorModifier] {
+        const MODIFIERS: &[VisitorModifier] = &[
+            VisitorModifier::run_after("standard:type-parameter-comment"),
+            VisitorModifier::run_after("standard:type-argument-comment"),
+            VisitorModifier::run_after("standard:value-parameter-comment"),
+            VisitorModifier::run_after("standard:context-receiver-wrapping"),
+            VisitorModifier::RunAsLateAsPossible,
+        ];
+        MODIFIERS
     }
 
     fn visited_types(&self) -> Option<TokenSet> {

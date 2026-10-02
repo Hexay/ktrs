@@ -6,7 +6,7 @@ use std::sync::Arc;
 use ktrs_editorconfig::AnyPropertyType;
 
 use crate::editorconfig::{KtlintVersion, PropertyRef};
-use crate::rule::{RuleId, RuleV2};
+use crate::rule::{RuleId, RuleV2, RunAfterRuleMode, VisitorModifier};
 
 /// Creates a fresh [`RuleV2`] per traversal, so rules can keep state and files can be processed in parallel.
 #[derive(Clone)]
@@ -14,6 +14,7 @@ pub struct RuleV2Provider {
     provider: Arc<dyn Fn() -> Box<dyn RuleV2> + Send + Sync>,
     rule_id: RuleId,
     uses_editor_config_properties: Vec<PropertyRef>,
+    visitor_modifiers: &'static [VisitorModifier],
     /// ktrs: registered only for files in this ktlint version (`None`: in every version).
     only_in: Option<KtlintVersion>,
 }
@@ -25,6 +26,7 @@ impl RuleV2Provider {
         RuleV2Provider {
             rule_id: rule.rule_id(),
             uses_editor_config_properties: rule.uses_editor_config_properties(),
+            visitor_modifiers: rule.visitor_modifiers(),
             provider: Arc::new(provider),
             only_in: None,
         }
@@ -49,6 +51,19 @@ impl RuleV2Provider {
 
     pub fn uses_editor_config_properties(&self) -> &[PropertyRef] {
         &self.uses_editor_config_properties
+    }
+
+    /// `RuleProvider.runAfterRules` (1.8).
+    pub fn run_after_rules(&self) -> impl Iterator<Item = (RuleId, RunAfterRuleMode)> + '_ {
+        self.visitor_modifiers.iter().filter_map(|m| match *m {
+            VisitorModifier::RunAfterRule(rule_id, mode) => Some((rule_id, mode)),
+            VisitorModifier::RunAsLateAsPossible => None,
+        })
+    }
+
+    /// `RuleProvider.runAsLateAsPossible` (1.8).
+    pub fn run_as_late_as_possible(&self) -> bool {
+        self.visitor_modifiers.contains(&VisitorModifier::RunAsLateAsPossible)
     }
 }
 

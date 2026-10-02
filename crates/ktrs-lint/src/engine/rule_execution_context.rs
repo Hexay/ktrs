@@ -1,6 +1,7 @@
 //! Port of ktlint-rule-engine `internal/RuleExecutionContext.kt`: the parsed file, its `.editorconfig`
 //! and enabled rules, and the 2.0 traversal (every rule at a node, then the children, then every rule's
-//! `after` at that node), preceded by a traversal of the internal suppression rule alone.
+//! `after` at that node), preceded by a traversal of the internal suppression rule alone; in 1.8 mode
+//! 1.8's rule after rule (`rule_major.rs`).
 
 use std::ops::Deref;
 use std::rc::Rc;
@@ -25,6 +26,7 @@ use crate::rule::{About, AutocorrectDecision, RuleId, RuleV2, TokenSet};
 use crate::rule_provider::RuleV2Provider;
 
 mod create;
+mod rule_major;
 
 pub(crate) use create::create_rule_execution_context;
 
@@ -128,6 +130,12 @@ impl RuleExecutionContext {
         lint_mode: bool,
         emit_and_approve: &mut EmitAndApprove<'_>,
     ) -> Result<(), KtLintRuleException> {
+        if self.setup.ktlint_version.is_1_8() {
+            for rule in rules {
+                self.execute_rule_1_8(rule, lint_mode, emit_and_approve)?;
+            }
+            return Ok(());
+        }
         let (suppression, others): (Vec<_>, Vec<_>) = rules
             .into_iter()
             .partition(|r| r.rule_id() == KTLINT_SUPPRESSION_RULE_ID);
@@ -149,14 +157,18 @@ impl RuleExecutionContext {
             lint_mode,
         };
         let rule_editor_config = |rule: &dyn RuleV2| setup.rule_editor_config(rule);
-        let file_path_or_stdin = &self.file_path_or_stdin;
-        traverse(parts, rules, &rule_editor_config, emit_and_approve).map_err(|e| KtLintRuleException {
+        traverse(parts, rules, &rule_editor_config, emit_and_approve).map_err(|e| self.to_ktlint_rule_exception(e))
+    }
+
+    fn to_ktlint_rule_exception(&self, e: RuleExecutionException) -> KtLintRuleException {
+        KtLintRuleException {
             line: e.line,
             col: e.col,
             rule_id: e.rule_id.value().to_owned(),
             message: format!(
-                "Rule '{}' throws exception in file '{file_path_or_stdin}' at position ({}:{})\n   Rule maintainer: {}\n   Issue tracker  : {}\n   Repository     : {}",
+                "Rule '{}' throws exception in file '{}' at position ({}:{})\n   Rule maintainer: {}\n   Issue tracker  : {}\n   Repository     : {}",
                 e.rule_id.value(),
+                self.file_path_or_stdin,
                 e.line,
                 e.col,
                 e.about.maintainer,
@@ -164,7 +176,7 @@ impl RuleExecutionContext {
                 e.about.repository_url
             ),
             cause: e.cause,
-        })
+        }
     }
 }
 
