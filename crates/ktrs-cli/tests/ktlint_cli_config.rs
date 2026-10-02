@@ -191,13 +191,23 @@ fn custom_jar_without_a_rule_set_provider_then_error_and_exit() {
 }
 
 #[test]
-fn custom_jar_with_the_deprecated_rule_set_provider_v3_can_not_be_loaded() {
-    // Deviation: upstream loads it (with a deprecation warning); JVM rule sets can't run here.
+fn custom_jar_with_the_deprecated_rule_set_provider_v3_is_handed_to_the_ktlint_jar() {
+    // Upstream loads it (with a deprecation warning); ktrs runs the ktlint jar, which needs `java` (none here).
     let project = Project::new("custom-ruleset", &[]);
     let name = "custom-ruleset/ktlint-ruleset-with-deprecated-ruleset-provider.jar";
     project.write_bytes(name, &fake_jar("com.pinterest.ktlint.cli.ruleset.core.api.RuleSetProviderV3"));
     let jar = project.dir().join(name).display().to_string();
     let run = project.run(&["-R", &jar, "**/*.test"]);
-    assert_eq!(run.exit_code, 6, "{run:?}");
-    assert_line!(run.out, ".*ERROR.* JAR file '.*ktlint-ruleset-with-deprecated-ruleset-provider.jar' .*can not load JVM code");
+    assert_eq!(run.exit_code, 1, "{run:?}");
+    assert_eq!(run.out, "", "{run:?}");
+    assert_line!(run.err, "ktrs: '.*ktlint-ruleset-with-deprecated-ruleset-provider.jar' is a ktlint plugin JAR .* ktlint 2.0.0-ALPHA-4 on the JVM, but no `java` was found.*");
+}
+
+#[test]
+fn reporter_jar_with_a_reporter_provider_is_handed_to_the_ktlint_jar() {
+    let project = Project::new("custom-reporter", &[]);
+    project.write_bytes("csv.jar",&fake_jar("io.github.ktlint.core.cli.reporter.core.api.ReporterProviderV2"));
+    let run = project.run(&["--reporter=csv,artifact=csv.jar", "**/*.test"]);
+    assert_eq!(run.exit_code, 1, "{run:?}");
+    assert_line!(run.err, "ktrs: 'csv.jar' is a ktlint plugin JAR .*no `java` was found.*");
 }
