@@ -1,8 +1,9 @@
-# 26 — ktlint 1.8 mode, phase 1: lint rows and CLI (2026-10-02)
+# 26 — ktlint 1.8 mode: lint rows, CLI (phase 1) and byte-exact format (phase 2) (2026-10-02)
 
 ktrs ports ktlint 2.0.0-ALPHA-4; research/22 listed what separates it from 1.8.0 (R1–R7, E1–E3, the CLI table).
-Phase 1 makes ktrs reproduce **1.8.0's lint rows and CLI behaviour** on request. Phase 2 (byte-exact `-F`: rule-major
-order, `VisitorModifier`s, the old `when-entry-bracing` rewrite) is not done; where it hangs off is below.
+Phase 1 makes ktrs reproduce **1.8.0's lint rows and CLI behaviour** on request; phase 2 (section at the end) makes
+`-F` byte-exact: 1.8's rule order from the rules' `VisitorModifier`s, rule-major traversal, the old
+`when-entry-bracing` rewrite.
 
 ## Selecting the mode
 
@@ -31,9 +32,7 @@ order, `VisitorModifier`s, the old `when-entry-bracing` rewrite) is not done; wh
 - **Engine** switches read the version from the file's loaded `.editorconfig`: BOM normalization and the exception's
   file name (`engine/rule_execution_context/create.rs`), suppression ids (`engine/suppression_ids.rs`), obsolete-property
   warnings (via `KtLintRuleEngine::with_engine_warnings`, which the CLI routes to its logger).
-- Phase 2: `RuleSetup` (per `.editorconfig`) is where a 1.8 `RuleProviderSorter` + `RunAfterRuleFilter` would replace
-  `VisitorProvider`, with `VisitorModifier`s as a `RuleV2` method; `RuleExecutionContext::execute_rules` would pick
-  rule-major traversal from the same version; `when-entry-bracing` reads `ktlint_version` like the other rules.
+- Phase 2 hangs off `RuleSetup` and `RuleExecutionContext::execute_rules` (see "Phase 2" below).
 - **CLI** (`crates/ktrs-cli/src/ktlint/version.rs`): release string, JVM package prefix (logger names are written as 2.0
   names and renamed in `Logger::log`), repository URL, exit-code mapping. `args.rs` picks the option table and help per
   version; `process.rs` holds the stdin differences; `java_printf.rs` emulates `PrintWriter.printf`.
@@ -96,9 +95,9 @@ Exit codes equal everywhere. The "before" column is the 1.8.0 vs 2.0.0-ALPHA-4 j
 `testbox:~/work/parity/out/kt18-vs-kt2-holdout/`); on the held-out tree it also shows what research/22's corpus did not
 exercise (R5 25+25 rows, indent X3 1+1, KDoc trailing spaces 2).
 
-- Order of rows at one position: 1.8 runs rule after rule, so `lint` in 1.8 mode sorts ties by 1.8's rule order (the
-  suppression rule, the rest by id, then the 16 rules with `VisitorModifier`s; `visitor_provider::KTLINT_1_8_LATE_RULES`).
-  Checked on the fixtures against the jar's unsorted output and by cli-diff, whose reporter outputs compare row order.
+- Order of rows at one position: 1.8 runs rule after rule, and so does 1.8 mode since phase 2 (phase 1 sorted ties by
+  a fixed rank instead). Checked on the fixtures against the jar's unsorted output and by cli-diff, whose reporter
+  outputs compare row order.
 - CLI, `cli-diff.sh` (154 scenarios, 10 new: `--code-style`, the two never-registered options, `%` on stdin, obsolete
   properties): 1.8 mode vs `ktlint-1.8.0` **153/154**; 2.0 mode vs `ktlint-2.0.0-ALPHA-4` **154/154**.
 - 2.0 unchanged: the branch's `ktlint` vs its base (53bb811) on the dev corpus, three styles: 0 lint-row diffs and
@@ -117,10 +116,12 @@ say "run in debug mode"; the obsolete-property warning; four small rule fixes (X
   a KDoc line ending in spaces (TickerChannels.kt:51; apollo DefaultHttpRequestComposer.kt:58) and `no-trailing-spaces`
   on ` * ` lines (kotlinx.serialization Json.kt:681/685). Kotlin 2.2.21's KDoc lexer (1.8.0) gives that whitespace its
   own token; ktrs shares 2.4's lexer with the 2.0 jar, which misses the same rows. Fixing it needs a 2.2 KDoc-lexer
-  quirk.
-- **`-F` (phase 2)**: autocorrect still runs 2.0's node-major order, so formatted output and the rows `-F` reports can
-  differ from 1.8 (cli-diff `rep_summary_format`: which rule's fix reaches a position first). when-entry-bracing keeps
-  2.0's rewrite.
+  quirk. In `-F` the Json.kt rows are the **only formatted-file difference** left (1 file per style on the held-out
+  tree: the jar trims the trailing space of two ` * ` lines inside a ```` ``` ```` KDoc code block; ktrs keeps it).
+- **1.8's `RunAfterRuleFilter` failure** (e.g. `ktlint_standard_indent = disabled`, which leaves string-template-indent
+  without its required predecessor): the jar dies with "Exception in thread "main" java.util.concurrent.ExecutionException:
+  java.lang.IllegalStateException: Skipping rule(s) …" plus a JVM stack trace, exit 1. ktrs prints the same first lines
+  and exits 1, without the stack trace.
 - **`--stdin-path` without `./`** (#3322): 1.8 looks up `.editorconfig` from the relative path and so misses the working
   directory's; ktrs resolves it against the working directory as 2.0 does (not covered by a scenario that differs).
 - Logging thread names: in file mode 1.8 logs per-file warnings (obsolete properties) from `pool-1-thread-N` in
@@ -130,12 +131,74 @@ say "run in debug mode"; the obsolete-property warning; four small rule fixes (X
 ## How to run
 
 - Tests: `cargo test -p ktrs-lint --release --test ktlint_1_8_mode` (one fixture per switch in
-  `crates/ktrs-lint/tests/data/ktlint_1_8_mode/`, expected rows from both jars), `cargo test -p ktrs-cli --test
-  ktlint_cli_1_8`, `--test ktlint_baseline`, and `java_printf`'s unit test.
-- Lint rows vs the jar (testbox, background, under the bench lock):
-  `NO_FORMAT=1 tools/parity/ktlint-compare.sh ~/work/ktlint-bench/bin/ktlint-1.8.0 "target/release/ktlint --ktlint-version=1.8" <tree> <out>`
-  on `~/work/ktlint-bench/corpus` and `~/work/holdout/tree`.
+  `crates/ktrs-lint/tests/data/ktlint_1_8_mode/`, expected rows from both jars), `--test ktlint_1_8_format` (rule order,
+  `RunAfterRuleFilter`, when-entry-bracing in both modes), `cargo test -p ktrs-cli --test ktlint_cli_1_8`,
+  `--test ktlint_baseline`, and `java_printf`'s unit test.
+- Lint rows and `-F` trees vs the jar (testbox, background, under the bench lock; `NO_FORMAT=1` for rows only):
+  `tools/parity/ktlint-compare.sh ~/work/ktlint-bench/bin/ktlint-1.8.0 "target/release/ktlint --ktlint-version=1.8" <tree> <out>`
+  on `~/work/ktlint-bench/corpus` and `~/work/holdout/tree`. Bisecting a format diff: `ktlint_standard_<id> = disabled`
+  in the tree's `.editorconfig` on both sides, one rule at a time (mind the `RunAfterRuleFilter` failure above).
 - CLI: `KTLINT_VERSION=1.8 JAR=~/work/ktlint-bench/bin/ktlint-1.8.0 tools/ktlint-oracle/cli-diff.sh target/release/ktlint`
   (locally the jar is fetched to `tools/ktlint-oracle/lib/`).
 - Regenerating the fixture expectations: run `ktlint-1.8.0 --relative` and `ktlint-2.0.0-ALPHA-4 --relative` in the
   fixture directory, keep the `<file>.kt:` rows, `LC_ALL=C sort`.
+
+## Phase 2: byte-exact `-F` (2026-10-02)
+
+Ported from `ktlint-src` tag 1.8.0 (`RuleExecutionContext.kt`, `RuleProviderSorter.kt`, `rulefilter/RunAfterRuleFilter.kt`,
+`CodeFormatter.kt`, the 16 rules' constructors, `WhenEntryBracing.kt`), diffed against 2.0.0-ALPHA-4.
+
+### Design
+
+- **`VisitorModifier`s are rule data again**: `RuleV2::visitor_modifiers()` (default none) returns 1.8.0's set for the
+  16 rules that had one (research/22 E1 list); `RuleV2Provider` caches it like the rule id and exposes 1.8's
+  `run_after_rules()` / `run_as_late_as_possible()`. 2.0 never reads them.
+- **`engine/rule_provider_sorter_1_8.rs`**: `run_after_rule_filter` (drops nothing in practice, but a missing
+  `ONLY_WHEN_RUN_AFTER_RULE_IS_LOADED_AND_ENABLED` predecessor is the jar's `IllegalStateException`) and
+  `get_sorted_rule_providers_1_8` (suppression rule; then rules without modifiers, standard first, by id; then each
+  remaining rule, in that order, once its run-after rules are placed). `RuleSetupCache` applies the filter after the
+  rule-execution filter and picks the sorter per version (`VisitorProvider::for_version`); a filter failure is stored in
+  the `RuleSetup` and raised by `create_rule_execution_context` as `KtLintException::IllegalState` (the CLI crashes with
+  it, wrapped in `ExecutionException` for files).
+- **Rule-major traversal** (`engine/rule_execution_context/rule_major.rs`): in 1.8 mode `execute_rules` runs each rule
+  over the whole tree (`beforeFirstNode`, walk, `afterLastNode`) before the next. Two 1.8 details kept: no bail-out for
+  nodes replaced by an earlier hook, and one suppression lookup per node, made before `beforeVisitChildNodes` and reused
+  for `afterVisitChildNodes`. A rule exception is rethrown at every level up to the root, so lint reports it at 1:1.
+  The 2.0 node-major code path is untouched.
+- **Error order**: both modes now stable-sort by line/col only (upstream); in 1.8 mode the insertion order is the rule
+  order, so phase 1's rank table (`KTLINT_1_8_LATE_RULES`) is gone.
+- **when-entry-bracing**: `surround_with_braces_1_8`, the pre-#3261 body (replace everything after the arrow by
+  `" "` + a block built from `true -> { … }`), chosen by the rule's `ktlint_version`.
+- Rule internals: diffing every standard rule 1.8.0 vs 2.0.0-ALPHA-4 after normalising renames (`*20` accessors,
+  package, `RuleV2`) leaves only the phase-1 switches, the `VisitorModifier` sets and when-entry-bracing; the rest are
+  equivalent rewrites (function-literal `takeIf`/`if`, comment-spacing's leaf replacement, `Unit` vs comments) or
+  doc changes. No further switch was needed: the corpora agree byte for byte.
+- Cost: 1.8 mode traverses once per rule. On 1,500 held-out files, `lint` 0.49 s → 0.94 s and `-F` 2.24 s → 2.93 s
+  (2.0 vs 1.8 mode, same binary).
+
+### Results (testbox)
+
+`ktlint-compare.sh` with `-F`, `ktrs --ktlint-version=1.8` vs `ktlint-1.8.0`:
+
+| tree | style | lint rows only jar / only ktrs | `-F` files differing |
+|---|---|--:|--:|
+| dev corpus (6,123 files) | ktlint_official | 1 / 0 | 0 |
+| | intellij_idea | 1 / 0 | 0 |
+| | android_studio | 1 / 0 | 0 |
+| held-out (15,287 files) | ktlint_official | 3 / 0 | 1 |
+| | intellij_idea | 3 / 0 | 1 |
+| | android_studio | 3 / 0 | 1 |
+
+Before phase 2 the dev corpus differed in 338 / 96 / 1,346 files after `-F` (≈ research/22's 1.8-vs-2.0 jar table).
+The remaining lint rows and the one held-out file (Json.kt) are the KDoc-lexer rows under "Remaining differences".
+On the dev corpus the rows `-F` prints are also equal (sorted). The 64 files where 2.0 crashes in indent (E2) format
+without error, as in 1.8.
+
+- CLI, `cli-diff.sh`: 1.8 mode vs `ktlint-1.8.0` **154/154** (was 153: `rep_summary_format` now matches); 2.0 mode vs
+  `ktlint-2.0.0-ALPHA-4` 154/154.
+- 2.0 unchanged: branch vs master-built (53bb811) `ktlint` on the dev corpus, three styles: 0 lint-row diffs, 0 files
+  differing after `-F`, stdout/stderr of both runs equal up to timestamps and temp paths; `cargo test -p ktrs-lint
+  --release` and `cargo test -p ktrs-cli` green.
+- New tests (`tests/ktlint_1_8_format.rs`): the sorter reproduces the jar's debug-logged order for ktlint_official;
+  the filter's failure message; when-entry-bracing in both modes against each jar's `-F` output
+  (`tests/data/ktlint_1_8_format/`).
