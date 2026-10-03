@@ -16,9 +16,10 @@ fun File.gradle(vararg arguments: String): GradleRunner =
 
 fun File.appendToBuildGradle(content: String) {
     resolve("build.gradle.kts").apply {
-        appendText(System.lineSeparator())
-        appendText(content.ensureLineSeparator())
-        appendText(System.lineSeparator())
+        // LF like the fixture: CRLF lines appended on Windows would make `ktfmtCheckScripts` flag the build script.
+        appendText("\n")
+        appendText(content.replace("\r\n", "\n"))
+        appendText("\n")
     }
 }
 

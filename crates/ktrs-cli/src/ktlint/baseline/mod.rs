@@ -117,6 +117,7 @@ fn parse_baseline_error_element(element: &xml::Element) -> Result<KtlintCliError
         rule_id: element.attribute("source").to_owned(),
         detail: String::new(),
         status: Status::BaselineIgnored,
+        corrected: false,
     })
 }
 

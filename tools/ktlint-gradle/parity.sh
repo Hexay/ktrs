@@ -3,7 +3,8 @@
 # console, task outcomes, report files and formatted sources (research/29-ktlint-gradle-dropin.md).
 #   tools/ktlint-gradle/parity.sh [scenario ...]   (default: all; needs `cargo build --bins`, network, a JDK 17+)
 # Scenarios: check-all format baseline options compose-maven compose-all realcode. Output: target/ktlint-gradle/<scenario>/
-# {upstream,ktrs}/ and <scenario>.diff (compare.py --slashes: Windows separators and ANSI colors ignored).
+# {upstream,ktrs}/ and <scenario>.diff (byte comparison but for project paths and Gradle noise; SLASHES=1 also ignores
+# path separators and ANSI colors).
 set -uo pipefail
 # Windows-form paths under Git Bash: they end up in Gradle files and the JVM.
 root="$(cd "$(dirname "$0")/../.." && (pwd -W 2> /dev/null || pwd))"
@@ -47,7 +48,7 @@ scenario() {
       grep -q "^> Task :loadKtlintReporters" "$out/$name/$side/run.txt" || echo "$name/$side: gradle did not run ($args)" >&2
     done
   done
-  py_ "$here/compare.py" "$out/$name" --slashes > "$out/$name.diff"
+  py_ "$here/compare.py" "$out/$name" ${SLASHES:+--slashes} > "$out/$name.diff"
   echo "$name: $(tail -1 "$out/$name.diff") ($(wc -l < "$out/$name.diff") diff lines); $(py_ "$here/rows.py" "$out/$name" | head -1)"
 }
 
@@ -55,10 +56,11 @@ py_() { if command -v py > /dev/null; then py -3 "$@"; else python3 "$@"; fi; }
 
 realcode_template() {
   local t="$out/realcode-template"
+  local corpus="${CORPUS:-$root/corpus}"
   rm -rf "$t"; mkdir -p "$t/src/main/kotlin" "$t/src/test/kotlin"
-  cp -r "$root/corpus/okhttp/okhttp/src/commonJvmAndroid/kotlin/." "$t/src/main/kotlin/"
-  cp -r "$root/corpus/ktlint/ktlint-rule-engine/src/main/kotlin/." "$t/src/test/kotlin/"
-  cp "$root/corpus/okhttp/.editorconfig" "$t/"
+  cp -r "$corpus/okhttp/okhttp/src/commonJvmAndroid/kotlin/." "$t/src/main/kotlin/"
+  cp -r "$corpus/ktlint/ktlint-rule-engine/src/main/kotlin/." "$t/src/test/kotlin/"
+  cp "$corpus/okhttp/.editorconfig" "$t/"
   echo "$t"
 }
 

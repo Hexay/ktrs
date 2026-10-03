@@ -8,100 +8,106 @@ commit `4f887d2a46713a03c57215b08c8d90f8c5e95703`). Switching is changing the pl
 ## Mirrored
 
 - Plugin class `org.jlleitschuh.gradle.ktlint.KtlintPlugin` (+ `KtlintBasePlugin`), so `plugins.withType<KtlintPlugin>`
-  / `apply<KtlintPlugin>()` compile. Applies to `kotlin`, `org.jetbrains.kotlin.js`, `…multiplatform`, Android
+  / `apply<KtlintPlugin>()` compile (unlike the ktfmt drop-in's `io.github.hexay.ktrs.gradle.KtrsPlugin`: build logic
+  does reference `KtlintPlugin` by type). Applies to `kotlin`, `org.jetbrains.kotlin.js`, `…multiplatform`, Android
   (`org.jetbrains.kotlin.android` and AGP 9 built-in Kotlin), as upstream (`KotlinSourceSetsApplier.kt`,
   `android/AndroidPluginsApplier.kt`). Upstream's KMP `androidJvm` branch builds a lambda it never calls: ported as is.
 - Extension `ktlint { version, relative, verbose, debug, android, outputToConsole, coloredOutput, outputColorName,
   ignoreFailures, enableExperimentalRules, additionalEditorconfig, baseline, reporters { reporter(…); customReporters
   { … } }, kotlinScriptAdditionalPaths { include(…) }, filter { … } }`; `ktlint-plugins.properties` (`ktlint-version`).
 - Tasks: `ktlintCheck`/`ktlintFormat`, `runKtlint{Check,Format}Over<SourceSet>SourceSet` and `…OverKotlinScripts`,
-  `ktlint<SourceSet>SourceSet{Check,Format}` / `ktlintKotlinScript{Check,Format}` (report tasks, which fail the
-  build), `loadKtlintReporters`, `ktlintGenerateBaseline`, `addKtlint{Check,Format}GitPreCommitHook` (hook script
+  `ktlint<SourceSet>SourceSet{Check,Format}` / `ktlintKotlinScript{Check,Format}` (report tasks, which fail the build
+  from a `org.jlleitschuh.gradle.ktlint.worker.ConsoleReportWorkAction`, so the failure text nests as upstream's),
+  `loadKtlintReporters`, `ktlintGenerateBaseline`, `addKtlint{Check,Format}GitPreCommitHook` (hook script
   byte-identical); same groups, descriptions, `check` wiring, `mustRunAfter`s, `internalKtlintGitFilter`.
+- Incremental lint/format as upstream (`BaseKtLintCheckTask.runLint`/`runFormat`): changed files (all after an
+  `.editorconfig` change), skipped when only removals changed; then lint adds every file the last run linted
+  (upstream keeps a result per linted file, errors or not — so in practice it relints everything it linted before),
+  format adds the files its last run formatted. Format task's restored-file up-to-date check (pre-format hashes).
 - Public types: `KtlintExtension` (+ `ReporterExtension`, `KScriptExtension`), `reporter.ReporterType`,
   `reporter.CustomReporter`, `tasks.{BaseKtLintCheckTask, KtLintCheckTask, KtLintFormatTask, GenerateReportsTask,
   GenerateBaselineTask}`, `KtlintInstallGitHookTask`. Configurations `ktlint`, `ktlintRuleset`, `ktlintReporter`,
   `ktlintBaselineReporter`.
-- Report files `build/reports/ktlint/<reportTask>/<reportTask>.<ext>` (`reportsOutputDirectory` configurable), console
-  rows `<abs path>:<line>:<col> <detail>[ (<rule>)]` at warn, failure text "KtLint found code style violations. Please
-  see the following reports:" + `- <report>` lines, "KtLint failed to parse file: <path>", baseline message.
-- Format task's restored-file up-to-date check (snapshot of pre-format hashes), `@CacheableTask`s, configuration cache.
 
 ## How it runs
 
-Each lint/format task runs **one** `ktrs ktlint` process over all its files (`KtrsKtlint.kt`, argfile past 24k
-characters): the `ktlint` drop-in behind the bundled `ktrs` binary (`ktrs ktlint <args>` = `src/bin/ktlint.rs` without
-the Windows `java` launcher wildcard expansion; `crates/ktrs-cli/src/ktrs.rs`). Binary: `-Pktrs.executable` /
-`-Dktrs.executable`, else the one bundled in `io.github.hexay:ktrs` (`KtrsExecutable.locate()`). Working dir = the
-project dir; `JAVA_HOME` = the Gradle JVM's `java.home` (for the jar hand-off).
+Each lint/format task runs **one** `ktrs ktlint` process over the files it lints (`KtrsKtlint.kt`; an argfile past 24k
+characters), in source order: the `ktlint` drop-in behind the bundled `ktrs` binary (`ktrs ktlint <args>` =
+`src/bin/ktlint.rs` without the Windows `java` launcher wildcard expansion; `crates/ktrs-cli/src/ktrs.rs`). Binary:
+`-Pktrs.executable` / `-Dktrs.executable`, else the one bundled in `io.github.hexay:ktrs` (`KtrsExecutable.locate()`).
+Working dir = the project dir (baseline keys); `JAVA_HOME` = the Gradle JVM's `java.home` (for the jar hand-off).
 
-- Options (`KtlintCommand.kt`): `--ktlint-version=1.8` for "1.8.0" (default), `=2.0` for "2.0.0-ALPHA-4", any other
-  version fails `loadKtlintReporters`/the lint task naming both; `--format`, `--relative`, `--color`,
-  `--color-name`, `--baseline` (when the file exists), `--editorconfig=<additionalEditorconfig as [*.{kt,kts}]>`,
-  `-R` rule sets, one `--reporter=<id>[?group_by_file][,artifact=…],output=…` per reporter plus `json` for the console.
-- Report task: copies the run's reports to the upstream names, prints the json rows (deduplicated), fails.
-- `ktlintGenerateBaseline`: one run with the `baseline` reporter over every check task's sources (still dependsOn them).
-- Rule sets (`JarServices.kt`): `ktlintRuleset` minus ktlint's own runtime groups (`com.pinterest*`, `io.github.ktlint*`,
-  `org.jetbrains*`, `io.github.oshai`, `org.slf4j`, `org.ec4j`, `ch.qos.logback`); nothing if no JAR declares a rule
-  set provider, the JAR itself if it is the only one, else all merged into one JAR (services concatenated) so a rule
-  set's dependencies load. Custom reporters: `artifact=` a `ktlintReporter` JAR declaring `ReporterProviderV2`.
+ktlint-gradle runs ktlint's engine in-process with its own reporting; hidden, ktrs-only options of the drop-in
+reproduce that (`crates/ktrs-cli/src/ktlint/gradle.rs`, table there):
+
+- `--ktrs-gradle-events=<file>`: every error with its status (`file`/`error` lines). Check tasks print upstream's
+  " (cannot be auto-corrected)" from the status. With `--format` the run formats like the engine's
+  `format(code, callback: (LintError, Boolean))` (`KtLintInvocation100.invokeFormat`): all autocorrectable errors fixed,
+  baseline ones too, and the reporters get every error met, fixed ones included, with lint statuses and plain details.
+  Reporters get paths with the platform's separators (upstream's `File.absolutePath`; it also orders `html`).
+- `--ktrs-relative-to=<root dir>` with `--relative`: report paths relative to the root project, as upstream's.
+- `--ktrs-editorconfig-override=<name>=<value>` (`additionalEditorconfig`): an `EditorConfigOverride`, which wins over
+  every `.editorconfig`, names resolved like `EditorConfigPropertyRegistry.find` (unknown names fail the run).
+
+Other options (`KtlintCommand.kt`): `--ktlint-version=1.8` for "1.8.0" (default), `=2.0` for "2.0.0-ALPHA-4", any other
+version fails `loadKtlintReporters`/the lint task naming both; `--color`, `--color-name`, `--baseline` (when the file
+exists), `-R`, one `--reporter=<id>[?group_by_file][,artifact=…],output=…` per reporter. The report task copies the
+run's reports to the upstream names. `ktlintGenerateBaseline`: one run with the `baseline` reporter over every check
+task's sources (still dependsOn them).
+
+Rule sets (`JarServices.kt`): `ktlintRuleset` minus ktlint's own runtime groups (`com.pinterest*`, `io.github.ktlint*`,
+`org.jetbrains*`, `io.github.oshai`, `org.slf4j`, `org.ec4j`, `ch.qos.logback`); nothing if no JAR declares a rule set
+provider, the JAR itself if it is the only one, else all merged into one JAR (services concatenated). compose-rules
+runs natively both as `files("…-all.jar")` and as the Maven artifact (`io.nlopez.compose.rules:ktlint` +
+`common-ktlint`, which the plugin merges): `ktrs_compose::NATIVE_JARS` holds both fingerprints per release
+(directory entries no longer count, so merge order and the merger's tool don't matter). The 19 of 197 compose classes
+whose bytes differ between the two are the same code: `javap -c -p` equal after normalizing constant-pool indices,
+`ldc`/`ldc_w`, offsets and branch targets, except that the `-all.jar` calls `shadow/org/jetbrains/kotlin/psi/psiUtil/*`
+(its relocated copy of the compiler helpers) where the Maven JARs call `org/jetbrains/kotlin/psi/psiUtil/*`. The CLI case
+`-R thin.jar -R common-ktlint.jar` doesn't apply: ktlint rejects a `-R` JAR without a provider (`common-ktlint` has
+none), so only the merged JAR matters. Other rule set / custom reporter JARs: the drop-in hands the run to the ktlint
+jar, which ignores the hidden options; the events file then is a `json` report (no statuses: check-task rows lack the
+suffix, format reports follow ktlint's CLI).
 
 ## Deviations
 
-1. Not incremental: a task that runs relints all its files (upstream: changed files plus previously failing ones).
-   Outcomes and UP-TO-DATE behave the same; report tasks are UP-TO-DATE more often than upstream's.
-2. The baseline is applied by the lint task (CLI `--baseline`), so lint tasks rerun when it appears or changes.
-3. Reports are ktlint CLI reporter output. On Windows: paths use `/` (ktlint CLI) where ktlint-gradle writes `\`, and
-   the plain reporter's colored dir/file split differs accordingly. `html`/`sarif` list files in the CLI's (parallel)
-   processing order; `plain`/`json`/`checkstyle` sort, so they match.
-4. Format-task reports follow `ktlint --format`: only errors left unfixed, detail suffixed " (cannot be auto-corrected)",
-   repeated per format pass when the CLI repeats them. Upstream lists every error its format run met, fixed ones
-   included, without suffix.
-5. Console rows of **check** tasks lack upstream's " (cannot be auto-corrected)" suffix (the json report has no error
-   status). Rows come in ktlint's json order (by path), not file-walk order. Format-task rows match.
-6. `additionalEditorconfig` becomes ktlint's `--editorconfig` defaults: a project `.editorconfig` setting the same
-   property wins (upstream: the map overrides).
-7. `relative = true`: paths relative to the project dir (upstream: root dir); same in single-project builds.
-8. The failure is a plain `GradleException` (upstream nests it under "A failure occurred while executing
-   …ConsoleReportWorkAction"); the parse failure message adds ktlint's detail line.
-9. `ktlint`/`ktlintRuleset`/`ktlintReporter` get no ktlint artifacts added (ktrs is the ktlint); `workerMaxHeapSize`
+1. The baseline is applied by the lint task (CLI `--baseline`), so lint tasks rerun when it appears or changes
+   (upstream: only the report tasks rerun). Outcomes and outputs are the same.
+2. `ktlint`/`ktlintRuleset`/`ktlintReporter` get no ktlint artifacts added (ktrs is the ktlint); `workerMaxHeapSize`
    is accepted and unused; `android` and `enableExperimentalRules` do nothing, as upstream with ktlint 1.x; `debug`
    logs the command lines and the CLI output at warn. `ReporterType` has no `availableSinceVersion`.
-10. Rule sets: only what ktlint's `-R` can load — rule set classes plus their dependencies merged into one JAR, with
-    ktlint's own classes from the ktlint jar. compose-rules' `-all.jar` runs natively; its Maven artifact
-    (`io.nlopez.compose.rules:ktlint` + `common-ktlint`) merges to different class bytes (19 of 197 entries), so it
-    goes through the ktlint jar hand-off (JVM; downloads the ktlint 1.8.0 jar once).
-11. Git hooks find `.git` by walking up (no jgit); same script and messages.
-12. Plugin implementation class is upstream's FQN (`org.jlleitschuh.gradle.ktlint.KtlintPlugin`), unlike the ktfmt
-    drop-in's `io.github.hexay.ktrs.gradle.KtrsPlugin`: build logic does reference `KtlintPlugin` by type.
+3. Rule sets other than compose-rules (and custom reporters) go through the ktlint jar hand-off: JVM speed, the
+   `json`-report fallback above, and only what ktlint's `-R` loads (the merged JAR includes dependencies, but ktlint's
+   own classes come from the ktlint jar).
+4. Git hooks find `.git` by walking up (no jgit); same script and messages.
+5. The plugin id in Gradle's "registered by plugin '…'" lines.
 
 ## Verification
 
-- TestKit (`java/gradlew -p java :ktrs-gradle-plugin:test --tests 'org.jlleitschuh.*'`, slow: background): upstream's
-  functional tests ported to `src/test/kotlin/org/jlleitschuh/gradle/ktlint/` (12 classes: plugin, sources/filters/git
-  filter, versions, reporters, baseline, editorconfig, supported versions × {1.8.0, 2.0.0-ALPHA-4} incl. disabled
-  rules, configuration cache, build cache, configuration avoidance, git hooks, multiplatform) — 83 tests, all pass.
-  Not ported: Android, Kotlin/JS (Kotlin 2.4 rejects the plugin), 3rd-party reporter (network), "force dependency
-  versions", `UnsupportedGradleTest`, `KtLintClassesUsageScopeTest`. Rust: `crates/ktrs-cli/tests/ktrs_ktlint.rs`.
+- TestKit (`java/gradlew -p java :ktrs-gradle-plugin:test`, slow: background): upstream's functional tests ported to
+  `src/test/kotlin/org/jlleitschuh/gradle/ktlint/` (12 classes incl. the incremental-lint tests) — 85 tests pass; the
+  ktfmt plugin's 91 too. Not ported: Android, Kotlin/JS (Kotlin 2.4 rejects the plugin), 3rd-party reporter
+  (network), "force dependency versions", `UnsupportedGradleTest`, `KtLintClassesUsageScopeTest`.
+  The 3 `KtfmtCheckTaskIntegrationTest` failures seen earlier also failed on master (same 3 of 27): Windows-only, the
+  test helper appended CRLF lines to the LF fixture `build.gradle.kts`, which `ktfmtCheckScripts` then flagged; fixed
+  in `testutil/File.kt`.
+- Rust: `crates/ktrs-cli/tests/ktrs_ktlint.rs` (passthrough, gradle format events/reports, override precedence,
+  relative base), `hand_off_args` (hidden options dropped/rewritten), `compose_jar` (both fingerprints).
 - Parity vs the real plugin (14.2.0, ktlint 1.8.0, Gradle 9.8.0, Windows): `tools/ktlint-gradle/parity.sh` (both sides
-  on the same project; `compare.py --slashes` diffs console/outcomes/reports/sources ignoring `\` vs `/` and ANSI;
-  `rows.py` compares console rows). Results (2026-10-03):
+  on the same project; `compare.py` diffs console — each run's task blocks in a stable order, Gradle noise and the
+  plugin id normalized — task outcomes, report files and sources byte for byte; `rows.py` compares console rows).
+  Results (2026-10-03):
 
 | scenario | what | result |
 |---|---|---|
-| check-all | 5 reporters, `ktlintCheck` ×2 | outcomes equal (2nd run UP-TO-DATE); 56/56 rows equal but 4 lacking the suffix (dev. 5); txt/json/xml/html identical; sarif identical |
-| format | `ktlintFormat` ×3 | sources identical; 6/6 rows identical; plain report: dev. 4; report tasks UP-TO-DATE where upstream reruns |
-| baseline | `ktlintGenerateBaseline`, `ktlintCheck` | baseline.xml identical; check results identical; lint tasks rerun (dev. 2) |
-| options | verbose, relative, no color, ignoreFailures, additionalEditorconfig, filter, plain_group_by_file+checkstyle | check reports identical, 33/33 rows (5 suffix); format reports: dev. 4 |
-| compose-maven | `ktlintRuleset "io.nlopez.compose.rules:ktlint:0.6.7"` | 34/34 rows (3 suffix), reports identical (via jar hand-off) |
-| compose-all | `ktlintRuleset files(ktlint-compose-0.6.7-all.jar)` | same, natively |
-| realcode | okhttp `commonJvmAndroid` (152 files, its `.editorconfig`) + ktlint-rule-engine (29), check + format | 2475/2475 rows (20 suffix); check txt/json/xml identical; html/sarif same content, file order differs (dev. 3); all 181 formatted sources byte-identical |
+| check-all | 5 reporters, `ktlintCheck` ×2 | identical (56 rows, reports, outcomes incl. UP-TO-DATE) |
+| format | `ktlintFormat` ×3 | identical (sources, reports, 6 rows, outcomes) |
+| baseline | `ktlintGenerateBaseline`, `ktlintCheck` | baseline.xml and results identical; lint tasks rerun (dev. 1) |
+| options | verbose, relative, no color, ignoreFailures, additionalEditorconfig, filter, plain_group_by_file+checkstyle | identical |
+| compose-maven | `ktlintRuleset "io.nlopez.compose.rules:ktlint:0.6.7"` | identical, native (no hand-off) |
+| compose-all | `ktlintRuleset files(ktlint-compose-0.6.7-all.jar)` | identical, native |
+| realcode | okhttp `commonJvmAndroid` (152 files, its `.editorconfig`) + ktlint-rule-engine (29), check + format | identical (2475 rows, txt/json/xml/sarif reports, 181 formatted sources) but `html` file order: same lines, order of the reporter's `ConcurrentHashMap` keyed by the absolute path, which differs between the two project dirs (`…/upstream/…` vs `…/ktrs/…`) |
 
 ## Open items
 
-- A status-carrying console output (e.g. a hidden json variant with the error status) would remove deviation 5;
-  needs a reporter in `crates/ktrs-cli/src/ktlint/reporter` (out of scope here: CLI parity work in progress there).
-- compose-rules' Maven artifact natively: add the merged-JAR fingerprint (`ktlint-0.6.7.jar` + `common-ktlint-0.6.7.jar`
-  `io/nlopez/compose/` entries: `38b700317ae4830319bc7a28adfba0316ca9a7f6beecffe6f46cde50e529995b`) to
-  `ktrs_compose::NATIVE_JARS`, after checking the 19 differing classes are the same source.
 - Not verified: Android projects, multi-project `relative`, custom reporter JARs (network), Linux/macOS parity runs.

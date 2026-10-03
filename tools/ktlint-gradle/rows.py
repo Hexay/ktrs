@@ -1,7 +1,5 @@
-"""rows.py <scenario-dir>: console error rows of both sides as multisets, ignoring order and the lint-mode suffix."""
+"""rows.py <scenario-dir>: the console error rows of both sides as multisets (paths project-relative)."""
 import collections, re, sys
-
-SUFFIX = " (cannot be auto-corrected)"
 
 
 def rows(side):
@@ -15,11 +13,10 @@ def rows(side):
 
 
 u, k = rows("upstream"), rows("ktrs")
-suffixed = sum(1 for r in u if SUFFIX in r)
-cu = collections.Counter(r.replace(SUFFIX, "") for r in u)
-ck = collections.Counter(r.replace(SUFFIX, "") for r in k)
-print(f"upstream rows {len(u)} (with suffix {suffixed}), ktrs rows {len(k)}, same multiset ignoring suffix: {cu == ck}")
-for r in (cu - ck).elements():
+same_set = collections.Counter(u) == collections.Counter(k)
+# Order is compare.py's business: tasks interleave differently, rows within a task's block are compared there.
+print(f"rows: upstream {len(u)}, ktrs {len(k)}; same rows: {same_set}")
+for r in (collections.Counter(u) - collections.Counter(k)).elements():
     print("only upstream:", r)
-for r in (ck - cu).elements():
+for r in (collections.Counter(k) - collections.Counter(u)).elements():
     print("only ktrs:", r)

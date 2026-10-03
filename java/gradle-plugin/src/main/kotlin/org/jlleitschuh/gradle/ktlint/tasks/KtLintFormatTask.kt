@@ -10,6 +10,7 @@ import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.LocalState
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.util.PatternFilterable
+import org.gradle.work.InputChanges
 import org.jlleitschuh.gradle.ktlint.capitalizeName
 import org.jlleitschuh.gradle.ktlint.intermediateResultsBuildDir
 
@@ -34,12 +35,13 @@ constructor(objectFactory: ObjectFactory, projectLayout: ProjectLayout, patternF
     }
 
     @TaskAction
-    public fun format() {
+    public fun format(inputChanges: InputChanges) {
+        val snapshotFile = previousRunSnapshot.get().asFile
         val before = source.files.associateWith { contentHash(it) }
-        runKtlint(format = true)
+        runFormat(inputChanges, FormatTaskSnapshot.readFromFile(snapshotFile).formattedSources.keys)
         val formatted = before.filter { (file, hash) -> file.exists() && !contentHash(file).contentEquals(hash) }
         if (formatted.isNotEmpty()) {
-            FormatTaskSnapshot.writeIntoFile(previousRunSnapshot.get().asFile, FormatTaskSnapshot(formatted))
+            FormatTaskSnapshot.writeIntoFile(snapshotFile, FormatTaskSnapshot(formatted))
         }
     }
 

@@ -2,6 +2,7 @@ package org.jlleitschuh.gradle.ktlint.tasks
 
 import groovy.lang.Closure
 import io.github.hexay.ktrs.gradle.ktlint.KtlintCommand
+import io.github.hexay.ktrs.gradle.ktlint.RunErrors
 import java.io.File
 import javax.inject.Inject
 import org.gradle.api.DefaultTask
@@ -9,6 +10,7 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTreeElement
+import org.gradle.api.file.FileType
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
@@ -29,6 +31,9 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.util.PatternFilterable
+import org.gradle.work.ChangeType
+import org.gradle.work.Incremental
+import org.gradle.work.InputChanges
 import org.jlleitschuh.gradle.ktlint.FILTER_INCLUDE_PROPERTY_NAME
 import org.jlleitschuh.gradle.ktlint.KOTLIN_EXTENSIONS
 import org.jlleitschuh.gradle.ktlint.applyGitFilter
@@ -36,9 +41,8 @@ import org.jlleitschuh.gradle.ktlint.getEditorConfigFiles
 import org.jlleitschuh.gradle.ktlint.intermediateResultsBuildDir
 
 /**
- * ktlint-gradle's lint/format task base: one `ktrs ktlint` run over all of [source], writing the
- * reports (for [GenerateReportsTask] to publish) and the errors for the console ([discoveredErrors],
- * ktlint's `json` report).
+ * ktlint-gradle's lint/format task base: one `ktrs ktlint` run over the files upstream would lint,
+ * writing the reports (for [GenerateReportsTask] to publish) and every error ([discoveredErrors]).
  */
 @CacheableTask
 public abstract class BaseKtLintCheckTask
@@ -53,6 +57,7 @@ constructor(
 
     @get:Input internal abstract val additionalEditorconfig: MapProperty<String, String>
 
+    @get:Incremental
     @get:PathSensitive(PathSensitivity.RELATIVE)
     @get:InputFiles
     internal val editorConfigFiles: FileCollection =
@@ -126,7 +131,7 @@ constructor(
 
     @get:OutputFile
     internal val discoveredErrors: RegularFileProperty =
-        objectFactory.fileProperty().convention(projectLayout.intermediateResultsBuildDir("${name}_errors.json"))
+        objectFactory.fileProperty().convention(projectLayout.intermediateResultsBuildDir("${name}_errors.txt"))
 
     /** The reports of the run, as `report.<extension>`. */
     @get:OutputDirectory
@@ -165,9 +170,54 @@ constructor(
 
     override fun exclude(excludeSpec: Closure<*>): BaseKtLintCheckTask = also { patternFilterable.exclude(excludeSpec) }
 
-    /** Lints (or with [format], formats) every source file in one `ktrs ktlint` run. */
-    protected fun runKtlint(format: Boolean) {
-        val files = source.files.sorted()
+    /** Upstream's `runLint`: the changed files and those with errors last time, all after an `.editorconfig` change. */
+    protected fun runLint(inputChanges: InputChanges) {
+        val editorConfigUpdated = wasEditorConfigFilesUpdated(inputChanges)
+        val filesToCheck = if (editorConfigUpdated) source.files else getChangedSources(inputChanges)
+        logTaskExecutionState(inputChanges, editorConfigUpdated)
+        // As upstream, decided before the previously linted files join: removals alone lint nothing.
+        if (skipExecution(filesToCheck)) return
+        val errorsFile = discoveredErrors.get().asFile
+        // Upstream keeps a result per linted file, errors or not, and relints them all.
+        val previousErrors =
+            if (errorsFile.exists()) {
+                RunErrors.lintedFiles(errorsFile).map { path -> File(path).let { if (it.isAbsolute) it else File(reportPathBase, path) } }
+                    .filter { it.exists() }
+            } else {
+                emptyList()
+            }
+        submitKtLintWork(filesToCheck + previousErrors, format = false)
+    }
+
+    /** Upstream's `runFormat`: the changed files and those the last run formatted, all after an `.editorconfig` change. */
+    protected fun runFormat(inputChanges: InputChanges, formattedLastTime: Set<File>) {
+        val editorConfigUpdated = wasEditorConfigFilesUpdated(inputChanges)
+        val filesToCheck =
+            if (editorConfigUpdated) source.files
+            else getChangedSources(inputChanges) + formattedLastTime.filter { it.exists() }
+        logTaskExecutionState(inputChanges, editorConfigUpdated)
+        if (skipExecution(filesToCheck)) return
+        submitKtLintWork(filesToCheck, format = true)
+    }
+
+    private fun skipExecution(filesToCheck: Collection<File>): Boolean {
+        if (filesToCheck.isNotEmpty()) return false
+        logger.info("Skipping. No files to lint")
+        didWork = false
+        return true
+    }
+
+    /** Base of `relative` paths in the run's output: the root project, as upstream's reports. */
+    @get:Internal internal val reportPathBase: File
+        get() = if (relative.get()) rootDirectory else projectDirectory
+
+    @get:Internal internal val rootDirectory: File = project.rootDir
+
+    private fun submitKtLintWork(filesToCheck: Collection<File>, format: Boolean) {
+        // In source order, which upstream's console and reports follow.
+        val wanted = filesToCheck.map { it.absoluteFile }.toSet()
+        val files = source.files.filter { it.absoluteFile in wanted }
+        if (skipExecution(files)) return
         logger.debug("Linting files: ${files.joinToString()}")
         val reportsDir = reportsDirectory.get().asFile
         reportsDir.deleteRecursively()
@@ -176,4 +226,20 @@ constructor(
         errors.delete()
         KtlintCommand(this).lint(this, files, format, reportsDir, errors)
     }
+
+    private fun logTaskExecutionState(inputChanges: InputChanges, editorConfigUpdated: Boolean) {
+        logger.info("Executing ${if (inputChanges.isIncremental) "incrementally" else "non-incrementally"}")
+        logger.info("Editorconfig files were changed: $editorConfigUpdated")
+    }
+
+    private fun wasEditorConfigFilesUpdated(inputChanges: InputChanges): Boolean =
+        inputChanges.isIncremental && !inputChanges.getFileChanges(editorConfigFiles).none()
+
+    private fun getChangedSources(inputChanges: InputChanges): Set<File> =
+        inputChanges
+            .getFileChanges(source)
+            .asSequence()
+            .filter { it.fileType != FileType.DIRECTORY && it.changeType != ChangeType.REMOVED }
+            .map { it.file }
+            .toSet()
 }

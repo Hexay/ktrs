@@ -231,9 +231,43 @@ class KtlintPluginSourcesTest : AbstractPluginTest() {
             createSourceFile("src/main/kotlin/FileThree.kt", "val bar = \"foo\"\n")
 
             build(CHECK_PARENT_TASK_NAME) {
-                assertThat(task(":$mainSourceSetCheckTaskName")?.outcome).isIn(
-                    listOf(TaskOutcome.SUCCESS, TaskOutcome.UP_TO_DATE)
-                )
+                assertThat(task(":$mainSourceSetCheckTaskName")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
+            }
+        }
+    }
+
+    @DisplayName("Lint check should run incrementally")
+    @Test
+    fun checkIsIncremental() {
+        project {
+            createSourceFile("src/main/kotlin/Initial.kt", "val foo = \"bar\"\n")
+            build(CHECK_PARENT_TASK_NAME) {
+                assertThat(task(":$mainSourceSetCheckTaskName")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
+            }
+
+            createSourceFile("src/main/kotlin/AnotherFile.kt", "val bar = \"foo\"\n")
+            build(CHECK_PARENT_TASK_NAME, "--info") {
+                assertThat(task(":$mainSourceSetCheckTaskName")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
+                assertThat(output).contains("Executing incrementally")
+            }
+        }
+    }
+
+    @DisplayName("Lint check should run incrementally and repeat errors")
+    @Test
+    fun checkIsIncrementalWithErrors() {
+        project {
+            createSourceFile("src/main/kotlin/Initial.kt", "val foo=\"bar\"\n")
+            buildAndFail(CHECK_PARENT_TASK_NAME) {
+                assertThat(task(":$mainSourceSetCheckTaskName")?.outcome).isEqualTo(TaskOutcome.FAILED)
+            }
+
+            createSourceFile("src/main/kotlin/AnotherFile.kt", "val bar=\"foo\"\n")
+            buildAndFail(CHECK_PARENT_TASK_NAME, "--info") {
+                assertThat(task(":$mainSourceSetCheckTaskName")?.outcome).isEqualTo(TaskOutcome.FAILED)
+                assertThat(output).contains("Executing incrementally")
+                assertThat(output).contains("Initial.kt")
+                assertThat(output).contains("AnotherFile.kt")
             }
         }
     }

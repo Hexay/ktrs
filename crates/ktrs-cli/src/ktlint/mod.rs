@@ -14,6 +14,7 @@ pub mod command_line;
 pub(crate) mod compose_jar;
 pub mod console;
 pub mod file_utils;
+pub mod gradle;
 mod hand_off_args;
 pub(crate) mod jar_providers;
 mod java_printf;
