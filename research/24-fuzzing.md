@@ -105,9 +105,14 @@ exactness claim held throughout.
 - **7.** Ported `visitElement`'s `catch (t: Throwable) { throw FormattingError(...) }`; output matches the jar apart from
   stack frames.
 - Rerun: all 13 ktfmt crash artifacts pass; the m3000/corpus3000 repros match the jar except the 3 finding-3 files.
-- **New (open):** ktlint `crates/ktrs-ast/src/text.rs:139` slices inside a multi-byte char (U+2029), testbox
-  `~/work/ktrs-fz/fuzz/artifacts/ktlint/crash-5117c70b…`. Two ktlint artifacts hit IntelliJ assertion texts
-  (`composite_element.rs:56`, `:103`), not yet checked against the jar.
+- **New, fixed:** (a) `text.rs:139` slice inside a multi-byte char. comment-spacing replaces an EOL comment leaf and
+  no-trailing-spaces then visits the detached leaf (as ktlint does), so its emit offset is relative to that leaf's
+  tree; the engine mapped it through the file's tree. Repro `"// é\n//xy \n"` (both jars format it cleanly). Emits now
+  map in the tree the visited node was in when its visit began (`Ast::tree_root`). (b) `composite_element.rs:56`/`:103`
+  are jar behaviour: 2.0 throws `java.lang.Throwable: Assertion failed: anchorBefore == null || …` in colon-spacing
+  (1.8.0 doesn't, nor our 1.8 mode); both jars throw the `getTreeNext()` … `"f" is null` NPE in curly-spacing. ktrs now
+  raises the same texts. Tests: `crates/ktrs-lint/tests/fuzz_regressions.rs`. Repros match both jars (96 runs each);
+  dev corpus vs master 0 diffs in 2.0 and 1.8 mode; a 1200 s ktlint rerun (1.54M execs) found nothing.
 
 ## Findings (by severity)
 
