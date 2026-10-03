@@ -32,6 +32,9 @@ Milestone 1: the parser's tree must be identical to the Kotlin compiler's PSI (`
   research/15-ktlint-spike.md; corpus counts per rule research/18-ktlint-corpus-counts.md.
   ktlint 1.8 mode (`ktrs_ktlint_version = 1.8` / `--ktlint-version=1.8`; lint rows + CLI, not `-F` order):
   research/26-ktlint-18-mode.md. Default stays 2.0; a 2.0 change touching a switch keeps the 1.8 branch.
+  `crates/ktrs-compose` — compose-rules (pin `tools/sync-compose-rules.sh`) as a native rule set, used when `-R` loads
+  that release's jar; other `-R`/reporter jars hand the run to the real ktlint jar (`ktrs-cli/src/ktlint/ktlint_jar.rs`).
+  Status, gates, pin bump: research/27-custom-rulesets-impl.md.
   `crates/ktrs-editorconfig` — ec4j 1.2.0 port (ktlint's `.editorconfig` semantics; ktfmt still uses ec4rs).
 - `tools/psi-accessors/psi-accessors.sh` — JVM oracle for ktrs-psi (`one|hashes|dump <dir> [--fixture] [--script]`);
   Rust mirror: `cargo run -p ktrs-psi --release --example psi_accessors -- one|hashes|compare|dump ...`.
@@ -68,6 +71,9 @@ Milestone 1: the parser's tree must be identical to the Kotlin compiler's PSI (`
   totals; `--experimental` = `ktlint_experimental = enabled`. Oracle (JVM, testbox, background): `KTLINT_CODE_STYLE=<style>
   [KTLINT_EXPERIMENTAL=enabled] tools/ktlint-oracle/ktlint-probe.sh corpus target/ktlint-oracle/<style>[-experimental]
   --rules <ported>`; status and commands research/19-ktlint-parity.md. Pass-by-pass tree diff: `tools/ktlint-tests/oracle-diff.sh` (`cargo ktlint-probe`).
+- `cargo test -p ktrs-compose --release` — compose-rules' own tests as goldens (`testdata/compose-rules/`, both ktlint
+  modes; regenerate: `tools/compose-rules-tests/extract-goldens.sh`, JVM, background). Real code (testbox, background):
+  `tools/compose-rules/parity.sh` (jar+`-R` vs ktrs+`-R`, lint and `-F`, 1.8 and 2.0).
 - `tools/holdout/run.sh` (testbox, background, hours) — held-out corpus: the `ktlint`/`ktfmt` binaries vs the jars on
   20 repos never used for fixes (`tools/holdout/REVISIONS`), via `tools/parity/{ktlint,ktfmt}-compare.sh`; research/21.
   `ktlint-compare.sh` also diffs two ktlint versions (1.8 vs 2.0: research/22).

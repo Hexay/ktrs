@@ -82,7 +82,7 @@ scenario() {
     local input=/dev/null
     [[ -n $stdin ]] && input="$dir/w/$stdin"
     (cd "$dir/w" && "${cmd[@]}" "$@" < "$input" > "$dir/out.raw" 2> "$dir/err.raw"; echo $? > "$dir/code")
-    local w_abs w_win=x; w_abs="$(cd "$dir/w" && pwd)"
+    local w_abs w_win; w_abs="$(cd "$dir/w" && pwd)"; w_win=$w_abs
     command -v cygpath >/dev/null && w_win=$(cygpath -m "$w_abs")
     for s in out err; do
       # JVM lambda identities (`RuleKt$$Lambda/0x…@1a2b`) differ per run; on Windows the tree shows as C:/… and C:\….
