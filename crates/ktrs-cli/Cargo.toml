@@ -8,6 +8,7 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+ktrs-syntax.workspace = true
 ktrs-fmt.workspace = true
 ktrs-lint.workspace = true
 ktrs-compose.workspace = true

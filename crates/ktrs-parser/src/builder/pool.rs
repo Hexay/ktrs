@@ -7,7 +7,7 @@ use std::cell::RefCell;
 use ktrs_lexer::Token;
 use ktrs_syntax::SyntaxKind;
 
-use super::production::{MarkerData, Production};
+use super::production::{Production, ProductionVecs};
 use super::psi_builder::PsiBuilder;
 
 /// Enough for any realistic chameleon nesting depth; deeper builders just allocate.
@@ -25,8 +25,7 @@ struct Buffers {
     lex_starts: Vec<u32>,
     lex_types: Vec<SyntaxKind>,
     orig_types: Vec<SyntaxKind>,
-    markers: Vec<MarkerData>,
-    list: Vec<i32>,
+    production: ProductionVecs,
     skipped_errors: Vec<bool>,
 }
 
@@ -36,15 +35,14 @@ impl Buffers {
     }
 
     fn give_back(mut self) {
-        if self.lex_types.capacity() > MAX_POOLED_LEXEMES || self.markers.capacity() > 4 * MAX_POOLED_LEXEMES {
+        if self.lex_types.capacity() > MAX_POOLED_LEXEMES || self.production.markers.capacity() > 4 * MAX_POOLED_LEXEMES {
             return;
         }
         self.text.clear();
         self.lex_starts.clear();
         self.lex_types.clear();
         self.orig_types.clear();
-        self.markers.clear();
-        self.list.clear();
+        self.production.clear();
         self.skipped_errors.clear();
         POOL.with(|pool| {
             let mut pool = pool.borrow_mut();
@@ -89,8 +87,7 @@ impl PsiBuilder {
     }
 
     fn from_buffers(text: &str, buffers: Buffers) -> PsiBuilder {
-        let Buffers { text: mut own_text, lex_starts, lex_types, mut orig_types, markers, list, skipped_errors } =
-            buffers;
+        let Buffers { text: mut own_text, lex_starts, lex_types, mut orig_types, production, skipped_errors } = buffers;
         assert_eq!(lex_starts.last().copied(), Some(text.len() as u32), "token lengths must sum to the text length");
         own_text.push_str(text);
         orig_types.extend_from_slice(&lex_types);
@@ -101,7 +98,7 @@ impl PsiBuilder {
             orig_types,
             current_lexeme: 0,
             token_type_checked: false,
-            production: Production::from_vecs(markers, list),
+            production: Production::from_vecs(production),
             skipped_errors,
         }
     }
@@ -109,14 +106,13 @@ impl PsiBuilder {
 
 impl Drop for PsiBuilder {
     fn drop(&mut self) {
-        let (markers, list) = self.production.take_vecs();
+        let production = self.production.take_vecs();
         Buffers {
             text: std::mem::take(&mut self.text),
             lex_starts: std::mem::take(&mut self.lex_starts),
             lex_types: std::mem::take(&mut self.lex_types),
             orig_types: std::mem::take(&mut self.orig_types),
-            markers,
-            list,
+            production,
             skipped_errors: std::mem::take(&mut self.skipped_errors),
         }
         .give_back();

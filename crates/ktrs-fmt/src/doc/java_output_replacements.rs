@@ -50,7 +50,7 @@ impl JavaOutput<'_> {
                 replace_from -= previous.len_utf8();
             }
 
-            let k_range = |k: i32| k_to_j[k as usize].expect("no output range for tok");
+            let k_range = |k: i32| k_to_j.get(k).expect("no output range for tok");
             let mut i = k_range(start_tok.get_index()).lower_endpoint();
             // Include leading blank lines from the formatted output, unless the formatted range
             // starts at the beginning of the file.

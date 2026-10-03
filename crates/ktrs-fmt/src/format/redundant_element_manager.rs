@@ -100,10 +100,25 @@ pub fn drop_redundant_elements(file: &KtFile, options: &FormattingOptions) -> Re
     for element in elements_to_remove {
         // Don't insert extra newlines when the semicolon is already a line terminator.
         let replacement = if element.text() == ";" && !contains_newline(element.next_sibling().as_ref()) { "\n" } else { "" };
-        result.replace_range(element.start_offset()..element.end_offset(), replacement);
+        string_builder_replace(&mut result, element.start_offset(), element.end_offset(), replacement)?;
     }
 
     Ok(result)
+}
+
+/// `StringBuilder.replace`: `end` is clamped to the length, a `start` past it throws. Reached when a
+/// removed element contains another one, e.g. an import directive that swallowed a trailing comment
+/// before its own `;` (`import a; /* x */`).
+fn string_builder_replace(result: &mut String, start: usize, end: usize, replacement: &str) -> Result<(), FormatError> {
+    let end = end.min(result.len());
+    if start > end {
+        return Err(FormatError::Runtime(format!(
+            "java.lang.StringIndexOutOfBoundsException: Range [{start}, {end}) out of bounds for length {}",
+            result.len()
+        )));
+    }
+    result.replace_range(start..end, replacement);
+    Ok(())
 }
 
 pub fn add_redundant_elements(file: &KtFile, options: &FormattingOptions) -> Result<String, FormatError> {

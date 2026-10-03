@@ -44,7 +44,7 @@ pub fn format(options: &FormattingOptions, code: &str) -> Result<String, FormatE
         match code.split_once('\n') {
             Some(parts) => parts,
             // `split(limit = 2)` yields one part; destructuring its second throws.
-            None => return Err(FormatError::Runtime("Index 1 out of bounds for length 1".to_owned())),
+            None => return Err(FormatError::Runtime("java.lang.IndexOutOfBoundsException: Index 1 out of bounds for length 1".to_owned())),
         }
     } else {
         ("", code)
