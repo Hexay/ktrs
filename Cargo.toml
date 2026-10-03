@@ -3,7 +3,7 @@ resolver = "3"
 members = ["crates/*", "xtask"]
 
 [workspace.package]
-version = "0.3.1"
+version = "0.4.0"
 edition = "2024"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/Hexay/ktrs"
@@ -11,16 +11,16 @@ rust-version = "1.90"
 
 [workspace.dependencies]
 # crates.io requires a version on each; keep in step with workspace.package.version.
-ktrs-syntax = { path = "crates/ktrs-syntax", version = "0.3.1" }
-ktrs-lexer = { path = "crates/ktrs-lexer", version = "0.3.1" }
-ktrs-parser = { path = "crates/ktrs-parser", version = "0.3.1" }
-ktrs-psi = { path = "crates/ktrs-psi", version = "0.3.1" }
-ktrs-fmt = { path = "crates/ktrs-fmt", version = "0.3.1" }
-ktrs-cli = { path = "crates/ktrs-cli", version = "0.3.1" }
-ktrs-ast = { path = "crates/ktrs-ast", version = "0.3.1" }
-ktrs-lint = { path = "crates/ktrs-lint", version = "0.3.1" }
-ktrs-editorconfig = { path = "crates/ktrs-editorconfig", version = "0.3.1" }
-ktrs-compose = { path = "crates/ktrs-compose", version = "0.3.1" }
+ktrs-syntax = { path = "crates/ktrs-syntax", version = "0.4.0" }
+ktrs-lexer = { path = "crates/ktrs-lexer", version = "0.4.0" }
+ktrs-parser = { path = "crates/ktrs-parser", version = "0.4.0" }
+ktrs-psi = { path = "crates/ktrs-psi", version = "0.4.0" }
+ktrs-fmt = { path = "crates/ktrs-fmt", version = "0.4.0" }
+ktrs-cli = { path = "crates/ktrs-cli", version = "0.4.0" }
+ktrs-ast = { path = "crates/ktrs-ast", version = "0.4.0" }
+ktrs-lint = { path = "crates/ktrs-lint", version = "0.4.0" }
+ktrs-editorconfig = { path = "crates/ktrs-editorconfig", version = "0.4.0" }
+ktrs-compose = { path = "crates/ktrs-compose", version = "0.4.0" }
 text-size = "1.1"
 expect-test = "1.5"
 mimalloc = { version = "0.1", default-features = false }

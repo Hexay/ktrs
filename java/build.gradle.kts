@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "io.github.hexay"
-version = providers.gradleProperty("ktrsVersion").getOrElse("0.3.1")
+version = providers.gradleProperty("ktrsVersion").getOrElse("0.4.0")
 
 // Two destinations (see .github/workflows/release.yml): the Maven repo served by GitHub Pages
 // (`publishAllPublicationsToGithubPagesRepository -PpagesRepo=<checkout of gh-pages>/maven`), and
