@@ -161,6 +161,7 @@ impl Production {
     }
 
     /// `MarkerPool.allocateStartMarker` / `allocateErrorItem`.
+    #[inline]
     pub(crate) fn allocate(&mut self, is_error_item: bool, lexeme: i32) -> i32 {
         self.error_items += u32::from(is_error_item);
         let free = if is_error_item { &mut self.free_error_items } else { &mut self.free_start_markers };
@@ -255,6 +256,7 @@ impl Production {
 
     /// `MarkerPool.freeMarker`. `allocate` re-initializes the slot; until then only the disposed
     /// flag is read (by the asserts on stale handles).
+    #[inline]
     fn free_marker(&mut self, id: i32) {
         let data = self.marker_mut(id);
         data.lexeme = -1;
