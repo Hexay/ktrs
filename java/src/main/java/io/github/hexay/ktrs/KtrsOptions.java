@@ -83,27 +83,16 @@ public final class KtrsOptions implements Serializable {
 
     /** The request header for {@code ktrs serve} (protocol: crates/ktrs-cli/src/serve.rs). */
     String header(Path file) {
-        StringBuilder header = new StringBuilder();
-        line(header, "style", style.name().toLowerCase());
-        line(header, "max-width", maxWidth);
-        line(header, "block-indent", blockIndent);
-        line(header, "continuation-indent", continuationIndent);
-        line(header, "remove-unused-imports", removeUnusedImports);
-        line(header, "trailing-commas", trailingCommas == null ? null : trailingCommas.name().toLowerCase());
-        line(header, "editorconfig", editorConfig);
-        line(header, "path", file);
-        return header.toString();
-    }
-
-    private static void line(StringBuilder header, String key, Object value) {
-        if (value == null) {
-            return;
-        }
-        String text = value.toString();
-        if (text.indexOf('\n') >= 0 || text.indexOf('\r') >= 0) {
-            throw new IllegalArgumentException(key + " contains a line break: " + text);
-        }
-        header.append(key).append('=').append(text).append('\n');
+        return new RequestHeader()
+                .line("style", style.name().toLowerCase())
+                .line("max-width", maxWidth)
+                .line("block-indent", blockIndent)
+                .line("continuation-indent", continuationIndent)
+                .line("remove-unused-imports", removeUnusedImports)
+                .line("trailing-commas", trailingCommas == null ? null : trailingCommas.name().toLowerCase())
+                .line("editorconfig", editorConfig)
+                .line("path", file)
+                .toString();
     }
 
     private static int positive(int value) {

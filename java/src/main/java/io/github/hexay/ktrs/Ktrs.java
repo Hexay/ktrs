@@ -6,8 +6,8 @@ import java.util.Deque;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 /**
- * Formats Kotlin exactly like ktfmt 0.64, by talking to long-lived native {@code ktrs serve}
- * processes: one per concurrent caller, kept for reuse. Thread-safe.
+ * Formats Kotlin exactly like ktfmt 0.64 (or ktlint, {@link #ktlint}), by talking to long-lived native
+ * {@code ktrs serve} processes: one per concurrent caller, kept for reuse. Thread-safe.
  *
  * <pre>{@code
  * try (Ktrs ktrs = Ktrs.create()) {
@@ -66,22 +66,44 @@ public final class Ktrs implements AutoCloseable {
      * @throws KtrsException if the code does not parse (ktfmt's message) or the server fails
      */
     public String format(String code, KtrsOptions options, Path file) {
+        return request(options.header(file), code, ServerProcess.PROTOCOL_VERSION).body;
+    }
+
+    /**
+     * Formats like Spotless's {@code ktlint()} step with that ktlint version, and returns what could not be
+     * autocorrected too.
+     *
+     * @param file the code's path, if any: where {@code .editorconfig} files are looked up, and what file name
+     *     rules check
+     * @throws KtrsException if the code does not parse (ktlint's {@code <line>:<col> <message>}), a rule set JAR
+     *     can't run natively, or the server fails
+     */
+    public KtlintResult ktlint(String code, KtlintOptions options, Path file) {
+        ServerProcess.Response response = request(options.header(file), code, ServerProcess.KTLINT_PROTOCOL_VERSION);
+        return KtlintResult.parse(response.body, response.changed, response.header);
+    }
+
+    private ServerProcess.Response request(String header, String code, int protocol) {
         if (closed) {
             throw new IllegalStateException("Ktrs is closed");
         }
-        String header = options.header(file);
         ServerProcess server = idle.pollFirst();
         boolean reusable = false;
         try {
             if (server == null) {
                 server = ServerProcess.start(executable);
             }
+            if (server.protocol() < protocol) {
+                reusable = true;
+                throw new KtrsException(executable + " is too old for this request: it speaks `ktrs serve` protocol "
+                        + server.protocol() + ", this needs " + protocol);
+            }
             ServerProcess.Response response = server.request(header, code);
             reusable = true;
             if (!response.ok) {
                 throw new KtrsException(response.body);
             }
-            return response.body;
+            return response;
         } catch (IOException e) {
             throw new KtrsException("ktrs serve failed: " + e.getMessage(), e);
         } finally {
