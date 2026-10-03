@@ -64,7 +64,7 @@ dependencies = [
 
 [[package]]
 name = "ktrs-ast"
-version = "0.3.1"
+version = "0.4.0"
 dependencies = [
  "ktrs-parser",
  "ktrs-psi",
@@ -73,14 +73,14 @@ dependencies = [
 
 [[package]]
 name = "ktrs-editorconfig"
-version = "0.3.1"
+version = "0.4.0"
 dependencies = [
  "regex",
 ]
 
 [[package]]
 name = "ktrs-fmt"
-version = "0.3.1"
+version = "0.4.0"
 dependencies = [
  "ktrs-lexer",
  "ktrs-parser",
@@ -102,14 +102,14 @@ dependencies = [
 
 [[package]]
 name = "ktrs-lexer"
-version = "0.3.1"
+version = "0.4.0"
 dependencies = [
  "ktrs-syntax",
 ]
 
 [[package]]
 name = "ktrs-lint"
-version = "0.3.1"
+version = "0.4.0"
 dependencies = [
  "ktrs-ast",
  "ktrs-editorconfig",
@@ -121,7 +121,7 @@ dependencies = [
 
 [[package]]
 name = "ktrs-parser"
-version = "0.3.1"
+version = "0.4.0"
 dependencies = [
  "ktrs-lexer",
  "ktrs-syntax",
@@ -129,7 +129,7 @@ dependencies = [
 
 [[package]]
 name = "ktrs-psi"
-version = "0.3.1"
+version = "0.4.0"
 dependencies = [
  "ktrs-parser",
  "ktrs-syntax",
@@ -137,7 +137,7 @@ dependencies = [
 
 [[package]]
 name = "ktrs-syntax"
-version = "0.3.1"
+version = "0.4.0"
 dependencies = [
  "text-size",
 ]
