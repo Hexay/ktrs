@@ -66,8 +66,7 @@ class KtlintDropInParityTest {
 
     /** Runs {@code ktlint -F} in {@code dir}: the distinct violations it reports, per file. */
     private static Map<String, Set<String>> dropInFormat(Path ktrs, Path dir, String version) throws Exception {
-        String name = ktrs.getFileName().toString().replace("ktrs", "ktlint");
-        List<String> command = new ArrayList<>(List.of(ktrs.resolveSibling(name).toString(), "-F", "--relative",
+        List<String> command = new ArrayList<>(List.of(ktrs.toString(), "ktlint", "-F", "--relative",
                 "--ktlint-version=" + version, "--reporter=plain"));
         Process process = new ProcessBuilder(command).directory(dir.toFile()).redirectError(ProcessBuilder.Redirect.DISCARD).start();
         String out = new String(process.getInputStream().readAllBytes(), UTF_8);
