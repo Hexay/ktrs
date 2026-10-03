@@ -1,0 +1,80 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "io.github.hexay",
+    "module": "ktrs",
+    "version": "0.4.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "9.8.0"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 11,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "ktrs-0.4.0.jar",
+          "url": "ktrs-0.4.0.jar",
+          "size": 12263286,
+          "sha512": "6070c048dca1c997b5aeb7994e3d0ac9872eb28e52885d3e641ef8ed32a8f680e9767c4b8fe592888b8c6214d91c16ca5aa483d74ae4f0fa023c4447f3d6bb80",
+          "sha256": "b10f9945527837df5252e170bbd78fc31bf975b5259261448c1293b5ea69f481",
+          "sha1": "6040ae02cc7bef8f91b51ab2ac79f220bdb1a8ac",
+          "md5": "3a56dfa6c78e21dd6d1706c53ed43df2"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 11,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "ktrs-0.4.0.jar",
+          "url": "ktrs-0.4.0.jar",
+          "size": 12263286,
+          "sha512": "6070c048dca1c997b5aeb7994e3d0ac9872eb28e52885d3e641ef8ed32a8f680e9767c4b8fe592888b8c6214d91c16ca5aa483d74ae4f0fa023c4447f3d6bb80",
+          "sha256": "b10f9945527837df5252e170bbd78fc31bf975b5259261448c1293b5ea69f481",
+          "sha1": "6040ae02cc7bef8f91b51ab2ac79f220bdb1a8ac",
+          "md5": "3a56dfa6c78e21dd6d1706c53ed43df2"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "ktrs-0.4.0-sources.jar",
+          "url": "ktrs-0.4.0-sources.jar",
+          "size": 14117,
+          "sha512": "b142e06323c46c236d1d24abcf42e7459b4f2ac81e8785af8611fb2a54102fa5d0ef436ed26c9621f61248d51751cf6baa1b0958299372f3aedb3ae553696770",
+          "sha256": "0cdfebf97beb42a69f9d48c1185b4890fdde3f9f530b318d68b381b119b47826",
+          "sha1": "9b58d6460cfcf58b0da7b9f0f3be3e1321563518",
+          "md5": "0d31e656c326720569cbb8e7e6a21b3d"
+        }
+      ]
+    }
+  ]
+}
