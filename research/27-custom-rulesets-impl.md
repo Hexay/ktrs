@@ -117,4 +117,6 @@ deviation in research/26); stdin -F matches.
   `ktlint` binary says "No files matched". Not ktlint logic: the Windows `java` launcher expands `*`/`?` in arguments
   before `main` (the jar logs no `walkFileTree`; it gets `C:/x/src/A.kt` and takes the existing-file shortcut).
   ktlint's own `fileSequence` (same in ktrs) walks from the working directory, since a glob makes `Path.resolve` throw
-  on Windows. Fix would be launcher-style argument expansion in the Windows binary (2026-10-03: open).
+  on Windows. Fixed 2026-10-03: both drop-ins expand arguments like the launcher (`ktrs-cli/src/java_launcher.rs`,
+  JDK 21 `cmdtoargs.c` + `LauncherHelper.expandArgs`); 14 wildcard cases (abs/relative, `\`, `?`, no match, `**`)
+  match the ktlint 2.0 and ktfmt 0.64 jars on Windows.

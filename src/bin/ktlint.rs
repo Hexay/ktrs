@@ -2,6 +2,6 @@
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
 fn main() {
-    let args: Vec<String> = std::env::args().skip(1).collect();
+    let args = ktrs_cli::java_launcher::application_args();
     std::process::exit(ktrs_cli::ktlint::main(&args));
 }
