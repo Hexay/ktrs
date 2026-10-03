@@ -91,16 +91,35 @@ pub(crate) struct Production {
     error_items: u32,
 }
 
+/// The vectors a [`Production`] recycles through `pool.rs`.
+#[derive(Default)]
+pub(crate) struct ProductionVecs {
+    pub(crate) markers: Vec<MarkerData>,
+    list: Vec<i32>,
+    free_start_markers: Vec<i32>,
+    free_error_items: Vec<i32>,
+}
+
+impl ProductionVecs {
+    pub(crate) fn clear(&mut self) {
+        self.markers.clear();
+        self.list.clear();
+        self.free_start_markers.clear();
+        self.free_error_items.clear();
+    }
+}
+
 impl Production {
     /// Over (empty, possibly recycled) vectors; see `pool.rs`.
-    pub(crate) fn from_vecs(markers: Vec<MarkerData>, list: Vec<i32>) -> Production {
-        debug_assert!(markers.is_empty() && list.is_empty());
+    pub(crate) fn from_vecs(vecs: ProductionVecs) -> Production {
+        let ProductionVecs { markers, list, free_start_markers, free_error_items } = vecs;
+        debug_assert!(markers.is_empty() && list.is_empty() && free_start_markers.is_empty() && free_error_items.is_empty());
         Production {
             markers,
             list,
             messages: Vec::new(),
-            free_start_markers: Vec::new(),
-            free_error_items: Vec::new(),
+            free_start_markers,
+            free_error_items,
             free_messages: Vec::new(),
             error_items: 0,
         }
@@ -110,8 +129,13 @@ impl Production {
         self.error_items > 0
     }
 
-    pub(crate) fn take_vecs(&mut self) -> (Vec<MarkerData>, Vec<i32>) {
-        (std::mem::take(&mut self.markers), std::mem::take(&mut self.list))
+    pub(crate) fn take_vecs(&mut self) -> ProductionVecs {
+        ProductionVecs {
+            markers: std::mem::take(&mut self.markers),
+            list: std::mem::take(&mut self.list),
+            free_start_markers: std::mem::take(&mut self.free_start_markers),
+            free_error_items: std::mem::take(&mut self.free_error_items),
+        }
     }
 
     pub(crate) fn set_message(&mut self, id: i32, message: &str) {
