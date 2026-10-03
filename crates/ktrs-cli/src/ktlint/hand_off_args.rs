@@ -1,4 +1,5 @@
-//! The argv a run hands to the ktlint jar: the run's own, without ktrs's `--ktlint-version` (the jar rejects it),
+//! The argv a run hands to the ktlint jar: the run's own, without ktrs's `--ktlint-version` and Gradle plugin
+//! options (the jar rejects them; the plugin's events file becomes a `json` report),
 //! also where it came from an `@argfile`. Such an argfile is replaced by a temporary one holding its expansion
 //! minus that option, so the jar's Clikt still reads those tokens from a file: no shell or `java` launcher
 //! (Windows wildcard expansion) handling applies to them, and every other argfile is passed through untouched.
@@ -7,6 +8,7 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use crate::ktlint::clikt::expand_argument_files;
+use crate::ktlint::gradle;
 use crate::ktlint::version::KTLINT_VERSION_OPTION;
 
 /// The jar's argv; the temporary argfiles it names are deleted on drop.
@@ -42,21 +44,19 @@ impl Drop for HandOffArgs {
 
 /// `argv` without `--ktlint-version` and its value (before `--`), argfiles expanded as the drop-in's parse does.
 pub fn hand_off_args(argv: &[String], working_dir: &Path) -> Result<HandOffArgs, String> {
-    let mut filter = KtlintVersionFilter::default();
+    let mut filter = KtrsOptionFilter::default();
     let mut out = HandOffArgs { args: Vec::new(), temp_files: Vec::new() };
     for token in argv {
         if !is_argfile(token) {
-            if filter.keeps(token) {
-                out.args.push(token.clone());
-            }
+            out.args.extend(filter.map(token));
             continue;
         }
         let expanded = expand_argument_files(std::slice::from_ref(token), working_dir)?;
-        let kept: Vec<&String> = expanded.iter().filter(|t| filter.keeps(t)).collect();
-        if kept.len() == expanded.len() {
+        let kept: Vec<String> = expanded.iter().filter_map(|t| filter.map(t)).collect();
+        if kept == expanded {
             out.args.push(token.clone());
         } else {
-            out.push_argfile(&kept)?;
+            out.push_argfile(&kept.iter().collect::<Vec<_>>())?;
         }
     }
     Ok(out)
@@ -73,30 +73,40 @@ fn argfile_token(token: &str) -> String {
     format!("\"{}\"", token.replace('\\', "\\\\").replace('"', "\\\""))
 }
 
-/// Drops `--ktlint-version <v>` and `--ktlint-version=<v>` until `--`, over a stream of tokens.
+/// ktrs's own options, which the jar rejects: `--ktlint-version` and the Gradle plugin's ([`gradle`]).
+const KTRS_OPTIONS: [&str; 4] =
+    [KTLINT_VERSION_OPTION, gradle::EVENTS_OPTION, gradle::RELATIVE_TO_OPTION, gradle::EDITOR_CONFIG_OVERRIDE_OPTION];
+
+/// Rewrites ktrs's options (`<option> <v>` and `<option>=<v>`) until `--`, over a stream of tokens: dropped, or
+/// replaced by [`gradle::hand_off_token`].
 #[derive(Default)]
-struct KtlintVersionFilter {
+struct KtrsOptionFilter {
     after_separator: bool,
-    skip_value: bool,
+    value_of: Option<&'static str>,
 }
 
-impl KtlintVersionFilter {
-    fn keeps(&mut self, token: &str) -> bool {
+impl KtrsOptionFilter {
+    fn map(&mut self, token: &str) -> Option<String> {
         if self.after_separator {
-            return true;
+            return Some(token.to_owned());
         }
-        if std::mem::take(&mut self.skip_value) {
-            return false;
+        if let Some(option) = self.value_of.take() {
+            return gradle::hand_off_token(option, token);
         }
         if token == "--" {
             self.after_separator = true;
-            return true;
+            return Some(token.to_owned());
         }
-        if token == KTLINT_VERSION_OPTION {
-            self.skip_value = true;
-            return false;
+        for option in KTRS_OPTIONS {
+            if token == option {
+                self.value_of = Some(option);
+                return None;
+            }
+            if let Some(value) = token.strip_prefix(option).and_then(|rest| rest.strip_prefix('=')) {
+                return gradle::hand_off_token(option, value);
+            }
         }
-        !token.strip_prefix(KTLINT_VERSION_OPTION).is_some_and(|rest| rest.starts_with('='))
+        Some(token.to_owned())
     }
 }
 

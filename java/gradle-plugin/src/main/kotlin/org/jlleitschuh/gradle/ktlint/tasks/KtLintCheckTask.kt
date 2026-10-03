@@ -6,6 +6,7 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.util.PatternFilterable
+import org.gradle.work.InputChanges
 import org.jlleitschuh.gradle.ktlint.capitalizeName
 
 @CacheableTask
@@ -15,8 +16,8 @@ constructor(objectFactory: ObjectFactory, projectLayout: ProjectLayout, patternF
     BaseKtLintCheckTask(objectFactory, projectLayout, patternFilterable) {
 
     @TaskAction
-    public fun lint() {
-        runKtlint(format = false)
+    public fun lint(inputChanges: InputChanges) {
+        runLint(inputChanges)
     }
 
     internal companion object {

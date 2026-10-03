@@ -59,9 +59,11 @@ the hand-off attempt for rule set and reporter JARs.
   (`third_party/compose-rules` + `tools/compose-rules/lib/ktlint-compose-0.6.7-all.jar`); `upstream.yml` opens an
   issue when a newer release ships.
 - Detection (`ktrs-cli/src/ktlint/compose_jar.rs`, `zip_directory.rs`): SHA-256 of the sorted
-  `name\tcrc32\tsize` lines of the JAR's `io/nlopez/compose/` entries, read from the zip central directory (no
-  inflating), matched against `ktrs_compose::NATIVE_JARS`. That identifies rule set id and release by content;
-  renamed files still match, any other release (or the thin Maven jar) goes to the hand-off.
+  `name\tcrc32\tsize` lines of the JAR's `io/nlopez/compose/` file entries (directories excluded since
+  2026-10-03), read from the zip central directory (no inflating), matched against `ktrs_compose::NATIVE_JARS`.
+  That identifies rule set id and release by content; renamed files still match. Per release two fingerprints: the
+  `-all.jar`, and the Maven `ktlint` + `common-ktlint` JARs merged (the Gradle plugin's `-R` JAR; same bytecode up
+  to the `-all.jar`'s `shadow/` psiUtil relocation, research/29). The thin Maven JAR alone goes to the hand-off.
 - Loading mirrors the jar: standard rules then the 34 compose rules (provider order); in 2.0 mode the
   `RuleSetProviderV3` deprecation WARN and debug lines of `LoadRuleProviders`.
 - Port layout mirrors upstream, one Rust file per Kotlin file (`core/`, `core/util/`, `rules/`, `ktlint/` with the
@@ -112,8 +114,9 @@ deviation in research/26); stdin -F matches.
   ~/work/ktlint-bench/bin/ktlint-2.0.0-ALPHA-4 target/release/ktlint <out> ~/work/ktlint-bench/corpus ~/work/holdout/tree`.
 - CLI: `RULESET_JAR=<jar> [KTLINT_VERSION=1.8 JAR=…] tools/ktlint-oracle/cli-diff.sh` (a non-pinned compose release
   exercises the hand-off).
-- Bumping the pin: change `COMPOSE_RULES_TAG`, port the upstream diff, regenerate goldens, add the new jar's
-  fingerprint to `NATIVE_JARS` (the `compose_jar` unit test checks it), rerun parity.sh.
+- Bumping the pin: change `COMPOSE_RULES_TAG`, port the upstream diff, regenerate goldens, add the new `-all.jar`'s
+  and merged Maven JARs' fingerprints to `NATIVE_JARS` (the `compose_jar` unit tests check both and print the
+  merged one), rerun parity.sh.
 
 ## Remaining
 

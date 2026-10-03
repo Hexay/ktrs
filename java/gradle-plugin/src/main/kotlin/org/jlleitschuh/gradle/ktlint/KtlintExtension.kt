@@ -76,10 +76,7 @@ internal constructor(
     public val enableExperimentalRules: Property<Boolean> =
         objectFactory.property(Boolean::class.java).value(false)
 
-    /**
-     * Additional `.editorconfig` properties. ktrs passes them as ktlint's `--editorconfig` defaults,
-     * so a project `.editorconfig` that sets the same property wins.
-     */
+    /** Additional `.editorconfig` properties, overriding the project's `.editorconfig` files. */
     public val additionalEditorconfig: MapProperty<String, String> =
         objectFactory.mapProperty(String::class.java, String::class.java).apply {
             convention(emptyMap())

@@ -1,6 +1,6 @@
 """compare.py <scenario-dir> [--slashes]: diffs <dir>/{upstream,ktrs}: the console (each run's task blocks and
 failures in a stable order, Gradle noise dropped) and every project file but build caches and intermediates.
---slashes ignores Windows path separators and ANSI colors (ktlint's CLI writes `/` paths; ktlint-gradle `\\`)."""
+--slashes ignores path separators and ANSI colors."""
 import difflib, os, re, sys
 
 root = os.path.abspath(sys.argv[1])
@@ -17,6 +17,8 @@ def norm(text, side):
     proj = os.path.join(root, side, "project")
     for p in (proj, proj.replace("\\", "/"), proj.replace("\\", "\\\\")):
         text = text.replace(p, "<P>")
+    # The plugin id is the one thing a drop-in can't share.
+    text = text.replace("plugin 'io.github.hexay.ktrs.ktlint'", "plugin 'org.jlleitschuh.gradle.ktlint'")
     text = re.sub(r"([\\/]+)" + side + r"([\\/]+project)", r"\1<side>\2", text)
     if SLASHES:
         text = re.sub(r"\x1b\[\d+m", "", text).replace("\\\\", "/").replace("\\", "/")

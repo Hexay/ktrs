@@ -50,5 +50,10 @@ pub use ktlint::compose_rule_set_provider::compose_rule_providers;
 pub const COMPOSE_RULES_VERSION: &str = "0.6.7";
 
 /// (release, content fingerprint) of the ktlint JARs that run natively; the fingerprint is computed by
-/// `ktrs-cli`'s `compose_jar.rs` (published `ktlint-compose-<release>-all.jar`).
-pub const NATIVE_JARS: &[(&str, &str)] = &[("0.6.7", "699dddb23bee236589a86454ead298daf2103206f4ca7432589864135b496ed3")];
+/// `ktrs-cli`'s `compose_jar.rs`. Per release: the published `ktlint-compose-<release>-all.jar`, and the Maven
+/// artifacts `io.nlopez.compose.rules:ktlint` + `common-ktlint` merged (as the ktlint Gradle plugin passes them;
+/// same bytecode, the `-all` JAR only relocates kotlin-compiler `psiUtil` calls: research/29).
+pub const NATIVE_JARS: &[(&str, &str)] = &[
+    ("0.6.7", "00de57c180c50a3fb36c345558d15e078bfe056bc158d79cc5e5ecbe6ee3bfdf"),
+    ("0.6.7", "a9b34195dddeb441ab1eb2ef78e7080a6781d25654df05a9e1a569c88dc23878"),
+];

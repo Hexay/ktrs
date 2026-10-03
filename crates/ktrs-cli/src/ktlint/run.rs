@@ -20,7 +20,7 @@ impl Run<'_> {
         self.file_number.fetch_add(1, Ordering::SeqCst);
         let err_list_limit = ktlint_cli_errors.len().min(self.args.limit.saturating_sub(self.error_number.load(Ordering::SeqCst)));
         self.error_number.fetch_add(err_list_limit, Ordering::SeqCst);
-        if ktlint_cli_errors.iter().any(|e| e.status == Status::LintCanBeAutocorrected) {
+        if ktlint_cli_errors.iter().any(|e| e.status == Status::LintCanBeAutocorrected && !e.corrected) {
             self.advise_to_use_format.store(true, Ordering::SeqCst);
         }
         reporter.before(relative_route);

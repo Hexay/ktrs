@@ -71,8 +71,7 @@ class KtLintSupportedVersionsTest : AbstractPluginTest() {
 
             buildAndFail(CHECK_PARENT_TASK_NAME) {
                 assertThat(task(":$mainSourceSetCheckTaskName")?.outcome).isEqualTo(TaskOutcome.FAILED)
-                // Upstream adds " (cannot be auto-corrected)"; check-task console rows here don't (research/29).
-                assertThat(output).contains("Exceeded max line length (20)")
+                assertThat(output).contains("Exceeded max line length (20) (cannot be auto-corrected)")
             }
         }
     }
