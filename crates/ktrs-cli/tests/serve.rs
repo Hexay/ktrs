@@ -1,37 +1,13 @@
 mod common;
 
-use common::{TempDir, write_text};
+use common::{TempDir, frame, frames, session, write_text};
 use ktrs_cli::serve;
-
-fn frame(payload: &str) -> Vec<u8> {
-    let mut bytes = (payload.len() as u32).to_be_bytes().to_vec();
-    bytes.extend_from_slice(payload.as_bytes());
-    bytes
-}
-
-fn frames(mut bytes: &[u8]) -> Vec<String> {
-    let mut out = Vec::new();
-    while !bytes.is_empty() {
-        let length = u32::from_be_bytes(bytes[..4].try_into().unwrap()) as usize;
-        out.push(String::from_utf8(bytes[4..4 + length].to_vec()).unwrap());
-        bytes = &bytes[4 + length..];
-    }
-    out
-}
-
-/// Runs a session over `requests`; the exit code and the response frames (hello first).
-fn session(requests: &[&str]) -> (i32, Vec<String>) {
-    let input: Vec<u8> = requests.iter().flat_map(|r| frame(r)).collect();
-    let mut output = Vec::new();
-    let code = serve::run(&input[..], &mut output);
-    (code, frames(&output))
-}
 
 #[test]
 fn hello_then_one_response_per_request_in_order() {
     let (code, responses) = session(&["\nfun  f( ) = 1\n", "style=google\n\nfun f() = 1\n"]);
     assert_eq!(code, 0);
-    assert_eq!(responses[0], format!("ktrs-serve 1 {}", env!("CARGO_PKG_VERSION")));
+    assert_eq!(responses[0], format!("ktrs-serve 2 {}", env!("CARGO_PKG_VERSION")));
     assert_eq!(responses[1], "status=ok\nchanged=true\n\nfun f() = 1\n");
     assert_eq!(responses[2], "status=ok\nchanged=false\n\nfun f() = 1\n");
 }
