@@ -74,6 +74,7 @@ impl Processor<'_> {
                     return Err(Exit::Crash(format!("java.io.FileNotFoundException: {} ({e})", path.display())));
                 }
             }
+            Err(KtLintException::MissedTokens(missed)) => return Err(self.missed_tokens(&missed, code)),
             Err(e @ KtLintException::Parse(_)) if code.is_std_in && self.ktlint_version.is_1_8() => {
                 return self.stdin_parse_exception_1_8(&e, code, |code| self.format(code, baseline_lint_errors));
             }
@@ -140,6 +141,7 @@ impl Processor<'_> {
         });
         match result {
             Ok(()) => {}
+            Err(KtLintException::MissedTokens(missed)) => return Err(self.missed_tokens(&missed, code)),
             Err(e @ KtLintException::Parse(_)) if code.is_std_in && self.ktlint_version.is_1_8() => {
                 return self.stdin_parse_exception_1_8(&e, code, |code| self.lint(code, baseline_lint_errors));
             }
@@ -251,7 +253,16 @@ impl Processor<'_> {
                 Err(Exit::Crash(format!("java.util.concurrent.ExecutionException: {}", crash_text(e))))
             }
             KtLintException::IllegalState(_) => Err(crash(e)),
+            KtLintException::MissedTokens(missed) => Err(self.missed_tokens(missed, code)),
         }
+    }
+
+    /// The parser's `AssertionError` (research/24, finding 4): `DefaultLogger` prints its log, then the error
+    /// passes every `catch (e: Exception)` and ends the run (a file's wrapped by the thread pool's `Future.get`).
+    fn missed_tokens(&self, missed: &ktrs_syntax::MissedTokens, code: &Code) -> Exit {
+        self.console.println_err(&missed.log());
+        let error = missed.assertion_error();
+        Exit::Crash(if code.is_std_in { error } else { format!("java.util.concurrent.ExecutionException: {error}") })
     }
 }
 

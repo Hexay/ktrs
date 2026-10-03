@@ -28,6 +28,10 @@ pub(crate) fn create_rule_execution_context(
     let position_in_text_locator = PositionInTextLocator::new(&normalized_text);
     let psi_file_name = code.psi_file_name();
     let parse = parse_file(&normalized_text, FileKind::from_file_name(&psi_file_name));
+    // Before any parse error: see `ktrs_syntax::MissedTokens`.
+    if let Some(missed) = parse.first_missed_tokens() {
+        return Err(KtLintException::MissedTokens(missed.clone()));
+    }
     let mut ast = Ast::from_parse(&parse);
     ast.set_psi_file_name(&psi_file_name);
     if let Some(error_element) = find_error_element(&ast, ast.root()) {

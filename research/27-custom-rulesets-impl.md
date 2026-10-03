@@ -12,7 +12,18 @@ custom JAR goes to the real ktlint jar. Works in both ktlint modes (2.0.0-ALPHA-
   provider stays native, with upstream's exact error (no JVM needed for those).
 - Run: `java [Java 24+: --sun-misc-unsafe-memory-access=allow --enable-native-access=ALL-UNNAMED] -Xmx512m -jar
   <jar> <argv minus --ktlint-version>` in the same working directory; stdin/stdout/stderr inherited (Unix: `exec`),
-  the exit code returned. Same flags as the release launcher script.
+  the exit code returned. Same flags as the release launcher script. An `@argfile` whose expansion holds
+  `--ktlint-version` (`ktlint/hand_off_args.rs`) is replaced by a temporary argfile with the rest of its tokens
+  (Clikt-quoted; still read by the jar's Clikt, so no launcher wildcard expansion applies), deleted after the run
+  (no `exec` then); other argfiles pass through untouched. The jar's tokenizer was checked on quotes, `\`, spaces
+  and `@@`.
+- `ktrs lint -R <jar>[,<jar>]` (repeatable, unlike the drop-in's last-wins `-R`; `ktrs_lint.rs`): same loading code
+  and trigger (`-R` and `--reporter=…,artifact=` JARs). A hand-off is meaningful because `ktrs lint` is the ktlint
+  command with other flag names: it runs the jar with the equivalent ktlint argv (`ktlint_argv`: `--relative`,
+  `--reporter=`, `--ruleset=a,b`, `--baseline=`, `--editorconfig=`, `--limit=`, `--stdin[-path]`, `--format`,
+  patterns with a leading `@` doubled), so the output is what `ktrs lint` would print natively. `--list-rules`
+  lists the native compose rules too and is a usage error with a JVM-only JAR. On Windows the hand-off's patterns
+  go through the `java` launcher's wildcard expansion, which native `ktrs lint` doesn't do (same files in practice).
 - The jar: the `ktlint` release asset (self-executing fat jar) of 1.8.0 or 2.0.0-ALPHA-4, picked by the run's
   `KtlintVersion`, downloaded with `curl` on first use to `%LOCALAPPDATA%\ktrs`, `~/Library/Caches/ktrs` or
   `$XDG_CACHE_HOME/ktrs` (`~/.cache/ktrs`) as `ktlint-<version>.jar`, SHA-256 pinned in source, via a per-process
@@ -109,8 +120,9 @@ deviation in research/26); stdin -F matches.
 - Build tools (Spotless, ktlint-gradle, kotlinter, Maven) can't reach either path until ktrs has a ktlint step there.
 - Only the pinned release is native; older 0.4/0.5/0.6 releases hand off (could be added per release if their rule
   code is unchanged, by fingerprint + goldens).
-- `ktrs lint` (native command) has no `-R`; compose rules are reachable only through the `ktlint` drop-in.
-- A `--ktlint-version` inside an `@argfile` is passed to the jar on hand-off (the jar rejects it).
+- Fixed 2026-10-03: `ktrs lint` has `-R` (native compose-rules or hand-off, section A); a `--ktlint-version` inside
+  an `@argfile` no longer reaches the jar. Tests: `crates/ktrs-cli/tests/ktrs_lint.rs`,
+  `ktlint/hand_off_args/tests.rs`.
 - 2.0 `generateEditorConfig` crash text: the JVM's lambda identities (`$$Lambda/0x…@…`) can't be reproduced; ktrs
   prints the same shape with made-up ids (cli-diff masks them).
 - Absolute Windows glob outside the working directory (`C:/x/src/*.kt` run from `C:/y`): the jar lints the files, the
