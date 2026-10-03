@@ -11,7 +11,7 @@ pub mod args;
 pub mod baseline;
 mod clikt;
 pub mod command_line;
-mod compose_jar;
+pub(crate) mod compose_jar;
 pub mod console;
 pub mod file_utils;
 mod jar_providers;

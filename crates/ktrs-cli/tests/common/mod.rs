@@ -61,6 +61,31 @@ pub fn arg(path: &Path) -> String {
     path.display().to_string()
 }
 
+/// One `ktrs serve` frame.
+pub fn frame(payload: &str) -> Vec<u8> {
+    let mut bytes = (payload.len() as u32).to_be_bytes().to_vec();
+    bytes.extend_from_slice(payload.as_bytes());
+    bytes
+}
+
+pub fn frames(mut bytes: &[u8]) -> Vec<String> {
+    let mut out = Vec::new();
+    while !bytes.is_empty() {
+        let length = u32::from_be_bytes(bytes[..4].try_into().unwrap()) as usize;
+        out.push(String::from_utf8(bytes[4..4 + length].to_vec()).unwrap());
+        bytes = &bytes[4 + length..];
+    }
+    out
+}
+
+/// Runs a `ktrs serve` session over `requests`; the exit code and the response frames (hello first).
+pub fn session(requests: &[&str]) -> (i32, Vec<String>) {
+    let input: Vec<u8> = requests.iter().flat_map(|r| frame(r)).collect();
+    let mut output = Vec::new();
+    let code = ktrs_cli::serve::run(&input[..], &mut output);
+    (code, frames(&output))
+}
+
 /// Truth's `containsExactly` without `inOrder()`.
 pub fn assert_contains_exactly(mut actual: Vec<PathBuf>, expected: &[&Path]) {
     let mut expected: Vec<PathBuf> = expected.iter().map(|p| p.to_path_buf()).collect();
