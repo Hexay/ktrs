@@ -6,7 +6,7 @@
 //! the compiler's chameleons do and emits that builder's tree into the same [`TreeSink`], its root
 //! renamed to the leaf's kind. `false` from the callback means "plain leaf".
 
-use ktrs_syntax::{Parse, SyntaxKind};
+use ktrs_syntax::{MissedTokens, Parse, SyntaxKind};
 
 use super::binders::EdgeBinder;
 use super::psi_builder::PsiBuilder;
@@ -51,8 +51,13 @@ impl PsiBuilder {
         self.balance_white_spaces();
         let mut skipped_errors = std::mem::take(&mut self.skipped_errors);
         self.duplicate_error_items(&mut skipped_errors);
+        let root = sink.len();
         self.bind(root_kind, &skipped_errors, sink, lazy);
         self.skipped_errors = skipped_errors;
+        if self.current_lexeme < self.lexeme_count() {
+            let tokens = self.lex_types[self.current_lexeme..].iter().map(|kind| kind.debug_name()).collect();
+            sink.missed_tokens.push(MissedTokens { element: root, tokens, text: self.text.to_string() });
+        }
     }
 
     fn balance_white_spaces(&mut self) {
@@ -145,7 +150,7 @@ impl PsiBuilder {
             let item = self.production.marker(id);
             if id < 0 {
                 lex_index = self.insert_leaves(lex_index, item.done_lexeme, out, lazy);
-                // Tokens after the root's done are dropped, as upstream (which LOG.errors).
+                // Tokens after the root's done are dropped, as upstream (which LOG.errors: `MissedTokens`).
                 if id == -list[0] {
                     break;
                 }

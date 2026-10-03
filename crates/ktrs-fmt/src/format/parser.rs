@@ -5,11 +5,16 @@ use ktrs_parser::{ChameleonCache, FileKind};
 use ktrs_psi::{KtFile, PsiErrorElement};
 use ktrs_syntax::{SyntaxKind, Tree};
 
+use super::FormatError;
 use super::input::ParseError;
 
 /// `cache` carries expanded blocks and lambdas between the parses of one `format` call.
-pub fn parse(code: &str, cache: &mut ChameleonCache) -> Result<KtFile, ParseError> {
+pub fn parse(code: &str, cache: &mut ChameleonCache) -> Result<KtFile, FormatError> {
     let parse = ktrs_parser::parse_file_cached(code, FileKind::Script, cache);
+    // Before any parse error: see `ktrs_syntax::MissedTokens`.
+    if let Some(missed) = parse.first_missed_tokens() {
+        return Err(FormatError::MissedTokens(missed.clone()));
+    }
     let kt_file = KtFile::with_text(&parse, code);
     // A cheap pre-check: `collectDescendantsOfType` visits every element.
     if !parse.tree.has_descendant_of_kind(Tree::ROOT, SyntaxKind::ERROR_ELEMENT) {
@@ -17,7 +22,7 @@ pub fn parse(code: &str, cache: &mut ChameleonCache) -> Result<KtFile, ParseErro
     }
     let descendants = kt_file.collect_descendants_of_type::<PsiErrorElement>();
     if let Some(error) = descendants.first() {
-        return Err(throw_parse_error(code, &parse, error));
+        return Err(throw_parse_error(code, &parse, error).into());
     }
     Ok(kt_file)
 }

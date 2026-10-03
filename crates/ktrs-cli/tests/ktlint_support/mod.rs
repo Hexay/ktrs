@@ -62,10 +62,15 @@ impl Project {
     }
 
     pub fn run_with_stdin(&self, args: &[&str], stdin: &[u8]) -> Run {
+        self.run_cli(args, stdin, |cli, args| cli.run(args))
+    }
+
+    /// `command` (the `ktlint` command or another entry point) on a `KtlintCli` in this project.
+    pub fn run_cli(&self, args: &[&str], stdin: &[u8], command: impl FnOnce(&KtlintCli, &[String]) -> i32) -> Run {
         let (console, out, err) = Console::capture(stdin);
         let cli = KtlintCli { console, working_dir: JPath::from_path(&self.dir), user_home: String::new(), jvm: self.jvm.clone() };
         let args: Vec<String> = args.iter().map(|a| a.to_string()).collect();
-        let exit_code = cli.run(&args);
+        let exit_code = command(&cli, &args);
         Run { exit_code, out: out.text(), err: err.text() }
     }
 }
