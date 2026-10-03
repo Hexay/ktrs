@@ -1,0 +1,7 @@
+ktlint=1.8
+rules=compose:preview-naming
+ec.compose_preview_naming_enabled=true
+ec.compose_preview_naming_strategy=anywhere
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=PreviewNamingCheckTest.passes (anywhere)

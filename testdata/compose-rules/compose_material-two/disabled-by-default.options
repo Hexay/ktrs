@@ -1,0 +1,5 @@
+ktlint=1.8
+rules=compose:material-two
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=Material2CheckTest.disabled by default

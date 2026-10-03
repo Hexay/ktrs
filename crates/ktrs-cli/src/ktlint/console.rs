@@ -15,6 +15,7 @@ pub struct Console {
     input: Arc<Mutex<Box<dyn Read + Send>>>,
     out: Stream,
     err: Stream,
+    process_streams: bool,
 }
 
 /// The bytes a captured [`Console`] received.
@@ -40,11 +41,17 @@ impl Write for Captured {
 
 impl Console {
     pub fn std() -> Console {
-        Console::new(Box::new(io::stdin()), Box::new(io::stdout()), Box::new(io::stderr()))
+        Console { process_streams: true, ..Console::new(Box::new(io::stdin()), Box::new(io::stdout()), Box::new(io::stderr())) }
     }
 
     pub fn new(input: Box<dyn Read + Send>, out: Box<dyn Write + Send>, err: Box<dyn Write + Send>) -> Console {
-        Console { input: Arc::new(Mutex::new(input)), out: Arc::new(Mutex::new(out)), err: Arc::new(Mutex::new(err)) }
+        let (input, out, err) = (Arc::new(Mutex::new(input)), Arc::new(Mutex::new(out)), Arc::new(Mutex::new(err)));
+        Console { input, out, err, process_streams: false }
+    }
+
+    /// Whether this is the process's own stdin/stdout/stderr, which a child process can inherit.
+    pub fn is_process_streams(&self) -> bool {
+        self.process_streams
     }
 
     /// A console reading `stdin` and capturing stdout and stderr.

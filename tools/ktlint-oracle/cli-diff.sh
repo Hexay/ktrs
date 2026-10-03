@@ -8,7 +8,8 @@
 # ONLY=<regex> selects scenarios, KEEP=1 keeps outputs, VERBOSE=1 prints diffs. Exit 1 on any mismatch.
 # KTLINT_VERSION=1.8: against the 1.8.0 jar (JAR=<path>, default lib/ktlint-cli-1.8.0-all.jar, fetched), ktrs in
 # 1.8 mode through the fixture's `ktrs_ktlint_version = 1.8` (research/26-ktlint-18-mode.md). Known 1.8 mismatch:
-# rep_summary_format (`-F` runs 2.0's rule order).
+# rep_summary_format (`-F` runs 2.0's rule order). RULESET_JAR=<jar> adds the `ruleset_jar_*` scenarios
+# (research/27-custom-rulesets-impl.md).
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
 repo="$(cd "$here/../.." && pwd)"
@@ -81,10 +82,13 @@ scenario() {
     local input=/dev/null
     [[ -n $stdin ]] && input="$dir/w/$stdin"
     (cd "$dir/w" && "${cmd[@]}" "$@" < "$input" > "$dir/out.raw" 2> "$dir/err.raw"; echo $? > "$dir/code")
-    local w_abs; w_abs="$(cd "$dir/w" && pwd)"
+    local w_abs w_win; w_abs="$(cd "$dir/w" && pwd)"; w_win=$w_abs
+    command -v cygpath >/dev/null && w_win=$(cygpath -m "$w_abs")
     for s in out err; do
+      # JVM lambda identities (`RuleKt$$Lambda/0x…@1a2b`) differ per run; on Windows the tree shows as C:/… and C:\….
       grep -av $'^\tat \|^\t\.\.\. [0-9]* more' "$dir/$s.raw" \
-        | sed -E -e 's/^[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3} /HH:MM:SS.mmm /' -e "s#$w_abs#<W>#g" \
+        | sed -E -e 's/^[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3} /HH:MM:SS.mmm /' -e "s#$w_abs#<W>#g" -e "s#$w_win#<W>#g" \
+        -e "s#${w_win//\//\\\\}#<W>#g" -e 's/\$\$Lambda\/0x[0-9a-f]+@[0-9a-f]+/$$Lambda@<id>/g' \
         -e 's/ktlint-backup\.[-0-9a-f]+/ktlint-backup.<hash>/' > "$dir/$s"
     done
     # Reports written into the tree can hold absolute paths too.
@@ -260,6 +264,21 @@ scenario ruleset_missing "" "" -R nothere.jar src
 scenario ruleset_not_jar "" "" -R src/A.kt src
 scenario ruleset_debug "" "" -R src/A.kt --log-level=debug src
 scenario ruleset_two "" "" --ruleset=src/A.kt,nothere.jar src
+# A real rule set JAR (RULESET_JAR=<path>): a compose-rules release ktrs runs natively, or any other, which ktrs
+# hands to the ktlint jar (this script's $jar, through KTRS_KTLINT_JAR).
+if [[ -n ${RULESET_JAR:-} ]]; then
+  rs=$RULESET_JAR; command -v cygpath >/dev/null && rs=$(cygpath -m "$rs")
+  export KTRS_KTLINT_JAR="$jar"
+  [[ -n $bundled ]] && export JAVA_HOME="${bundled%/bin}"
+  compose_kt='printf "@Composable\nfun Screen(modifier: Modifier, text: String) {\n    Text(text)\n    Text(text)\n}\n\n@Preview\n@Composable\nfun ScreenPreview(m: Modifier = Modifier) {\n    Row(modifier = m) {}\n}\n" > src/Compose.kt'
+  scenario ruleset_jar_lint "" "$compose_kt" -R "$rs" --relative src
+  scenario ruleset_jar_format "" "$compose_kt" -R "$rs" -F --relative src
+  scenario ruleset_jar_json "" "$compose_kt" -R "$rs" --reporter=json src
+  scenario ruleset_jar_stdin src/Compose.kt "$compose_kt" -R "$rs" --stdin
+  scenario ruleset_jar_stdin_format src/Compose.kt "$compose_kt" -R "$rs" --stdin -F
+  scenario ruleset_jar_disabled "" "$compose_kt && printf 'ktlint_compose = disabled\n' >> .editorconfig" -R "$rs" --relative src
+  scenario ruleset_jar_gen "" "" -R "$rs" generateEditorConfig --code-style=ktlint_official
+fi
 
 # Subcommands.
 scenario gen_missing "" "" generateEditorConfig

@@ -1,0 +1,5 @@
+ktlint=1.8
+rules=compose:modifier-reused-check
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=ModifierReusedCheckTest.errors when outer modifier alias is in then arg and shadowed modifier is chain receiver

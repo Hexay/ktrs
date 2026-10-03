@@ -10,6 +10,7 @@ rust-version.workspace = true
 [dependencies]
 ktrs-fmt.workspace = true
 ktrs-lint.workspace = true
+ktrs-compose.workspace = true
 ktrs-editorconfig.workspace = true
 ec4rs = "1"
 regex = "1.11"

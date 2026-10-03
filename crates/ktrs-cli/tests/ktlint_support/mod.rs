@@ -8,6 +8,7 @@ use std::path::{Path, PathBuf};
 use ktrs_cli::ktlint::KtlintCli;
 use ktrs_cli::ktlint::console::Console;
 use ktrs_cli::ktlint::jpath::JPath;
+use ktrs_cli::ktlint::ktlint_jar::JvmEnv;
 
 #[path = "../common/mod.rs"]
 mod common;
@@ -16,6 +17,8 @@ pub use common::TempDir;
 pub struct Project {
     temp: TempDir,
     dir: PathBuf,
+    /// No `java` unless a test sets one, so a JVM hand-off fails fast.
+    pub jvm: JvmEnv,
 }
 
 impl Project {
@@ -24,7 +27,7 @@ impl Project {
         let temp = TempDir::new(&format!("ktlint-{name}"));
         let dir = temp.path().join(name);
         fs::create_dir_all(&dir).unwrap();
-        let project = Project { temp, dir };
+        let project = Project { temp, dir, jvm: JvmEnv { path: Some(Default::default()), ..JvmEnv::default() } };
         files.iter().for_each(|(path, content)| project.write(path, content));
         project
     }
@@ -60,7 +63,7 @@ impl Project {
 
     pub fn run_with_stdin(&self, args: &[&str], stdin: &[u8]) -> Run {
         let (console, out, err) = Console::capture(stdin);
-        let cli = KtlintCli { console, working_dir: JPath::from_path(&self.dir), user_home: String::new() };
+        let cli = KtlintCli { console, working_dir: JPath::from_path(&self.dir), user_home: String::new(), jvm: self.jvm.clone() };
         let args: Vec<String> = args.iter().map(|a| a.to_string()).collect();
         let exit_code = cli.run(&args);
         Run { exit_code, out: out.text(), err: err.text() }

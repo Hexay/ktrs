@@ -72,9 +72,23 @@ name = "ktrs-cli"
 version = "0.3.1"
 dependencies = [
  "ec4rs",
+ "ktrs-compose",
  "ktrs-editorconfig",
  "ktrs-fmt",
  "ktrs-lint",
+ "regex",
+]
+
+[[package]]
+name = "ktrs-compose"
+version = "0.3.1"
+dependencies = [
+ "ktrs-ast",
+ "ktrs-editorconfig",
+ "ktrs-lint",
+ "ktrs-parser",
+ "ktrs-psi",
+ "ktrs-syntax",
  "regex",
 ]
 
