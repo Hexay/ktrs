@@ -4,9 +4,10 @@
 #
 #   tools/parity/ktfmt-compare.sh A B TREE OUT [style...]     styles: meta google kotlinlang (default: all)
 #
-# A, B: commands (word-split, so "java -jar ktfmt.jar" works). Env: TMO = per-run timeout in seconds (default 3600).
+# A, B: commands (word-split, so "java -jar ktfmt.jar" works). Env: TMO = per-run timeout in seconds (default 3600);
+# KEEP=DIR keeps B's formatted tree as DIR/<style> (tools/fuzz/diff.sh formats it again).
 set -uo pipefail
-(($# >= 4)) || { sed -n 2,8p "$0"; exit 2; }
+(($# >= 4)) || { sed -n 2,9p "$0"; exit 2; }
 A=$1 B=$2 TREE=$(cd "$3" && pwd) OUT=$4; shift 4
 STYLES=("$@"); ((${#STYLES[@]})) || STYLES=(meta google kotlinlang)
 TMO=${TMO:-3600}
@@ -29,6 +30,7 @@ for style in "${STYLES[@]}"; do
   done
   diff -r "$W/a" "$W/b" > "$d/format.diff"
   diff -rq "$W/a" "$W/b" | awk '{print $2}' | sed "s|^$W/a/||" > "$d/files.txt"
+  [[ -n ${KEEP:-} ]] && { mkdir -p "$KEEP"; rm -rf "${KEEP:?}/$style"; cp -a "$W/b" "$KEEP/$style"; }
   echo "$style: exit A $(cat "$d/a.exit") B $(cat "$d/b.exit"); stderr $(cmp -s "$d/a.err.sorted" "$d/b.err.sorted" &&
     echo same || echo "DIFF ($(diff "$d/a.err.sorted" "$d/b.err.sorted" | grep -c '^[<>]') lines)");" \
     "files differing $(wc -l < "$d/files.txt")" | tee -a "$OUT/summary.md"

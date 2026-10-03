@@ -1,0 +1,51 @@
+[package]
+name = "ktrs-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2024"
+
+[package.metadata]
+cargo-fuzz = true
+
+# Its own workspace root, so the main workspace (members = crates/*) never builds it. See research/24-fuzzing.md.
+[workspace]
+
+[dependencies]
+libfuzzer-sys = "0.4"
+ktrs-syntax = { path = "../crates/ktrs-syntax" }
+ktrs-lexer = { path = "../crates/ktrs-lexer" }
+ktrs-parser = { path = "../crates/ktrs-parser" }
+ktrs-fmt = { path = "../crates/ktrs-fmt" }
+ktrs-lint = { path = "../crates/ktrs-lint" }
+
+[profile.release]
+debug = 1
+
+[[bin]]
+name = "parser"
+path = "fuzz_targets/parser.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "ktfmt"
+path = "fuzz_targets/ktfmt.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "ktlint"
+path = "fuzz_targets/ktlint.rs"
+test = false
+doc = false
+bench = false
+
+# Not a fuzz target: corpus generation/filtering for tools/fuzz/diff.sh. Build with plain `cargo build`.
+[[bin]]
+name = "kgen"
+path = "src/bin/kgen.rs"
+test = false
+doc = false
+bench = false

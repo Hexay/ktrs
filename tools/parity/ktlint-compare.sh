@@ -7,9 +7,11 @@
 #
 # A, B: commands (word-split, so "java -jar x.jar" works). TREE: .kt/.kts only, no .editorconfig of its own
 # below the root; its root .editorconfig is overwritten per style. Styles default to all three.
-# Env: NO_FORMAT=1 skips -F; TMO = per-run timeout in seconds (default 3600).
+# Env: NO_FORMAT=1 skips -F; TMO = per-run timeout in seconds (default 3600); KEEP=DIR keeps B's -F tree as
+# DIR/<style> (tools/fuzz/diff.sh formats it again); EC_EXTRA = more .editorconfig lines (printf %b), e.g.
+# 'ktlint_experimental = enabled\n'.
 set -uo pipefail
-(($# >= 4)) || { sed -n 2,11p "$0"; exit 2; }
+(($# >= 4)) || { sed -n 2,13p "$0"; exit 2; }
 A=$1 B=$2 TREE=$(cd "$3" && pwd) OUT=$4; shift 4
 STYLES=("$@"); ((${#STYLES[@]})) || STYLES=(ktlint_official intellij_idea android_studio)
 TMO=${TMO:-3600}
@@ -34,7 +36,7 @@ rule_counts() { sed -nE 's/.*\(([^()]+)\)$/\1/p' "$1" | sort | uniq -c | awk '{p
 
 for style in "${STYLES[@]}"; do
   d=$OUT/$style; mkdir -p "$d"
-  printf 'root = true\n\n[*.{kt,kts}]\nktlint_code_style = %s\n' "$style" > "$TREE/.editorconfig"
+  printf 'root = true\n\n[*.{kt,kts}]\nktlint_code_style = %s\n%b' "$style" "${EC_EXTRA:-}" > "$TREE/.editorconfig"
   run "$A" "$TREE" "$d/lint.a" --relative; run "$B" "$TREE" "$d/lint.b" --relative
   rows "$d/lint.a.out" > "$d/rows.a"; rows "$d/lint.b.out" > "$d/rows.b"
   LC_ALL=C comm -23 "$d/rows.a" "$d/rows.b" > "$d/only.a"; LC_ALL=C comm -13 "$d/rows.a" "$d/rows.b" > "$d/only.b"
@@ -53,6 +55,7 @@ for style in "${STYLES[@]}"; do
   run "$A" "$W/a" "$d/format.a" --relative -F; run "$B" "$W/b" "$d/format.b" --relative -F
   diff -r "$W/a" "$W/b" > "$d/format.diff"
   diff -rq "$W/a" "$W/b" | awk '{print $2}' | sed "s|^$W/a/||" > "$d/format-files.txt"
+  [[ -n ${KEEP:-} ]] && { mkdir -p "$KEEP"; rm -rf "${KEEP:?}/$style"; cp -a "$W/b" "$KEEP/$style"; rm -f "$KEEP/$style/.editorconfig"; }
   echo "format: exit A $(cat "$d/format.a.exit") B $(cat "$d/format.b.exit"); files differing $(wc -l < "$d/format-files.txt")" |
     tee -a "$OUT/summary.md"
 done
