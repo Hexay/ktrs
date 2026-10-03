@@ -8,6 +8,9 @@ use ktrs_syntax::SyntaxKind;
 use crate::arena::{Ast, NONE, NodeId};
 use crate::tree_util;
 
+/// `Logger.assertTrue(false[, message])`: ktlint's logger rethrows the `Throwable` that `error` gets.
+const LOG_ASSERTION_FAILED: &str = "java.lang.Throwable: Assertion failed";
+
 impl Ast {
     pub fn find_child_by_type(&self, n: NodeId, kind: SyntaxKind) -> Option<NodeId> {
         let mut element = self.first_child_node(n);
@@ -55,7 +58,7 @@ impl Ast {
     pub fn add_child(&mut self, this: NodeId, child: NodeId, anchor_before: Option<NodeId>) {
         assert!(
             anchor_before.is_none_or(|a| self.node(a).parent == this.0),
-            "anchorBefore == null || anchorBefore.getTreeParent() == parent"
+            "{LOG_ASSERTION_FAILED}: anchorBefore == null || anchorBefore.getTreeParent() == parent"
         );
         let last = self.tree_next(child);
         let first = child;
@@ -86,7 +89,7 @@ impl Ast {
 
     /// `replaceChild(oldChild, newChild)`: `old_child` ends up in a new dummy holder.
     pub fn replace_child(&mut self, this: NodeId, old_child: NodeId, new_child: NodeId) {
-        assert!(self.node(old_child).parent == this.0);
+        assert!(self.node(old_child).parent == this.0, "{LOG_ASSERTION_FAILED}");
         let new_child_next = self.tree_next(new_child);
         if old_child != new_child {
             self.remove_children_inner(new_child, new_child_next);
@@ -100,7 +103,9 @@ impl Ast {
     pub fn add_children(&mut self, this: NodeId, first_child: NodeId, last_child: Option<NodeId>, anchor_before: Option<NodeId>) {
         let mut f = Some(first_child);
         while f != last_child {
-            let current = f.expect("lastChild is not a successor of firstChild");
+            let current = f.expect(
+                "java.lang.NullPointerException: Cannot invoke \"org.jetbrains.kotlin.com.intellij.lang.ASTNode.getTreeNext()\" because \"f\" is null",
+            );
             f = self.tree_next(current);
             self.add_child(this, current, anchor_before);
         }

@@ -121,6 +121,15 @@ impl Ast {
         })
     }
 
+    /// The root of the tree `n` is in: the file, or the dummy holder of a detached node.
+    pub fn tree_root(&self, n: NodeId) -> NodeId {
+        let mut cur = n;
+        while let Some(p) = self.tree_parent(cur) {
+            cur = p;
+        }
+        cur
+    }
+
     /// The UTF-16 offset (what the JVM's `startOffset` counts) of the UTF-8 `byte_offset` into the
     /// text of `n`'s tree. Descends by the per-node UTF-16 surplus: emits in a non-ASCII file would
     /// otherwise each walk the whole file.
@@ -128,10 +137,7 @@ impl Ast {
         if self.is_ascii() {
             return byte_offset;
         }
-        let mut cur = n;
-        while let Some(p) = self.tree_parent(cur) {
-            cur = p;
-        }
+        let mut cur = self.tree_root(n);
         let byte_offset = byte_offset.min(self.text_length(cur));
         let (mut rest, mut surplus) = (byte_offset, 0);
         'descend: while rest > 0 {

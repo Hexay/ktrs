@@ -51,7 +51,7 @@ pub fn is_java_exception(message: &str) -> bool {
     let simple = name.rsplit('.').next().unwrap_or(name);
     !simple.is_empty()
         && simple.chars().all(|c| c.is_ascii_alphanumeric())
-        && (simple.ends_with("Exception") || simple.ends_with("Error"))
+        && (simple.ends_with("Exception") || simple.ends_with("Error") || simple == "Throwable")
 }
 
 thread_local! {
