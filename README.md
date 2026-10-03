@@ -9,19 +9,19 @@
 [![License](https://img.shields.io/badge/license-MIT%20%2F%20Apache--2.0-blue.svg)](#license)
 [![Playground](https://img.shields.io/badge/try%20it-playground-7f52ff.svg)](https://hexay.github.io/ktrs/)
 
-<img src="assets/benchmark.svg" alt="Format okhttp: ktrs 0.47 s vs ktfmt 9.58 s. Lint okhttp: ktrs 0.39 s vs ktlint 11.33 s." width="720">
+<img src="assets/benchmark.svg" alt="Format okhttp: ktrs 0.18 s vs ktfmt 3.30 s. Lint okhttp: ktrs 0.34 s vs ktlint 11.56 s." width="720">
 
 </div>
 
 ktrs is a native replacement for [ktfmt](https://github.com/facebook/ktfmt) and
-[ktlint](https://github.com/pinterest/ktlint). It produces the same output, it is 7-190x faster, and
+[ktlint](https://github.com/pinterest/ktlint). It produces the same output, it is 13-190x faster, and
 it ships as small native binaries with no runtime.
 
-- ⚡ **Fast.** About 10 ms per file in an editor or pre-commit hook, against roughly a second of JVM
-  startup. On whole projects it uses every core and is still at least 7x faster.
+- ⚡ **Fast.** Under 10 ms per file in an editor or pre-commit hook, against roughly a second of JVM
+  startup. On whole projects it uses every core and is still at least 13x faster.
 - 🎯 **Identical output.** Byte-identical to ktfmt 0.64 on 6,121 of 6,123 real-world files (both
   tools reject the other two). Lint violations and `--format` output match ktlint 2.0 in all three
-  code styles.
+  code styles, and ktlint 1.8 in a compatibility mode.
 - 🔌 **Drop-in.** The `ktfmt` and `ktlint` binaries accept the originals' flags, messages and exit
   codes, so existing scripts, hooks and CI keep working.
 - 🧩 **Fits your setup.** Integrations for GitHub Actions, pre-commit, Spotless, a ktfmt-gradle
@@ -72,16 +72,30 @@ ktlint --relative "src/**/*.kt" "!src/**/generated/**"
   `--editorconfig`, every built-in reporter, and the git hook subcommands.
 - ktlint implements 2.0.0-ALPHA-4, with its engine and all 105 standard rules.
 
+**ktlint 1.8.** Most teams still run ktlint 1.x, and 2.0 changed rule results, autocorrect order,
+exit codes and baseline matching ([research/22](research/22-ktlint-1x-gap.md)). To get 1.8.0
+behaviour, add this to `.editorconfig` (the ktlint jars ignore it), or pass `--ktlint-version=1.8`:
+
+```ini
+[*.{kt,kts}]
+ktrs_ktlint_version = 1.8
+```
+
+This mode ports 1.8's rule differences, its rule-by-rule autocorrect order and its CLI. On 21,000
+files it matches the 1.8.0 jar except for a few KDoc whitespace rows, where 1.8's older Kotlin lexer
+splits trailing spaces differently ([research/26](research/26-ktlint-18-mode.md)).
+
+**Custom rule sets.** `-R` jars are supported. [compose-rules](https://github.com/mrmans0n/compose-rules)
+0.6.7, by far the most used rule set, runs natively with output identical to the jar. Any other
+rule set or reporter jar hands the whole run to the real ktlint jar (downloaded once and checked by
+SHA-256; needs Java), so it works at JVM speed ([research/27](research/27-custom-rulesets-impl.md)).
+
 **Limits.**
 
-- **ktlint 1.x.** ktrs matches ktlint 2.0, and 1.8 reports differ in a few rules. In
-  `ktlint_official` and `intellij_idea` under 1% of violations differ. In `android_studio` about 5%
-  differ, mostly in `argument-list-wrapping`, `function-literal` and `blank-line-before-declaration`.
-  `--format` output differs on 2-22% of files, depending on the style. 2.0 also changed some exit
-  codes and baseline matching. Details and causes are in
-  [research/22](research/22-ktlint-1x-gap.md).
-- **Custom rule sets.** JVM rule sets and reporters (`-R`, `artifact=`) can't be loaded. Run the
-  ktlint jar for those.
+- Gradle and Maven plugins that load rule sets (ktlint-gradle, Spotless `ktlint()`, kotlinter) run
+  ktlint inside the JVM and don't use these binaries.
+- The `ktfmt` binary accepts Kotlin 2.4 syntax (e.g. `companion { }` blocks) that ktfmt 0.64, built
+  on Kotlin 2.3, rejects.
 
 ## Integrations
 
@@ -215,32 +229,34 @@ binary once, not once per file.
 ## Performance
 
 Each tool is run from the command line the way users run it: same flags, same files, identical
-output. Timings are wall time, the median of 5 alternating runs after a warm-up.
+output. Timings are wall time, the median of 5 runs after a warm-up, measured with
+[hyperfine](https://github.com/sharkdp/hyperfine) on Linux (Xeon E-2136, 10 CPUs, JDK 21).
 
-**Formatting** compares the `ktfmt` binary with the ktfmt 0.64 jar on a Windows 11 laptop (Intel Core
-Ultra, 22 threads, JDK 21):
+**Formatting**, the `ktfmt` binary against the ktfmt 0.64 jar:
 
 | Scenario | ktrs | ktfmt 0.64 | Speedup |
 |---|--:|--:|--:|
-| Editor: one 8 KB file on stdin | 16 ms | 1.49 s | **96x** |
-| Pre-commit: 10 changed files | 26 ms | 2.57 s | **99x** |
-| CI check on okhttp (617 files) | 316 ms | 9.08 s | **29x** |
-| Format okhttp in place | 465 ms | 9.58 s | **21x** |
-| Format okhttp in place, 1 core | 1.48 s | 40.79 s | **28x** |
-| Format 7 projects (6,123 files, 31 MB) | 3.69 s | 24.55 s | **7x** |
+| Editor: one 8 KB file on stdin | <5 ms | 791 ms | **>150x** |
+| Pre-commit: 10 changed files | 16 ms | 743 ms | **47x** |
+| CI check on okhttp (617 files) | 183 ms | 3.87 s | **21x** |
+| Format okhttp in place | 176 ms | 3.30 s | **19x** |
+| Format okhttp in place, 1 core | 505 ms | 12.46 s | **25x** |
+| Format 7 projects (6,123 files, 31 MB) | 813 ms | 10.91 s | **13x** |
 
-**Linting** compares the `ktlint` binary with the ktlint 2.0.0-ALPHA-4 jar on Linux (Xeon E-2136, 10
-CPUs, JDK 21):
+**Linting**, the `ktlint` binary against the ktlint 2.0.0-ALPHA-4 jar:
 
 | Scenario | ktrs | ktlint 2.0 | Speedup |
 |---|--:|--:|--:|
-| Editor: one 8 KB file on stdin | <10 ms | 1.04 s | **>100x** |
-| Lint one file | <10 ms | 830 ms | **>80x** |
-| Lint okhttp (617 files) | 390 ms | 11.33 s | **29x** |
-| Autocorrect okhttp (`-F`) | 620 ms | 118.94 s | **192x** |
-| Lint okhttp, 1 core | 1.35 s · 47 MB | 38.15 s · 344 MB | **28x** |
-| Lint 7 projects (6,123 files) | 1.79 s · 249 MB | 48.24 s · 515 MB | **27x** |
-| Autocorrect 7 projects (`-F`) | 3.76 s | 320.12 s | **85x** |
+| Editor: one 8 KB file on stdin | <10 ms | 1.06 s | **>100x** |
+| Lint one file | <10 ms | 845 ms | **>80x** |
+| Lint okhttp (617 files) | 344 ms | 11.56 s | **34x** |
+| Autocorrect okhttp (`-F`) | 640 ms | 123.0 s | **192x** |
+| Lint okhttp, 1 core | 1.37 s · 49 MB | 39.36 s · 366 MB | **29x** |
+| Lint 7 projects (6,123 files) | 1.72 s · 268 MB | 49.73 s · 553 MB | **29x** |
+| Autocorrect 7 projects (`-F`) | 4.00 s | 338.9 s | **85x** |
+
+The ktlint 1.8.0 jar is 10-30% faster than 2.0 on these runs. ktrs's 1.8 mode visits the tree once
+per rule, as 1.8 does, and is up to 2x slower than its 2.0 mode.
 
 JVM startup dominates small runs. On large runs ktrs is still several times faster per core, and it
 uses every core. The binary is a few MB with no runtime, compared with a 71 MB jar plus a JRE.
@@ -249,14 +265,16 @@ uses every core. The binary is a few MB with no runtime, compared with a 71 MB j
 <summary>Methodology and Spotless numbers</summary>
 
 - **Corpus.** The 7 projects are okhttp, kotlinx.coroutines, nowinandroid, ktlint, ktfmt, Exposed
-  and ktor, pinned in `corpus/REVISIONS` and fetched by `tools/fetch-corpus.sh`.
+  and ktor, pinned in [`tools/bench/REVISIONS`](tools/bench/REVISIONS).
 - **1 core.** Both processes are pinned to one CPU from launch. The JVM then sizes its GC and JIT
   threads for one CPU, as it would in a 1-CPU container, and its JIT competes with the work.
 - **Identical output.** ktfmt rejects 2 of the 6,123 files, Exposed's `{{packageName}}`
   code-generator templates, and ktrs rejects them with the same error.
-- **Reproduce.** Formatting: `py -3 tools/bench/e2e.py`. Linting: `tools/bench/lint-e2e.sh`, with
-  results and the comparison against ktlint 1.8 and ktlint-rs in
-  [research/20](research/20-ktlint-bench.md).
+- **Reproduce.** `tools/bench/public.sh` (Linux or macOS; needs hyperfine, Java and a
+  `cargo build --profile dist`) fetches the corpus, downloads the jars and checks their SHA-256, and
+  runs every scenario above; `--only quick` runs a subset. The `bench` workflow runs it on a GitHub
+  runner for each release tag or on demand. Method, noise and the ktlint 1.8 figures are in
+  [research/23](research/23-public-bench.md).
 
 **Spotless.** `spotlessApply` on okhttp's 573 files gives identical output. The figures are the
 formatter's share, after subtracting a Spotless run that only trims whitespace:
@@ -290,14 +308,19 @@ files:
   - ktfmt output matched on every file in all three styles.
   - `--format` output differed on 3 files, from one rule. That bug is now fixed.
 
-  Details are in [research/21](research/21-holdout.md); `tools/holdout/run.sh` reruns it.
-- **Upstream releases.** A weekly workflow opens an issue when ktfmt, ktlint or Kotlin publishes a
-  release newer than the pinned version.
+  Details are in [research/21](research/21-holdout.md); `tools/holdout/run.sh` reruns it. The
+  ktlint 1.8 mode and compose-rules are checked against their jars on both corpora too.
+- **Fuzzing.** `fuzz/` has cargo-fuzz targets for the parser, ktfmt and ktlint, and
+  `tools/fuzz/diff.sh` runs mutated real-world files through the binaries and the jars and reports
+  any difference. The first runs found 4 bugs, now fixed, including exponential parser memory on
+  deeply nested generic-looking input ([research/24](research/24-fuzzing.md)).
+- **Upstream releases.** A weekly workflow opens an issue when ktfmt, ktlint, compose-rules or
+  Kotlin publishes a release newer than the pinned version.
 
 ## Maintenance
 
 ktrs is maintained by [@Hexay](https://github.com/Hexay). It tracks ktfmt 0.64, ktlint
-2.0.0-ALPHA-4 and the Kotlin 2.4.20 parser. New upstream releases are ported and re-checked against
+2.0.0-ALPHA-4 (plus 1.8.0 in compatibility mode), compose-rules 0.6.7 and the Kotlin 2.4.20 parser. New upstream releases are ported and re-checked against
 the parity gates before a ktrs release. If ktrs output ever differs from ktfmt or ktlint on your
 code, that's a bug: please [open an issue](https://github.com/Hexay/ktrs/issues) with the file, or
 a snippet that reproduces it, and the command line you used.

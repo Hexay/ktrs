@@ -54,7 +54,7 @@ the speed) and an explicit host `--target` (this cargo-fuzz build defaults to mu
 timeout handler (it deadlocks on the allocator lock); `fuzz.sh` kills them after the session.
 
 Inputs with `(` nested deeper than 10 are skipped (`KNOWN_SLOW_PAREN_DEPTH`, finding 1); without that every target
-drowns in timeouts and OOMs.
+drowns in timeouts. Since the finding-1 fix memory stays bounded, but time is still exponential, as upstream.
 
 ## Run
 
@@ -88,6 +88,26 @@ IntelliJ's `LOG.assertTrue` text, and `differs.sh` finds no difference from the 
 On the minimized one (`class/** … */vararg/** … */:` + a backticked name; testbox `~/work/fuzz/min/l1.min.kt`) the jar
 logs the same assertion and both report `Internal Error (rule 'standard:colon-spacing')`. The `ChameleonCache`
 exactness claim held throughout.
+
+## Status (2026-10-03): findings 1, 2, 6, 7 fixed; 3 kept by decision; 4, 5 open
+
+- **1.** Marker ids are reused like IntelliJ's `MarkerPool` (separate free lists for start markers and error items, last
+  freed first; message slots too). Peak memory is bounded by live markers: `val x = ` + `(a<`×14 3.96 GB → 9 MB, ×16
+  9 MB (18 s); `a<` + `(`×22 4.97 GB → 9 MB. Trees unchanged (corpus-diff 6123/6123); parser throughput −1.9%.
+  Regression test: `crates/ktrs-parser/tests/backtracking_memory.rs` (heap peak under 4 MB).
+- **2.** A comment's `Doc.Tok` range is `[-1, 0)`, so `makeKToIJ` maps k = -1; the port's vector is now offset by one.
+  Correction to the finding below: the jar keeps the leading space (`" // c"` → `" // c\n"`).
+- **3.** Kept: ktrs formats Kotlin 2.4 syntax the 0.64 jar rejects (user decision; listed in the README limits).
+- **6.** The unused import's `IMPORT_DIRECTIVE` swallows the trailing comment, so it is removed before its own `;`, and
+  `StringBuilder.replace` throws `StringIndexOutOfBoundsException`, which the CLI doesn't catch. ktrs now raises the
+  same exception as an error. `ktrs_syntax::caught_panic` (shared with ktrs-lint) silences panics `ktfmt` and
+  `ktrs fmt` catch.
+- **7.** Ported `visitElement`'s `catch (t: Throwable) { throw FormattingError(...) }`; output matches the jar apart from
+  stack frames.
+- Rerun: all 13 ktfmt crash artifacts pass; the m3000/corpus3000 repros match the jar except the 3 finding-3 files.
+- **New (open):** ktlint `crates/ktrs-ast/src/text.rs:139` slices inside a multi-byte char (U+2029), testbox
+  `~/work/ktrs-fz/fuzz/artifacts/ktlint/crash-5117c70b…`. Two ktlint artifacts hit IntelliJ assertion texts
+  (`composite_element.rs:56`, `:103`), not yet checked against the jar.
 
 ## Findings (by severity)
 
