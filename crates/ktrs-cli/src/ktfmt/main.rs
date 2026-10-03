@@ -228,6 +228,12 @@ fn report_error(report: &mut Report, file_name: &str, error: &FormatError) {
             report.err(&format!("com.google.googlejavaformat.FormattingError: {error}"));
         }
         FormatError::Formatter(_) | FormatError::Runtime(_) => {}
+        // Uncaught: the JVM ends the whole run; here it fails this file only (as for the jar's
+        // `FormattingError` abort, research/24 "Not findings").
+        FormatError::MissedTokens(e) => {
+            report.err(&e.log());
+            report.err(&format!("Exception in thread \"main\" {error}"));
+        }
     }
 }
 

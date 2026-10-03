@@ -10,20 +10,27 @@ import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /** One {@code ktrs serve} child process; not thread-safe (protocol: crates/ktrs-cli/src/serve.rs). */
 final class ServerProcess implements Closeable {
+    /** The protocol of ktfmt requests; ktlint requests need {@link #KTLINT_PROTOCOL_VERSION}. */
     static final int PROTOCOL_VERSION = 1;
+    static final int KTLINT_PROTOCOL_VERSION = 2;
 
     static final class Response {
         final boolean ok;
         final boolean changed;
+        /** The header lines after {@code status} and {@code changed}. */
+        final List<String> header;
         final String body;
 
-        Response(boolean ok, boolean changed, String body) {
+        Response(boolean ok, boolean changed, List<String> header, String body) {
             this.ok = ok;
             this.changed = changed;
+            this.header = header;
             this.body = body;
         }
     }
@@ -31,6 +38,7 @@ final class ServerProcess implements Closeable {
     private final Process process;
     private final DataInputStream in;
     private final DataOutputStream out;
+    private int protocol;
 
     private ServerProcess(Process process) {
         this.process = process;
@@ -53,11 +61,26 @@ final class ServerProcess implements Closeable {
             server.close();
             throw e;
         }
-        if (!hello.startsWith("ktrs-serve " + PROTOCOL_VERSION + " ")) {
+        server.protocol = protocol(hello);
+        if (server.protocol < PROTOCOL_VERSION) {
             server.close();
             throw new IOException(executable + " speaks an unsupported protocol: " + hello);
         }
         return server;
+    }
+
+    /** {@code ktrs-serve <protocol> <version>}: the protocol, or -1. Newer servers answer older requests alike. */
+    private static int protocol(String hello) {
+        String[] parts = hello.split(" ");
+        try {
+            return parts.length == 3 && parts[0].equals("ktrs-serve") ? Integer.parseInt(parts[1]) : -1;
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+
+    int protocol() {
+        return protocol;
     }
 
     Response request(String header, String code) throws IOException {
@@ -72,11 +95,17 @@ final class ServerProcess implements Closeable {
         }
         boolean ok = false;
         boolean changed = false;
+        List<String> rest = new ArrayList<>();
         for (String line : response.substring(0, end).split("\n")) {
-            ok |= line.equals("status=ok");
-            changed |= line.equals("changed=true");
+            if (line.startsWith("status=")) {
+                ok = line.equals("status=ok");
+            } else if (line.startsWith("changed=")) {
+                changed = line.equals("changed=true");
+            } else {
+                rest.add(line);
+            }
         }
-        return new Response(ok, changed, response.substring(end + 2));
+        return new Response(ok, changed, rest, response.substring(end + 2));
     }
 
     private byte[] readFrame() throws IOException {
