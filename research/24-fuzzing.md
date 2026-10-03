@@ -89,7 +89,7 @@ On the minimized one (`class/** … */vararg/** … */:` + a backticked name; te
 logs the same assertion and both report `Internal Error (rule 'standard:colon-spacing')`. The `ChameleonCache`
 exactness claim held throughout.
 
-## Status (2026-10-03): findings 1, 2, 6, 7 fixed; 3 kept by decision; 4, 5 open
+## Status (2026-10-03): findings 1, 2, 4, 6, 7 fixed; 3 kept by decision; 5 open
 
 - **1.** Marker ids are reused like IntelliJ's `MarkerPool` (separate free lists for start markers and error items, last
   freed first; message slots too). Peak memory is bounded by live markers: `val x = ` + `(a<`×14 3.96 GB → 9 MB, ×16
@@ -98,6 +98,20 @@ exactness claim held throughout.
 - **2.** A comment's `Doc.Tok` range is `[-1, 0)`, so `makeKToIJ` maps k = -1; the port's vector is now offset by one.
   Correction to the finding below: the jar keeps the leading space (`" // c"` → `" // c\n"`).
 - **3.** Kept: ktrs formats Kotlin 2.4 syntax the 0.64 jar rejects (user decision; listed in the README limits).
+- **4.** Matched, not avoided: the tree still drops the tokens (as IntelliJ's does after logging), and the parse now
+  reports each builder that stopped early (`ktrs_syntax::MissedTokens`: the token names, the builder's text). Both
+  jars run IntelliJ's `DefaultLogger`, which prints `ERROR: Tokens [RPAR] were not inserted into the tree. Language:
+  kotlin` / `Details:` / `missedTokensFragment.txt` / the chameleon's text to stderr and throws `AssertionError`;
+  neither CLI catches an `Error`. Both expand every chameleon before looking for error elements (checked with an
+  error element *before* the bad lambda: still the assertion), so it beats any parse error. ktlint: `Exception in
+  thread "main" java.util.concurrent.ExecutionException: java.lang.AssertionError: …` (a file; plain
+  `AssertionError` for stdin), exit 1, run ended. ktfmt: the log and `Exception in thread "main"
+  java.lang.AssertionError: …`, exit 1; ktrs fails only that file of a multi-file run (the jar's abort is a race,
+  as for `FormattingError` under "Not findings"). Stack frames are not reproduced. The 8 parser crash artifacts ×
+  `.kt`/`.kts` × both tools: 32/32 equal to the jars (stderr without frames, stdout, exit code, file), 26 of them
+  through the assertion; the 1.8.0 jar prints the same as 1.8 mode. No fixture or corpus file (7,249) misses tokens; corpus-diff 6123/6123. Tests:
+  `crates/ktrs-parser/tests/missed_tokens.rs`, `ktrs-lint/tests/fuzz_regressions.rs`,
+  `ktrs-fmt/tests/fuzz_regressions.rs`, `ktrs-cli/tests/{ktlint,ktfmt}_fuzz_regressions.rs`.
 - **6.** The unused import's `IMPORT_DIRECTIVE` swallows the trailing comment, so it is removed before its own `;`, and
   `StringBuilder.replace` throws `StringIndexOutOfBoundsException`, which the CLI doesn't catch. ktrs now raises the
   same exception as an error. `ktrs_syntax::caught_panic` (shared with ktrs-lint) silences panics `ktfmt` and

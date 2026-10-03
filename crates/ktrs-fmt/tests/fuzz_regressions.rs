@@ -29,6 +29,16 @@ fn removing_an_import_around_its_own_semicolon_throws_like_string_builder() {
     }
 }
 
+/// Finding 4: a lambda reparse stops before its `)`; the parser's `AssertionError` beats the parse error before it.
+#[test]
+fn missed_tokens_throw_the_parsers_assertion_error() {
+    for input in ["{fun<)]<T:@( {})", "val a = )\nfun f() = {fun<)]<T:@( {})"] {
+        let error = format(input, &META_FORMAT).unwrap_err();
+        assert!(matches!(error, FormatError::MissedTokens(_)), "{error:?}");
+        assert_eq!(error.to_string(), "java.lang.AssertionError: Tokens [RPAR] were not inserted into the tree. Language: kotlin");
+    }
+}
+
 /// Finding 7: `visitElement` turns any other exception thrown below it into a `FormattingError`
 /// whose message is the stack trace (here its first line).
 #[test]

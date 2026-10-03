@@ -145,6 +145,8 @@ pub enum KtLintException {
     EditorConfig(ktrs_editorconfig::ParseException),
     /// ktlint 1.8: an `IllegalStateException` from its `RunAfterRuleFilter` (a required rule is disabled).
     IllegalState(String),
+    /// The parser's `AssertionError` (an `Error`: no `catch (e: Exception)` of the CLI stops it).
+    MissedTokens(ktrs_syntax::MissedTokens),
 }
 
 impl From<KtLintParseException> for KtLintException {
@@ -172,6 +174,7 @@ impl std::fmt::Display for KtLintException {
             KtLintException::Rule(e) => f.write_str(&e.message),
             KtLintException::EditorConfig(e) => write!(f, "{e}"),
             KtLintException::IllegalState(message) => f.write_str(message),
+            KtLintException::MissedTokens(e) => f.write_str(&e.message()),
         }
     }
 }

@@ -33,6 +33,8 @@ pub enum FormatError {
     Formatter(FormatterException),
     /// Any other JVM exception, as its `toString()` (e.g. `IndexOutOfBoundsException` on a lone shebang line).
     Runtime(String),
+    /// The parser's `AssertionError`, a JVM `Error` ktfmt's CLI doesn't catch (research/24, finding 4).
+    MissedTokens(ktrs_syntax::MissedTokens),
 }
 
 impl fmt::Display for FormatError {
@@ -42,6 +44,7 @@ impl fmt::Display for FormatError {
             FormatError::Formatting(e) => write!(f, "{}", e.to_string().trim_end()),
             FormatError::Formatter(e) => write!(f, "{e}"),
             FormatError::Runtime(message) => f.write_str(message),
+            FormatError::MissedTokens(e) => f.write_str(&e.assertion_error()),
         }
     }
 }
