@@ -7,6 +7,7 @@ use ktrs_editorconfig::EnumValue;
 use ktrs_lint::editorconfig::{CodeStyleValue, KtlintVersion};
 
 use crate::ktlint::clikt::{Arity, Invocation, OptionSpec, expand_argument_files, parse_tokens};
+use crate::ktlint::gradle;
 use crate::ktlint::logger::Level;
 use crate::ktlint::version::{KTLINT_VERSION_OPTION, release, resolve_ktlint_version};
 
@@ -24,7 +25,7 @@ const fn spec(names: &'static [&'static str], arity: Arity) -> OptionSpec {
     OptionSpec { names, arity, hidden: false }
 }
 
-static MAIN_OPTIONS: [OptionSpec; 18] = [
+static MAIN_OPTIONS: [OptionSpec; 21] = [
     spec(&["--version", "-v"], Arity::Flag),
     spec(&["--color"], Arity::Flag),
     spec(&["--color-name"], Arity::Value),
@@ -43,6 +44,9 @@ static MAIN_OPTIONS: [OptionSpec; 18] = [
     spec(&["--log-level", "-l"], Arity::Value),
     spec(&["--help", "-h"], Arity::Flag),
     OptionSpec { names: &[KTLINT_VERSION_OPTION], arity: Arity::Value, hidden: true },
+    OptionSpec { names: &[gradle::EVENTS_OPTION], arity: Arity::Value, hidden: true },
+    OptionSpec { names: &[gradle::RELATIVE_TO_OPTION], arity: Arity::Value, hidden: true },
+    OptionSpec { names: &[gradle::EDITOR_CONFIG_OVERRIDE_OPTION], arity: Arity::Value, hidden: true },
 ];
 
 /// 1.8 still declares `--code-style` (deprecated, an error when used) right after `--version`.
@@ -95,6 +99,10 @@ pub struct KtlintArgs {
     pub arguments: Vec<String>,
     pub min_log_level: Level,
     pub ktlint_version: KtlintVersion,
+    /// ktrs-only (the Gradle plugin's): [`gradle`].
+    pub gradle_events: Option<String>,
+    pub relative_to: Option<String>,
+    pub editor_config_overrides: Vec<String>,
 }
 
 impl Default for KtlintArgs {
@@ -117,6 +125,9 @@ impl Default for KtlintArgs {
             arguments: Vec::new(),
             min_log_level: Level::Info,
             ktlint_version: KtlintVersion::default(),
+            gradle_events: None,
+            relative_to: None,
+            editor_config_overrides: Vec::new(),
         }
     }
 }
@@ -222,6 +233,9 @@ fn to_ktlint_args(invocations: &[Invocation], arguments: Vec<String>, ktlint_ver
     if let Some(level) = last("--log-level") {
         args.min_log_level = Level::parse(&level).map_err(|e| format!("invalid value for --log-level: {e}"))?;
     }
+    args.gradle_events = last(gradle::EVENTS_OPTION);
+    args.relative_to = last(gradle::RELATIVE_TO_OPTION);
+    args.editor_config_overrides = all(gradle::EDITOR_CONFIG_OVERRIDE_OPTION).collect();
     Ok(args)
 }
 

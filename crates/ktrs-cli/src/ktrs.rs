@@ -1,6 +1,6 @@
 //! The native `ktrs` command. `ktrs fmt` maps its flags onto ktfmt's [`ParsedArgs`] and runs the
 //! same [`Main`], so output, messages and exit codes stay those of the `ktfmt` drop-in; `ktrs lint`
-//! does the same over the `ktlint` drop-in (`crate::ktrs_lint`).
+//! does the same over the `ktlint` drop-in (`crate::ktrs_lint`); `ktrs ktlint` is that drop-in itself.
 
 use std::io;
 use std::path::Path;
@@ -20,6 +20,8 @@ Usage:
   ktrs lint [OPTIONS] -            Check stdin (with --format: fixed code to stdout)
   ktrs serve                      Format requests framed on stdin until it closes (for build tools;
                                      protocol: crates/ktrs-cli/src/serve.rs)
+  ktrs ktlint [ARGS ...]          Exactly the `ktlint` drop-in, flags and exit codes as ktlint's CLI
+                                     (for build tools that bundle only `ktrs`)
   ktrs --version
 
 Format options:
@@ -57,6 +59,8 @@ pub fn run(args: &[String]) -> i32 {
             eprintln!("error: {message}\n\n{}", help());
             2
         }),
+        // No `java_launcher` wildcard expansion: callers pass literal paths, not a shell's command line.
+        Some("ktlint") => crate::ktlint::main(&args[1..]),
         Some("serve") if args.len() == 1 => crate::serve::run(io::stdin().lock(), io::stdout().lock()),
         Some("--version" | "-V") => {
             println!("ktrs {} (formats like ktfmt {KTFMT_VERSION})", env!("CARGO_PKG_VERSION"));

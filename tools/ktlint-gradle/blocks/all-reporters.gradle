@@ -1,0 +1,10 @@
+ktlint {
+    version = "1.8.0"
+    reporters {
+        reporter "plain"
+        reporter "checkstyle"
+        reporter "json"
+        reporter "sarif"
+        reporter "html"
+    }
+}

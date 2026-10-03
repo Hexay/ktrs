@@ -8,6 +8,7 @@ use crate::ktlint::baseline::{Baseline, BaselineStatus};
 use crate::ktlint::command_line::{Exit, ExitCode};
 use crate::ktlint::console::{Console, Printer, Sink};
 use crate::ktlint::file_utils::location;
+use crate::ktlint::gradle::GradleEventsReporter;
 use crate::ktlint::jar_providers::{load_from_jar_file, to_files_uri_list};
 use crate::ktlint::version::package;
 use crate::ktlint::jpath::JPath;
@@ -23,6 +24,8 @@ pub struct ReporterSettings<'a> {
     pub stdin: bool,
     pub format: bool,
     pub relative: bool,
+    /// `--ktrs-gradle-events` (`crate::ktlint::gradle`).
+    pub gradle_events: Option<&'a str>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -73,6 +76,11 @@ pub fn aggregated_reporter(baseline: &Baseline, settings: &ReporterSettings, cx:
             return Err(Exit::Code(ExitCode::InvalidReporterConfiguration));
         }
         reporters.push(to_reporter_v2(configuration, settings, cx)?);
+    }
+    if let Some(events) = settings.gradle_events {
+        let path = cx.working_dir.resolve(events).map(|p| p.to_path_buf()).unwrap_or_else(|| events.into());
+        let file = File::create(&path).map_err(|e| Exit::Crash(format!("java.io.FileNotFoundException: {events} ({e})")))?;
+        reporters.push(Box::new(GradleEventsReporter::new(file)));
     }
     Ok(AggregatedReporter { reporters })
 }

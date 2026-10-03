@@ -12,6 +12,7 @@ use crate::ktlint::args::{KtlintArgs, Parsed, Subcommand, USAGE_MAIN, parse_args
 use crate::ktlint::baseline::{Baseline, load_baseline};
 use crate::ktlint::console::Console;
 use crate::ktlint::file_utils::{expand_tilde_to_full_path, file_sequence, java_list, location};
+use crate::ktlint::gradle;
 use crate::ktlint::patterns::replace_with_patterns_from_stdin_or_default_patterns_when_empty;
 use crate::ktlint::jar_providers::jvm_only_jar;
 use crate::ktlint::jpath::JPath;
@@ -126,15 +127,18 @@ impl KtlintCli {
         }
         let patterns = replace_with_patterns_from_stdin_or_default_patterns_when_empty(args, &self.console, logger);
         let rule_providers = self.rule_providers(args, logger)?;
-        let mut editor_config_override = EditorConfigOverride::empty();
+        let mut overrides = Vec::new();
         if args.stdin && args.stdin_path.as_deref().is_none_or(|p| p.trim().is_empty()) {
             logger.debug(KTLINT_COMMAND_LINE, || {
                 "Add editor config override to disable 'filename' rule which can not be used in combination with reading from <stdin>"
                     .to_owned()
             });
             let filename = create_rule_execution_editor_config_property("standard:filename", RuleExecution::Disabled);
-            editor_config_override = EditorConfigOverride::from(vec![(filename.into(), Some("disabled".to_owned()))]);
+            overrides.push((filename.into(), Some("disabled".to_owned())));
         }
+        overrides.extend(gradle::editor_config_override(&args.editor_config_overrides, &rule_providers).map_err(Exit::Crash)?);
+        let editor_config_override =
+            if overrides.is_empty() { EditorConfigOverride::empty() } else { EditorConfigOverride::from(overrides) };
         let editor_config_override = with_ktlint_version(editor_config_override, args.ktlint_version);
         let start = Instant::now();
         let editor_config_defaults = self.editor_config_defaults(args, &rule_providers, logger)?;
@@ -158,6 +162,7 @@ impl KtlintCli {
             stdin: args.stdin,
             format: args.format,
             relative: args.relative,
+            gradle_events: args.gradle_events.as_deref(),
         };
         let cx = Context { console: &self.console, logger, working_dir: &self.working_dir, user_home: &self.user_home, env: &env };
         let mut reporter = aggregated_reporter(&baseline, &settings, &cx)?;
@@ -171,6 +176,7 @@ impl KtlintCli {
                 force_lint_after_format: args.force_lint_after_format,
                 ktlint_version: args.ktlint_version,
                 contains_unfixed_lint_errors: AtomicBool::new(false),
+                gradle: args.gradle_events.is_some(),
             },
             args,
             file_number: AtomicUsize::new(0),
@@ -236,6 +242,7 @@ impl KtlintCli {
             .map_err(|e| Exit::Crash(format!("java.util.regex.PatternSyntaxException: {e}")))?;
         let failure: Mutex<Option<Exit>> = Mutex::new(None);
         let reporter = Mutex::new(reporter);
+        let relative_base = run.args.relative_to.as_ref().and_then(|dir| self.working_dir.resolve(dir)).unwrap_or_else(|| self.working_dir.clone());
         parallel(
             &files,
             || run.error_number.load(Ordering::SeqCst) >= run.args.limit || failure.lock().unwrap().is_some(),
@@ -247,7 +254,11 @@ impl KtlintCli {
                 run.processor.process(&code, baseline_lint_errors.map_or(&[][..], Vec::as_slice))
             },
             |file, result| match result {
-                Ok(errors) => run.report(&location(file, run.args.relative, &self.working_dir), &errors, &mut **reporter.lock().unwrap()),
+                Ok(errors) => {
+                    let route = location(file, run.args.relative, &relative_base);
+                    let route = if run.args.gradle_events.is_some() { gradle::native_separators(&route) } else { route };
+                    run.report(&route, &errors, &mut **reporter.lock().unwrap())
+                }
                 Err(exit) => {
                     failure.lock().unwrap().get_or_insert(exit);
                 }

@@ -8,19 +8,25 @@ use crate::ktlint::zip_directory::read_zip_directory;
 
 /// The compose-rules release `jar` is, when ktrs ports it.
 pub fn native_compose_rules_release(jar: &Path) -> Option<&'static str> {
-    let fingerprint = fingerprint(jar)?;
+    let fingerprint = fingerprint(&[jar])?;
     ktrs_compose::NATIVE_JARS.iter().find(|(_, known)| *known == fingerprint).map(|(release, _)| *release)
 }
 
-/// SHA-256 of the sorted `name\tcrc32\tsize\n` lines of the `io/nlopez/compose/` entries (the same as
-/// `unzip -v <jar> | awk '$8 ~ /^io\/nlopez\/compose\// {printf "%s\t%s\t%s\n", $8, tolower($7), $1}' | LC_ALL=C sort | sha256sum`).
-fn fingerprint(jar: &Path) -> Option<String> {
-    let mut lines: Vec<String> = read_zip_directory(jar)
-        .ok()?
-        .into_iter()
-        .filter(|e| e.name.starts_with("io/nlopez/compose/"))
-        .map(|e| format!("{}\t{:08x}\t{}\n", e.name, e.crc32, e.size))
-        .collect();
+/// SHA-256 of the sorted `name\tcrc32\tsize\n` lines of the `io/nlopez/compose/` file entries (the same as
+/// `unzip -v <jar> | awk '$8 ~ /^io\/nlopez\/compose\/.*[^\/]$/ {printf "%s\t%s\t%s\n", $8, tolower($7), $1}' | LC_ALL=C sort | sha256sum`).
+/// Directory entries don't count: JAR tools differ on them (the Gradle plugin's merged rule set JAR has none).
+/// Over several JARs: their entries together, as one JAR merging them has them.
+fn fingerprint(jars: &[&Path]) -> Option<String> {
+    let mut lines: Vec<String> = Vec::new();
+    for jar in jars {
+        lines.extend(
+            read_zip_directory(jar)
+                .ok()?
+                .into_iter()
+                .filter(|e| e.name.starts_with("io/nlopez/compose/") && !e.name.ends_with('/'))
+                .map(|e| format!("{}\t{:08x}\t{}\n", e.name, e.crc32, e.size)),
+        );
+    }
     if lines.is_empty() {
         return None;
     }
@@ -32,14 +38,28 @@ fn fingerprint(jar: &Path) -> Option<String> {
 mod tests {
     use super::*;
 
-    /// Needs `tools/sync-compose-rules.sh` (the JAR is not in git); skipped without it.
+    /// Needs `tools/sync-compose-rules.sh` (the JARs are not in git); skipped without it.
     #[test]
     fn pinned_release_jar_is_native() {
         let lib = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../tools/compose-rules/lib");
-        let jar = lib.join(format!("ktlint-compose-{}-all.jar", ktrs_compose::COMPOSE_RULES_VERSION));
+        let version = ktrs_compose::COMPOSE_RULES_VERSION;
+        let jar = lib.join(format!("ktlint-compose-{version}-all.jar"));
         if jar.is_file() {
-            assert_eq!(native_compose_rules_release(&jar), Some(ktrs_compose::COMPOSE_RULES_VERSION));
+            assert_eq!(native_compose_rules_release(&jar), Some(version));
         }
         assert_eq!(native_compose_rules_release(&lib.join("missing.jar")), None);
+    }
+
+    /// The Maven artifact and its `common-ktlint` dependency, merged into one JAR by the ktlint Gradle plugin.
+    #[test]
+    fn pinned_maven_artifacts_merged_are_native() {
+        let lib = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../tools/compose-rules/lib");
+        let version = ktrs_compose::COMPOSE_RULES_VERSION;
+        let (thin, common) = (lib.join(format!("ktlint-{version}.jar")), lib.join(format!("common-ktlint-{version}.jar")));
+        if thin.is_file() && common.is_file() {
+            let merged = fingerprint(&[&thin, &common]).unwrap();
+            assert!(ktrs_compose::NATIVE_JARS.contains(&(version, merged.as_str())), "{merged}");
+            assert_eq!(native_compose_rules_release(&thin), None, "the thin JAR alone can't load");
+        }
     }
 }

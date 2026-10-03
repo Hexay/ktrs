@@ -37,11 +37,14 @@ pub struct KtlintCliError {
     pub rule_id: String,
     pub detail: String,
     pub status: Status,
+    /// ktrs-only: fixed by a ktlint-gradle mode format run, which reports fixed errors with lint statuses
+    /// (`crate::ktlint::gradle`).
+    pub corrected: bool,
 }
 
 impl KtlintCliError {
     pub fn new(line: usize, col: usize, rule_id: &str, detail: &str, status: Status) -> KtlintCliError {
-        KtlintCliError { line, col, rule_id: rule_id.to_owned(), detail: detail.to_owned(), status }
+        KtlintCliError { line, col, rule_id: rule_id.to_owned(), detail: detail.to_owned(), status, corrected: false }
     }
 }
 

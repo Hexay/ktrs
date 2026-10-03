@@ -17,4 +17,10 @@ jar="$root/tools/compose-rules/lib/ktlint-compose-$version-all.jar"
 mkdir -p "$(dirname "$jar")"
 [[ -f $jar ]] || curl -sfL -o "$jar" \
   "https://github.com/mrmans0n/compose-rules/releases/download/$COMPOSE_RULES_TAG/ktlint-compose-$version-all.jar"
+# The Maven artifacts, which ktlint-gradle builds resolve (merged by the ktrs Gradle plugin; compose_jar.rs test).
+for artifact in ktlint common-ktlint; do
+  maven_jar="$root/tools/compose-rules/lib/$artifact-$version.jar"
+  [[ -f $maven_jar ]] || curl -sfL -o "$maven_jar" \
+    "https://repo1.maven.org/maven2/io/nlopez/compose/rules/$artifact/$version/$artifact-$version.jar"
+done
 echo "compose-rules $COMPOSE_RULES_TAG ($at), jar $(du -h "$jar" | cut -f1)"

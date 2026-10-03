@@ -22,11 +22,17 @@ pub struct Processor<'a> {
     pub force_lint_after_format: bool,
     pub ktlint_version: KtlintVersion,
     pub contains_unfixed_lint_errors: AtomicBool,
+    /// ktlint-gradle mode (`--ktrs-gradle-events`): format like ktlint-gradle ([`crate::ktlint::gradle`]).
+    pub gradle: bool,
 }
 
 impl Processor<'_> {
     pub fn process(&self, code: &Code, baseline_lint_errors: &[KtlintCliError]) -> Result<Vec<KtlintCliError>, Exit> {
-        if self.format { self.format(code, baseline_lint_errors) } else { self.lint(code, baseline_lint_errors) }
+        match (self.format, self.gradle) {
+            (true, true) if !code.is_std_in => self.gradle_format(code, baseline_lint_errors),
+            (true, _) => self.format(code, baseline_lint_errors),
+            (false, _) => self.lint(code, baseline_lint_errors),
+        }
     }
 
     fn format(&self, code: &Code, baseline_lint_errors: &[KtlintCliError]) -> Result<Vec<KtlintCliError>, Exit> {
@@ -218,7 +224,7 @@ impl Processor<'_> {
     }
 
     /// `Exception.toKtlintCliError(code)`; other exceptions are rethrown (a crash).
-    fn to_ktlint_cli_error(&self, e: &KtLintException, code: &Code) -> Result<KtlintCliError, Exit> {
+    pub(crate) fn to_ktlint_cli_error(&self, e: &KtLintException, code: &Code) -> Result<KtlintCliError, Exit> {
         match e {
             KtLintException::Parse(p) => Ok(KtlintCliError::new(
                 p.line,

@@ -1,0 +1,6 @@
+ktlint {
+    version = "1.8.0"
+}
+dependencies {
+    ktlintRuleset files("@COMPOSE_ALL_JAR@")
+}
