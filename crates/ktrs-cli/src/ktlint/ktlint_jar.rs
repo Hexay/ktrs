@@ -11,8 +11,8 @@ use std::process::{Command, Stdio};
 use ktrs_lint::editorconfig::KtlintVersion;
 
 use crate::ktlint::console::Console;
+use crate::ktlint::hand_off_args::hand_off_args;
 use crate::ktlint::sha256::sha256;
-use crate::ktlint::version::KTLINT_VERSION_OPTION;
 
 pub const KTLINT_JAR_ENV: &str = "KTRS_KTLINT_JAR";
 
@@ -90,10 +90,11 @@ pub fn run_ktlint_jar(env: &JvmEnv, ktlint_version: KtlintVersion, args: &[Strin
 fn launch(env: &JvmEnv, ktlint_version: KtlintVersion, args: &[String], working_dir: &Path, console: &Console) -> Result<i32, String> {
     let java = find_java(env).ok_or("no `java` was found: install a JDK (17+) and set JAVA_HOME or put `java` on PATH.")?;
     let jar = ktlint_jar(env, ktlint_version, console)?;
+    let hand_off = hand_off_args(args, working_dir)?;
     let mut command = Command::new(&java);
-    command.args(jvm_options(java_major_version(&java))).arg("-jar").arg(&jar).args(without_ktlint_version(args)).current_dir(working_dir);
+    command.args(jvm_options(java_major_version(&java))).arg("-jar").arg(&jar).args(&hand_off.args).current_dir(working_dir);
     if console.is_process_streams() {
-        return exec(command);
+        return if hand_off.has_temp_files() { status(command) } else { exec(command) };
     }
     let mut child = command
         .stdin(Stdio::piped())
@@ -120,7 +121,11 @@ fn exec(mut command: Command) -> Result<i32, String> {
 }
 
 #[cfg(not(unix))]
-fn exec(mut command: Command) -> Result<i32, String> {
+fn exec(command: Command) -> Result<i32, String> {
+    status(command)
+}
+
+fn status(mut command: Command) -> Result<i32, String> {
     let status = command.status().map_err(|e| format!("`{}` could not be started: {e}", command.get_program().to_string_lossy()))?;
     Ok(status.code().unwrap_or(1))
 }
@@ -186,36 +191,9 @@ fn verify(file: &Path, expected: &str) -> Result<(), String> {
     if actual == expected { Ok(()) } else { Err(format!("the download's SHA-256 is {actual}, not the pinned {expected}")) }
 }
 
-/// The argv without ktrs's own `--ktlint-version` (before `--`), which the jar would reject.
-fn without_ktlint_version(args: &[String]) -> Vec<&String> {
-    let mut kept = Vec::new();
-    let mut args = args.iter();
-    while let Some(arg) = args.next() {
-        if arg == "--" {
-            kept.push(arg);
-            kept.extend(args.by_ref());
-        } else if arg == KTLINT_VERSION_OPTION {
-            args.next();
-        } else if !arg.strip_prefix(KTLINT_VERSION_OPTION).is_some_and(|rest| rest.starts_with('=')) {
-            kept.push(arg);
-        }
-    }
-    kept
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    fn strings(args: &[&str]) -> Vec<String> {
-        args.iter().map(|a| a.to_string()).collect()
-    }
-
-    #[test]
-    fn ktrs_option_is_removed_before_the_separator_only() {
-        let args = strings(&["-R", "x.jar", "--ktlint-version=1.8", "--ktlint-version", "2.0", "a.kt", "--", "--ktlint-version=1.8"]);
-        assert_eq!(without_ktlint_version(&args), ["-R", "x.jar", "a.kt", "--", "--ktlint-version=1.8"]);
-    }
 
     #[test]
     fn launcher_options_follow_the_java_version() {

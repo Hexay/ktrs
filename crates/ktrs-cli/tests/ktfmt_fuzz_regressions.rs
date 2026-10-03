@@ -15,6 +15,25 @@ fn exception_other_than_parse_or_formatting_error_fails_the_file_silently() {
     assert_eq!(read_text(&file), "import a; /* x */");
 }
 
+/// Finding 4: the parser's `AssertionError` (logged by IntelliJ's `DefaultLogger`, then uncaught).
+#[test]
+fn missed_tokens_print_the_log_and_the_uncaught_assertion_error() {
+    let root = TempDir::new("fuzz");
+    let file = root.path().join("t.kt");
+    write_text(&file, "{fun<)]<T:@( {})");
+    let r = run("", &[&arg(&file)]);
+    let message = "Tokens [RPAR] were not inserted into the tree. Language: kotlin";
+    assert_eq!((r.exit_code, r.out.as_str()), (1, ""));
+    assert_eq!(
+        r.err,
+        format!(
+            "ERROR: {message}\nDetails:\nmissedTokensFragment.txt\n{{fun<)]<T:@( {{}}){LS}\
+             Exception in thread \"main\" java.lang.AssertionError: {message}{LS}"
+        )
+    );
+    assert_eq!(read_text(&file), "{fun<)]<T:@( {})");
+}
+
 #[test]
 fn parse_error_below_visit_element_is_reported_as_formatting_error() {
     let root = TempDir::new("fuzz");
