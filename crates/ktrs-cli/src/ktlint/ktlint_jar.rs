@@ -114,7 +114,9 @@ fn launch(env: &JvmEnv, ktlint_version: KtlintVersion, args: &[String], working_
 #[cfg(unix)]
 fn exec(mut command: Command) -> Result<i32, String> {
     use std::os::unix::process::CommandExt;
-    Err(format!("`{}` could not be started: {}", command.get_program().to_string_lossy(), command.exec()))
+    let program = command.get_program().to_string_lossy().into_owned();
+    let error = command.exec();
+    Err(format!("`{program}` could not be started: {error}"))
 }
 
 #[cfg(not(unix))]
