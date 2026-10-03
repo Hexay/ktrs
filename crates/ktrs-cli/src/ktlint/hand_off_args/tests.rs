@@ -73,3 +73,19 @@ fn value_of_the_option_may_come_from_the_next_argfile() {
     let hand_off = hand_off_args(&args, &dir.0).unwrap();
     assert_eq!(expand_argument_files(&hand_off.args, &dir.0).unwrap(), ["a.kt"]);
 }
+
+#[test]
+fn gradle_plugin_options_are_dropped_and_the_events_file_becomes_a_json_report() {
+    let dir = Dir::new("gradle");
+    let args = strings(&[
+        "--ktrs-gradle-events=e.txt",
+        "--ktrs-relative-to=/root",
+        "--ktrs-editorconfig-override",
+        "max_line_length=40",
+        "--ktrs-gradle-events",
+        "f.txt",
+        "a.kt",
+    ]);
+    let hand_off = hand_off_args(&args, &dir.0).unwrap();
+    assert_eq!(hand_off.args, ["--reporter=json,output=e.txt", "--reporter=json,output=f.txt", "a.kt"]);
+}

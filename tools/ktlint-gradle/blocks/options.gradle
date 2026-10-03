@@ -1,0 +1,15 @@
+ktlint {
+    version = "1.8.0"
+    verbose = true
+    relative = true
+    coloredOutput = false
+    ignoreFailures = true
+    additionalEditorconfig = ["max_line_length": "40"]
+    reporters {
+        reporter "plain_group_by_file"
+        reporter "checkstyle"
+    }
+    filter {
+        exclude("**/Clean.kt")
+    }
+}
