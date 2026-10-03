@@ -6,6 +6,7 @@
 //! - `ktrs`  — the native command (`ktrs fmt`, `ktrs lint`), a thin layer over the same engines, and
 //!   `ktrs serve` for build tools.
 
+pub mod java_launcher;
 pub mod ktfmt;
 pub mod ktlint;
 pub mod ktrs;

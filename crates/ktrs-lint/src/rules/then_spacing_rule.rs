@@ -4,7 +4,7 @@ use ktrs_ast::{Ast, NodeId};
 use ktrs_syntax::SyntaxKind::THEN;
 
 use crate::ast_node_edit::AstNodeEdit;
-use crate::ast_node_extension::{AstNodeExtension, AstNodeQueries};
+use crate::ast_node_extension::AstNodeExtension;
 use crate::rule::{About, Emit, RuleId, RuleV2, TokenSet};
 use crate::rules::STANDARD_RULE_ABOUT;
 
