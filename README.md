@@ -24,8 +24,8 @@ it ships as small native binaries with no runtime.
   code styles, and ktlint 1.8 in a compatibility mode.
 - 🔌 **Drop-in.** The `ktfmt` and `ktlint` binaries accept the originals' flags, messages and exit
   codes, so existing scripts, hooks and CI keep working.
-- 🧩 **Fits your setup.** Integrations for GitHub Actions, pre-commit, Spotless, a ktfmt-gradle
-  drop-in plugin, and Neovim, Helix, Zed, Emacs and VS Code.
+- 🧩 **Fits your setup.** Integrations for GitHub Actions, pre-commit, Spotless, ktfmt-gradle and
+  ktlint-gradle drop-in plugins, and Neovim, Helix, Zed, Emacs and VS Code.
 - 🌳 **Built on a faithful parser.** ktrs includes a lossless Kotlin parser whose tree matches the
   Kotlin compiler's PSI node for node.
 
@@ -85,15 +85,15 @@ This mode ports 1.8's rule differences, its rule-by-rule autocorrect order and i
 files it matches the 1.8.0 jar except for a few KDoc whitespace rows, where 1.8's older Kotlin lexer
 splits trailing spaces differently ([research/26](research/26-ktlint-18-mode.md)).
 
-**Custom rule sets.** `-R` jars are supported. [compose-rules](https://github.com/mrmans0n/compose-rules)
-0.6.7, by far the most used rule set, runs natively with output identical to the jar. Any other
+**Custom rule sets.** `-R` jars are supported, in `ktlint` and `ktrs lint`.
+[compose-rules](https://github.com/mrmans0n/compose-rules) 0.6.7, by far the most used rule set,
+runs natively with output identical to the jar (the `-all.jar` and the Maven artifacts). Any other
 rule set or reporter jar hands the whole run to the real ktlint jar (downloaded once and checked by
 SHA-256; needs Java), so it works at JVM speed ([research/27](research/27-custom-rulesets-impl.md)).
 
 **Limits.**
 
-- Gradle and Maven plugins that load rule sets (ktlint-gradle, Spotless `ktlint()`, kotlinter) run
-  ktlint inside the JVM and don't use these binaries.
+- kotlinter and the Maven plugins run ktlint inside the JVM and don't use these binaries.
 - The `ktfmt` binary accepts Kotlin 2.4 syntax (e.g. `companion { }` blocks) that ktfmt 0.64, built
   on Kotlin 2.3, rejects.
 
@@ -180,7 +180,23 @@ plugins {
 }
 ```
 
-**Spotless.** `KtrsStep` replaces `ktfmt()` (Spotless 7+):
+**ktlint-gradle drop-in.** The `io.github.hexay.ktrs.ktlint` plugin replaces
+[ktlint-gradle](https://github.com/JLLeitschuh/ktlint-gradle) 14.2.0 the same way: the `ktlint { }`
+block, `ktlintCheck`/`ktlintFormat` and the per-source-set, baseline and git hook tasks,
+`ktlintRuleset(...)` and the `org.jlleitschuh.gradle.ktlint.*` types keep working. Console output,
+reports and formatted files match the original with ktlint 1.8.0
+([research/29](research/29-ktlint-gradle-dropin.md)).
+
+```kotlin
+plugins {
+    id("io.github.hexay.ktrs.ktlint") version "0.3.1"   // was: id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
+}
+```
+
+`version` defaults to `"1.8.0"`; `"2.0.0-ALPHA-4"` selects 2.0, and other versions fail the build.
+compose-rules runs natively; other rule sets run the task through the real ktlint jar.
+
+**Spotless.** `KtrsStep` replaces `ktfmt()` and `KtrsKtlintStep` replaces `ktlint()` (Spotless 7+):
 
 ```kotlin
 buildscript {
@@ -191,9 +207,17 @@ buildscript {
 spotless {
     kotlin {
         addStep(io.github.hexay.ktrs.spotless.KtrsStep.create(io.github.hexay.ktrs.KtrsOptions.kotlinlang()))
+        // or, instead of ktlint("1.8.0").editorConfigOverride(...).customRuleSets(...):
+        addStep(io.github.hexay.ktrs.spotless.KtrsKtlintStep.create(io.github.hexay.ktrs.KtlintOptions.defaults()
+            .withEditorConfigPath(rootProject.file(".editorconfig"))
+            .withEditorConfigOverride(mapOf("ktlint_code_style" to "ktlint_official"))))
     }
 }
 ```
+
+`KtrsKtlintStep` gives the same results as Spotless's `ktlint("1.8.0")` step
+([research/28](research/28-spotless-ktlint-step.md)). `withCustomRuleSets(files)` takes jar files;
+only compose-rules is supported there, other rule sets need Spotless's `ktlint()`.
 
 <details>
 <summary>Plugin repository, JVM API and options</summary>
@@ -217,7 +241,8 @@ binary once, not once per file.
   chain `withMaxWidth`, `withBlockIndent`, `withContinuationIndent`, `withRemoveUnusedImports`,
   `withTrailingCommas` and `withEditorConfig(true)`.
 - From other JVM code, `Ktrs.create()` returns a thread-safe formatter:
-  `ktrs.format(code, KtrsOptions.google())`.
+  `ktrs.format(code, KtrsOptions.google())`, or `ktrs.ktlint(code, KtlintOptions.defaults(), path)`
+  for ktlint's formatted code and remaining violations.
 - The plugin accepts `useClassloaderIsolation`, `processIsolationJvmArgs` and `ktfmtClasspath` but
   ignores them. `debuggingPrintOpsAfterFormatting` only logs a warning.
 - To use a different binary from the bundled one, set the Gradle property `ktrs.executable`.
