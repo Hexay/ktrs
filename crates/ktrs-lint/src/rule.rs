@@ -112,7 +112,8 @@ impl Default for About {
 }
 
 /// The `emit(offset, errorMessage, canBeAutoCorrected)` lambda. It also takes the tree, because the
-/// offset (UTF-8, in the current tree) is converted to UTF-16 at emit time.
+/// offset (UTF-8, in the tree the visited node was in when its visit began: a node an earlier rule
+/// replaced is visited in its detached tree, as in ktlint) is converted to UTF-16 at emit time.
 pub type Emit<'a> = dyn FnMut(&Ast, usize, &str, bool) -> AutocorrectDecision + 'a;
 
 /// What `stopTraversalOfAST()` sets. A rule that stops keeps one and returns it from

@@ -385,6 +385,7 @@ impl Traversal<'_, '_> {
     ) -> Result<(), RuleExecutionException> {
         let root = self.ast.root();
         let rule_id = r.rule_id;
+        let tree = self.ast.tree_root(node);
         let outcome = catch_rule_panic(|| {
             if !self.suppression_locator.suppress(
                 self.ast,
@@ -397,7 +398,7 @@ impl Traversal<'_, '_> {
                 let mut emit =
                     |ast: &Ast, offset: usize, message: &str, can_be_auto_corrected: bool| {
                         emit_and_approve(
-                            ast.utf16_offset(ast.root(), offset),
+                            ast.utf16_offset(tree, offset),
                             rule_id,
                             message,
                             can_be_auto_corrected,

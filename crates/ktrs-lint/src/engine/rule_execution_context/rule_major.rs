@@ -92,9 +92,10 @@ impl RuleTraversal<'_, '_> {
         let rule_id = self.rule_id;
         let emit_and_approve = &mut *self.emit_and_approve;
         let ast = &mut *self.ast;
+        let tree = ast.tree_root(node);
         catch_rule_panic(|| {
             let mut emit = |ast: &Ast, offset: usize, message: &str, can_be_auto_corrected: bool| {
-                emit_and_approve(ast.utf16_offset(ast.root(), offset), rule_id, message, can_be_auto_corrected)
+                emit_and_approve(ast.utf16_offset(tree, offset), rule_id, message, can_be_auto_corrected)
             };
             if before {
                 rule.before_visit_child_nodes(ast, node, &mut emit);
