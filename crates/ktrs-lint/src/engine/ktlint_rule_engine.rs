@@ -126,6 +126,20 @@ impl KtLintRuleEngine {
         self.format_with(code, true, callback)
     }
 
+    /// `codeFormatter.format(code, autocorrectHandler, callback)`: `autocorrect` decides per error as in
+    /// [`Self::format`]; once done, `callback` gets the distinct errors sorted by (line, col), with whether each
+    /// was corrected. With `|_| AllowAutocorrect` it is 1.x's deprecated `format(code, callback: (LintError,
+    /// Boolean) -> Unit)` (`AllAutocorrectHandler`), which Spotless calls.
+    pub fn format_reporting(
+        &self,
+        code: &Code,
+        autocorrect: &mut dyn FnMut(&LintError) -> AutocorrectDecision,
+        callback: &mut dyn FnMut(&LintError, bool),
+    ) -> Result<String, KtLintException> {
+        let handler = AutocorrectHandler::LintErrorAutocorrectHandler(autocorrect);
+        format(self, code, handler, callback, MAX_FORMAT_RUNS_PER_FILE, &mut |_| {})
+    }
+
     /// `format(code, rerunAfterAutocorrect, callback)`: without rerun, a single pass (for consumers that
     /// let a user decide per error).
     pub fn format_with(

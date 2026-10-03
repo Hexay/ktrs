@@ -58,14 +58,28 @@ tasks.withType<JavaCompile>().configureEach {
     options.release = 11
 }
 
+// The tests run against the latest Spotless, which needs Java 17.
+tasks.compileTestJava {
+    options.release = 17
+}
+
 repositories {
     mavenCentral()
 }
 
+// Spotless's own ktlint() step runs ktlint from these in SpotlessKtlintParityTest.
+val spotlessKtlint: Configuration by configurations.creating
+val spotlessKtlintCompose: Configuration by configurations.creating
+
 dependencies {
-    // Only KtrsStep uses it; the Spotless plugin supplies it at runtime.
+    // Only the spotless steps use it (compiled against the oldest supported release); Spotless supplies it at runtime.
     compileOnly("com.diffplug.spotless:spotless-lib:3.0.0")
-    testImplementation("com.diffplug.spotless:spotless-lib:3.0.0")
+    testImplementation("com.diffplug.spotless:spotless-lib:4.10.3")
+    // spotless-lib logs through it; the Spotless plugins bring it along.
+    testRuntimeOnly("org.slf4j:slf4j-simple:2.0.17")
+    spotlessKtlint("com.pinterest.ktlint:ktlint-cli:1.8.0")
+    spotlessKtlintCompose("com.pinterest.ktlint:ktlint-cli:1.8.0")
+    spotlessKtlintCompose("io.nlopez.compose.rules:ktlint:0.6.7")
     testImplementation(platform("org.junit:junit-bom:5.13.4"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
@@ -90,4 +104,12 @@ val testExecutable: String by extra(file(providers.gradleProperty("ktrsExecutabl
 tasks.test {
     useJUnitPlatform()
     systemProperty("ktrs.executable", testExecutable)
+    inputs.files(spotlessKtlint, spotlessKtlintCompose)
+    // Optional: a directory of Kotlin files for the ktlint parity tests (e.g. the repo's corpus/), and a file cap.
+    providers.gradleProperty("ktlintParityCorpus").orNull?.let { systemProperty("ktrs.ktlintParityCorpus", it) }
+    providers.gradleProperty("ktlintParityMaxFiles").orNull?.let { systemProperty("ktrs.ktlintParityMaxFiles", it) }
+    doFirst {
+        systemProperty("spotless.ktlint.classpath", spotlessKtlint.asPath)
+        systemProperty("spotless.ktlintCompose.classpath", spotlessKtlintCompose.asPath)
+    }
 }
