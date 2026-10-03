@@ -113,5 +113,8 @@ deviation in research/26); stdin -F matches.
 - A `--ktlint-version` inside an `@argfile` is passed to the jar on hand-off (the jar rejects it).
 - 2.0 `generateEditorConfig` crash text: the JVM's lambda identities (`$$Lambda/0x…@…`) can't be reproduced; ktrs
   prints the same shape with made-up ids (cli-diff masks them).
-- Seen by an agent, not investigated: the `ktlint` binary reports "No files matched" for an absolute Windows glob
-  (`C:/…/*.kt`) that the jar accepts.
+- Absolute Windows glob outside the working directory (`C:/x/src/*.kt` run from `C:/y`): the jar lints the files, the
+  `ktlint` binary says "No files matched". Not ktlint logic: the Windows `java` launcher expands `*`/`?` in arguments
+  before `main` (the jar logs no `walkFileTree`; it gets `C:/x/src/A.kt` and takes the existing-file shortcut).
+  ktlint's own `fileSequence` (same in ktrs) walks from the working directory, since a glob makes `Path.resolve` throw
+  on Windows. Fix would be launcher-style argument expansion in the Windows binary (2026-10-03: open).
