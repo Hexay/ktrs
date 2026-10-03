@@ -159,7 +159,7 @@ fn error_message(name: Option<&str>, error: &FormatError) -> String {
     match error {
         FormatError::Parse(e) => located(name, &e.to_string()),
         FormatError::Formatting(e) => e.diagnostics().iter().map(|d| located(name, &d.to_string())).collect::<Vec<_>>().join("\n"),
-        FormatError::Formatter(_) | FormatError::Runtime(_) => located(name, &format!(" {error}")),
+        FormatError::Formatter(_) | FormatError::Runtime(_) | FormatError::MissedTokens(_) => located(name, &format!(" {error}")),
     }
 }
 

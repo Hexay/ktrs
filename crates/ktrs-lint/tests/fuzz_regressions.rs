@@ -35,6 +35,19 @@ fn add_children_past_the_end_throws_the_jars_npe() {
     );
 }
 
+/// Parser finding 4: a lambda reparse stops before its `)`. The jar's `AssertionError` beats the parse error before it.
+#[test]
+fn missed_tokens_throw_before_parse_errors() {
+    for text in ["{fun<)]<T:@( {})", "val a = )\nfun f() = {fun<)]<T:@( {})"] {
+        let engine = KtLintRuleEngine::new(standard_rule_providers());
+        match engine.lint(&Code::from_snippet(text, false), &mut |_| {}) {
+            Err(KtLintException::MissedTokens(e)) => assert_eq!(e.message(), "Tokens [RPAR] were not inserted into the tree. Language: kotlin"),
+            other => panic!("expected the missed tokens, got {other:?}"),
+        }
+        assert!(matches!(format(text), Err(KtLintException::MissedTokens(_))));
+    }
+}
+
 /// colon-spacing anchors `addChild` on a leaf of another parent: `LOG.assertTrue` throws in ktlint's environment.
 #[test]
 fn add_child_with_a_foreign_anchor_throws_the_jars_assertion() {
