@@ -1,0 +1,6 @@
+ktlint=1.8
+rules=compose:param-order-check
+ec.compose_treat_as_lambda=LambdaType
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=ParameterOrderCheckTest.no errors when ordering is correct

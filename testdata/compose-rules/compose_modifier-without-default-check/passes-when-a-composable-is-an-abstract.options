@@ -1,0 +1,5 @@
+ktlint=1.8
+rules=compose:modifier-without-default-check
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=ModifierWithoutDefaultCheckTest.passes when a Composable is an abstract function but without default values

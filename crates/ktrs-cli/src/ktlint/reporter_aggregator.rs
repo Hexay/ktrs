@@ -62,7 +62,7 @@ pub fn aggregated_reporter(baseline: &Baseline, settings: &ReporterSettings, cx:
     let artifacts: Vec<String> = parsed.iter().filter_map(|c| c.artifact.clone()).collect();
     if let Some(url) = to_files_uri_list(&artifacts, cx.working_dir, cx.user_home, cx.logger)?.first() {
         let interface = format!("{}.cli.reporter.core.api.ReporterProviderV2", package(cx.logger.ktlint_version()));
-        return Err(load_from_jar_file(url, &interface, &[], cx.logger));
+        return Err(load_from_jar_file(url, &interface, cx.logger));
     }
     let mut reporters: Vec<Box<dyn ReporterV2>> = Vec::new();
     for configuration in &parsed {

@@ -6,7 +6,6 @@ use std::time::Instant;
 
 use ktrs_lint::editorconfig::{KtlintVersion, RuleExecution, create_rule_execution_editor_config_property};
 use ktrs_lint::rule_provider::{RuleV2Provider, property_types};
-use ktrs_lint::rules::standard_rule_providers;
 use ktrs_lint::{Code, EditorConfigDefaults, EditorConfigOverride, KtLintRuleEngine};
 
 use crate::ktlint::args::{KtlintArgs, Parsed, Subcommand, USAGE_MAIN, parse_args};
@@ -14,11 +13,10 @@ use crate::ktlint::baseline::{Baseline, load_baseline};
 use crate::ktlint::console::Console;
 use crate::ktlint::file_utils::{expand_tilde_to_full_path, file_sequence, java_list, location};
 use crate::ktlint::patterns::replace_with_patterns_from_stdin_or_default_patterns_when_empty;
-use crate::ktlint::jar_providers::{RULE_SET_PROVIDER_V3, RULE_SET_V2_PROVIDER, load_from_jar_file, to_files_uri_list};
+use crate::ktlint::jar_providers::jvm_only_jar;
 use crate::ktlint::jpath::JPath;
-use crate::ktlint::logger::{
-    EDITOR_CONFIG_DEFAULTS_LOADER, KTLINT_COMMAND_LINE, KTLINT_SERVICE_LOADER, LOAD_RULE_PROVIDERS, Logger,
-};
+use crate::ktlint::ktlint_jar::{JvmEnv, run_ktlint_jar};
+use crate::ktlint::logger::{EDITOR_CONFIG_DEFAULTS_LOADER, KTLINT_COMMAND_LINE, Logger};
 use crate::ktlint::parallel::parallel;
 use crate::ktlint::process::Processor;
 use crate::ktlint::reporter::{ReporterEnvironment, ReporterV2};
@@ -54,17 +52,19 @@ pub struct KtlintCli {
     pub console: Console,
     pub working_dir: JPath,
     pub user_home: String,
+    /// Where a run that loads a JVM-only JAR finds `java` and the ktlint jar.
+    pub jvm: JvmEnv,
 }
 
 impl KtlintCli {
     pub fn from_env() -> KtlintCli {
         let working_dir = std::env::current_dir().map(|d| JPath::from_path(&d)).unwrap_or_else(|_| JPath::parse(".").unwrap());
         let user_home = std::env::var(if cfg!(windows) { "USERPROFILE" } else { "HOME" }).unwrap_or_default();
-        KtlintCli { console: Console::std(), working_dir, user_home }
+        KtlintCli { console: Console::std(), working_dir, user_home, jvm: JvmEnv::from_env() }
     }
 
-    pub fn run(&self, args: &[String]) -> i32 {
-        let (args, subcommand) = match parse_args(args, &self.working_dir.to_path_buf()) {
+    pub fn run(&self, argv: &[String]) -> i32 {
+        let (args, subcommand) = match parse_args(argv, &self.working_dir.to_path_buf()) {
             Parsed::Message(text) => {
                 self.console.out(&text);
                 return 0;
@@ -76,6 +76,10 @@ impl KtlintCli {
             }
             Parsed::Run(args, subcommand) => (args, subcommand),
         };
+        let loads_jars = matches!(subcommand, None | Some(Subcommand::GenerateEditorConfig(_)));
+        if let Some(jar) = jvm_only_jar(&args, &self.working_dir, &self.user_home).filter(|_| loads_jars) {
+            return run_ktlint_jar(&self.jvm, args.ktlint_version, argv, &self.working_dir.to_path_buf(), &self.console, &jar);
+        }
         let logger = Logger::new(self.console.clone(), args.min_log_level, args.ktlint_version);
         let result = match subcommand {
             None => self.lint_or_format(&args, &logger),
@@ -207,31 +211,6 @@ impl KtlintCli {
         } else {
             Err(Exit::Code(ExitCode::Ok))
         }
-    }
-
-    /// `ruleProviders`: the standard rules; a `-R` JAR can't be loaded (see [`load_from_jar_file`]).
-    pub(crate) fn rule_providers(&self, args: &KtlintArgs, logger: &Logger) -> Result<Vec<RuleV2Provider>, Exit> {
-        let urls = to_files_uri_list(&args.ruleset_jar_paths, &self.working_dir, &self.user_home, logger)?;
-        if args.ktlint_version.is_1_8() {
-            // 1.8 only knows `RuleSetProviderV3`.
-            logger.debug(KTLINT_SERVICE_LOADER, || "Discovered RuleSetProviderV3 with id 'standard' in ktlint JAR".to_owned());
-            if let Some(url) = urls.first() {
-                return Err(load_from_jar_file(url, RULE_SET_PROVIDER_V3, &[], logger));
-            }
-            return Ok(standard_rule_providers());
-        }
-        logger.debug(KTLINT_SERVICE_LOADER, || "Discovered RuleSetV2Provider with id 'standard' in ktlint JAR".to_owned());
-        if let Some(url) = urls.first() {
-            for message in [
-                format!("Try loading ruleset provider of type 'RuleSetProviderV3' for file:{url}"),
-                format!("Found 0 rule providers of type 'RuleSetProviderV3' for file:{url}"),
-                format!("Try loading ruleset provider of type 'RuleSetV2Provider' for file:{url}"),
-            ] {
-                logger.debug(LOAD_RULE_PROVIDERS, || message);
-            }
-            return Err(load_from_jar_file(url, RULE_SET_V2_PROVIDER, &[RULE_SET_PROVIDER_V3], logger));
-        }
-        Ok(standard_rule_providers())
     }
 
     fn editor_config_defaults(&self, args: &KtlintArgs, rule_providers: &[RuleV2Provider], logger: &Logger) -> Result<EditorConfigDefaults, Exit> {

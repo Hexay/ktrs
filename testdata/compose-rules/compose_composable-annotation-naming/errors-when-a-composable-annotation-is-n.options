@@ -1,0 +1,5 @@
+ktlint=1.8
+rules=compose:composable-annotation-naming
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=ComposableAnnotationNamingCheckTest.errors when a composable annotation is not correctly named

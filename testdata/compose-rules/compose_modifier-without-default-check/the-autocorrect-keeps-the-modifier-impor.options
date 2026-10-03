@@ -1,0 +1,3 @@
+ktlint=1.8
+rules=compose:modifier-without-default-check,standard:no-unused-imports
+test=ModifierWithoutDefaultCheckTest.the autocorrect keeps the Modifier import when the parameter type is its only usage

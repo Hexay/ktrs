@@ -1,0 +1,5 @@
+ktlint=1.8
+rules=compose:naming-check
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=NamingCheckTest.errors when a composable returns a value and is capitalized

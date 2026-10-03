@@ -1,0 +1,6 @@
+ktlint=1.8
+rules=compose:modifier-not-used-at-root
+ec.compose_content_emitters_denylist=Potato
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=ModifierNotUsedAtRootCheckTest.passes out when modifier is used in too deep in the hierarchy but has a non-emitter parent

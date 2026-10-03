@@ -29,7 +29,7 @@ for side in a b; do
     run "$side" "${cmd[@]}" "--$style-style" "$name"
   else
     cmd=("$bin/ktlint"); [[ $side == b ]] && cmd=("${KTLINT2:?set KTLINT2}")
-    printf 'root = true\n\n[*.{kt,kts}]\nktlint_code_style = %s\n%b' "$style" "${EC_EXTRA:-}" > "$W/$side/.editorconfig"
+    printf 'root = true\n\n[*.{kt,kts}]\nktlint_code_style = %s\n%b' "$style" "${EC_EXTRA:+$EC_EXTRA\n}" > "$W/$side/.editorconfig"
     run "$side" "${cmd[@]}" --relative "$name"
     for x in out exit; do mv "$W/$side.$x" "$W/$side.lint.$x"; done
     run "$side" "${cmd[@]}" --relative -F "$name"

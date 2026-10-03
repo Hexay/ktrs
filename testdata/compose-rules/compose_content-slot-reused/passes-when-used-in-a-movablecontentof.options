@@ -1,0 +1,7 @@
+ktlint=1.8
+rules=compose:content-slot-reused
+ec.compose_treat_as_composable_lambda=Potato
+ec.compose_treat_as_lambda=Plum
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=ContentSlotReusedCheckTest.passes when used in a movableContentOf

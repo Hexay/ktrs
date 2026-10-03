@@ -1,6 +1,6 @@
 name: upstream
 
-# Weekly: opens an issue when ktfmt, ktlint or Kotlin publishes a release newer than the pin in tools/sync-*.sh.
+# Weekly: opens an issue when ktfmt, ktlint, compose-rules or Kotlin publishes a release newer than the pin in tools/sync-*.sh.
 on:
   schedule:
     - cron: "0 6 * * 1"
@@ -33,4 +33,5 @@ jobs:
           check ktfmt facebook/ktfmt "$(pin KTFMT_TAG sync-ktfmt.sh)" "$(gh api repos/facebook/ktfmt/releases/latest --jq .tag_name)"
           # ktlint: the newest release on any line, prereleases included (the pin is a 2.0 alpha; 1.x still ships).
           check ktlint pinterest/ktlint "$(pin KTLINT_TAG sync-ktlint.sh)" "$(gh api 'repos/pinterest/ktlint/releases?per_page=1' --jq '.[0].tag_name')"
+          check compose-rules mrmans0n/compose-rules "$(pin COMPOSE_RULES_TAG sync-compose-rules.sh)" "$(gh api repos/mrmans0n/compose-rules/releases/latest --jq .tag_name)"
           check kotlin JetBrains/kotlin "$(pin KOTLIN_TAG sync-kotlin.sh)" "$(gh api repos/JetBrains/kotlin/releases/latest --jq .tag_name)"

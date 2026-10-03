@@ -1,0 +1,2 @@
+2:5	compose:multiple-emitters-check	manual	Composable functions should only be emitting content into the composition from one source at their top level.\nSee https://mrmans0n.github.io/compose-rules/rules/#do-not-emit-multiple-pieces-of-content for more information.
+8:5	compose:multiple-emitters-check	manual	Composable functions should only be emitting content into the composition from one source at their top level.\nSee https://mrmans0n.github.io/compose-rules/rules/#do-not-emit-multiple-pieces-of-content for more information.

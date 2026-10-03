@@ -8,6 +8,7 @@
 /tools/ktlint-oracle/lib/
 /tools/ktlint-oracle/build/
 /tools/ktlint-tests/lib/
+/tools/compose-rules/lib/
 /tools/jdk/
 /tools/gradle/
 /java/build/
