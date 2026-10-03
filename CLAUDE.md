@@ -30,7 +30,7 @@ Milestone 1: the parser's tree must be identical to the Kotlin compiler's PSI (`
 - `crates/ktrs-ast` — mutable arena AST with IntelliJ `TreeElement` semantics, seeded from `Tree` (for ktlint);
   conventions in `src/lib.rs`. `crates/ktrs-lint` — ktlint 2.0.0-ALPHA-4 engine + ported rules; status
   research/15-ktlint-spike.md; corpus counts per rule research/18-ktlint-corpus-counts.md.
-  ktlint 1.8 mode (`ktrs_ktlint_version = 1.8` / `--ktlint-version=1.8`; lint rows + CLI, not `-F` order):
+  ktlint 1.8 mode (`ktrs_ktlint_version = 1.8` / `--ktlint-version=1.8`; lint rows, CLI, rule-major `-F` order):
   research/26-ktlint-18-mode.md. Default stays 2.0; a 2.0 change touching a switch keeps the 1.8 branch.
   `crates/ktrs-compose` — compose-rules (pin `tools/sync-compose-rules.sh`) as a native rule set, used when `-R` loads
   that release's jar; other `-R`/reporter jars hand the run to the real ktlint jar (`ktrs-cli/src/ktlint/ktlint_jar.rs`).
@@ -46,6 +46,10 @@ Milestone 1: the parser's tree must be identical to the Kotlin compiler's PSI (`
 - `testdata/kotlin/{psi,lexer}` — upstream fixtures (Apache-2.0), `<name>.kt` + expected `<name>.txt`.
   Input convention: CRLF->LF and trailing newlines stripped (matches upstream's test framework).
 - `tools/fetch-corpus.sh` — real-world repos into `corpus/` (gitignored, commits in `corpus/REVISIONS`).
+- `tools/bench/public.sh` — the README's benchmark (hyperfine vs sha256-pinned jars, pins `tools/bench/REVISIONS`;
+  CI: `.github/workflows/bench.yml`); research/23.
+- `fuzz/` (own workspace, nightly + cargo-fuzz, Linux) and `tools/fuzz/{fuzz,diff}.sh` — fuzzing and the differential
+  runner vs the jars; findings and status research/24.
 
 ## Parity gates (all must stay green)
 
