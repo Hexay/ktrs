@@ -1,0 +1,73 @@
+# Public benchmark: tools/bench/public.sh (ktrs binaries vs the pinned ktfmt/ktlint jars, hyperfine) on a hosted
+# runner. Results: the job summary and the `bench-<sha>` artifact. Reading the numbers: research/23-public-bench.md.
+name: bench
+
+on:
+  workflow_dispatch:
+    inputs:
+      scenarios:
+        description: "Scenario ids or groups (quick, fmt, lint, all); `all` takes hours on a hosted runner"
+        default: quick
+      ktlint:
+        description: ktlint jars to compare
+        default: 2.0.0-ALPHA-4
+      runs:
+        description: hyperfine runs per command (5+)
+        default: "5"
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bench-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  bench:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      SCENARIOS: ${{ inputs.scenarios || 'quick' }}
+      KTLINTS: ${{ inputs.ktlint || '2.0.0-ALPHA-4' }}
+      RUNS: ${{ inputs.runs || '5' }}
+      HYPERFINE_VERSION: v1.20.0
+      HYPERFINE_SHA256: 3285ec7959285288137043dd81dce0dde056227018a8277532d9a364b4f03c2b
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        run: rustup toolchain install stable --profile minimal && rustup default stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo build --locked --profile dist --bins
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21 }
+      - name: Install hyperfine
+        run: |
+          set -euo pipefail
+          name=hyperfine-$HYPERFINE_VERSION-x86_64-unknown-linux-musl
+          curl -fsSL -o hf.tgz "https://github.com/sharkdp/hyperfine/releases/download/$HYPERFINE_VERSION/$name.tar.gz"
+          echo "$HYPERFINE_SHA256  hf.tgz" | sha256sum -c -
+          tar -xzf hf.tgz && install -D "$name/hyperfine" "$HOME/.local/bin/hyperfine" && rm -rf hf.tgz "$name"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ktrs-bench
+          key: ktrs-bench-${{ hashFiles('tools/bench/public.sh', 'tools/bench/REVISIONS') }}
+      - name: Run tools/bench/public.sh
+        run: tools/bench/public.sh --only "$SCENARIOS" --ktlint "$KTLINTS" --runs "$RUNS" --out target/bench/public
+      - name: Job summary
+        if: always()
+        run: |
+          out=target/bench/public
+          [[ -f $out/summary.md ]] || exit 0
+          { echo "## Benchmark ($SCENARIOS)"; cat "$out/summary.md"
+            echo; echo "<details><summary>hyperfine tables</summary>"; echo
+            for f in "$out"/*.md; do [[ $f == */summary.md || $f == */env.md ]] || { cat "$f"; echo; }; done
+            echo "</details>"; } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bench-${{ github.sha }}
+          path: target/bench/public
+          if-no-files-found: ignore
