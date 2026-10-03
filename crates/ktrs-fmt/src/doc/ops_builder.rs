@@ -83,6 +83,11 @@ impl<'a, 'o> OpsBuilder<'a, 'o> {
         self.error.get_or_insert(error);
     }
 
+    /// Replaces the placeholder failure of a thrown exception with the `FormattingError` it became.
+    pub fn replace_error(&mut self, error: FormattingError) {
+        self.error = Some(error);
+    }
+
     /// Checks that all open ops in the op stream have matching close ops.
     pub fn check_closed(&mut self, previous: i32) {
         if self.depth != previous {

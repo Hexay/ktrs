@@ -4,12 +4,12 @@
 
 use std::fs;
 use std::io::{self, Read, Write};
-use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 
 use ktrs_fmt::FormatError;
+use ktrs_syntax::caught_panic::catch_quietly;
 
 use super::editor_config_resolver;
 use super::parsed_args::{ParseResult, ParsedArgs, process_args};
@@ -168,7 +168,7 @@ impl<R: Read + Send, O: Write + Send, E: Write + Send> Main<R, O, E> {
         };
         let text = String::from_utf8_lossy(&bytes);
         let code = text.strip_prefix(UTF8_BOM).unwrap_or(&text);
-        let formatted_code = match catch_unwind(AssertUnwindSafe(|| ktrs_fmt::format(code, &formatting_options))) {
+        let formatted_code = match catch_quietly(|| ktrs_fmt::format(code, &formatting_options)) {
             Ok(Ok(formatted_code)) => formatted_code,
             Ok(Err(e)) => {
                 report_error(report, &file_name, &e);

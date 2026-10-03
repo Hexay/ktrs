@@ -3,7 +3,7 @@
 
 use ktrs_psi::*;
 
-use crate::doc::{BlankLineWanted, FillMode, Indent};
+use crate::doc::{BlankLineWanted, FillMode, FormattingError, Indent};
 use crate::format::kotlin_text::is_kotlin_whitespace;
 
 use super::KotlinInputAstVisitor;
@@ -165,8 +165,14 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
         let in_expression = element.is::<KtExpression>() || *self.in_expression.last().unwrap();
         self.in_expression.push(in_expression);
         let previous = self.builder.depth();
+        let thrown_before = self.exception.is_some();
         kt_tree_visitor_void::visit_element(self, element);
         self.in_expression.pop();
+        // `catch (t: Throwable)`: any other exception leaves as a `FormattingError`.
+        if !thrown_before && let Some((_, wrapped)) = self.exception.take() {
+            self.builder.replace_error(FormattingError::new(wrapped));
+            return;
+        }
         self.builder.check_closed(previous);
     }
 

@@ -88,14 +88,17 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
     /// ...); a placeholder failure makes the visit unwind like any other. Callers return right after.
     pub(super) fn throw(&mut self, exception: FormatError) {
         if self.builder.error().is_none() {
-            self.exception = Some(exception);
+            // What an enclosing `visitElement` rethrows; no op runs between the throw and that catch.
+            let wrapped = self.builder.diagnostic(java_stack_trace_header(&exception));
+            self.exception = Some((exception, wrapped));
         }
         self.fail();
     }
 
     /// Upstream's `error(..)`, `check(..)` or `AssertionError`: not caught by ktfmt's CLI either.
-    pub(super) fn throw_runtime(&mut self, message: &str) {
-        self.throw(FormatError::Runtime(message.to_owned()));
+    /// `java_to_string` is the exception's `toString()`.
+    pub(super) fn throw_runtime(&mut self, java_to_string: &str) {
+        self.throw(FormatError::Runtime(java_to_string.to_owned()));
     }
 
     /// `ParseError(errorDescription, element)`.
@@ -142,5 +145,13 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
         if surround_condition_with_parens {
             self.token(")");
         }
+    }
+}
+
+/// The first line of `Throwables.getStackTraceAsString(t)`; the frames can't be matched.
+fn java_stack_trace_header(exception: &FormatError) -> String {
+    match exception {
+        FormatError::Parse(e) => format!("com.facebook.ktfmt.format.ParseError: {e}"),
+        _ => exception.to_string(),
     }
 }

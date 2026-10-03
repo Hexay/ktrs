@@ -31,7 +31,7 @@ pub enum FormatError {
     Parse(ParseError),
     Formatting(FormattingError),
     Formatter(FormatterException),
-    /// Any other JVM exception (e.g. `IndexOutOfBoundsException` on a lone shebang line).
+    /// Any other JVM exception, as its `toString()` (e.g. `IndexOutOfBoundsException` on a lone shebang line).
     Runtime(String),
 }
 

@@ -4,6 +4,21 @@ use super::input::Tok;
 use super::newlines;
 use super::range::{EMPTY_RANGE, Range};
 
+/// Upstream's `Map<Integer, Range>` from `makeKToIJ`, as a vector over the dense k: an output
+/// line holding a comment (whose `Doc.Tok` range is `[-1, 0)`) also maps k = -1.
+#[derive(Clone, Debug)]
+pub struct KToIJ(Vec<Option<Range>>);
+
+impl KToIJ {
+    fn slot(k: i32) -> usize {
+        (k + 1) as usize
+    }
+
+    pub fn get(&self, k: i32) -> Option<Range> {
+        self.0.get(Self::slot(k)).copied().flatten()
+    }
+}
+
 #[derive(Clone, Debug, Default)]
 pub struct InputOutput {
     lines: Vec<String>,
@@ -60,19 +75,18 @@ impl InputOutput {
         }
     }
 
-    /// Indexed by k (toks are densely numbered) instead of upstream's `Map<Integer, Range>`.
-    pub fn make_k_to_ij(put: &InputOutput) -> Vec<Option<Range>> {
-        let mut map: Vec<Option<Range>> = Vec::new();
+    pub fn make_k_to_ij(put: &InputOutput) -> KToIJ {
+        let mut map = KToIJ(Vec::new());
         let ij_n = put.get_line_count();
         for ij in 0..=ij_n {
             let range = put.get_ranges(ij);
             for k in range.lower_endpoint()..range.upper_endpoint() {
-                let k = k as usize;
-                if map.len() <= k {
-                    map.resize(k + 1, None);
+                let slot = KToIJ::slot(k);
+                if map.0.len() <= slot {
+                    map.0.resize(slot + 1, None);
                 }
-                let lower = map[k].map_or(ij, |r| r.lower_endpoint());
-                map[k] = Some(Range::closed_open(lower, ij + 1));
+                let lower = map.0[slot].map_or(ij, |r| r.lower_endpoint());
+                map.0[slot] = Some(Range::closed_open(lower, ij + 1));
             }
         }
         map

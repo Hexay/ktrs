@@ -44,7 +44,10 @@ fn help() -> String {
 pub fn run(args: &[String]) -> i32 {
     match args.first().map(String::as_str) {
         Some("fmt") => match parse_fmt_args(&args[1..]) {
-            Ok(parsed) => Main::new(io::stdin(), io::stdout(), io::stderr()).run_parsed(&parsed),
+            Ok(parsed) => {
+                ktrs_syntax::caught_panic::silence_caught_panics();
+                Main::new(io::stdin(), io::stdout(), io::stderr()).run_parsed(&parsed)
+            }
             Err(message) => {
                 eprintln!("error: {message}\n\n{}", help());
                 2
