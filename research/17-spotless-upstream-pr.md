@@ -2,7 +2,7 @@
 
 Studied `diffplug/spotless` main @ `2c56489` (depth-1 clone in the session scratchpad). `S/` = spotless root,
 `L/` = `S/lib/src/main/java/com/diffplug/spotless/`. Our side: `java/src/main/java/io/github/hexay/ktrs/`.
-Blocked on: `io.github.hexay:ktrs` being on Maven Central (spotless tests use `TestProvisioner.mavenCentral()`).
+Unblocked 2026-10-06: `io.github.hexay:ktrs` is on Maven Central from 0.4.0 (spotless tests use `TestProvisioner.mavenCentral()`).
 
 ## How ktfmt is wired today
 

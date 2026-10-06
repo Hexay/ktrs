@@ -200,7 +200,7 @@ compose-rules runs natively; other rule sets run the task through the real ktlin
 
 ```kotlin
 buildscript {
-    repositories { maven("https://hexay.github.io/ktrs/maven") }
+    repositories { mavenCentral() }
     dependencies { classpath("io.github.hexay:ktrs:0.4.0") }
 }
 

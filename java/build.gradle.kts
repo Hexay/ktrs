@@ -28,7 +28,8 @@ mavenPublishing {
     coordinates("io.github.hexay", "ktrs", version.toString())
     pom {
         name = "ktrs"
-        description = "Formats Kotlin exactly like ktfmt 0.64, via a bundled native binary (no ktfmt on the classpath)."
+        description = "Formats and lints Kotlin exactly like ktfmt 0.64 and ktlint 1.8/2.0, via a bundled native binary " +
+            "(no ktfmt or ktlint on the classpath)."
         url = "https://github.com/Hexay/ktrs"
         licenses {
             license {
