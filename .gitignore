@@ -12,5 +12,6 @@
 /tools/jdk/
 /tools/gradle/
 /java/build/
+/java/maven-plugin/build/
 /java/.gradle/
 /java/native/

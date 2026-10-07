@@ -67,8 +67,9 @@ jobs:
             ktrs-*.tar.gz
             ktrs-*.zip
 
-  # The JVM wrapper (io.github.hexay:ktrs) with all six binaries bundled, and the Gradle plugin
-  # (io.github.hexay.ktrs), published to the GitHub Pages Maven repo; the jar to Maven Central only when
+  # The JVM wrapper (io.github.hexay:ktrs) with all six binaries bundled, the Gradle plugin
+  # (io.github.hexay.ktrs) and the Maven plugin (io.github.hexay:ktrs-ktlint-maven-plugin), published to the
+  # GitHub Pages Maven repo; the jar and the Maven plugin to Maven Central only when
   # the MAVEN_CENTRAL_* and SIGNING_* secrets exist, the plugin to the Plugin Portal only when the
   # GRADLE_PUBLISH_* ones do.
   java:
@@ -103,18 +104,24 @@ jobs:
         shell: bash
         run: |
           if git fetch -q origin gh-pages:gh-pages; then git worktree add pages gh-pages; else git worktree add --orphan -b gh-pages pages; fi
-          (cd java && ./gradlew --console=plain publishAllPublicationsToGithubPagesRepository \
+          (cd java && ./gradlew --console=plain :publishAllPublicationsToGithubPagesRepository \
+            -PktrsVersion=${GITHUB_REF_NAME#v} -PpagesRepo="$GITHUB_WORKSPACE/pages/maven" \
+            && ./gradlew --console=plain :ktrs-gradle-plugin:publishAllPublicationsToGithubPagesRepository \
+            :ktrs-ktlint-maven-plugin:publishAllPublicationsToGithubPagesRepository \
             -PktrsVersion=${GITHUB_REF_NAME#v} -PpagesRepo="$GITHUB_WORKSPACE/pages/maven")
           cd pages
           touch .nojekyll
           git add -A
           git -c user.name=github-actions[bot] -c user.email=41898282+github-actions[bot]@users.noreply.github.com \
-            commit -q -m "maven: io.github.hexay:ktrs and the io.github.hexay.ktrs plugin ${GITHUB_REF_NAME#v}"
+            commit -q -m "maven: io.github.hexay:ktrs, the Gradle and Maven plugins ${GITHUB_REF_NAME#v}"
           git push -q origin gh-pages
+      # The Maven plugin depends on io.github.hexay:ktrs, so the jar goes first.
       - name: Publish to Maven Central
         if: env.ORG_GRADLE_PROJECT_mavenCentralUsername != ''
         working-directory: java
-        run: ./gradlew --console=plain publishAndReleaseToMavenCentral -PktrsVersion=${GITHUB_REF_NAME#v}
+        run: |
+          ./gradlew --console=plain :publishAndReleaseToMavenCentral -PktrsVersion=${GITHUB_REF_NAME#v}
+          ./gradlew --console=plain :ktrs-ktlint-maven-plugin:publishAndReleaseToMavenCentral -PktrsVersion=${GITHUB_REF_NAME#v}
       # The Portal resolves the plugin's io.github.hexay:ktrs dependency from Maven Central.
       - name: Publish the Gradle plugin to the Plugin Portal
         if: env.GRADLE_PUBLISH_KEY != ''

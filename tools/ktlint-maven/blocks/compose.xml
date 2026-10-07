@@ -1,0 +1,7 @@
+        <dependencies>
+          <dependency>
+            <groupId>io.nlopez.compose.rules</groupId>
+            <artifactId>ktlint</artifactId>
+            <version>0.6.7</version>
+          </dependency>
+        </dependencies>

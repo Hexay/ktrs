@@ -29,8 +29,12 @@ The Gradle plugin (java/gradle-plugin) contains code and tests ported from ktfmt
 (https://github.com/cortinico/ktfmt-gradle), Copyright (c) 2020-2022 Nicola Corti,
 licensed under the MIT License (below).
 
+The Maven plugin (java/maven-plugin) contains code ported from ktlint-maven-plugin
+(https://github.com/gantsign/ktlint-maven-plugin), Copyright (C) 2018 GantSign Ltd.,
+licensed under the MIT License (below).
+
 --------------------------------------------------------------------------------
-MIT License (ktlint, ktfmt-gradle)
+MIT License (ktlint, ktfmt-gradle, ktlint-maven-plugin)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this
 software and associated documentation files (the "Software"), to deal in the Software
