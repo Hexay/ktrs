@@ -12,6 +12,7 @@ ktrs-syntax.workspace = true
 ktrs-lexer.workspace = true
 ktrs-parser.workspace = true
 ktrs-psi.workspace = true
+ec4rs = "1"
 
 [dev-dependencies]
 expect-test.workspace = true

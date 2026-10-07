@@ -5,7 +5,7 @@
 use std::path::Path;
 
 use ec4rs::Properties;
-use ktrs_fmt::{FormattingOptions, TrailingCommaManagementStrategy};
+use crate::{FormattingOptions, TrailingCommaManagementStrategy};
 
 /// A parsed property: `None` when missing or invalid, `Some(None)` for a valid null (`off`, `tab`).
 type Value<T> = Option<Option<T>>;

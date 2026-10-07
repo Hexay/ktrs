@@ -1,15 +1,18 @@
 //! Recognizes a compose-rules (`io.nlopez.compose.rules`) ktlint JAR whose release ktrs runs natively
 //! (`ktrs_compose`), by its contents: the `io/nlopez/compose/` entries' names, CRC-32s and sizes.
 
+pub mod sha256;
+pub mod zip_directory;
+
 use std::path::Path;
 
-use crate::ktlint::sha256::sha256;
-use crate::ktlint::zip_directory::read_zip_directory;
+use sha256::sha256;
+use zip_directory::read_zip_directory;
 
 /// The compose-rules release `jar` is, when ktrs ports it.
 pub fn native_compose_rules_release(jar: &Path) -> Option<&'static str> {
     let fingerprint = fingerprint(&[jar])?;
-    ktrs_compose::NATIVE_JARS.iter().find(|(_, known)| *known == fingerprint).map(|(release, _)| *release)
+    crate::NATIVE_JARS.iter().find(|(_, known)| *known == fingerprint).map(|(release, _)| *release)
 }
 
 /// SHA-256 of the sorted `name\tcrc32\tsize\n` lines of the `io/nlopez/compose/` file entries (the same as
@@ -42,7 +45,7 @@ mod tests {
     #[test]
     fn pinned_release_jar_is_native() {
         let lib = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../tools/compose-rules/lib");
-        let version = ktrs_compose::COMPOSE_RULES_VERSION;
+        let version = crate::COMPOSE_RULES_VERSION;
         let jar = lib.join(format!("ktlint-compose-{version}-all.jar"));
         if jar.is_file() {
             assert_eq!(native_compose_rules_release(&jar), Some(version));
@@ -54,11 +57,11 @@ mod tests {
     #[test]
     fn pinned_maven_artifacts_merged_are_native() {
         let lib = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../tools/compose-rules/lib");
-        let version = ktrs_compose::COMPOSE_RULES_VERSION;
+        let version = crate::COMPOSE_RULES_VERSION;
         let (thin, common) = (lib.join(format!("ktlint-{version}.jar")), lib.join(format!("common-ktlint-{version}.jar")));
         if thin.is_file() && common.is_file() {
             let merged = fingerprint(&[&thin, &common]).unwrap();
-            assert!(ktrs_compose::NATIVE_JARS.contains(&(version, merged.as_str())), "{merged}");
+            assert!(crate::NATIVE_JARS.contains(&(version, merged.as_str())), "{merged}");
             assert_eq!(native_compose_rules_release(&thin), None, "the thin JAR alone can't load");
         }
     }

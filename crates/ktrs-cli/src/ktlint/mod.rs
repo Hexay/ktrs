@@ -11,7 +11,7 @@ pub mod args;
 pub mod baseline;
 mod clikt;
 pub mod command_line;
-pub(crate) mod compose_jar;
+pub(crate) use ktrs_compose::jar as compose_jar;
 pub mod console;
 pub mod file_utils;
 pub mod gradle;
@@ -29,10 +29,9 @@ mod process;
 pub mod reporter;
 mod reporter_aggregator;
 mod run;
-mod sha256;
+pub(crate) use ktrs_compose::jar::sha256;
 mod subcommands;
 pub mod version;
-mod zip_directory;
 
 pub use command_line::{ExitCode, KtlintCli};
 

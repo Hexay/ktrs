@@ -6,7 +6,8 @@
 use std::path::Path;
 
 use ktrs_editorconfig::EnumValue;
-use ktrs_lint::editorconfig::{KTLINT_VERSION_PROPERTY, KtlintVersion, PropertyRef};
+use ktrs_lint::editorconfig::KtlintVersion;
+pub use ktrs_lint::editorconfig::with_ktlint_version;
 use ktrs_lint::engine::editor_config_loader::{EditorConfigLoader, EditorConfigLoaderEc4j};
 use ktrs_lint::rule_provider::property_types;
 use ktrs_lint::rules::standard_rule_providers;
@@ -47,16 +48,6 @@ fn working_dir_ktlint_version(working_dir: &Path) -> KtlintVersion {
     EditorConfigLoader::new(EditorConfigLoaderEc4j::new(&property_types), EditorConfigDefaults::empty(), EditorConfigOverride::empty())
         .load(Some(&working_dir.join(".kt")))
         .map_or(KtlintVersion::default(), |editor_config| KtlintVersion::of(&editor_config))
-}
-
-/// `editor_config_override` with the run's version set, which every file's `.editorconfig` then reports.
-pub fn with_ktlint_version(editor_config_override: EditorConfigOverride, version: KtlintVersion) -> EditorConfigOverride {
-    let property = (PropertyRef::from(&*KTLINT_VERSION_PROPERTY), Some(version.name().to_owned()));
-    if editor_config_override.is_empty() {
-        EditorConfigOverride::from(vec![property])
-    } else {
-        editor_config_override.plus(vec![property])
-    }
 }
 
 /// The release `--version` and the SARIF reporter show.
