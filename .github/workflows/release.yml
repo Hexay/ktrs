@@ -330,7 +330,7 @@ jobs:
           Invoke-RestMethod get.scoop.sh -OutFile install-scoop.ps1
           .\install-scoop.ps1 -RunAsAdmin
           $env:PATH = "$env:USERPROFILE\scoop\shims;$env:PATH"
-          scoop install bucket/ktrs.json
+          scoop install .\bucket\ktrs.json  # bucket/ktrs.json would mean app ktrs.json in a bucket named "bucket"
           if (("fun  f( ) = 1" | ktfmt -) -ne 'fun f() = 1') { exit 1 }
           ktlint --version; if ($LASTEXITCODE) { exit 1 }
       - name: Commit it
