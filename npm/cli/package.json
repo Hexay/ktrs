@@ -1,0 +1,20 @@
+{
+  "name": "@ktrs/cli",
+  "version": "0.0.0",
+  "description": "Fast Kotlin formatter and linter: ktfmt-identical formatting and ktlint-identical linting, with drop-in `ktfmt` and `ktlint` binaries",
+  "keywords": ["kotlin", "ktfmt", "ktlint", "formatter", "linter"],
+  "homepage": "https://github.com/Hexay/ktrs",
+  "repository": { "type": "git", "url": "git+https://github.com/Hexay/ktrs.git", "directory": "npm/cli" },
+  "license": "MIT OR Apache-2.0",
+  "bin": { "ktrs": "bin/ktrs.js", "ktlint": "bin/ktlint.js", "ktfmt": "bin/ktfmt.js" },
+  "files": ["bin", "lib"],
+  "engines": { "node": ">=14" },
+  "optionalDependencies": {
+    "@ktrs/cli-win32-x64": "0.0.0",
+    "@ktrs/cli-win32-arm64": "0.0.0",
+    "@ktrs/cli-darwin-x64": "0.0.0",
+    "@ktrs/cli-darwin-arm64": "0.0.0",
+    "@ktrs/cli-linux-x64": "0.0.0",
+    "@ktrs/cli-linux-arm64": "0.0.0"
+  }
+}
