@@ -1,0 +1,7 @@
+**
+!dist/extension.js
+!bundled/**
+!README.md
+!LICENSE-MIT
+!LICENSE-APACHE
+!package.json

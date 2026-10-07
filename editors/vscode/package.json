@@ -1,0 +1,159 @@
+{
+  "name": "ktrs",
+  "displayName": "ktrs: ktlint + ktfmt for Kotlin",
+  "description": "ktlint diagnostics, quick fixes and ktfmt or ktlint formatting for Kotlin, from a native language server (ktrs lsp).",
+  "version": "0.4.0",
+  "publisher": "hexay",
+  "license": "(MIT OR Apache-2.0)",
+  "repository": { "type": "git", "url": "https://github.com/Hexay/ktrs" },
+  "homepage": "https://github.com/Hexay/ktrs/tree/master/editors/vscode",
+  "bugs": { "url": "https://github.com/Hexay/ktrs/issues" },
+  "categories": ["Linters", "Formatters"],
+  "keywords": ["kotlin", "ktlint", "ktfmt", "lsp", "formatter"],
+  "engines": { "vscode": "^1.91.0" },
+  "main": "./dist/extension.js",
+  "activationEvents": ["onLanguage:kotlin"],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "In an untrusted workspace, ktrs.path from the workspace settings is ignored.",
+      "restrictedConfigurations": ["ktrs.path"]
+    },
+    "virtualWorkspaces": false
+  },
+  "contributes": {
+    "languages": [
+      {
+        "id": "kotlin",
+        "aliases": ["Kotlin", "kotlin"],
+        "extensions": [".kt", ".kts"]
+      }
+    ],
+    "commands": [
+      { "command": "ktrs.restart", "title": "Restart Server", "category": "ktrs" },
+      { "command": "ktrs.showOutput", "title": "Show Output", "category": "ktrs" }
+    ],
+    "configuration": {
+      "title": "ktrs",
+      "properties": {
+        "ktrs.path": {
+          "type": "string",
+          "default": "",
+          "scope": "machine-overridable",
+          "markdownDescription": "Path to a `ktrs` binary. Empty: the bundled one, else `ktrs` on `PATH`."
+        },
+        "ktrs.trace.server": {
+          "type": "string",
+          "enum": ["off", "messages", "verbose"],
+          "default": "off",
+          "description": "Traces the LSP messages to the ktrs output channel."
+        },
+        "ktrs.format.tool": {
+          "type": "string",
+          "enum": ["auto", "ktfmt", "ktlint", "none"],
+          "default": "auto",
+          "markdownDescription": "The formatter. `auto`: the build's, else none. See the README."
+        },
+        "ktrs.ktfmt.style": {
+          "type": ["string", "null"],
+          "enum": ["meta", "google", "kotlinlang", null],
+          "default": null,
+          "markdownDescription": "ktfmt's style. `null`: the build's, else `meta`."
+        },
+        "ktrs.ktfmt.maxWidth": {
+          "type": ["integer", "null"],
+          "minimum": 1,
+          "default": null,
+          "markdownDescription": "Over the ktfmt style's. `null`: the style's."
+        },
+        "ktrs.ktfmt.blockIndent": {
+          "type": ["integer", "null"],
+          "minimum": 1,
+          "default": null,
+          "markdownDescription": "Over the ktfmt style's. `null`: the style's."
+        },
+        "ktrs.ktfmt.continuationIndent": {
+          "type": ["integer", "null"],
+          "minimum": 1,
+          "default": null,
+          "markdownDescription": "Over the ktfmt style's. `null`: the style's."
+        },
+        "ktrs.ktfmt.removeUnusedImports": {
+          "type": ["boolean", "null"],
+          "default": null,
+          "markdownDescription": "Over the ktfmt style's. `null`: the style's."
+        },
+        "ktrs.ktfmt.manageTrailingCommas": {
+          "type": ["boolean", "null"],
+          "default": null,
+          "markdownDescription": "Over the ktfmt style's. `null`: the style's."
+        },
+        "ktrs.ktfmt.editorconfig": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Apply `.editorconfig` like ktfmt's `--editorconfig`."
+        },
+        "ktrs.ktlint.enable": {
+          "type": "string",
+          "enum": ["auto", "true", "false"],
+          "default": "auto",
+          "markdownDescription": "ktlint diagnostics. `auto`: when the build uses ktlint or detects nothing."
+        },
+        "ktrs.ktlint.version": {
+          "type": ["string", "null"],
+          "enum": ["1.8", "2.0", null],
+          "default": null,
+          "markdownDescription": "The ktlint release imitated. `null`: the build's, else 1.8."
+        },
+        "ktrs.ktlint.android": {
+          "type": ["boolean", "null"],
+          "default": null,
+          "markdownDescription": "`ktlint_code_style = android_studio`. `null`: the build's."
+        },
+        "ktrs.ktlint.experimental": {
+          "type": ["boolean", "null"],
+          "default": null,
+          "markdownDescription": "`ktlint_experimental = enabled`. `null`: the build's."
+        },
+        "ktrs.ktlint.editorconfigOverrides": {
+          "type": ["object", "null"],
+          "default": null,
+          "markdownDescription": "`.editorconfig` properties that win over every `.editorconfig`. `null`: the build's."
+        },
+        "ktrs.ktlint.ruleSets": {
+          "type": ["array", "null"],
+          "items": { "type": "string" },
+          "default": null,
+          "markdownDescription": "Rule set JAR paths; only compose-rules runs. `null`: the build's."
+        },
+        "ktrs.ktlint.unfixableAsError": {
+          "type": "boolean",
+          "default": false,
+          "description": "Severity Error for violations ktlint can't autocorrect."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --target=node20 --minify --sourcemap",
+    "check": "tsc --noEmit -p .",
+    "vscode:prepublish": "npm run check && npm run build",
+    "pretest": "npm run build && tsc -p test",
+    "test": "vscode-test",
+    "package": "vsce package"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^10.1.2"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^20.0.0",
+    "@types/vscode": "~1.91.0",
+    "@vscode/test-cli": "^0.0.15",
+    "@vscode/test-electron": "^3.1.0",
+    "@vscode/vsce": "^4.0.0",
+    "esbuild": "^0.28.2",
+    "ovsx": "^1.2.0",
+    "typescript": "^5.9.0"
+  }
+}

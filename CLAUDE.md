@@ -25,6 +25,9 @@ Milestone 1: the parser's tree must be identical to the Kotlin compiler's PSI (`
   protocol and settings in its `src/lib.rs` docs; tests `cargo test -p ktrs-cli --test lsp` (fixes vs our `ktlint -F`).
 - `crates/ktrs-wasm` + `site/` — the browser playground (plain Wasm exports, no bindgen); build and
   preview: `tools/release/build-site.sh && py -3 -m http.server -d target/site`.
+- `editors/vscode` — the VS Code extension `hexay.ktrs` (TypeScript client of `ktrs lsp`; settings mirror the table in
+  `crates/ktrs-lsp/src/lib.rs`). Test: `cargo build --bins`, then `npm test` in it (downloads VS Code, background it).
+  Release: `tools/release/package-vscode.sh` (one VSIX per target with its binary + universal).
 - `java/` — `io.github.hexay:ktrs`: JVM wrapper around `ktrs serve` (bundled binaries, Spotless `KtrsStep` and
   `KtrsKtlintStep`: research/28). Tests: `cargo build --bins`, then `java/gradlew -p java test` (JAVA_HOME = tools/jdk/*).
   `java/gradle-plugin` — `io.github.hexay.ktrs`, ktfmt-gradle 0.27.0 drop-in (same DSL/tasks/FQNs), and
@@ -100,7 +103,8 @@ Milestone 1: the parser's tree must be identical to the Kotlin compiler's PSI (`
 - **Kotlin pin is `v2.4.20` everywhere** (psi-dump.sh, sync-kotlin.sh). Bump them together, then rerun
   `psi-dump.sh kinds > crates/ktrs-syntax/kinds.tsv` and `cargo xtask codegen`.
 - **Release version** lives in `Cargo.toml` (workspace version + every `workspace.dependencies` ktrs
-  entry) and `pyproject.toml` (the pre-commit launcher fetches `v<version>`); the release workflow
+  entry), `pyproject.toml` (the pre-commit launcher fetches `v<version>`) and `editors/vscode/package.json`
+  (+ its `package-lock.json`, via `npm version <v> --no-git-tag-version`); the release workflow
   rejects a tag that doesn't match. The JVM jar takes it from the tag.
 - Never hand-edit `generated/`. Kind names = compiler field names (`KtTokens.FUN_KEYWORD` -> `FUN_KEYWORD`).
 - Port 1:1: one Rust fn per Java method, `snake_case` of the Java name, same order within the file, so

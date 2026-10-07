@@ -1,5 +1,5 @@
 # On a `v*` tag: build `ktrs` + `ktfmt` + `ktlint` for six targets and publish them as a GitHub release,
-# one archive per target plus SHA256SUMS; then the JVM jar and the Homebrew formula.
+# one archive per target plus SHA256SUMS; then the JVM jar, the VS Code extension and the Homebrew formula.
 name: release
 
 on:
@@ -16,11 +16,12 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - name: Tag matches Cargo.toml and pyproject.toml
+      - name: Tag matches Cargo.toml, pyproject.toml and the VS Code extension
         run: |
           v=${GITHUB_REF_NAME#v}
           grep -qx "version = \"$v\"" Cargo.toml || { echo "Cargo.toml's version is not $v"; exit 1; }
           grep -qx "version = \"$v\"" pyproject.toml || { echo "pyproject.toml's version is not $v"; exit 1; }
+          [[ $(jq -r .version editors/vscode/package.json) == "$v" ]] || { echo "editors/vscode/package.json's version is not $v"; exit 1; }
 
   build:
     needs: versions
@@ -134,19 +135,52 @@ jobs:
           name: java
           path: java/build/libs/ktrs-*[0-9].jar
 
+  # The VS Code extension (hexay.ktrs): one VSIX per VS Code target with its binary, plus a universal one that runs
+  # `ktrs` from PATH; to the Marketplace (targets only) when VSCE_PAT exists, to Open VSX (all) when OVSX_PAT does.
+  vscode:
+    needs: build
+    runs-on: ubuntu-24.04
+    env:
+      VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      OVSX_PAT: ${{ secrets.OVSX_PAT }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: editors/vscode/package-lock.json }
+      - run: npm ci
+        working-directory: editors/vscode
+      - name: Package
+        run: bash tools/release/package-vscode.sh dist vsix
+      - name: Publish to the VS Code Marketplace
+        if: env.VSCE_PAT != ''
+        working-directory: editors/vscode
+        run: npx vsce publish --skip-duplicate --packagePath $(ls ../../vsix/*.vsix | grep -v universal)
+      - name: Publish to Open VSX
+        if: env.OVSX_PAT != ''
+        working-directory: editors/vscode
+        run: npx ovsx publish --skip-duplicate --packagePath ../../vsix/*.vsix
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vscode
+          path: vsix/*.vsix
+
   release:
-    needs: [build, java]
+    needs: [build, java, vscode]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/download-artifact@v4
         with:
           merge-multiple: true
       - name: Checksums
-        run: sha256sum ktrs-*.tar.gz ktrs-*.zip ktrs-*.jar > SHA256SUMS
+        run: sha256sum ktrs-*.tar.gz ktrs-*.zip ktrs-*.jar ktrs-*.vsix > SHA256SUMS
       - name: Publish
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --generate-notes ktrs-*.tar.gz ktrs-*.zip ktrs-*.jar SHA256SUMS
+        run: gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --generate-notes ktrs-*.tar.gz ktrs-*.zip ktrs-*.jar ktrs-*.vsix SHA256SUMS
 
   # Formula/ktrs.rb for `brew tap hexay/ktrs https://github.com/Hexay/ktrs`: generated from the
   # release's checksums, installed and tested from a scratch tap, then committed to master.

@@ -123,7 +123,8 @@ No Rust needed: on first run, the hook downloads the release binaries for its `r
 ### Editors
 
 `ktrs lsp` is a language server for ktlint diagnostics, quick fixes and ktfmt or ktlint formatting.
-It runs next to your Kotlin language server and takes its setup from the Gradle or Maven build. Editor
+It runs next to your Kotlin language server and takes its setup from the Gradle or Maven build. In VS
+Code, install the `hexay.ktrs` extension, which bundles it. Editor
 plugins that already run `ktlint` or `ktfmt` (conform.nvim, nvim-lint, none-ls, ALE, apheleia,
 flycheck-kotlin, Helix, Zed, VS Code's mskelton.ktlint, Block's IntelliJ Kotlin Formatter) work
 unchanged with the drop-in binaries; their exact invocations are diffed against the jars. Configs for

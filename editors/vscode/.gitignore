@@ -1,0 +1,8 @@
+node_modules/
+dist/
+out/
+bundled/
+.vscode-test/
+*.vsix
+LICENSE-MIT
+LICENSE-APACHE

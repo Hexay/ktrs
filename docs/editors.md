@@ -142,7 +142,11 @@ auto-format = true
 
 ## VS Code
 
-[mskelton.ktlint](https://marketplace.visualstudio.com/items?itemName=mskelton.ktlint), formatting
+The **ktrs** extension ([`hexay.ktrs`](https://marketplace.visualstudio.com/items?itemName=hexay.ktrs), also on
+[Open VSX](https://open-vsx.org/extension/hexay/ktrs)) runs `ktrs lsp` above with a bundled binary: diagnostics, quick
+fixes, fix all on save and formatting. Setup and settings: [editors/vscode/README.md](../editors/vscode/README.md).
+
+Alternatively, [mskelton.ktlint](https://marketplace.visualstudio.com/items?itemName=mskelton.ktlint), formatting
 (`ktlint --stdin -F --log-level none --stdin-path <file>`; runs `ktlint` from `PATH`, no settings):
 
 ```json
