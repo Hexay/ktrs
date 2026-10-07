@@ -1,11 +1,12 @@
 package io.github.hexay.ktrs.gradle.ktlint
 
+import io.github.hexay.ktrs.KtlintJars
 import org.gradle.api.GradleException
 
-/** The ktlint versions ktrs implements, and what each one means on the `ktrs ktlint` command line. */
+/** The ktlint versions ktrs implements, as `ktrs ktlint` options. */
 internal object KtlintVersions {
-    const val V1_8 = "1.8.0"
-    const val V2_0 = "2.0.0-ALPHA-4"
+    const val V1_8 = KtlintJars.V1_8
+    const val V2_0 = KtlintJars.V2_0
 
     /** The drop-in's `--ktlint-version` option for [version]; fails the build for any other version. */
     fun cliOption(version: String): String =
@@ -18,16 +19,4 @@ internal object KtlintVersions {
                         "of them, or use the org.jlleitschuh.gradle.ktlint plugin for other versions."
                 )
         }
-
-    /** The service interfaces a rule set JAR implements for [version] (`-R` loads these). */
-    fun ruleSetInterfaces(version: String): List<String> =
-        if (version == V1_8) listOf(RULE_SET_PROVIDER_V3) else listOf(RULE_SET_V2_PROVIDER, RULE_SET_PROVIDER_V3)
-
-    /** The service interface a reporter JAR implements for [version]. */
-    fun reporterInterface(version: String): String =
-        if (version == V1_8) "com.pinterest.ktlint.cli.reporter.core.api.ReporterProviderV2"
-        else "io.github.ktlint.core.cli.reporter.core.api.ReporterProviderV2"
-
-    private const val RULE_SET_PROVIDER_V3 = "com.pinterest.ktlint.cli.ruleset.core.api.RuleSetProviderV3"
-    private const val RULE_SET_V2_PROVIDER = "io.github.ktlint.core.cli.ruleset.core.api.RuleSetV2Provider"
 }

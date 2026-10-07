@@ -1,5 +1,6 @@
 package io.github.hexay.ktrs.gradle.ktlint
 
+import io.github.hexay.ktrs.KtlintJars
 import java.io.File
 import org.gradle.api.GradleException
 import org.jlleitschuh.gradle.ktlint.tasks.BaseKtLintCheckTask
@@ -62,7 +63,7 @@ internal class KtlintCommand(
 
     private fun commonOptions(): List<String> = buildList {
         add(KtlintVersions.cliOption(version))
-        JarServices.ruleSetJars(ruleSetClasspath, version, tempDir).forEach { add("--ruleset=${it.absolutePath}") }
+        KtlintJars.ruleSetJars(ruleSetClasspath.toList(), version, tempDir).forEach { add("--ruleset=${it.absolutePath}") }
         additionalEditorconfig.forEach { (name, value) -> add("--ktrs-editorconfig-override=$name=$value") }
     }
 }

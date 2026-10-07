@@ -15,4 +15,5 @@
 /java/build/
 /java/maven-plugin/build/
 /java/.gradle/
+/java/gradle-plugin/src/test/resources/*/.gradle/
 /java/native/

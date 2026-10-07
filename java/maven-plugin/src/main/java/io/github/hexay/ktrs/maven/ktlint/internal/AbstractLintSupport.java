@@ -1,5 +1,6 @@
 package io.github.hexay.ktrs.maven.ktlint.internal;
 
+import io.github.hexay.ktrs.KtlintJars;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -72,7 +73,7 @@ abstract class AbstractLintSupport {
             log.debug("Add editor config override to set code style to 'android_studio'");
             options.add("--ktrs-editorconfig-override=ktlint_code_style=android_studio");
         }
-        for (File jar : JarServices.ruleSetJars(JarServices.userJars(pluginArtifacts), ktlintVersion, tempDir)) {
+        for (File jar : KtlintJars.ruleSetJars(JarServices.userJars(pluginArtifacts), ktlintVersion, tempDir)) {
             options.add("--ruleset=" + jar.getAbsolutePath());
         }
         return options;

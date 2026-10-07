@@ -1,6 +1,6 @@
 package org.jlleitschuh.gradle.ktlint.tasks
 
-import io.github.hexay.ktrs.gradle.ktlint.JarServices
+import io.github.hexay.ktrs.KtlintJars
 import io.github.hexay.ktrs.gradle.ktlint.KtlintVersions
 import io.github.hexay.ktrs.gradle.ktlint.LoadedReporter
 import javax.inject.Inject
@@ -56,7 +56,7 @@ constructor(objectFactory: ObjectFactory, projectLayout: ProjectLayout) : Defaul
                 LoadedReporter(type.reporterName + query, type.fileExtension, null)
             }
         val custom = customReporters.get().toList()
-        val jars = if (custom.isEmpty()) emptyList() else JarServices.reporterJars(reportersClasspath, version)
+        val jars = if (custom.isEmpty()) emptyList() else KtlintJars.reporterJars(reportersClasspath.toList(), version)
         val loaded =
             custom.mapIndexed { index, reporter ->
                 if (jars.isEmpty()) {

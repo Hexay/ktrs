@@ -1,5 +1,6 @@
 package io.github.hexay.ktrs.maven.ktlint.internal;
 
+import io.github.hexay.ktrs.KtlintJars;
 import io.github.hexay.ktrs.maven.ktlint.MavenLogReporterProvider;
 import io.github.hexay.ktrs.maven.ktlint.ReporterConfig;
 import java.io.File;
@@ -100,7 +101,7 @@ abstract class AbstractCheckSupport extends AbstractLintSupport {
 
         Set<String> available = new TreeSet<>(BUNDLED_REPORTERS);
         available.addAll(JarServices.ktlintReporterIds(pluginArtifacts));
-        List<File> reporterJars = JarServices.reporterJars(JarServices.userJars(pluginArtifacts), ktlintVersion);
+        List<File> reporterJars = KtlintJars.reporterJars(JarServices.userJars(pluginArtifacts), ktlintVersion);
         for (String id : available) {
             log.debug("Discovered reporter '" + id + "'");
         }

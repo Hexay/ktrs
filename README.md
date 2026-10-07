@@ -93,7 +93,7 @@ SHA-256; needs Java), so it works at JVM speed ([research/27](research/27-custom
 
 **Limits.**
 
-- kotlinter and the Maven plugins run ktlint inside the JVM and don't use these binaries.
+- kotlinter runs ktlint inside the JVM and doesn't use these binaries.
 - The `ktfmt` binary accepts Kotlin 2.4 syntax (e.g. `companion { }` blocks) that ktfmt 0.64, built
   on Kotlin 2.3, rejects.
 
@@ -250,6 +250,48 @@ binary once, not once per file.
   `nativeCmd("ktfmt", "/path/to/ktfmt", listOf("--kotlinlang-style", "-"))`.
 
 </details>
+
+### Maven
+
+**ktlint-maven-plugin drop-in.** `io.github.hexay:ktrs-ktlint-maven-plugin` replaces gantsign's
+[ktlint-maven-plugin](https://github.com/gantsign/ktlint-maven-plugin) 3.7.1. Change only the
+coordinates: the goals (`mvn ktlint:check`, `ktlint:format`, the `ktlint` site report), parameters,
+`ktlint.*` properties, `<reporters>` and rule sets in the plugin's `<dependencies>` keep working, and
+console output, reports and formatted files match the original
+([research/31](research/31-ktlint-maven-dropin.md)).
+
+```xml
+<plugin>
+  <groupId>io.github.hexay</groupId>                   <!-- was: com.github.gantsign.maven -->
+  <artifactId>ktrs-ktlint-maven-plugin</artifactId>    <!-- was: ktlint-maven-plugin -->
+  <version>0.5.0</version>
+  <executions><execution><goals><goal>check</goal></goals></execution></executions>
+</plugin>
+```
+
+`<ktlintVersion>` (property `ktrs.ktlintVersion`) defaults to `1.8.0`; `2.0.0-ALPHA-4` selects 2.0.
+
+**Spotless.** Add `implementation=` to the existing `<ktfmt>` or `<ktlint>` element and the jar as a
+plugin dependency; the other options stay as they are (Maven 3.9+, Java 17+):
+
+```xml
+<plugin>
+  <groupId>com.diffplug.spotless</groupId>
+  <artifactId>spotless-maven-plugin</artifactId>
+  <configuration>
+    <kotlin>
+      <ktfmt implementation="io.github.hexay.ktrs.spotless.maven.KtrsKtfmt"><style>KOTLINLANG</style></ktfmt>
+      <!-- or <ktlint implementation="io.github.hexay.ktrs.spotless.maven.KtrsKtlint">…</ktlint> -->
+    </kotlin>
+  </configuration>
+  <dependencies>
+    <dependency><groupId>io.github.hexay</groupId><artifactId>ktrs</artifactId><version>0.5.0</version></dependency>
+  </dependencies>
+</plugin>
+```
+
+Output is identical to stock `<ktfmt>` 0.64 and `<ktlint>` 1.8.0 (`tools/spotless-maven/parity.sh`).
+`<version>` must be left out or match (ktfmt `0.64`; ktlint `1.8.0` or `2.0.0-ALPHA-4`).
 
 ## Performance
 
