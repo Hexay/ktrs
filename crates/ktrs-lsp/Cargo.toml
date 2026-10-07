@@ -1,6 +1,6 @@
 [package]
-name = "ktrs-cli"
-description = "Command-line front ends: `ktrs` and flag-compatible `ktfmt` and `ktlint` (binaries: the root `ktrs` package)"
+name = "ktrs-lsp"
+description = "Language server for Kotlin formatting and linting: ktlint diagnostics, fixes and suppressions, ktfmt or ktlint formatting"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -9,14 +9,13 @@ rust-version.workspace = true
 
 [dependencies]
 ktrs-syntax.workspace = true
+ktrs-parser.workspace = true
 ktrs-fmt.workspace = true
 ktrs-lint.workspace = true
 ktrs-compose.workspace = true
-ktrs-editorconfig.workspace = true
-ktrs-lsp.workspace = true
-regex = "1.11"
-
-[dev-dependencies]
+ktrs-project.workspace = true
 lsp-server = "0.10"
 lsp-types = "0.97"
+serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+crossbeam-channel = "0.5"
