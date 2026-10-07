@@ -4,8 +4,10 @@
 //! - `doc`    — google-java-format's Doc/OpsBuilder/Level engine and JavaOutput.
 //! - `kdoc`   — ktfmt's KDoc comment formatter (`com.facebook.ktfmt.kdoc`).
 //! - `format` — ktfmt's `format` package: tokenizer, AST visitor, import/semicolon/trailing-comma passes.
+//! - `editor_config_resolver` — ktfmt's `cli/EditorConfigResolver.kt` (`--editorconfig`).
 
 pub mod doc;
+pub mod editor_config_resolver;
 pub mod format;
 pub mod kdoc;
 

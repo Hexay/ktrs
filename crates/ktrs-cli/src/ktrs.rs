@@ -20,6 +20,9 @@ Usage:
   ktrs lint [OPTIONS] -            Check stdin (with --format: fixed code to stdout)
   ktrs serve                      Format requests framed on stdin until it closes (for build tools;
                                      protocol: crates/ktrs-cli/src/serve.rs)
+  ktrs lsp                        Language server on stdin/stdout: ktlint diagnostics, fixes and
+                                     suppressions, ktfmt or ktlint formatting (settings:
+                                     crates/ktrs-lsp/src/lib.rs)
   ktrs ktlint [ARGS ...]          Exactly the `ktlint` drop-in, flags and exit codes as ktlint's CLI
                                      (for build tools that bundle only `ktrs`)
   ktrs --version
@@ -62,6 +65,8 @@ pub fn run(args: &[String]) -> i32 {
         // No `java_launcher` wildcard expansion: callers pass literal paths, not a shell's command line.
         Some("ktlint") => crate::ktlint::main(&args[1..]),
         Some("serve") if args.len() == 1 => crate::serve::run(io::stdin().lock(), io::stdout().lock()),
+        // `--stdio` is what VS Code's client and others pass; stdio is the only transport.
+        Some("lsp") if args[1..].iter().all(|a| a == "--stdio") => ktrs_lsp::run_stdio(),
         Some("--version" | "-V") => {
             println!("ktrs {} (formats like ktfmt {KTFMT_VERSION})", env!("CARGO_PKG_VERSION"));
             0

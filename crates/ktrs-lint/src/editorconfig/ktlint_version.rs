@@ -6,7 +6,8 @@ use std::sync::LazyLock;
 use ktrs_editorconfig::{EnumValue, PropertyType};
 
 use crate::editorconfig::editor_config::EditorConfig;
-use crate::editorconfig::editor_config_property::EditorConfigProperty;
+use crate::editorconfig::editor_config_property::{EditorConfigProperty, PropertyRef};
+use crate::engine::editor_config_defaults::EditorConfigOverride;
 use crate::editorconfig::value_parsers::safe_enum_value_parser;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
@@ -56,3 +57,13 @@ pub static KTLINT_VERSION_PROPERTY_TYPE: PropertyType<KtlintVersion> = PropertyT
 
 pub static KTLINT_VERSION_PROPERTY: LazyLock<EditorConfigProperty<KtlintVersion>> =
     LazyLock::new(|| EditorConfigProperty::new(&KTLINT_VERSION_PROPERTY_TYPE, KtlintVersion::V2_0));
+
+/// `editor_config_override` with `version` set, which every file's `.editorconfig` then reports.
+pub fn with_ktlint_version(editor_config_override: EditorConfigOverride, version: KtlintVersion) -> EditorConfigOverride {
+    let property = (PropertyRef::from(&*KTLINT_VERSION_PROPERTY), Some(version.name().to_owned()));
+    if editor_config_override.is_empty() {
+        EditorConfigOverride::from(vec![property])
+    } else {
+        editor_config_override.plus(vec![property])
+    }
+}

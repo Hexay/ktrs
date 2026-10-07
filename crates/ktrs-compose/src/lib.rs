@@ -40,6 +40,7 @@
 //! Status, the parity gate and how to bump the pin: research/27-custom-rulesets-impl.md.
 
 pub mod core;
+pub mod jar;
 pub mod ktlint;
 pub mod rules;
 
