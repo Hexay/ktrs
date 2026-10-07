@@ -14,7 +14,7 @@ SKIP_DIRS = {".gradle", ".kotlin", "kotlin", "classes", "tmp", "intermediates", 
 NOISE = re.compile(
     r"(Starting a Gradle Daemon|BUILD (SUCCESSFUL|FAILED) in|\d+ actionable task|Configuration cache|Reusing configuration"
     r"|Calculating task graph|Consider enabling|Daemon will be stopped|Deprecated Gradle|You can use '--warning-mode"
-    r"|For more on this|See https://docs.gradle.org|w: |\[Incubating\] Problems report|> Configure project :java)"
+    r"|For more on this|See https://docs.gradle.org|w: |Fetching distribution|Downloading https://services\.gradle\.org/|\.+10%|\[Incubating\] Problems report|> Configure project :java)"
 )
 
 

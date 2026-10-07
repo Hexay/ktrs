@@ -13,3 +13,6 @@ compose-maven	build/reports/ktlint/*.txt	order
 realcode	console.txt	order
 realcode	build/reports/ktlint/*.txt	order
 realcode	build/reports/ktlint/*.sarif	order
+# realcode: the html reporter orders files by a ConcurrentHashMap keyed by absolute path, which differs between the two
+# project dirs (.../upstream/... vs .../ktrs/...): same lines, an order that varies between runs (research/29).
+realcode	build/reports/ktlint/*.html	unordered

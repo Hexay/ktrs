@@ -3,6 +3,7 @@
 Entries: `<scenario>\t<file glob>\t<kind>[\t<regex>]`, `#` comment lines above them give the reason. The glob matches
 the compared file's project-relative path (or `console.txt`). Kinds:
   order          the same lines in any order
+  unordered      as order, but never stale: for an order that varies from run to run
   upstream-only  upstream lines matching <regex> are dropped before comparing
   ktrs-only      ktrs lines matching <regex> are dropped before comparing
   ignore         lines matching <regex> are dropped on both sides
@@ -14,7 +15,7 @@ prints the unified diff left after the entries apply (and stale entries); exit 1
 """
 import difflib, fnmatch, re, sys
 
-KINDS = ("order", "upstream-only", "ktrs-only", "ignore")
+KINDS = ("order", "unordered", "upstream-only", "ktrs-only", "ignore")
 
 
 class Known:
@@ -28,7 +29,7 @@ class Known:
                 if not line or line.startswith("#"):
                     continue
                 parts = line.split("\t")
-                if len(parts) < 3 or parts[2] not in KINDS or (parts[2] != "order") != (len(parts) == 4):
+                if len(parts) < 3 or parts[2] not in KINDS or (parts[2] in ("order", "unordered")) == (len(parts) == 4):
                     raise SystemExit(f"{path}: bad entry {line!r}")
                 if parts[0] == scenario:
                     regex = re.compile(parts[3]) if len(parts) == 4 else None
@@ -39,7 +40,7 @@ class Known:
         matching = [e for e in self.entries if fnmatch.fnmatchcase(name, e["glob"])]
         a, b = upstream, ktrs
         for e in matching:
-            if e["kind"] == "order":
+            if e["kind"] in ("order", "unordered"):
                 a, b = sorted(a), sorted(b)
             if e["kind"] in ("upstream-only", "ignore"):
                 a = [x for x in a if not e["re"].search(x)]
@@ -51,7 +52,7 @@ class Known:
         return a, b
 
     def stale(self):
-        return [e["line"] for e in self.entries if not e["used"]]
+        return [e["line"] for e in self.entries if not e["used"] and e["kind"] != "unordered"]
 
 
 def unified(name, a, b):
