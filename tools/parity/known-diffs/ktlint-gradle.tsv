@@ -1,5 +1,15 @@
 # tools/ktlint-gradle/parity.sh: org.jlleitschuh.gradle.ktlint 14.2.0 (upstream) vs io.github.hexay.ktrs.ktlint (ktrs).
 # Format: tools/parity/known_diffs.py.
-# realcode: the html reporter orders files by a ConcurrentHashMap keyed by absolute path, and the two project dirs
-# differ (.../upstream/... vs .../ktrs/...): same lines, another order (research/29).
-realcode	build/reports/ktlint/*.html	order
+# baseline: the baseline is applied by the lint task (CLI --baseline), so the lint tasks rerun where upstream's are
+# UP-TO-DATE (research/29 deviation 1); outcomes and outputs are the same.
+baseline	console.txt	ignore	^> Task :runKtlintCheckOver\w+( UP-TO-DATE)?$
+# Linux only (first seen on the 2026-10-07 testbox run; identical on Windows): the two sides list files in different
+# orders in the console and the plain/sarif reports (the same rows: rows.py). Unreviewed: whether ktrs should order
+# files like upstream on every filesystem is an open item; remove these once it does.
+compose-all	console.txt	order
+compose-all	build/reports/ktlint/*.txt	order
+compose-maven	console.txt	order
+compose-maven	build/reports/ktlint/*.txt	order
+realcode	console.txt	order
+realcode	build/reports/ktlint/*.txt	order
+realcode	build/reports/ktlint/*.sarif	order

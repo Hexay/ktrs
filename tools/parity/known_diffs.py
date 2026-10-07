@@ -5,6 +5,7 @@ the compared file's project-relative path (or `console.txt`). Kinds:
   order          the same lines in any order
   upstream-only  upstream lines matching <regex> are dropped before comparing
   ktrs-only      ktrs lines matching <regex> are dropped before comparing
+  ignore         lines matching <regex> are dropped on both sides
 An entry its scenario no longer needs is reported as stale and fails the run, so the list stays exact.
 
 As a script, for parity scripts without a compare.py of their own:
@@ -13,7 +14,7 @@ prints the unified diff left after the entries apply (and stale entries); exit 1
 """
 import difflib, fnmatch, re, sys
 
-KINDS = ("order", "upstream-only", "ktrs-only")
+KINDS = ("order", "upstream-only", "ktrs-only", "ignore")
 
 
 class Known:
@@ -40,9 +41,9 @@ class Known:
         for e in matching:
             if e["kind"] == "order":
                 a, b = sorted(a), sorted(b)
-            elif e["kind"] == "upstream-only":
+            if e["kind"] in ("upstream-only", "ignore"):
                 a = [x for x in a if not e["re"].search(x)]
-            else:
+            if e["kind"] in ("ktrs-only", "ignore"):
                 b = [x for x in b if not e["re"].search(x)]
         if upstream != ktrs and a == b:
             for e in matching:

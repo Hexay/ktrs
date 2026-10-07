@@ -45,7 +45,7 @@ scenario() {
     project "$name" "$side" "$block" "$template"
     for args in "$@"; do
       # shellcheck disable=SC2086
-      "$gradle" -p "$out/$name/$side/project" --console=plain -Dorg.gradle.jvmargs=-Xmx768m $args \
+      "$gradle" -p "$out/$name/$side/project" --console=plain -Dorg.gradle.jvmargs=-Xmx768m -Dorg.gradle.welcome=never $args \
         > "$out/$name/$side/run.txt" 2>&1
       { echo "== exit $? : $args"; cat "$out/$name/$side/run.txt"; } >> "$out/$name/$side/console.txt"
       grep -q "^> Task :loadKtlintReporters" "$out/$name/$side/run.txt" || { echo "$name/$side: gradle did not run ($args)" >&2; status=1; }
