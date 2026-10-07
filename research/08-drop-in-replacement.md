@@ -114,9 +114,9 @@ nativeCmd. The unreleased `--stdin-name` editorconfig lookup is worth adopting e
 | `cargo install ktrs` / crates.io | Publish `ktrs_syntax`, `lexer`, `parser`, `psi`, `fmt` and a `ktrs` bin crate. Name check: `ktfmt-rs` is taken (an abandoned 2026-03 upload, https://crates.io/crates/ktfmt-rs). | S |
 | GitHub release binaries | `cargo-dist` (or a hand-rolled matrix) for linux x64/arm64 (musl, static), macOS x64/arm64, windows x64/arm64, with checksums, a shell/PowerShell installer and `ktrs-<target>.tar.gz`. `lto = fat` is already set. | S |
 | Homebrew | Tap first (`cargo-dist` generates it). homebrew-core later: it needs notability, and the existing `ktfmt` formula is a JVM wrapper on `openjdk@17` (https://github.com/Homebrew/homebrew-core/blob/main/Formula/k/ktfmt.rb). | S |
-| npm / pip wrappers | Per-platform optional-dependency packages (the biome/ruff pattern). pip unlocks `language: python` pre-commit with no JVM. | S–M |
+| npm / pip wrappers | Per-platform optional-dependency packages (the biome/ruff pattern). pip unlocks `language: python` pre-commit with no JVM. **npm done:** `@ktrs/cli` + six `@ktrs/cli-<os>-<cpu>` (`npm/`, release job `npm`). | S–M |
 | Maven Central artifact | A jar embedding the per-OS binaries plus a tiny Java shim (`ProcessBuilder`, the pattern of biome and esbuild-java). This is what a Spotless first-class step or a Gradle plugin would resolve. JNI is possible but not worth it: per-file processes are already cheap natively. | M |
-| GitHub Action / Docker image | `uses: ktrs/setup-ktrs@v1`; a `FROM scratch` image with the static binary. | S |
+| GitHub Action / Docker image | `uses: ktrs/setup-ktrs@v1`; a `FROM scratch` image with the static binary. **Done:** `action.yml` (`uses: Hexay/ktrs@<tag>`); `ghcr.io/hexay/ktrs`, distroless static, amd64 + arm64 (`docker/Dockerfile`, release job `docker`). | S |
 | Wasm (`wasm32-wasip1`) | For dprint, the web playground and a VS Code extension without per-platform binaries. | M |
 
 **Competition and value proposition**
