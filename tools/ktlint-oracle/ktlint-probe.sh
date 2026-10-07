@@ -8,8 +8,9 @@ set -euo pipefail
 in=$1 out=$2
 shift 2
 here="$(cd "$(dirname "$0")" && pwd)"
-jar=$(ls "$here"/lib/ktlint-cli-*-all.jar 2>/dev/null | head -1 || true)
-[[ -n $jar ]] || { echo "no ktlint jar; run tools/sync-ktlint.sh" >&2; exit 1; }
+# The pinned jar by name: cli-diff.sh's KTLINT_VERSION=1.8 puts the 1.8.0 jar next to it.
+jar=$here/lib/ktlint-cli-$(sed -n 's/^KTLINT_TAG=//p' "$here/../sync-ktlint.sh")-all.jar
+[[ -f $jar ]] || { echo "no $jar; run tools/sync-ktlint.sh" >&2; exit 1; }
 java=java
 bundled=$(ls -d "$here"/../jdk/*/bin 2>/dev/null | head -1 || true)
 if [[ -n $bundled ]]; then java="$bundled/java"; fi
