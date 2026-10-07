@@ -237,7 +237,7 @@ jobs:
       contents: read
       id-token: write
     env:
-      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
@@ -249,13 +249,17 @@ jobs:
       - name: Package
         run: node tools/release/package-npm.mjs dist npm-out "$GITHUB_REF_NAME"
       # @ktrs/cli's optional dependencies must exist before it does; a re-run skips what's already published.
+      # Gated on NPM_TOKEN, not NODE_AUTH_TOKEN: setup-node sets the latter to a placeholder when it's empty.
       - name: Publish
-        if: env.NODE_AUTH_TOKEN != ''
+        if: env.NPM_TOKEN != ''
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           for dir in npm-out/cli-* npm-out/cli; do
             name=$(jq -r .name "$dir/package.json") version=$(jq -r .version "$dir/package.json")
             if npm view "$name@$version" version > /dev/null 2>&1; then echo "$name@$version exists"; continue; fi
-            npm publish --provenance --access public "$dir"
+            # ./ or npm reads npm-out/cli-x as a GitHub owner/repo.
+            npm publish --provenance --access public "./$dir"
           done
 
   release:
