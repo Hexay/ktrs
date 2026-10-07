@@ -1,0 +1,2 @@
+# tools/ktlint-oracle/cli-diff.sh: accepted mismatches, `<KTLINT_VERSION>\t<scenario>` (a listed scenario that matches
+# again fails as stale). Reasons in a comment above each.

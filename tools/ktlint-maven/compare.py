@@ -1,8 +1,13 @@
-"""compare.py <scenario-dir>: diffs <dir>/{upstream,ktrs}: the console (Maven noise and the plugin coordinates
-normalized) and every project file but the POMs."""
-import difflib, os, re, sys
+"""compare.py <scenario-dir> [--known FILE]: diffs <dir>/{upstream,ktrs}: the console (Maven noise and the plugin coordinates
+normalized) and every project file but the POMs; --known applies tools/parity/known_diffs.py entries.
+Exit 1 when anything differs (last line DIFFERENT, else IDENTICAL)."""
+import os, re, sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "parity"))
+from known_diffs import Known, unified
 
 root = os.path.abspath(sys.argv[1])
+KNOWN = Known(sys.argv[sys.argv.index("--known") + 1] if "--known" in sys.argv else None, os.path.basename(root))
 NOISE = re.compile(r"(\[INFO\] (Total time|Finished at)|WARNING: |\[WARNING\] (Using platform encoding|File encoding))")
 # Deviation 2 of research/31: `format` logs an engine exception without its JVM stack trace.
 STACK_TRACE = re.compile(r"(\s+at |[\w.$]+(Exception|Error): )")
@@ -36,7 +41,7 @@ def files(side):
 
 
 def diff(name, a, b):
-    d = list(difflib.unified_diff(a, b, "upstream/" + name, "ktrs/" + name, lineterm="", n=1))
+    d = unified(name, *KNOWN.apply(name, a, b))
     if d:
         print("\n".join(d) + "\n")
     return bool(d)
@@ -55,4 +60,8 @@ for name in sorted(set(fu) | set(fk)):
         different = True
     else:
         different |= diff(name, fu[name], fk[name])
+for line in KNOWN.stale():
+    print("stale known diff (remove it): " + line)
+    different = True
 print("DIFFERENT" if different else "IDENTICAL")
+sys.exit(1 if different else 0)

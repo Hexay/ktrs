@@ -11,8 +11,28 @@ permissions:
   contents: write
 
 jobs:
+  # The corpus, CLI and build-tool parity gates run nightly, not per push: the tagged commit must have passed them.
+  parity:
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: read
+    steps:
+      - name: parity.yml succeeded on this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          runs=$(gh run list --workflow parity.yml --commit "$GITHUB_SHA" --status success --json databaseId --jq length)
+          if [[ $runs == 0 ]]; then
+            echo "::error::no successful parity.yml run for $GITHUB_SHA"
+            echo "Run it on this commit, wait for it to pass, then re-run this workflow:"
+            echo "  gh workflow run parity.yml --ref $GITHUB_REF_NAME"
+            exit 1
+          fi
+
   # The pre-commit launcher downloads the release tagged v<its version>, so the versions must agree.
   versions:
+    needs: parity
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4

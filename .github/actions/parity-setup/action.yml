@@ -1,0 +1,28 @@
+name: parity-setup
+description: "The shared setup of parity.yml's gate jobs: JDK 21, corpus/ from the `corpus` job's cache, Rust and its cache."
+inputs:
+  tree:
+    description: Also copy the corpus's .kt/.kts files to target/parity/corpus (no .git, no project .editorconfig)
+    default: "false"
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-java@v4
+      with: { distribution: temurin, java-version: 21 }
+    - uses: actions/cache/restore@v4
+      with:
+        path: corpus
+        key: corpus-${{ hashFiles('tools/corpus/REVISIONS') }}
+        fail-on-cache-miss: true
+    - if: inputs.tree == 'true'
+      shell: bash
+      run: |
+        mkdir -p target/parity/corpus
+        (cd corpus && find . -name .git -prune -o -type f \( -name '*.kt' -o -name '*.kts' \) -print | tar -cf - -T -) |
+          tar -xf - -C target/parity/corpus
+    - name: Install Rust
+      shell: bash
+      run: rustup toolchain install stable --profile minimal && rustup default stable
+    # One cache per job: each builds a different set of binaries.
+    - uses: Swatinem/rust-cache@v2
+      with: { shared-key: "parity-${{ github.job }}", cache-on-failure: true }

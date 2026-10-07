@@ -1,0 +1,5 @@
+# tools/ktlint-gradle/parity.sh: org.jlleitschuh.gradle.ktlint 14.2.0 (upstream) vs io.github.hexay.ktrs.ktlint (ktrs).
+# Format: tools/parity/known_diffs.py.
+# realcode: the html reporter orders files by a ConcurrentHashMap keyed by absolute path, and the two project dirs
+# differ (.../upstream/... vs .../ktrs/...): same lines, another order (research/29).
+realcode	build/reports/ktlint/*.html	order

@@ -5,6 +5,7 @@
 # Scenarios: clean violations format reporters options stdout unknown-reporter compose handoff parse-error report
 # multimodule. Output: target/ktlint-maven/<scenario>/{upstream,ktrs}/ and <scenario>.diff. Our plugin is published to
 # target/ktlint-maven/repo as $VERSION first (NO_PUBLISH=1 skips that); MVN=<mvn> skips the pinned Maven download.
+# Accepted differences: KNOWN (default tools/parity/known-diffs/ktlint-maven.tsv). Exit 1 when a scenario differs beyond them.
 set -uo pipefail
 # Windows-form paths under Git Bash: they end up in POMs and the JVM.
 root="$(cd "$(dirname "$0")/../.." && (pwd -W 2> /dev/null || pwd))"
@@ -16,6 +17,8 @@ maven_version=3.9.16
 maven_sha512=ed41650d42485cfc243fad22158caf9cbb5dc408ce7a09ddb94dd42a019de929ca43065bfa450612cf12bf78b5cafa3884b96c090de326ff590448c933454af3
 [[ -n ${JAVA_HOME:-} ]] || export JAVA_HOME="$(ls -d "$root"/tools/jdk/* 2>/dev/null | head -1)"
 [[ -n $JAVA_HOME ]] || { echo "set JAVA_HOME (or run tools/ensure-jdk.sh)" >&2; exit 2; }
+known="${KNOWN:-$root/tools/parity/known-diffs/ktlint-maven.tsv}"
+status=0
 mkdir -p "$out"
 
 if [[ -z ${MVN:-} ]]; then
@@ -93,7 +96,7 @@ scenario() {
       { echo "== exit $? : $args"; cat "$dir/run.txt"; } >> "$dir/console.txt"
     done
   done
-  py_ "$here/compare.py" "$out/$name" > "$out/$name.diff"
+  py_ "$here/compare.py" "$out/$name" --known "$known" > "$out/$name.diff" || status=1
   echo "$name: $(tail -1 "$out/$name.diff") ($(wc -l < "$out/$name.diff") diff lines)"
 }
 
@@ -118,3 +121,4 @@ for s in ${*:-clean violations format reporters options stdout unknown-reporter 
     *) echo "unknown scenario $s" >&2; exit 2 ;;
   esac
 done
+exit $status

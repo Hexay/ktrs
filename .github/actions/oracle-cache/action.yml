@@ -1,0 +1,25 @@
+name: oracle-cache
+description: "Restores a JVM oracle's output from the Actions cache; on a miss builds it and saves it right away (so a failing gate later in the job doesn't cost the rebuild)."
+inputs:
+  key:
+    description: Cache key; hash everything that determines the output (pins, oracle scripts, tools/corpus/REVISIONS)
+    required: true
+  path:
+    description: Output paths (newline-separated)
+    required: true
+  build:
+    description: Bash commands that build the output on a miss
+    required: true
+runs:
+  using: composite
+  steps:
+    - id: restore
+      uses: actions/cache/restore@v4
+      with: { path: "${{ inputs.path }}", key: "${{ inputs.key }}" }
+    - if: steps.restore.outputs.cache-hit != 'true'
+      shell: bash
+      env: { BUILD: "${{ inputs.build }}" }
+      run: bash -euo pipefail -c "$BUILD"
+    - if: steps.restore.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v4
+      with: { path: "${{ inputs.path }}", key: "${{ inputs.key }}" }

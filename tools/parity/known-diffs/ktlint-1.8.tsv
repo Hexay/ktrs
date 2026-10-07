@@ -1,0 +1,13 @@
+# tools/parity/ktlint-compare.sh, ktlint-1.8.0 jar (A) vs `ktlint --ktlint-version=1.8` (B), on the .kt/.kts copy of corpus/.
+# Format and reasons: tools/parity/check-known.sh. Exit codes: both sides find violations (1).
+# KDoc whitespace (research/26 "Remaining differences"): 1.8.0's Kotlin 2.2 KDoc lexer gives a KDoc line's trailing
+# spaces their own token; ktrs shares 2.4's lexer with the 2.0 jar, so it misses this no-multi-spaces row in 1.8 mode.
+ktlint_official	exit	lint 1 1
+ktlint_official	exit	format 1 1
+ktlint_official	only-upstream	kotlinx.coroutines/kotlinx-coroutines-core/jvm/src/channels/TickerChannels.kt:51:4: Unnecessary long whitespace (standard:no-multi-spaces)
+intellij_idea	exit	lint 1 1
+intellij_idea	exit	format 1 1
+intellij_idea	only-upstream	kotlinx.coroutines/kotlinx-coroutines-core/jvm/src/channels/TickerChannels.kt:51:4: Unnecessary long whitespace (standard:no-multi-spaces)
+android_studio	exit	lint 1 1
+android_studio	exit	format 1 1
+android_studio	only-upstream	kotlinx.coroutines/kotlinx-coroutines-core/jvm/src/channels/TickerChannels.kt:51:4: Unnecessary long whitespace (standard:no-multi-spaces)
