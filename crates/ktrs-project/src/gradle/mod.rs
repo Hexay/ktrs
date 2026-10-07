@@ -1,6 +1,6 @@
 //! Gradle builds: which sources apply to a module (see the crate docs), interpreted in override order.
 
-mod conventions;
+pub(crate) mod conventions;
 mod findings;
 mod interpret;
 mod plugins;
@@ -138,7 +138,7 @@ fn run_root(it: &mut Interp, stmts: &[Stmt]) {
     it.out.merge(own.root_wide());
 }
 
-fn properties(text: &str) -> HashMap<String, String> {
+pub(crate) fn properties(text: &str) -> HashMap<String, String> {
     text.lines()
         .map(str::trim)
         .filter(|l| !l.starts_with('#') && !l.starts_with('!'))

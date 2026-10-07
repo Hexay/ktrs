@@ -112,6 +112,7 @@ dependencies = [
  "ktrs-fmt",
  "ktrs-lint",
  "ktrs-lsp",
+ "ktrs-project",
  "ktrs-syntax",
  "lsp-server",
  "lsp-types",

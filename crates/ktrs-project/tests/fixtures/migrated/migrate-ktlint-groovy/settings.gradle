@@ -1,0 +1,8 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        maven { url 'https://hexay.github.io/ktrs/maven' }
+    }
+}
+
+rootProject.name = 'migrate-ktlint-groovy'

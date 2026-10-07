@@ -137,7 +137,7 @@ fn unquote(value: &str) -> Option<String> {
     Some(v[1..].split(q).next().unwrap_or_default().to_string())
 }
 
-fn strip_comment(line: &str) -> &str {
+pub(crate) fn strip_comment(line: &str) -> &str {
     let mut quote = None;
     for (i, c) in line.char_indices() {
         match (quote, c) {

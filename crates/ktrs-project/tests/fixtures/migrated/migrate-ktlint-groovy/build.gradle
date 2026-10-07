@@ -1,0 +1,8 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version '2.4.20'
+    id 'io.github.hexay.ktrs.ktlint' version '0.5.0'
+}
+
+ktlint {
+    version = '1.4.0'
+}

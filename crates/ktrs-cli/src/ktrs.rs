@@ -25,6 +25,8 @@ Usage:
                                      crates/ktrs-lsp/src/lib.rs)
   ktrs ktlint [ARGS ...]          Exactly the `ktlint` drop-in, flags and exit codes as ktlint's CLI
                                      (for build tools that bundle only `ktrs`)
+  ktrs migrate [--write] [PATH]   Switch the build's ktfmt/ktlint plugins to the ktrs drop-ins: a diff,
+                                     exit 1 if any (`ktrs migrate --help`)
   ktrs --version
 
 Format options:
@@ -64,6 +66,7 @@ pub fn run(args: &[String]) -> i32 {
         }),
         // No `java_launcher` wildcard expansion: callers pass literal paths, not a shell's command line.
         Some("ktlint") => crate::ktlint::main(&args[1..]),
+        Some("migrate") => crate::migrate::run(&args[1..], &mut io::stdout().lock(), &mut io::stderr().lock()),
         Some("serve") if args.len() == 1 => crate::serve::run(io::stdin().lock(), io::stdout().lock()),
         // `--stdio` is what VS Code's client and others pass; stdio is the only transport.
         Some("lsp") if args[1..].iter().all(|a| a == "--stdio") => ktrs_lsp::run_stdio(),

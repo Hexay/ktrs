@@ -1,0 +1,8 @@
+[versions]
+compose-rules = "0.4.22"
+
+[libraries]
+compose-rules = { module = "io.nlopez.compose.rules:ktlint", version.ref = "compose-rules" }
+
+[plugins]
+ktlint = { id = "io.github.hexay.ktrs.ktlint", version = "0.5.0" }

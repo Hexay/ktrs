@@ -14,6 +14,7 @@ ktrs-lint.workspace = true
 ktrs-compose.workspace = true
 ktrs-editorconfig.workspace = true
 ktrs-lsp.workspace = true
+ktrs-project.workspace = true
 regex = "1.11"
 
 [dev-dependencies]

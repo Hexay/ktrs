@@ -105,6 +105,17 @@ SHA-256; needs Java), so it works at JVM speed ([research/27](research/27-custom
 
 ## Integrations
 
+### Migrating
+
+`ktrs migrate` switches a build's ktfmt-gradle, ktlint-gradle, ktlint-maven-plugin and Spotless
+setup to the ktrs drop-ins described below, editing only ids, coordinates and versions in place.
+Setups it can't rewrite, such as kotlinter, get a `note:` saying what to change by hand.
+
+```sh
+ktrs migrate            # print the edits as a diff; exit 1 if there are any
+ktrs migrate --write    # apply them
+```
+
 ### GitHub Actions
 
 ```yaml

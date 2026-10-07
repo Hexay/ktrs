@@ -18,3 +18,4 @@
 /java/gradle-plugin/src/test/resources/*/.gradle/
 /java/native/
 __pycache__/
+/crates/ktrs-project/tests/fixtures/**/.gradle/

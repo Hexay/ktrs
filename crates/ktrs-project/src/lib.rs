@@ -25,6 +25,8 @@
 //! than `libs`, `configure(Class)` forms other than the type-argument ones, Groovy slashy strings and
 //! closures passed as values, and Maven profiles are not followed. Versions outside 1.8 / 2.0 map to the
 //! nearest supported mode with a note.
+//!
+//! [`migrate`] (`ktrs migrate`) rewrites a build to the ktrs drop-ins; it tokenizes with spans of its own.
 
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
@@ -38,6 +40,7 @@ mod ir;
 mod kotlin_dsl;
 mod layout;
 mod maven;
+pub mod migrate;
 mod reader;
 mod version;
 mod xml;

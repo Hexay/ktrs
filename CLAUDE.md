@@ -54,7 +54,9 @@ Milestone 1: the parser's tree must be identical to the Kotlin compiler's PSI (`
   `crates/ktrs-editorconfig` — ec4j 1.2.0 port (ktlint's `.editorconfig` semantics; ktfmt still uses ec4rs).
 - `crates/ktrs-project` — static detection of a build's ktfmt/ktlint setup (Gradle Kotlin/Groovy DSL, convention
   plugins, version catalog, Maven) for `ktrs lsp`; sources and limits in `src/lib.rs` docs; spot check:
-  `cargo run -p ktrs-project --example detect -- <file or dir>...`.
+  `cargo run -p ktrs-project --example detect -- <file or dir>...`. Its `src/migrate/` backs `ktrs migrate` (swaps
+  in `coords.rs`; must mirror README "Integrations"); tests `cargo test -p ktrs-project --test migrate`
+  (`UPDATE_MIGRATED=1` rewrites `tests/fixtures/migrated/`), CLI `cargo test -p ktrs-cli --test ktrs_migrate`.
 - `tools/psi-accessors/psi-accessors.sh` — JVM oracle for ktrs-psi (`one|hashes|dump <dir> [--fixture] [--script]`);
   Rust mirror: `cargo run -p ktrs-psi --release --example psi_accessors -- one|hashes|compare|dump ...`.
 - `xtask` — `cargo xtask codegen` regenerates `ktrs-syntax/src/generated/kinds.rs` from `kinds.tsv`.

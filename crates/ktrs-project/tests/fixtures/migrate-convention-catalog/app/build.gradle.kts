@@ -1,0 +1,3 @@
+plugins {
+    id("ktfmt-conventions")
+}

@@ -1,0 +1,6 @@
+[versions]
+ktfmt-gradle = "0.5.0"
+
+[plugins]
+ktfmt = { id = "io.github.hexay.ktrs", version.ref = "ktfmt-gradle" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version = "2.4.20" }

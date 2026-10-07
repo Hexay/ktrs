@@ -25,7 +25,7 @@ pub(crate) enum Convention<'c> {
     Class(&'c Path, &'c [Stmt]),
 }
 
-const SKIPPED_DIRS: [&str; 7] = ["build", ".gradle", ".git", "out", "node_modules", ".idea", "test"];
+pub(crate) const SKIPPED_DIRS: [&str; 7] = ["build", ".gradle", ".git", "out", "node_modules", ".idea", "test"];
 const MAX_DEPTH: usize = 10;
 
 impl Conventions {
