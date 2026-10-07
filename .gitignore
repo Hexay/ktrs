@@ -11,6 +11,7 @@
 /tools/compose-rules/lib/
 /tools/jdk/
 /tools/gradle/
+/tools/maven/
 /java/build/
 /java/.gradle/
 /java/native/
