@@ -36,14 +36,16 @@ it as WebAssembly.
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/Hexay/ktrs/master/install.sh | sh   # prebuilt binaries
+cargo binstall ktrs                                                               # prebuilt, via cargo-binstall
 cargo install ktrs                                                                # from crates.io
 brew tap hexay/ktrs https://github.com/Hexay/ktrs && brew install hexay/ktrs/ktrs  # Homebrew
+scoop bucket add ktrs https://github.com/Hexay/ktrs && scoop install ktrs/ktrs     # Scoop (Windows)
 npm install --save-dev @ktrs/cli                                                  # npm (npx ktlint, npx ktfmt)
 docker run --rm -v "$PWD:/src" ghcr.io/hexay/ktrs ktlint "**/*.kt"                 # Docker (linux amd64/arm64)
 ```
 
-One install puts three binaries on your PATH: `ktrs`, `ktfmt` and `ktlint`. The install script also
-works on Windows under Git Bash; otherwise, download a zip from
+One install puts three binaries on your PATH: `ktrs`, `ktfmt` and `ktlint`. On Windows, the
+install script also works under Git Bash, or download a zip from
 [Releases](https://github.com/Hexay/ktrs/releases). The Docker image takes the binary name as its first argument,
 works in `/src`, and has no Java, so `ktlint -R` with a rule set other than compose-rules doesn't run there; on
 Linux, add `--user "$(id -u):$(id -g)"` to keep fixed files owned by you.

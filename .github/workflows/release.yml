@@ -296,4 +296,69 @@ jobs:
           git add Formula/ktrs.rb
           git -c user.name=github-actions[bot] -c user.email=41898282+github-actions[bot]@users.noreply.github.com \
             commit -q -m "Homebrew formula for $GITHUB_REF_NAME"
+          git pull -q --rebase origin master
           git push -q origin HEAD:master
+
+  # bucket/ktrs.json for `scoop bucket add ktrs https://github.com/Hexay/ktrs`: generated from the release's
+  # checksums, installed and run with Scoop, then committed to master.
+  scoop:
+    needs: release
+    runs-on: windows-2022
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: master }
+      - name: Generate the manifest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" -p SHA256SUMS -D "$RUNNER_TEMP"
+          mkdir -p bucket
+          bash tools/release/scoop-manifest.sh "$GITHUB_REF_NAME" "$RUNNER_TEMP/SHA256SUMS" > bucket/ktrs.json
+      - name: Install and run it
+        shell: pwsh
+        run: |
+          Invoke-RestMethod get.scoop.sh -OutFile install-scoop.ps1
+          .\install-scoop.ps1 -RunAsAdmin
+          $env:PATH = "$env:USERPROFILE\scoop\shims;$env:PATH"
+          scoop install bucket/ktrs.json
+          if (("fun  f( ) = 1" | ktfmt -) -ne 'fun f() = 1') { exit 1 }
+          ktlint --version; if ($LASTEXITCODE) { exit 1 }
+      - name: Commit it
+        run: |
+          git add bucket/ktrs.json
+          git -c user.name=github-actions[bot] -c user.email=41898282+github-actions[bot]@users.noreply.github.com \
+            commit -q -m "Scoop manifest for $GITHUB_REF_NAME"
+          git pull -q --rebase origin master
+          git push -q origin HEAD:master
+
+  # Hexay.ktrs on winget: a pull request to microsoft/winget-pkgs, only when the WINGET_TOKEN secret (a classic
+  # token with public_repo, for the fork) exists. The manifests are uploaded either way.
+  winget:
+    needs: release
+    runs-on: windows-2022
+    env:
+      WINGET_TOKEN: ${{ secrets.WINGET_TOKEN }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate the manifests
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" -p SHA256SUMS -D "$RUNNER_TEMP"
+          bash tools/release/winget-manifests.sh "$GITHUB_REF_NAME" "$RUNNER_TEMP/SHA256SUMS" winget
+      - uses: actions/upload-artifact@v4
+        with:
+          name: winget
+          path: winget
+      - name: Submit to winget-pkgs
+        if: env.WINGET_TOKEN != ''
+        shell: pwsh
+        run: |
+          Invoke-WebRequest https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe
+          .\wingetcreate.exe submit --token $env:WINGET_TOKEN --prtitle "New version: Hexay.ktrs $($env:GITHUB_REF_NAME.TrimStart('v'))" winget

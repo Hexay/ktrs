@@ -32,6 +32,9 @@ Milestone 1: the parser's tree must be identical to the Kotlin compiler's PSI (`
   versions stamped from the tag: `node tools/release/package-npm.mjs <archives dir> <out> <tag>`.
 - `docker/Dockerfile` — `ghcr.io/hexay/ktrs` (distroless static + release musl binaries, no compile); context:
   `tools/release/docker-context.sh <archives dir> <out>`.
+- Package managers: `Formula/` (brew tap) and `bucket/` (Scoop) are committed by the release workflow; winget manifests
+  go to microsoft/winget-pkgs only with `WINGET_TOKEN`. Generators `tools/release/{homebrew-formula,scoop-manifest,
+  winget-manifests}.sh <tag> <SHA256SUMS>` (try one on a past release's sums). `cargo binstall`: root `Cargo.toml` metadata.
 - `java/` — `io.github.hexay:ktrs`: JVM wrapper around `ktrs serve` (bundled binaries, Spotless `KtrsStep` and
   `KtrsKtlintStep`: research/28). Tests: `cargo build --bins`, then `java/gradlew -p java test` (JAVA_HOME = tools/jdk/*).
   `java/gradle-plugin` — `io.github.hexay.ktrs`, ktfmt-gradle 0.27.0 drop-in (same DSL/tasks/FQNs), and

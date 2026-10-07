@@ -46,6 +46,18 @@ include = ["/src", "/README.md", "/LICENSE-*", "/NOTICE"]
 ktrs-cli.workspace = true
 mimalloc.workspace = true
 
+# `cargo binstall ktrs` downloads the release archive instead of compiling.
+[package.metadata.binstall]
+pkg-url = "{ repo }/releases/download/v{ version }/{ name }-v{ version }-{ target }{ archive-suffix }"
+bin-dir = "{ name }-v{ version }-{ target }/{ bin }{ binary-ext }"
+pkg-fmt = "tgz"
+
+[package.metadata.binstall.overrides.x86_64-pc-windows-msvc]
+pkg-fmt = "zip"
+
+[package.metadata.binstall.overrides.aarch64-pc-windows-msvc]
+pkg-fmt = "zip"
+
 [profile.release]
 lto = "fat"
 codegen-units = 1
