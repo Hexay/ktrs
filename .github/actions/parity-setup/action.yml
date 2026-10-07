@@ -2,7 +2,7 @@ name: parity-setup
 description: "The shared setup of parity.yml's gate jobs: JDK 21, corpus/ from the `corpus` job's cache, Rust and its cache."
 inputs:
   tree:
-    description: Also copy the corpus's .kt/.kts files to $RUNNER_TEMP/parity-corpus (no .git, no project .editorconfig; not under target/, whose files rust-cache prunes)
+    description: Also copy the corpus's .kt/.kts files to $RUNNER_TEMP/corpus (no .git, no project .editorconfig; not under target/, whose files rust-cache prunes; keep the name `corpus`, known-diffs rows start with it)
     default: "false"
 runs:
   using: composite
@@ -17,9 +17,9 @@ runs:
     - if: inputs.tree == 'true'
       shell: bash
       run: |
-        mkdir -p "$RUNNER_TEMP/parity-corpus"
+        mkdir -p "$RUNNER_TEMP/corpus"
         (cd corpus && find . -name .git -prune -o -type f \( -name '*.kt' -o -name '*.kts' \) -print | tar -cf - -T -) |
-          tar -xf - -C "$RUNNER_TEMP/parity-corpus"
+          tar -xf - -C "$RUNNER_TEMP/corpus"
     - name: Install Rust
       shell: bash
       run: rustup toolchain install stable --profile minimal && rustup default stable
