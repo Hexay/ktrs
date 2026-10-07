@@ -111,6 +111,7 @@ pub(crate) fn report(
     }
     if !text.is_empty() {
         println!("differences: {}", report_path.display());
+        return Err(format!("differences in {}", report_path.display()));
     }
     Ok(())
 }

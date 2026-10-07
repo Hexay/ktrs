@@ -1,0 +1,4 @@
+# tools/ktlint-maven/parity.sh: gantsign ktlint-maven-plugin 3.7.1 (upstream) vs ktrs-ktlint-maven-plugin (ktrs).
+# Format: tools/parity/known_diffs.py.
+# stdout: reporters without <output> print after the maven reporter's rows, not interleaved per error (research/31 dev. 1).
+stdout	console.txt	order

@@ -1,7 +1,7 @@
 //! `cargo fmt-diff [meta|google|kotlinlang] [dir]`: formats every .kt/.kts under `dir` (default
 //! `corpus/`) with ktrs_fmt and compares byte-for-byte with the real ktfmt's output, pre-built by
 //! `tools/ktfmt-oracle/ktfmt-oracle.sh <style> <dir> target/ktfmt-oracle/<style>`. Files ktfmt
-//! rejected must be rejected by us too. Mismatches go to target/fmt-diff-<style>.txt.
+//! rejected must be rejected by us too. Mismatches go to target/fmt-diff-<style>.txt; any mismatch exits 1.
 
 use std::{
     collections::HashSet,
@@ -103,6 +103,9 @@ pub(crate) fn run(root: &Path, args: &[String]) -> Result<(), String> {
     );
     if !report.is_empty() {
         println!("first differences: {}", report_path.display());
+    }
+    if !report.is_empty() || missing > 0 {
+        return Err(format!("{} files differ, {missing} have no oracle output", differs + panics + mismatched));
     }
     Ok(())
 }

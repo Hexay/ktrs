@@ -1,15 +1,20 @@
-"""compare.py <scenario-dir> [--slashes]: diffs <dir>/{upstream,ktrs}: the console (each run's task blocks and
+"""compare.py <scenario-dir> [--slashes] [--known FILE]: diffs <dir>/{upstream,ktrs}: the console (each run's task blocks and
 failures in a stable order, Gradle noise dropped) and every project file but build caches and intermediates.
---slashes ignores path separators and ANSI colors."""
-import difflib, os, re, sys
+--slashes ignores path separators and ANSI colors; --known applies tools/parity/known_diffs.py entries.
+Exit 1 when anything differs (last line DIFFERENT, else IDENTICAL)."""
+import os, re, sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "parity"))
+from known_diffs import Known, unified
 
 root = os.path.abspath(sys.argv[1])
+KNOWN = Known(sys.argv[sys.argv.index("--known") + 1] if "--known" in sys.argv else None, os.path.basename(root))
 SLASHES = "--slashes" in sys.argv
 SKIP_DIRS = {".gradle", ".kotlin", "kotlin", "classes", "tmp", "intermediates", "libs", "kotlinToolingMetadata", "problems"}
 NOISE = re.compile(
     r"(Starting a Gradle Daemon|BUILD (SUCCESSFUL|FAILED) in|\d+ actionable task|Configuration cache|Reusing configuration"
     r"|Calculating task graph|Consider enabling|Daemon will be stopped|Deprecated Gradle|You can use '--warning-mode"
-    r"|For more on this|See https://docs.gradle.org|w: |\[Incubating\] Problems report|> Configure project :java)"
+    r"|For more on this|See https://docs.gradle.org|w: |Fetching distribution|Downloading https://services\.gradle\.org/|\.+10%|\[Incubating\] Problems report|> Configure project :java)"
 )
 
 
@@ -63,7 +68,7 @@ def files(side):
 
 
 def diff(name, a, b):
-    d = list(difflib.unified_diff(a, b, "upstream/" + name, "ktrs/" + name, lineterm="", n=1))
+    d = unified(name, *KNOWN.apply(name, a, b))
     if d:
         print("\n".join(d) + "\n")
     return bool(d)
@@ -82,4 +87,8 @@ for name in sorted(set(fu) | set(fk)):
         different = True
     else:
         different |= diff(name, fu[name], fk[name])
+for line in KNOWN.stale():
+    print("stale known diff (remove it): " + line)
+    different = True
 print("DIFFERENT" if different else "IDENTICAL")
+sys.exit(1 if different else 0)

@@ -61,7 +61,7 @@ Milestone 1: the parser's tree must be identical to the Kotlin compiler's PSI (`
   and vendors parser fixtures into `testdata/kotlin/`.
 - `testdata/kotlin/{psi,lexer}` — upstream fixtures (Apache-2.0), `<name>.kt` + expected `<name>.txt`.
   Input convention: CRLF->LF and trailing newlines stripped (matches upstream's test framework).
-- `tools/fetch-corpus.sh` — real-world repos into `corpus/` (gitignored, commits in `corpus/REVISIONS`).
+- `tools/fetch-corpus.sh` — real-world repos at the pins in `tools/corpus/REVISIONS` into `corpus/` (gitignored).
 - `tools/bench/public.sh` — the README's benchmark (hyperfine vs sha256-pinned jars, pins `tools/bench/REVISIONS`;
   CI: `.github/workflows/bench.yml`); research/23.
 - `fuzz/` (own workspace, nightly + cargo-fuzz, Linux) and `tools/fuzz/{fuzz,diff}.sh` — fuzzing and the differential
@@ -100,7 +100,10 @@ Milestone 1: the parser's tree must be identical to the Kotlin compiler's PSI (`
 - `cargo test -p ktrs-cli` — ktfmt's and ktlint's CLI and reporter tests, ported. `tools/ktfmt-oracle/cli-diff.sh` (JVM, ~2 min) — the
   `ktfmt` binary vs the ktfmt jar on stdout/stderr/exit code/files (`ONLY=<regex>`, `KEEP=1`).
   `tools/ktlint-oracle/cli-diff.sh [ktlint-binary]` (JVM, testbox, background) — same for `ktlint` vs the ktlint jar;
-  unported rules are disabled on both sides; `KNOWN` scenarios differ only by unported rules.
+  unported rules are disabled on both sides; accepted mismatches in `tools/parity/known-diffs/ktlint-cli.tsv`.
+- `.github/workflows/parity.yml` — the gates above that need JVM oracles or the corpus (not the holdout), nightly +
+  `workflow_dispatch`; oracles cached by pin hash; accepted diffs `tools/parity/known-diffs/`. release.yml refuses a
+  tag whose commit has no green run: `gh workflow run parity.yml --ref <ref>` first.
 
 ## Rules
 

@@ -1,6 +1,6 @@
 //! `cargo corpus-diff [dir]`: parses every .kt/.kts under `dir` (default `corpus/`) and diffs our
 //! PSI dump against the real compiler's, pre-built by `psi-dump.sh tree <dir> target/oracle/<dir name>`.
-//! Mismatches go to target/corpus-diff.txt. Use a release build for meaningful throughput numbers.
+//! Mismatches go to target/corpus-diff.txt; any mismatch or missing dump exits 1. Use a release build for meaningful throughput numbers.
 
 use std::{
     fs,
@@ -73,6 +73,9 @@ pub(crate) fn run(root: &Path, args: &[String]) -> Result<(), String> {
     }
     if differs > 0 {
         println!("first differences: {}", report_path.display());
+    }
+    if differs + missing > 0 {
+        return Err(format!("{differs} files differ, {missing} have no oracle dump"));
     }
     Ok(())
 }

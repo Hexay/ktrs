@@ -7,8 +7,9 @@
 # KTLINT_*: the ktlint release launchers; KTRS_KTLINT: target/release/ktlint. Per tree and ktlint version: `compose-only`
 # (ktlint_standard = disabled: the port alone) and `with-standard` (both rule sets, as users run them), style
 # ktlint_official. JAR = the -R jar (default: tools/compose-rules/lib/ktlint-compose-<pin>-all.jar). Slow (JVM): background.
+# Exit status: tools/parity/check-known.sh against KNOWN (default tools/parity/known-diffs/compose-rules.tsv).
 set -uo pipefail
-(($# >= 5)) || { sed -n 2,9p "$0"; exit 2; }
+(($# >= 5)) || { sed -n 2,10p "$0"; exit 2; }
 here="$(cd "$(dirname "$0")" && pwd)"
 repo="$(cd "$here/../.." && pwd)"
 K18=$1 K20=$2 OURS=$3 OUT=$4; shift 4
@@ -28,3 +29,4 @@ for tree in "$@"; do
     done
   done
 done | tee "$OUT/summary.md"
+"$repo/tools/parity/check-known.sh" "${KNOWN:-$repo/tools/parity/known-diffs/compose-rules.tsv}" "$OUT"

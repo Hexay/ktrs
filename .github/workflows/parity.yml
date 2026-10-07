@@ -1,0 +1,240 @@
+# Nightly parity gates (CLAUDE.md "Parity gates"): ktrs vs the pinned JVM tools on the corpus (tools/corpus/REVISIONS),
+# the `ktfmt`/`ktlint` CLI drop-ins and the build-tool plugins. Each gate exits non-zero on a regression; accepted
+# differences are the reviewed lists in tools/parity/known-diffs/. JVM oracle outputs are cached under a hash of what
+# determines them and rebuilt only on a miss. release.yml refuses a tag whose commit has no successful run here:
+# `gh workflow run parity.yml --ref <branch or tag>`. The held-out corpus (tools/holdout/run.sh) stays manual.
+name: parity
+
+on:
+  schedule:
+    - cron: "30 1 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: parity-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: never
+  # The gates gain nothing from fat LTO but link time; `panic = "unwind"` (fmt-diff relies on it) is kept.
+  CARGO_PROFILE_RELEASE_LTO: "false"
+  CARGO_PROFILE_RELEASE_CODEGEN_UNITS: "16"
+  KTLINT_18_JAR: tools/ktlint-oracle/lib/ktlint-cli-1.8.0-all.jar
+  KTLINT_18_URL: https://repo1.maven.org/maven2/com/pinterest/ktlint/ktlint-cli/1.8.0/ktlint-cli-1.8.0-all.jar
+
+jobs:
+  corpus:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - id: cache
+        uses: actions/cache@v4
+        with:
+          path: corpus
+          key: corpus-${{ hashFiles('tools/corpus/REVISIONS') }}
+      - if: steps.cache.outputs.cache-hit != 'true'
+        run: tools/fetch-corpus.sh
+
+  # Parser: `cargo corpus-diff`; ktrs-psi: the accessor reports, corpus files as .kt and as scripts.
+  psi:
+    needs: corpus
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/parity-setup
+      - uses: ./.github/actions/oracle-cache
+        with:
+          key: psi-${{ hashFiles('tools/corpus/REVISIONS', 'tools/psi-dump/psi-dump.sh', 'tools/psi-dump/src/**', 'tools/psi-accessors/psi-accessors.sh', 'tools/psi-accessors/src/**') }}
+          path: |
+            target/oracle/corpus
+            target/psi-accessors
+          build: |
+            tools/psi-dump/psi-dump.sh tree corpus target/oracle/corpus
+            mkdir -p target/psi-accessors
+            tools/psi-accessors/psi-accessors.sh hashes corpus > target/psi-accessors/corpus.jvm.hashes
+            tools/psi-accessors/psi-accessors.sh hashes corpus --script > target/psi-accessors/corpus-script.jvm.hashes
+      - id: build
+        run: |
+          cargo build --locked --release -p xtask
+          cargo build --locked --release -p ktrs-psi --example psi_accessors
+      - if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: tools/parity/gate.sh corpus-diff target/corpus-diff.txt cargo corpus-diff
+      - if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: |
+          tools/parity/gate.sh psi-accessors '' cargo run --locked --release -q -p ktrs-psi --example psi_accessors -- \
+            compare corpus target/psi-accessors/corpus.jvm.hashes
+      - if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: |
+          tools/parity/gate.sh psi-accessors-script '' cargo run --locked --release -q -p ktrs-psi --example psi_accessors -- \
+            compare corpus target/psi-accessors/corpus-script.jvm.hashes --script
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with: { name: parity-psi, path: target/parity, if-no-files-found: ignore }
+
+  # ktrs-fmt vs the ktfmt jar, byte for byte.
+  fmt:
+    needs: corpus
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        style: [meta, google, kotlinlang]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/parity-setup
+      - uses: ./.github/actions/oracle-cache
+        with:
+          key: ktfmt-${{ matrix.style }}-${{ hashFiles('tools/corpus/REVISIONS', 'tools/sync-ktfmt.sh', 'tools/ktfmt-oracle/ktfmt-oracle.sh') }}
+          path: target/ktfmt-oracle/${{ matrix.style }}
+          build: |
+            tools/sync-ktfmt.sh
+            tools/ktfmt-oracle/ktfmt-oracle.sh ${{ matrix.style }} corpus target/ktfmt-oracle/${{ matrix.style }}
+      - id: build
+        run: cargo build --locked --release -p xtask
+      - if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: tools/parity/gate.sh fmt-diff-${{ matrix.style }} target/fmt-diff-${{ matrix.style }}.txt cargo fmt-diff ${{ matrix.style }}
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with: { name: "parity-fmt-${{ matrix.style }}", path: target/parity, if-no-files-found: ignore }
+
+  # ktrs-lint vs the ktlint 2.0 engine (KtlintProbe): lint rows, format rows, formatted bytes, crashes (research/19).
+  lint:
+    needs: corpus
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { run: ktlint_official, style: ktlint_official }
+          - { run: intellij_idea, style: intellij_idea }
+          - { run: android_studio, style: android_studio }
+          - { run: ktlint_official-experimental, style: ktlint_official, experimental: enabled }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/parity-setup
+      # --rules = the jar's whole standard rule set, which lint-diff --require-format checks is the ported one.
+      - uses: ./.github/actions/oracle-cache
+        with:
+          key: ktlint-${{ matrix.run }}-${{ hashFiles('tools/corpus/REVISIONS', 'tools/sync-ktlint.sh', 'tools/ktlint-oracle/ktlint-probe.sh', 'tools/ktlint-oracle/logback.xml', 'tools/ktlint-oracle/RuleIds.java', 'tools/ktlint-oracle/src/**') }}
+          path: target/ktlint-oracle/${{ matrix.run }}
+          build: |
+            tools/sync-ktlint.sh
+            jar=tools/ktlint-oracle/lib/ktlint-cli-$(sed -n 's/^KTLINT_TAG=//p' tools/sync-ktlint.sh)-all.jar
+            rules=$(java -cp "$jar" tools/ktlint-oracle/RuleIds.java io.github.ktlint.core.ruleset.standard.StandardRuleSetProvider 2> /dev/null |
+              grep '^standard:' | sort | paste -sd, -)
+            KTLINT_CODE_STYLE=${{ matrix.style }} KTLINT_EXPERIMENTAL=${{ matrix.experimental }} \
+              tools/ktlint-oracle/ktlint-probe.sh corpus target/ktlint-oracle/${{ matrix.run }} --rules "$rules" --threads 4
+            rm -rf target/ktlint-oracle/${{ matrix.run }}/src
+      - id: build
+        run: cargo build --locked --release -p xtask
+      - if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: |
+          tools/parity/gate.sh lint-diff-${{ matrix.run }} target/lint-diff-${{ matrix.run }}.txt \
+            cargo lint-diff ${{ matrix.style }} ${{ matrix.experimental && '--experimental' || '' }} --require-format
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with: { name: "parity-lint-${{ matrix.run }}", path: target/parity, if-no-files-found: ignore }
+
+  # `ktlint --ktlint-version=1.8` vs the ktlint 1.8.0 jar as users run them: lint rows and -F trees (research/26).
+  ktlint-1-8:
+    needs: corpus
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      matrix:
+        style: [ktlint_official, intellij_idea, android_studio]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/parity-setup
+        with: { tree: "true" }
+      - run: curl -sfL --create-dirs -o "$KTLINT_18_JAR" "$KTLINT_18_URL"
+      - id: build
+        run: cargo build --locked --release --bins
+      - name: Compare (rows and trees to target/parity/ktlint-1.8-out)
+        run: |
+          tools/parity/ktlint-compare.sh "java -Xmx2g -jar $PWD/$KTLINT_18_JAR" "$PWD/target/release/ktlint --ktlint-version=1.8" \
+            target/parity/corpus target/parity/ktlint-1.8-out ${{ matrix.style }}
+      - run: |
+          tools/parity/gate.sh ktlint-1.8-${{ matrix.style }} '' \
+            tools/parity/check-known.sh tools/parity/known-diffs/ktlint-1.8.tsv target/parity/ktlint-1.8-out
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with: { name: "parity-ktlint-1.8-${{ matrix.style }}", path: target/parity, if-no-files-found: ignore }
+
+  # compose-rules: ktlint + the -R jar vs ktrs's native port, 1.8 and 2.0 (research/27).
+  compose:
+    needs: corpus
+    runs-on: ubuntu-24.04
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/parity-setup
+        with: { tree: "true" }
+      - run: |
+          curl -sfL --create-dirs -o "$KTLINT_18_JAR" "$KTLINT_18_URL"
+          tools/sync-ktlint.sh
+          tools/sync-compose-rules.sh
+      - id: build
+        run: cargo build --locked --release --bins
+      - run: |
+          k20=$PWD/tools/ktlint-oracle/lib/ktlint-cli-$(sed -n 's/^KTLINT_TAG=//p' tools/sync-ktlint.sh)-all.jar
+          tools/parity/gate.sh compose-rules '' tools/compose-rules/parity.sh "java -Xmx2g -jar $PWD/$KTLINT_18_JAR" \
+            "java -Xmx2g -jar $k20" "$PWD/target/release/ktlint" target/parity/compose-out target/parity/corpus
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with: { name: parity-compose, path: target/parity, if-no-files-found: ignore }
+
+  # The `ktfmt` and `ktlint` binaries vs the jars: stdout, stderr, exit code, files (ktlint: 2.0 and 1.8, with compose-rules).
+  cli:
+    needs: corpus
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/parity-setup
+      - run: |
+          tools/sync-ktfmt.sh
+          tools/sync-ktlint.sh
+          tools/sync-compose-rules.sh
+      - id: build
+        run: cargo build --locked --release --bins
+      - if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: tools/parity/gate.sh ktfmt-cli '' tools/ktfmt-oracle/cli-diff.sh target/release/ktfmt
+      - if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: |
+          RULESET_JAR=$(ls "$PWD"/tools/compose-rules/lib/ktlint-compose-*-all.jar) \
+            tools/parity/gate.sh ktlint-cli-2.0 '' tools/ktlint-oracle/cli-diff.sh target/release/ktlint
+      - if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: |
+          KTLINT_VERSION=1.8 RULESET_JAR=$(ls "$PWD"/tools/compose-rules/lib/ktlint-compose-*-all.jar) \
+            tools/parity/gate.sh ktlint-cli-1.8 '' tools/ktlint-oracle/cli-diff.sh target/release/ktlint
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with: { name: parity-cli, path: target/parity, if-no-files-found: ignore }
+
+  # The Gradle and Maven drop-ins vs the plugins they replace (research/29, 30, 31), on target/debug/ktrs.
+  build-tools:
+    needs: corpus
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        tool: [ktlint-gradle, ktlint-maven, spotless-maven]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/parity-setup
+      - id: build
+        run: cargo build --locked --bins
+      - run: tools/parity/gate.sh ${{ matrix.tool }} 'target/${{ matrix.tool }}/*.diff' tools/${{ matrix.tool }}/parity.sh
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with: { name: "parity-${{ matrix.tool }}", path: target/parity, if-no-files-found: ignore }

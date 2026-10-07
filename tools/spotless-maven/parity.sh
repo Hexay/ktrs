@@ -5,7 +5,8 @@
 # applied sources byte for byte.
 #   tools/spotless-maven/parity.sh [scenario ...]   (default: all; needs `cargo build --bins`, network, a JDK 17+)
 # Env: CORPUS (default <repo>/corpus; the real-* scenarios are skipped without it), M2 (local Maven repository,
-# default target/spotless-maven/m2). Output: target/spotless-maven/<scenario>/{stock,ktrs}/ and <scenario>.diff.
+# default target/spotless-maven/m2), KNOWN (accepted differences, default tools/parity/known-diffs/spotless-maven.tsv).
+# Output: target/spotless-maven/<scenario>/{stock,ktrs}/ and <scenario>.diff. Exit 1 when a scenario differs beyond KNOWN.
 set -uo pipefail
 # Windows-form paths under Git Bash: they end up in Maven's JVM.
 root="$(cd "$(dirname "$0")/../.." && (pwd -W 2> /dev/null || pwd))"
@@ -14,6 +15,8 @@ out="$root/target/spotless-maven"
 exe="$root/target/debug/ktrs$([[ $OSTYPE == msys* || $OSTYPE == cygwin* ]] && echo .exe)"
 corpus="${CORPUS:-$root/corpus}"
 m2="${M2:-$out/m2}"
+known="${KNOWN:-$root/tools/parity/known-diffs/spotless-maven.tsv}"
+status=0
 [[ -n ${JAVA_HOME:-} ]] || export JAVA_HOME="$(ls -d "$root"/tools/jdk/* 2>/dev/null | head -1)"
 [[ -n $JAVA_HOME ]] || { echo "set JAVA_HOME (or run tools/ensure-jdk.sh)" >&2; exit 2; }
 [[ -x $exe ]] || { echo "no $exe: run cargo build --bins" >&2; exit 2; }
@@ -72,6 +75,8 @@ sources() {
   return 0
 }
 
+py_() { if command -v py > /dev/null; then py -3 "$@"; else python3 "$@"; fi; }
+
 # Spotless's messages, without paths to this side's project and Maven's timing.
 messages() {
   grep -aE '^\[(ERROR|WARNING)\]|Spotless|BUILD' "$1" | grep -vE 'Total time|Finished at' | sed 's#\\#/#g' |
@@ -97,11 +102,13 @@ scenario() {
       { echo "== exit $? : $run"; messages "$out/$name/$side/$run.txt" "$dir"; } >> "$out/$name/$side/console.txt"
     done
   done
-  { diff "$out/$name/stock/console.txt" "$out/$name/ktrs/console.txt"
+  { py_ "$root/tools/parity/known_diffs.py" "$known" "$name" console.txt "$out/$name/stock/console.txt" \
+      "$out/$name/ktrs/console.txt"
     diff -r "$out/$name/stock/project/src" "$out/$name/ktrs/project/src"; } > "$out/$name.diff"
   local files changed
   files=$(find "$out/$name/stock/project/src" -name '*.kt' | wc -l)
   changed=$(grep -c '^diff ' "$out/$name.diff")
+  [[ -s $out/$name.diff ]] && status=1
   echo "$name: $(grep '^== exit' "$out/$name/stock/console.txt" | cut -d' ' -f3 | tr '\n' ' ')(stock exits)," \
     "$files files, $changed differing applied files, $(wc -l < "$out/$name.diff") diff lines"
 }
@@ -114,3 +121,4 @@ for s in ${*:-$all}; do
   if [[ $s == real-* && ! -d $corpus/okhttp ]]; then echo "$s: skipped (no $corpus)"; continue; fi
   scenario "$s"
 done
+exit $status

@@ -1,4 +1,5 @@
-//! `cargo lint-diff [ktlint_official|intellij_idea|android_studio] [--experimental] [--oracle DIR] [--counts] [--corpus DIR]`:
+//! `cargo lint-diff [ktlint_official|intellij_idea|android_studio] [--experimental] [--oracle DIR] [--counts] [--corpus DIR]
+//! [--require-format]`:
 //! lints (and, when the oracle ran exactly the ported rules, formats) every corpus file with ktrs-lint and diffs
 //! against the real ktlint engine, pre-built on the JVM by (background, testbox):
 //!   KTLINT_CODE_STYLE=<style> tools/ktlint-oracle/ktlint-probe.sh corpus target/ktlint-oracle/<style> [--rules <ported>]
@@ -7,8 +8,9 @@
 //! engine's suppression rule, format rows (emit order) and formatted bytes. Where the oracle's format threw
 //! (failed.tsv), ours must throw the same exception; lint rows are still compared there. Both sides run on a staged LF copy under
 //! one root `.editorconfig` (target/lint-diff/<style>); `--experimental` adds `ktlint_experimental = enabled` there,
-//! matching an oracle built with `KTLINT_EXPERIMENTAL=enabled` into target/ktlint-oracle/<style>-experimental. Mismatches go to target/lint-diff-<style>.txt; `--counts`
-//! prints the oracle's per-rule violation counts instead.
+//! matching an oracle built with `KTLINT_EXPERIMENTAL=enabled` into target/ktlint-oracle/<style>-experimental. Mismatches go to target/lint-diff-<style>.txt and exit 1; `--counts`
+//! prints the oracle's per-rule violation counts instead; `--require-format` fails unless the oracle ran exactly the ported
+//! rules (the CI gate: otherwise format would silently go uncompared).
 
 use std::collections::{HashMap, HashSet};
 use std::panic::{self, AssertUnwindSafe};
@@ -33,6 +35,7 @@ struct Args {
     oracle: PathBuf,
     corpus: PathBuf,
     counts: bool,
+    require_format: bool,
 }
 
 impl Args {
@@ -44,7 +47,7 @@ impl Args {
 
 fn parse_args(root: &Path, args: &[String]) -> Result<Args, String> {
     let mut parsed =
-        Args { style: STYLES[0].to_owned(), experimental: false, oracle: PathBuf::new(), corpus: root.join("corpus"), counts: false };
+        Args { style: STYLES[0].to_owned(), experimental: false, oracle: PathBuf::new(), corpus: root.join("corpus"), counts: false, require_format: false };
     let mut oracle = None;
     let mut rest = args.iter();
     while let Some(arg) = rest.next() {
@@ -52,11 +55,12 @@ fn parse_args(root: &Path, args: &[String]) -> Result<Args, String> {
             "--oracle" => oracle = rest.next().map(PathBuf::from),
             "--corpus" => parsed.corpus = rest.next().map(PathBuf::from).ok_or("--corpus needs a dir")?,
             "--counts" => parsed.counts = true,
+            "--require-format" => parsed.require_format = true,
             "--experimental" => parsed.experimental = true,
             s if STYLES.contains(&s) => parsed.style = s.to_owned(),
             s => {
                 return Err(format!(
-                    "unknown argument {s}; expected one of {STYLES:?}, --experimental, --oracle DIR, --corpus DIR, --counts"
+                    "unknown argument {s}; expected one of {STYLES:?}, --experimental, --oracle DIR, --corpus DIR, --counts, --require-format"
                 ));
             }
         }
@@ -109,6 +113,9 @@ pub(crate) fn run(root: &Path, args: &[String]) -> Result<(), String> {
         return Ok(());
     }
     let same_rules = oracle.rules.as_ref().is_some_and(|r| r.iter().map(String::as_str).collect::<HashSet<_>>() == ported);
+    if args.require_format && !same_rules {
+        return Err(format!("{}: the oracle's rule set is not the ported one, so format can't be compared", args.oracle.display()));
+    }
     let corpus = fs::canonicalize(&args.corpus).map_err(|e| format!("{}: {e}", args.corpus.display()))?;
     let mut sources = Vec::new();
     collect(&corpus, &mut sources);

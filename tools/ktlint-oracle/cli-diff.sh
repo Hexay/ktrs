@@ -5,11 +5,12 @@
 # stdout, stderr (log timestamps, the fixture's path and JVM stack frames masked), the exit code and the
 # tree left behind. The fixture's root .editorconfig disables the standard rules ktrs hasn't ported
 # (`ktrs lint --list-rules` vs the jar's RuleIds.java), so rule differences don't hide CLI ones.
-# ONLY=<regex> selects scenarios, KEEP=1 keeps outputs, VERBOSE=1 prints diffs. Exit 1 on any mismatch.
+# ONLY=<regex> selects scenarios, KEEP=1 keeps outputs, VERBOSE=1 prints diffs. Exit 1 on any mismatch not in KNOWN.
 # KTLINT_VERSION=1.8: against the 1.8.0 jar (JAR=<path>, default lib/ktlint-cli-1.8.0-all.jar, fetched), ktrs in
-# 1.8 mode through the fixture's `ktrs_ktlint_version = 1.8` (research/26-ktlint-18-mode.md). Known 1.8 mismatch:
-# rep_summary_format (`-F` runs 2.0's rule order). RULESET_JAR=<jar> adds the `ruleset_jar_*` scenarios
-# (research/27-custom-rulesets-impl.md).
+# 1.8 mode through the fixture's `ktrs_ktlint_version = 1.8` (research/26-ktlint-18-mode.md). RULESET_JAR=<jar> adds
+# the `ruleset_jar_*` scenarios (research/27-custom-rulesets-impl.md). KNOWN=<file> (default
+# tools/parity/known-diffs/ktlint-cli.tsv): accepted mismatches as `<version><TAB><scenario>` lines, `#` comments for the
+# reasons; a listed scenario that matches again fails as stale.
 set -uo pipefail
 # Known gap: under TERM_PROGRAM=vscode Mordant colours the jar's Clikt usage errors even when piped; ktrs never does.
 unset TERM_PROGRAM
@@ -68,7 +69,9 @@ fixture() {
   printf 'fun a( ) = 1\n' > "$w/stdin.kt"
 }
 
-pass=0 fail=0
+pass=0 fail=0 known=0
+known_file=${KNOWN:-$repo/tools/parity/known-diffs/ktlint-cli.tsv}
+is_known() { grep -v '^#' "$known_file" 2>/dev/null | grep -qxF "$version"$'\t'"$1"; }
 # scenario <name> <stdin-file-or-empty> <setup-snippet-or-empty> <args...>
 scenario() {
   local name=$1 stdin=$2 setup=$3; shift 3
@@ -101,9 +104,13 @@ scenario() {
   cmp -s "$a/out" "$b/out" || bad+=(stdout)
   cmp -s "$a/err" "$b/err" || bad+=(stderr)
   diff -rq -x .git "$a/w" "$b/w" > /dev/null || bad+=("tree: $(diff -rq -x .git "$a/w" "$b/w" | head -3 | tr '\n' ';')")
-  if ((${#bad[@]})); then
+  if ((${#bad[@]})) && is_known "$name"; then
+    known=$((known + 1)); echo "KNOWN $name: ${bad[*]}"
+  elif ((${#bad[@]})); then
     fail=$((fail + 1)); echo "MISMATCH $name: ${bad[*]}"
     if [[ -n ${VERBOSE:-} ]]; then diff "$a/out" "$b/out" | head -20; diff "$a/err" "$b/err" | head -20; fi
+  elif is_known "$name"; then
+    fail=$((fail + 1)); echo "STALE $name: identical now, remove it from $known_file"
   else
     pass=$((pass + 1))
   fi
@@ -273,5 +280,5 @@ scenario hook_pre_push "" "$git_repo" installGitPrePushHook
 scenario hook_backup "" "$git_repo && printf 'old hook' > .git/hooks/pre-commit" installGitPreCommitHook
 scenario hook_hooks_path "" "$git_repo && git config core.hooksPath myhooks" installGitPrePushHook
 
-echo "cli-diff: $pass identical, $fail mismatched of $((pass + fail)) scenarios"
+echo "cli-diff: $pass identical, $known known, $fail mismatched of $((pass + known + fail)) scenarios"
 ((fail == 0))

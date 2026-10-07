@@ -4,7 +4,8 @@
 #   tools/ktlint-gradle/parity.sh [scenario ...]   (default: all; needs `cargo build --bins`, network, a JDK 17+)
 # Scenarios: check-all format baseline options compose-maven compose-all realcode. Output: target/ktlint-gradle/<scenario>/
 # {upstream,ktrs}/ and <scenario>.diff (byte comparison but for project paths and Gradle noise; SLASHES=1 also ignores
-# path separators and ANSI colors).
+# path separators and ANSI colors). Accepted differences: KNOWN (default tools/parity/known-diffs/ktlint-gradle.tsv).
+# Exit 1 when a scenario differs beyond them or Gradle did not run.
 set -uo pipefail
 # Windows-form paths under Git Bash: they end up in Gradle files and the JVM.
 root="$(cd "$(dirname "$0")/../.." && (pwd -W 2> /dev/null || pwd))"
@@ -15,6 +16,8 @@ gradle="${GRADLE:-$root/java/gradlew}"
 [[ -n ${JAVA_HOME:-} ]] || export JAVA_HOME="$(ls -d "$root"/tools/jdk/* 2>/dev/null | head -1)"
 [[ -n $JAVA_HOME ]] || { echo "set JAVA_HOME (or run tools/ensure-jdk.sh)" >&2; exit 2; }
 compose_jar="$out/ktlint-compose-0.6.7-all.jar"
+known="${KNOWN:-$root/tools/parity/known-diffs/ktlint-gradle.tsv}"
+status=0
 
 # project <scenario> <side> <block> [template]: a fresh sample project in $out/<scenario>/<side>/project.
 project() {
@@ -42,13 +45,13 @@ scenario() {
     project "$name" "$side" "$block" "$template"
     for args in "$@"; do
       # shellcheck disable=SC2086
-      "$gradle" -p "$out/$name/$side/project" --console=plain -Dorg.gradle.jvmargs=-Xmx768m $args \
+      "$gradle" -p "$out/$name/$side/project" --console=plain -Dorg.gradle.jvmargs=-Xmx768m -Dorg.gradle.welcome=never $args \
         > "$out/$name/$side/run.txt" 2>&1
       { echo "== exit $? : $args"; cat "$out/$name/$side/run.txt"; } >> "$out/$name/$side/console.txt"
-      grep -q "^> Task :loadKtlintReporters" "$out/$name/$side/run.txt" || echo "$name/$side: gradle did not run ($args)" >&2
+      grep -q "^> Task :loadKtlintReporters" "$out/$name/$side/run.txt" || { echo "$name/$side: gradle did not run ($args)" >&2; status=1; }
     done
   done
-  py_ "$here/compare.py" "$out/$name" ${SLASHES:+--slashes} > "$out/$name.diff"
+  py_ "$here/compare.py" "$out/$name" ${SLASHES:+--slashes} --known "$known" > "$out/$name.diff" || status=1
   echo "$name: $(tail -1 "$out/$name.diff") ($(wc -l < "$out/$name.diff") diff lines); $(py_ "$here/rows.py" "$out/$name" | head -1)"
 }
 
@@ -85,3 +88,4 @@ for s in ${*:-check-all format baseline options compose-maven compose-all realco
     *) echo "unknown scenario $s" >&2; exit 2 ;;
   esac
 done
+exit $status

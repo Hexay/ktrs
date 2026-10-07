@@ -1,0 +1,6 @@
+# tools/ktlint-oracle/cli-diff.sh: accepted mismatches, `<KTLINT_VERSION>\t<scenario>` (a listed scenario that matches
+# again fails as stale). Reasons in a comment above each.
+# ruleset_jar_format: the jar logs CodeFormatter's "Format was not able to resolve all violations" WARN from its worker
+# thread ([pool-1-thread-N], assigned nondeterministically upstream), ktrs from [main]; same line otherwise (research/27).
+2.0	ruleset_jar_format
+1.8	ruleset_jar_format

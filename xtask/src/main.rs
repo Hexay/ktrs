@@ -21,7 +21,7 @@ fn main() -> ExitCode {
         Some("corpus-diff") => corpus_diff::run(&project_root(), &args[1..]),
         Some("fmt-diff") => fmt_diff::run(&project_root(), &args[1..]),
         Some("lint-diff") => lint_diff::run(&project_root(), &args[1..]),
-        _ => Err("usage: cargo xtask codegen | corpus-diff [dir] | fmt-diff [style] [dir] | lint-diff [style] [--oracle DIR] [--counts]"
+        _ => Err("usage: cargo xtask codegen | corpus-diff [dir] | fmt-diff [style] [dir] | lint-diff [style] [--experimental] [--oracle DIR] [--counts] [--require-format]"
             .to_string()),
     };
     match result {

@@ -17,3 +17,4 @@
 /java/.gradle/
 /java/gradle-plugin/src/test/resources/*/.gradle/
 /java/native/
+__pycache__/

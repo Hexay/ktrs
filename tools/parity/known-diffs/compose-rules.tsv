@@ -1,0 +1,12 @@
+# tools/compose-rules/parity.sh (ktlint jar + compose-rules -R jar (A) vs ktrs `ktlint` + the same jar (B)) on the
+# .kt/.kts copy of corpus/. Format: tools/parity/check-known.sh. Exit codes: both sides find violations (1).
+corpus/1.8/compose-only/ktlint_official	exit	lint 1 1
+corpus/1.8/compose-only/ktlint_official	exit	format 1 1
+corpus/1.8/with-standard/ktlint_official	exit	lint 1 1
+corpus/1.8/with-standard/ktlint_official	exit	format 1 1
+corpus/2.0/compose-only/ktlint_official	exit	lint 1 1
+corpus/2.0/compose-only/ktlint_official	exit	format 1 1
+corpus/2.0/with-standard/ktlint_official	exit	lint 1 1
+corpus/2.0/with-standard/ktlint_official	exit	format 1 1
+# The 1.8 KDoc-lexer row of known-diffs/ktlint-1.8.tsv (standard rule set, not compose).
+corpus/1.8/with-standard/ktlint_official	only-upstream	kotlinx.coroutines/kotlinx-coroutines-core/jvm/src/channels/TickerChannels.kt:51:4: Unnecessary long whitespace (standard:no-multi-spaces)

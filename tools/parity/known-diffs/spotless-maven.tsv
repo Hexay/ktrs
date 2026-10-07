@@ -1,0 +1,5 @@
+# tools/spotless-maven/parity.sh: stock spotless-maven-plugin <ktlint>/<ktfmt> (upstream) vs the ktrs implementation=
+# swap (ktrs). Format: tools/parity/known_diffs.py.
+# real-compose: stock <ktlint> logs ktlint's "Format was not able to resolve all violations" WARN for each file it
+# can't fully fix, once per format pass; KtrsKtlint does not log it (the applied sources and the check failure match).
+real-compose	console.txt	upstream-only	^\[WARNING\] Format was not able to resolve all violations which \(theoretically\) can be autocorrected in file 
