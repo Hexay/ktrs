@@ -144,6 +144,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "ktrs-project"
+version = "0.4.0"
+
+[[package]]
 name = "ktrs-psi"
 version = "0.4.0"
 dependencies = [

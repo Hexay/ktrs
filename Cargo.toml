@@ -21,6 +21,7 @@ ktrs-ast = { path = "crates/ktrs-ast", version = "0.4.0" }
 ktrs-lint = { path = "crates/ktrs-lint", version = "0.4.0" }
 ktrs-editorconfig = { path = "crates/ktrs-editorconfig", version = "0.4.0" }
 ktrs-compose = { path = "crates/ktrs-compose", version = "0.4.0" }
+ktrs-project = { path = "crates/ktrs-project", version = "0.4.0" }
 text-size = "1.1"
 expect-test = "1.5"
 mimalloc = { version = "0.1", default-features = false }
