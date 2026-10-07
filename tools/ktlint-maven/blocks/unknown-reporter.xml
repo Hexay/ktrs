@@ -1,0 +1,8 @@
+        <configuration>
+          <reporters>
+            <reporter>
+              <name>sarif</name>
+              <output>${project.build.directory}/ktlint.sarif</output>
+            </reporter>
+          </reporters>
+        </configuration>

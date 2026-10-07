@@ -1,0 +1,7 @@
+        <configuration>
+          <reporters>
+            <reporter>
+              <name>plain</name>
+            </reporter>
+          </reporters>
+        </configuration>

@@ -1,0 +1,10 @@
+        <executions>
+          <execution>
+            <id>format</id>
+            <goals><goal>format</goal></goals>
+          </execution>
+          <execution>
+            <id>check</id>
+            <goals><goal>check</goal></goals>
+          </execution>
+        </executions>

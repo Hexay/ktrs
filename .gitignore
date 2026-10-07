@@ -13,5 +13,6 @@
 /tools/gradle/
 /tools/maven/
 /java/build/
+/java/maven-plugin/build/
 /java/.gradle/
 /java/native/
