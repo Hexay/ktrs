@@ -126,6 +126,14 @@ scenario stdin_name "$broken" --stdin-name=pkg/Foo.kt -
 scenario stdin_name_bad "" --stdin-name src
 scenario stdin_and_files "" - src/A.kt -
 scenario stdin_name_no_value "" --stdin-name= -
+# Editors (docs/editors.md): conform/Helix/Zed run `ktfmt [style] -`; Block's IntelliJ plugin runs its script with
+# `--set-exit-if-changed -`.
+scenario stdin_editor_broken "$broken" --kotlinlang-style -
+scenario stdin_editor_google_clean "$formatted" --google-style -
+scenario stdin_block "$input" --kotlinlang-style --set-exit-if-changed -
+scenario stdin_block_clean "$formatted" --kotlinlang-style --set-exit-if-changed -
+scenario stdin_block_broken "$broken" --kotlinlang-style --set-exit-if-changed -
+scenario stdin_editorconfig "$input" --enable-editorconfig --stdin-name=ec/indent3/F.kt -
 scenario single_file "" src/A.kt
 scenario single_java "" src/Other.java
 scenario single_missing "" nope.kt
