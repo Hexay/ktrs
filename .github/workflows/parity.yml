@@ -161,7 +161,7 @@ jobs:
       - name: Compare (rows and trees to target/parity/ktlint-1.8-out)
         run: |
           tools/parity/ktlint-compare.sh "java -Xmx2g -jar $PWD/$KTLINT_18_JAR" "$PWD/target/release/ktlint --ktlint-version=1.8" \
-            target/parity/corpus target/parity/ktlint-1.8-out ${{ matrix.style }}
+            "$RUNNER_TEMP/parity-corpus" target/parity/ktlint-1.8-out ${{ matrix.style }}
       - run: |
           tools/parity/gate.sh ktlint-1.8-${{ matrix.style }} '' \
             tools/parity/check-known.sh tools/parity/known-diffs/ktlint-1.8.tsv target/parity/ktlint-1.8-out
@@ -187,7 +187,7 @@ jobs:
       - run: |
           k20=$PWD/tools/ktlint-oracle/lib/ktlint-cli-$(sed -n 's/^KTLINT_TAG=//p' tools/sync-ktlint.sh)-all.jar
           tools/parity/gate.sh compose-rules '' tools/compose-rules/parity.sh "java -Xmx2g -jar $PWD/$KTLINT_18_JAR" \
-            "java -Xmx2g -jar $k20" "$PWD/target/release/ktlint" target/parity/compose-out target/parity/corpus
+            "java -Xmx2g -jar $k20" "$PWD/target/release/ktlint" target/parity/compose-out "$RUNNER_TEMP/parity-corpus"
       - if: failure()
         uses: actions/upload-artifact@v4
         with: { name: parity-compose, path: target/parity, if-no-files-found: ignore }
