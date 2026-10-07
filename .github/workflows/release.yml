@@ -214,6 +214,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ github.token }}
       - uses: docker/build-push-action@v6
+        # Its default build-record artifact (*.dockerbuild) breaks the release job's download of all artifacts.
+        env:
+          DOCKER_BUILD_RECORD_UPLOAD: false
         with:
           context: docker-context
           file: docker/Dockerfile
