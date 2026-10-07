@@ -1,0 +1,28 @@
+buildscript {
+    ext {
+        composeRules = "0.0.26"
+    }
+}
+
+apply plugin: "org.jlleitschuh.gradle.ktlint"
+apply plugin: 'com.diffplug.spotless'
+
+/* block comment { */
+ktlint {
+    version = ktlintVersion
+    android = true
+    additionalEditorconfig = ["ktlint_code_style": "android_studio", max_line_length: '100']
+}
+
+dependencies {
+    ktlintRuleset "com.twitter.compose.rules:ktlint:${composeRules}"
+}
+
+spotless {
+    kotlin {
+        if (System.getenv("CI")) {
+            println 'ci'
+        }
+        ktfmt('0.64').kotlinlangStyle().configure { it.setMaxWidth(110) }
+    }
+}
