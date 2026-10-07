@@ -57,8 +57,8 @@ public final class Format extends AbstractLintSupport {
         String baseRelativePath = toRelativeString(file);
         log.debug("checking format: " + baseRelativePath);
         for (KtlintCliError lintError : errors) {
-            if (EXCEPTION_STATUSES.contains(lintError.status)) {
-                log.error(lintError.detail);
+            if (lintError.status != null && EXCEPTION_STATUSES.contains(lintError.status)) {
+                log.error(exceptionMessage(lintError.detail));
                 return;
             }
             String errMsg = baseRelativePath + ":" + lintError.line + ":" + lintError.col + ": " + lintError.detail;
@@ -68,6 +68,20 @@ public final class Format extends AbstractLintSupport {
             log.debug("Format fixed > " + baseRelativePath);
             formattedFileCount++;
         }
+    }
+
+    /**
+     * gantsign logs the engine exception's message ({@code KtLintParseException}: {@code "3:12 Expecting ')'"}); the run
+     * reports ktlint's CLI detail, {@code "Not a valid Kotlin file (3:12 expecting ')')"}, whose message part is
+     * lower-cased: its first letter is restored, usually the only capital in the parser's messages.
+     */
+    static String exceptionMessage(String detail) {
+        String prefix = "Not a valid Kotlin file (";
+        if (!detail.startsWith(prefix) || !detail.endsWith(")")) return detail;
+        String message = detail.substring(prefix.length(), detail.length() - 1);
+        int text = message.indexOf(' ') + 1;
+        if (text == 0 || text >= message.length()) return message;
+        return message.substring(0, text) + Character.toUpperCase(message.charAt(text)) + message.substring(text + 1);
     }
 
     private static byte[] readAllBytes(File file) {

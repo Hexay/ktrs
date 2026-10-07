@@ -4,6 +4,9 @@ import difflib, os, re, sys
 
 root = os.path.abspath(sys.argv[1])
 NOISE = re.compile(r"(\[INFO\] (Total time|Finished at)|WARNING: |\[WARNING\] (Using platform encoding|File encoding))")
+# Deviation 2 of research/31: `format` logs an engine exception without its JVM stack trace.
+STACK_TRACE = re.compile(r"(\s+at |[\w.$]+(Exception|Error): )")
+DURATION = re.compile(r"\[ *[\d.]+ (s|min)\]$")
 PLUGIN = re.compile(r"(com\.github\.gantsign\.maven:ktlint-maven-plugin:3\.7\.1|io\.github\.hexay:ktrs-ktlint-maven-plugin:[\w.-]+)")
 GOAL = re.compile(r"--- ktlint:[\w.-]+:(\w+)")
 SKIP = {"pom.xml", ".mvn/jvm.config"}
@@ -15,7 +18,8 @@ def norm(text, side):
         text = text.replace(p, "<P>")
     text = PLUGIN.sub("<plugin>", text)
     text = GOAL.sub(r"--- ktlint:<version>:\1", text)
-    return [line for line in text.splitlines() if not NOISE.match(line)]
+    return [DURATION.sub("[<t>]", line) for line in text.splitlines()
+            if not NOISE.match(line) and not STACK_TRACE.match(line)]
 
 
 def files(side):

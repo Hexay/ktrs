@@ -83,11 +83,16 @@ final class KtrsKtlint {
     }
 
     /**
-     * The files, through an argfile when the command line could get too long for Windows. No files: a path that
-     * matches none, since ktlint without file arguments lints the working directory.
+     * The files, through an argfile when the command line could get too long for Windows. No files: an empty file,
+     * which no reporter lists (ktlint without file arguments lints the working directory, and a missing path is a
+     * glob it walks the whole drive for).
      */
     private List<String> fileArguments(List<File> files) throws IOException {
-        if (files.isEmpty()) return List.of(new File(tempDir, "no-files.kt").getAbsolutePath());
+        if (files.isEmpty()) {
+            File empty = new File(tempDir, "empty.kt");
+            Files.write(empty.toPath(), new byte[0]);
+            return List.of(empty.getAbsolutePath());
+        }
         List<String> paths = files.stream().map(File::getAbsolutePath).collect(Collectors.toList());
         if (paths.stream().mapToInt(p -> p.length() + 1).sum() < MAX_INLINE_LENGTH) return paths;
         File argfile = new File(tempDir, "files.args");

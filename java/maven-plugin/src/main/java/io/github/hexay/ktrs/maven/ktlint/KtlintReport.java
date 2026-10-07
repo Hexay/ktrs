@@ -9,10 +9,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.Set;
+import org.apache.maven.doxia.siterenderer.Renderer;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
+import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.project.MavenProject;
 import org.apache.maven.reporting.AbstractMavenReport;
 
 /**
@@ -138,6 +142,26 @@ public class KtlintReport extends AbstractMavenReport {
     /** The plugin's resolved dependencies: the rule set and reporter JARs users add as plugin dependencies. */
     @Parameter(defaultValue = "${plugin}", readonly = true, required = true)
     private PluginDescriptor plugin;
+
+    // AbstractMavenReport's own parameters: the descriptor generator doesn't scan dependency classes, so they are
+    // declared here and handed to the base class (see execute).
+    @Parameter(defaultValue = "${project.reporting.outputDirectory}", readonly = true, required = true)
+    private File reportingOutputDirectory;
+
+    @Parameter(defaultValue = "${project}", readonly = true, required = true)
+    private MavenProject mavenProject;
+
+    @Component
+    private Renderer siteRendererComponent;
+
+    /** A standalone {@code mvn ktlint:ktlint}: renders the page with the site renderer. */
+    @Override
+    public void execute() throws MojoExecutionException {
+        outputDirectory = reportingOutputDirectory;
+        project = mavenProject;
+        siteRenderer = siteRendererComponent;
+        super.execute();
+    }
 
     private ResourceBundle getBundle(Locale locale) {
         return ResourceBundle.getBundle("ktlint-report", locale, KtlintReport.class.getClassLoader());
