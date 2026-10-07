@@ -1,0 +1,8 @@
+[versions]
+compose-rules = "0.4.22"
+
+[libraries]
+compose-rules = { module = "io.nlopez.compose.rules:ktlint", version.ref = "compose-rules" }
+
+[plugins]
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version = "14.2.0" }

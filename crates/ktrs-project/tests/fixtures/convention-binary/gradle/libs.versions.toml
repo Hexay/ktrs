@@ -1,0 +1,5 @@
+[versions]
+ktlint = "1.4.0"
+
+[plugins]
+my-spotless = { id = "my.spotless" }

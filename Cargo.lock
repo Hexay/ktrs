@@ -203,6 +203,11 @@ dependencies = [
 [[package]]
 name = "ktrs-project"
 version = "0.4.0"
+dependencies = [
+ "ktrs-parser",
+ "ktrs-psi",
+ "ktrs-syntax",
+]
 
 [[package]]
 name = "ktrs-psi"

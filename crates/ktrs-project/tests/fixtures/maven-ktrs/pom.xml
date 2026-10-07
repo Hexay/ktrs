@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>example</groupId>
+  <artifactId>ktrs</artifactId>
+  <version>1.0</version>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>io.github.hexay</groupId>
+        <artifactId>ktrs-ktlint-maven-plugin</artifactId>
+        <version>0.4.0</version>
+        <configuration>
+          <ktlintVersion>2.0.0-ALPHA-4</ktlintVersion>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

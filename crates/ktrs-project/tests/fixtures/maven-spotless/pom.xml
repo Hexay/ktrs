@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>example</groupId>
+  <artifactId>spotless</artifactId>
+  <version>1.0</version>
+  <properties>
+    <ktlint.version>2.0.0-ALPHA-4</ktlint.version>
+  </properties>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>com.diffplug.spotless</groupId>
+        <artifactId>spotless-maven-plugin</artifactId>
+        <version>3.10.3</version>
+        <configuration>
+          <kotlin>
+            <!-- ktrs swap -->
+            <ktfmt implementation="io.github.hexay.ktrs.spotless.maven.KtrsKtfmt">
+              <version>0.64</version>
+              <style>KOTLINLANG</style>
+              <maxWidth>100</maxWidth>
+              <trailingCommaManagementStrategy>COMPLETE</trailingCommaManagementStrategy>
+            </ktfmt>
+            <ktlint>
+              <version>${ktlint.version}</version>
+              <editorConfigOverride>
+                <ktlint_code_style>intellij_idea</ktlint_code_style>
+              </editorConfigOverride>
+              <customRuleSets>
+                <value>io.nlopez.compose.rules:ktlint:0.4.22</value>
+              </customRuleSets>
+            </ktlint>
+          </kotlin>
+        </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>io.github.hexay</groupId>
+            <artifactId>ktrs</artifactId>
+            <version>0.4.0</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+    </plugins>
+  </build>
+</project>
