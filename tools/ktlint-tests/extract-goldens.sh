@@ -11,8 +11,8 @@ lib="$here/lib"
 work="$root/target/ktlint-extract"
 maven=https://repo1.maven.org/maven2
 
-jar=$(ls "$root"/tools/ktlint-oracle/lib/ktlint-cli-*-all.jar 2>/dev/null | head -1 || true)
-[[ -n $jar && -d $upstream ]] || { echo "no ktlint jar or checkout; run tools/sync-ktlint.sh" >&2; exit 1; }
+jar=$root/tools/ktlint-oracle/lib/ktlint-cli-$(sed -n 's/^KTLINT_TAG=//p' "$root/tools/sync-ktlint.sh")-all.jar
+[[ -f $jar && -d $upstream ]] || { echo "no ktlint jar or checkout; run tools/sync-ktlint.sh" >&2; exit 1; }
 bin=$(ls -d "$root"/tools/jdk/*/bin 2>/dev/null | head -1 || true)
 java=${bin:+$bin/}java
 
