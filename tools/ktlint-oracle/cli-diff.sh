@@ -11,6 +11,8 @@
 # rep_summary_format (`-F` runs 2.0's rule order). RULESET_JAR=<jar> adds the `ruleset_jar_*` scenarios
 # (research/27-custom-rulesets-impl.md).
 set -uo pipefail
+# Known gap: under TERM_PROGRAM=vscode Mordant colours the jar's Clikt usage errors even when piped; ktrs never does.
+unset TERM_PROGRAM
 here="$(cd "$(dirname "$0")" && pwd)"
 repo="$(cd "$here/../.." && pwd)"
 version=${KTLINT_VERSION:-2.0}
@@ -219,33 +221,8 @@ scenario color_name "" "" --color --color-name=RED --relative src
 scenario color_name_bad "" "" --color-name=FOO --relative src
 scenario color_group "" "" --color '--reporter=plain?group_by_file' --relative src
 
-# Stdin.
-scenario stdin stdin.kt "" --stdin
-scenario stdin_format stdin.kt "" --stdin -F
-scenario stdin_format_file src/A.kt "" --stdin -F
-scenario stdin_broken src/Bad.kt "" --stdin
-scenario stdin_broken_format src/Bad.kt "" --stdin -F
-scenario stdin_script src/build.gradle.kts "" --stdin
-scenario stdin_script_format src/build.gradle.kts "" --stdin -F
-scenario stdin_path stdin.kt "" --stdin --stdin-path=src/Foo.kt
-scenario stdin_path_kts src/build.gradle.kts "" --stdin --stdin-path=x.kts
-scenario stdin_path_blank stdin.kt "" --stdin --stdin-path=
-scenario stdin_json stdin.kt "" --stdin --reporter=json
-scenario stdin_relative stdin.kt "" --stdin --relative
-scenario stdin_baseline stdin.kt "" --stdin --baseline=bl.xml
-scenario stdin_unicode src/sub/B.kt "" --stdin -F
-scenario stdin_percent pct.kt "printf 'val a = \"%%d\"\\n' > pct.kt" --stdin -F
-scenario stdin_percent_literal pct.kt "printf 'val a = \"100%%%%\"\\n' > pct.kt" --stdin -F
-scenario stdin_obsolete_property stdin.kt "printf 'disabled_rules = no-semi\\nktlint_disabled_rules = x\\n' >> .editorconfig" --stdin
-scenario stdin_and_patterns "" "" --stdin --patterns-from-stdin
-scenario stdin_ignored_args stdin.kt "" --stdin src/A.kt
-scenario patterns_nul pats "printf 'src/A.kt\0src/sub/B.kt\0' > pats" --relative --patterns-from-stdin
-scenario patterns_nul_dedup pats "printf 'src/A.kt\0src/sub/B.kt\0src/A.kt\0' > pats" --relative --patterns-from-stdin=
-scenario patterns_newline pats "printf 'src/A.kt\nsrc/sub/B.kt\n' > pats" --relative --patterns-from-stdin=$'\n'
-scenario patterns_default_nul pats "printf 'src/A.kt\nsrc/sub/B.kt\n' > pats" --relative --patterns-from-stdin
-scenario patterns_empty "" "" --patterns-from-stdin
-scenario patterns_merged pats "printf 'src/A.kt\0' > pats" --relative --patterns-from-stdin src/sub
-scenario patterns_comma pats "printf 'src/A.kt,src/sub/B.kt' > pats" --relative --patterns-from-stdin=,
+# Stdin, patterns from stdin, editor integrations.
+source "$here/cli-diff-stdin.sh"
 
 # Baseline, .editorconfig defaults, rule sets.
 scenario baseline_create "" "" --relative --baseline=bl.xml src
@@ -276,6 +253,8 @@ if [[ -n ${RULESET_JAR:-} ]]; then
   scenario ruleset_jar_json "" "$compose_kt" -R "$rs" --reporter=json src
   scenario ruleset_jar_stdin src/Compose.kt "$compose_kt" -R "$rs" --stdin
   scenario ruleset_jar_stdin_format src/Compose.kt "$compose_kt" -R "$rs" --stdin -F
+  scenario ruleset_jar_ale src/Compose.kt "$compose_kt" --ruleset "$rs" --stdin
+  scenario ruleset_jar_ale_fix src/Compose.kt "$compose_kt" --ruleset "$rs" --stdin --format
   scenario ruleset_jar_disabled "" "$compose_kt && printf 'ktlint_compose = disabled\n' >> .editorconfig" -R "$rs" --relative src
   scenario ruleset_jar_gen "" "" -R "$rs" generateEditorConfig --code-style=ktlint_official
 fi
