@@ -87,7 +87,7 @@ checksum = "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682"
 
 [[package]]
 name = "ktrs"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "ktrs-cli",
  "mimalloc",
@@ -95,7 +95,7 @@ dependencies = [
 
 [[package]]
 name = "ktrs-ast"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "ktrs-parser",
  "ktrs-psi",
@@ -105,7 +105,7 @@ dependencies = [
 
 [[package]]
 name = "ktrs-cli"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "ktrs-compose",
  "ktrs-editorconfig",
@@ -121,7 +121,7 @@ dependencies = [
 
 [[package]]
 name = "ktrs-compose"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "ktrs-ast",
  "ktrs-editorconfig",
@@ -134,14 +134,14 @@ dependencies = [
 
 [[package]]
 name = "ktrs-editorconfig"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "regex",
 ]
 
 [[package]]
 name = "ktrs-fmt"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "ec4rs",
  "expect-test",
@@ -154,7 +154,7 @@ dependencies = [
 
 [[package]]
 name = "ktrs-lexer"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "expect-test",
  "ktrs-syntax",
@@ -162,7 +162,7 @@ dependencies = [
 
 [[package]]
 name = "ktrs-lint"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "ktrs-ast",
  "ktrs-editorconfig",
@@ -175,7 +175,7 @@ dependencies = [
 
 [[package]]
 name = "ktrs-lsp"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "crossbeam-channel",
  "ktrs-compose",
@@ -192,7 +192,7 @@ dependencies = [
 
 [[package]]
 name = "ktrs-parser"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "expect-test",
  "ktrs-lexer",
@@ -202,7 +202,7 @@ dependencies = [
 
 [[package]]
 name = "ktrs-project"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "ktrs-parser",
  "ktrs-psi",
@@ -211,7 +211,7 @@ dependencies = [
 
 [[package]]
 name = "ktrs-psi"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "expect-test",
  "ktrs-parser",
@@ -220,14 +220,14 @@ dependencies = [
 
 [[package]]
 name = "ktrs-syntax"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "text-size",
 ]
 
 [[package]]
 name = "ktrs-wasm"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "ktrs-fmt",
 ]
@@ -426,7 +426,7 @@ checksum = "d245f478577f809a851594d02313b640fb437e0bb33866753cff937863096954"
 
 [[package]]
 name = "xtask"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "ktrs-fmt",
  "ktrs-lint",

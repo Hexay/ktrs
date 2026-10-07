@@ -106,7 +106,7 @@ SHA-256; needs Java), so it works at JVM speed ([research/27](research/27-custom
 ### GitHub Actions
 
 ```yaml
-- uses: Hexay/ktrs@v0.4.0          # Linux, macOS and Windows
+- uses: Hexay/ktrs@v0.5.0          # Linux, macOS and Windows
 - run: ktrs fmt --check --style kotlinlang
 - run: ktrs lint
 ```
@@ -117,7 +117,7 @@ No Rust needed: on first run, the hook downloads the release binaries for its `r
 
 ```yaml
 - repo: https://github.com/Hexay/ktrs
-  rev: v0.4.0
+  rev: v0.5.0
   hooks:
     - id: ktrs-fmt          # also: ktrs-fmt-check, ktfmt (with ktfmt's flags in `args`)
       args: [--style, kotlinlang]
@@ -143,7 +143,7 @@ both: [docs/editors.md](docs/editors.md).
 
 ```kotlin
 plugins {
-    id("io.github.hexay.ktrs") version "0.4.0"   // was: id("com.ncorti.ktfmt.gradle") version "0.27.0"
+    id("io.github.hexay.ktrs") version "0.5.0"   // was: id("com.ncorti.ktfmt.gradle") version "0.27.0"
 }
 ```
 
@@ -156,7 +156,7 @@ reports and formatted files match the original with ktlint 1.8.0
 
 ```kotlin
 plugins {
-    id("io.github.hexay.ktrs.ktlint") version "0.4.0"   // was: id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
+    id("io.github.hexay.ktrs.ktlint") version "0.5.0"   // was: id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
 }
 ```
 
@@ -168,7 +168,7 @@ compose-rules runs natively; other rule sets run the task through the real ktlin
 ```kotlin
 buildscript {
     repositories { mavenCentral() }
-    dependencies { classpath("io.github.hexay:ktrs:0.4.0") }
+    dependencies { classpath("io.github.hexay:ktrs:0.5.0") }
 }
 
 spotless {
