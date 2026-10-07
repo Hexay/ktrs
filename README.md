@@ -122,50 +122,12 @@ No Rust needed: on first run, the hook downloads the release binaries for its `r
 
 ### Editors
 
-Editors pass the buffer on stdin. `--stdin-name` gives ktrs the file's path so `.editorconfig`
-applies. Add `--style google` or `--style kotlinlang` if you need them.
-
-<details>
-<summary><b>Neovim</b> (conform.nvim), <b>Helix</b>, <b>Zed</b>, <b>Emacs</b> (apheleia), <b>VS Code</b></summary>
-
-**Neovim** ([conform.nvim](https://github.com/stevearc/conform.nvim)):
-
-```lua
-formatters_by_ft = { kotlin = { "ktrs" } },
-formatters = { ktrs = { command = "ktrs", args = { "fmt", "--editorconfig", "--stdin-name", "$FILENAME", "-" } } },
-```
-
-**Helix** (`languages.toml`):
-
-```toml
-[[language]]
-name = "kotlin"
-formatter = { command = "ktrs", args = ["fmt", "-"] }
-auto-format = true
-```
-
-**Zed** (`settings.json`):
-
-```json
-"languages": { "Kotlin": { "formatter": { "external": {
-  "command": "ktrs", "arguments": ["fmt", "--editorconfig", "--stdin-name", "{buffer_path}", "-"] } } } }
-```
-
-**Emacs** ([apheleia](https://github.com/radian-software/apheleia)):
-
-```elisp
-(push '(ktrs . ("ktrs" "fmt" "--editorconfig" "--stdin-name" filepath "-")) apheleia-formatters)
-(setf (alist-get 'kotlin-mode apheleia-mode-alist) 'ktrs)
-```
-
-**VS Code** ([Custom Local Formatters](https://marketplace.visualstudio.com/items?itemName=jkillian.custom-local-formatters)):
-
-```json
-"customLocalFormatters.formatters": [
-  { "command": "ktrs fmt --editorconfig --stdin-name \"${file}\" -", "languages": ["kotlin"] } ]
-```
-
-</details>
+`ktrs lsp` is a language server for ktlint diagnostics, quick fixes and ktfmt or ktlint formatting.
+It runs next to your Kotlin language server and takes its setup from the Gradle or Maven build. Editor
+plugins that already run `ktlint` or `ktfmt` (conform.nvim, nvim-lint, none-ls, ALE, apheleia,
+flycheck-kotlin, Helix, Zed, VS Code's mskelton.ktlint, Block's IntelliJ Kotlin Formatter) work
+unchanged with the drop-in binaries; their exact invocations are diffed against the jars. Configs for
+both: [docs/editors.md](docs/editors.md).
 
 ### Gradle
 

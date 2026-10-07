@@ -10,7 +10,40 @@ ktlint behaves like 2.0.0-ALPHA-4 by default; for 1.8.0 put `ktrs_ktlint_version
 README). Most of these plugins pass the buffer on stdin without its path, so ktlint resolves `.editorconfig` from the
 working directory, as the jar does.
 
-A native `ktrs lsp` is planned.
+## Language server: `ktrs lsp`
+
+`ktrs lsp` (stdio) runs next to your Kotlin language server and adds ktlint diagnostics, quick fixes (fix one
+violation, fix all, suppress on the line or in the file) and formatting with ktfmt or ktlint. It reads the setup from
+the build: ktfmt-gradle, ktlint-gradle, kotlinter, Spotless and the Maven plugins, including convention plugins and the
+version catalog. When the build has none of them it shows ktlint 1.8 diagnostics and doesn't format. Editor settings
+override the build; the keys are listed in `crates/ktrs-lsp/src/lib.rs`, nested as in
+`{"ktrs": {"format": {"tool": "ktfmt"}, "ktfmt": {"style": "kotlinlang"}}}`.
+
+**Neovim** (0.11+):
+
+```lua
+vim.lsp.config("ktrs", {
+  cmd = { "ktrs", "lsp" },
+  filetypes = { "kotlin" },
+  root_markers = { "settings.gradle.kts", "settings.gradle", "pom.xml", ".git" },
+  -- settings = { ktrs = { format = { tool = "ktfmt" } } },
+})
+vim.lsp.enable("ktrs")
+```
+
+**Helix** (`languages.toml`; keep your Kotlin server in the list):
+
+```toml
+[language-server.ktrs]
+command = "ktrs"
+args = ["lsp"]
+
+[[language]]
+name = "kotlin"
+language-servers = ["kotlin-language-server", "ktrs"]
+```
+
+The sections below use the `ktlint`/`ktfmt` binaries instead, for plugins that run those CLIs.
 
 ## Neovim
 
