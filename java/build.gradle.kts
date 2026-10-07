@@ -67,6 +67,22 @@ repositories {
     mavenCentral()
 }
 
+// KtrsKtfmt/KtrsKtlint: spotless-maven-plugin's `implementation=` swap (research/30). Their own source set because
+// they compile against spotless-maven-plugin's spotless-lib 4.x and Java 17, while main stays on lib 3.0.0 and Java 11.
+val spotlessMaven: SourceSet by sourceSets.creating {
+    compileClasspath += sourceSets.main.get().output
+}
+tasks.named<JavaCompile>("compileSpotlessMavenJava") {
+    options.release = 17
+}
+tasks.jar { from(spotlessMaven.output) }
+tasks.withType<Jar>().matching { it.name == "sourcesJar" }.configureEach { from(spotlessMaven.allSource) }
+sourceSets.test {
+    compileClasspath += spotlessMaven.output
+    runtimeClasspath += spotlessMaven.output
+}
+val spotlessMavenPlugin = "com.diffplug.spotless:spotless-maven-plugin:3.10.3"
+
 // Spotless's own ktlint() step runs ktlint from these in SpotlessKtlintParityTest.
 val spotlessKtlint: Configuration by configurations.creating
 val spotlessKtlintCompose: Configuration by configurations.creating
@@ -74,7 +90,11 @@ val spotlessKtlintCompose: Configuration by configurations.creating
 dependencies {
     // Only the spotless steps use it (compiled against the oldest supported release); Spotless supplies it at runtime.
     compileOnly("com.diffplug.spotless:spotless-lib:3.0.0")
+    "spotlessMavenCompileOnly"(spotlessMavenPlugin)
+    // The plugin's POM has it at runtime scope only.
+    "spotlessMavenCompileOnly"("com.diffplug.spotless:spotless-lib:4.10.3")
     testImplementation("com.diffplug.spotless:spotless-lib:4.10.3")
+    testImplementation(spotlessMavenPlugin)
     // spotless-lib logs through it; the Spotless plugins bring it along.
     testRuntimeOnly("org.slf4j:slf4j-simple:2.0.17")
     spotlessKtlint("com.pinterest.ktlint:ktlint-cli:1.8.0")
