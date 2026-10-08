@@ -1,7 +1,7 @@
 //! `ktrs migrate`: switches a build's ktfmt / ktlint setup to the ktrs drop-ins, mirroring README
 //! "Integrations" (the swaps are listed in `coords.rs`). Edits are textual and in place: ids, coordinates and
-//! version tokens are replaced, and the few lines the README adds (plugin repository, Spotless classpath and
-//! Maven dependency) are inserted with the surrounding indentation. Anything that can't be rewritten without
+//! version tokens are replaced, and the few lines the README adds (Spotless classpath and Maven dependency)
+//! are inserted with the surrounding indentation. Anything that can't be rewritten without
 //! guessing (versions from expressions, kotlinter, ktlint run from its jar, Spotless options with no ktrs
 //! equivalent) becomes a note instead. Already migrated parts are left alone, so a second run is a no-op.
 
