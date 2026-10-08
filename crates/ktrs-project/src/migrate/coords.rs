@@ -1,6 +1,5 @@
 //! What each drop-in replaces (README "Integrations"), and where notes send users.
 
-pub(crate) const PAGES_REPO: &str = "https://hexay.github.io/ktrs/maven";
 pub(crate) const GRADLE_PLUGIN_ARTIFACT: &str = "io.github.hexay:ktrs-gradle-plugin";
 /// The `io.github.hexay:ktrs` jar: Spotless steps (Gradle classpath, Maven plugin dependency).
 pub(crate) const JAR_GROUP: &str = "io.github.hexay";

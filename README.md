@@ -200,18 +200,7 @@ spotless {
 only compose-rules is supported there, other rule sets need Spotless's `ktlint()`.
 
 <details>
-<summary>Plugin repository, JVM API and options</summary>
-
-Until the plugin is on the Gradle Plugin Portal, add the repository in `settings.gradle.kts`:
-
-```kotlin
-pluginManagement {
-    repositories {
-        gradlePluginPortal()
-        maven("https://hexay.github.io/ktrs/maven")
-    }
-}
-```
+<summary>JVM API and options</summary>
 
 The `io.github.hexay:ktrs` jar has no dependencies. It bundles the native binaries for Linux, macOS
 and Windows (x86-64 and ARM) and keeps long-lived `ktrs serve` processes, so a build starts the

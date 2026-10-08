@@ -1,16 +1,16 @@
-//! A Gradle build: which files to rewrite, and the repository each swapped plugin then resolves from.
+//! A Gradle build: which files to rewrite. The drop-in plugins resolve from the Plugin Portal, like the plugins they
+//! replace, so no repository changes.
 
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
-use super::coords::{GRADLE_PLUGIN_ARTIFACT, PAGES_REPO, no_drop_in};
+use super::coords::{GRADLE_PLUGIN_ARTIFACT, no_drop_in};
 use super::gradle_plugins::{self, PluginUse};
 use super::scan::Script;
-use super::{Doc, Notes, catalog_edits, repos, spotless_gradle};
+use super::{Doc, Notes, catalog_edits, spotless_gradle};
 use crate::catalog::Catalog;
 use crate::gradle::conventions::SKIPPED_DIRS;
 use crate::gradle::properties;
-use crate::layout::GRADLE_SETTINGS_FILES;
 
 const MAX_DEPTH: usize = 12;
 
@@ -67,48 +67,6 @@ pub(crate) fn migrate(root: &Path, version: &str, notes: &mut Notes) -> Vec<Doc>
                 uses[k] = PluginUse::default();
             }
         }
-        let needing_repo: Vec<usize> =
-            builds.into_iter().filter(|&k| uses[k].dependency_coords || mentions(&docs[k])).collect();
-        for k in needing_repo {
-            let doc = &mut docs[k];
-            let groovy = doc.is_groovy();
-            let s = Script::new(&doc.text);
-            if !repos::ensure_in_repositories(&s, None, groovy, &mut doc.edits) {
-                notes.file(&doc.rel);
-                notes.gradle(format!(
-                    "add {} to the repositories that resolve its plugin dependencies",
-                    repos::repo_line(groovy)
-                ));
-            }
-        }
-    }
-    let mut settings_needed: Vec<PathBuf> = Vec::new();
-    for k in 0..docs.len() {
-        let is_conv_src = conventions.iter().any(|c| in_src(c, &docs[k].path));
-        let in_conv = conventions.iter().any(|c| docs[k].path.starts_with(c));
-        if !is_conv_src && (uses[k].declared || (!in_conv && swapped.plugins && mentions(&docs[k]))) {
-            settings_needed.push(settings_dir(root, &docs[k].path));
-        }
-        if uses[k].buildscript_coords {
-            ensure_buildscript_repo(&mut docs[k], notes);
-        }
-    }
-    settings_needed.sort();
-    settings_needed.dedup();
-    for dir in settings_needed {
-        match docs
-            .iter_mut()
-            .find(|d| d.path.parent() == Some(&dir) && GRADLE_SETTINGS_FILES.iter().any(|n| d.path.ends_with(n)))
-        {
-            Some(doc) => {
-                let s = Script::new(&doc.text);
-                repos::ensure_in_plugin_management(&s, doc.is_groovy(), &mut doc.edits);
-            }
-            None => {
-                notes.file(&super::rel(root, &dir.join("settings.gradle.kts")));
-                notes.gradle(format!("no settings file: add pluginManagement {{ repositories {{ gradlePluginPortal(); maven(\"{PAGES_REPO}\") }} }}"));
-            }
-        }
     }
     let total = uses.iter().fold(PluginUse::default(), |mut a, u| {
         a.merge(*u);
@@ -125,20 +83,6 @@ pub(crate) fn migrate(root: &Path, version: &str, notes: &mut Notes) -> Vec<Doc>
     docs
 }
 
-fn ensure_buildscript_repo(doc: &mut Doc, notes: &mut Notes) {
-    let groovy = doc.is_groovy();
-    let s = Script::new(&doc.text);
-    let edits = &mut doc.edits;
-    let ok = s
-        .child_blocks(None, "buildscript")
-        .first()
-        .is_some_and(|&bs| repos::ensure_in_repositories(&s, Some(bs), groovy, edits));
-    if !ok {
-        notes.file(&doc.rel);
-        notes.gradle(format!("add {} to buildscript {{ repositories {{}} }}", repos::repo_line(groovy)));
-    }
-}
-
 /// `libs.plugins.ktfmt` matches `libs.plugins.ktfmt`, `libs.plugins.ktfmt.get()`, not `libs.plugins.ktfmtx`.
 fn accessor_used(text: &str, accessor: &str) -> bool {
     let norm = text.replace(['-', '_'], ".");
@@ -148,16 +92,6 @@ fn accessor_used(text: &str, accessor: &str) -> bool {
 /// Whether `path` is a source of convention build `conv` (under a `src` dir of it or of a nested project).
 fn in_src(conv: &Path, path: &Path) -> bool {
     path.strip_prefix(conv).is_ok_and(|rel| rel.components().any(|c| c.as_os_str() == "src"))
-}
-
-/// The nearest dir at or above `file` (within `root`) with a settings file; `root` otherwise.
-fn settings_dir(root: &Path, file: &Path) -> PathBuf {
-    file.ancestors()
-        .skip(1)
-        .take_while(|d| d.starts_with(root))
-        .find(|d| GRADLE_SETTINGS_FILES.iter().any(|n| d.join(n).is_file()))
-        .unwrap_or(root)
-        .to_path_buf()
 }
 
 /// `buildSrc`, `build-logic` and `includeBuild("..")` dirs.

@@ -4,7 +4,6 @@ plugins {
 
 repositories {
     gradlePluginPortal()
-    maven("https://hexay.github.io/ktrs/maven")
 }
 
 dependencies {

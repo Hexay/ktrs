@@ -46,17 +46,14 @@ fn dry_run_then_write_then_nothing() {
     assert!(out.contains("-    id(\"com.ncorti.ktfmt.gradle\") version \"0.27.0\"\n"), "{out}");
     let version = env!("CARGO_PKG_VERSION");
     assert!(out.contains(&format!("+    id(\"io.github.hexay.ktrs\") version \"{version}\"\n")), "{out}");
-    assert!(out.ends_with("2 files would change; run `ktrs migrate --write` to apply.\n"), "{out}");
+    assert!(out.ends_with("1 file would change; run `ktrs migrate --write` to apply.\n"), "{out}");
     assert_eq!(err, "");
     assert_eq!(std::fs::read_to_string(&build).unwrap(), before, "a dry run writes nothing");
 
     let (code, out, _) = migrate(&["--write", path]);
     assert_eq!(code, 0, "{out}");
-    assert!(
-        out.contains("migrated ") && out.contains("build.gradle.kts\n") && out.contains("settings.gradle.kts\n"),
-        "{out}"
-    );
-    assert!(out.ends_with("2 files changed.\n"), "{out}");
+    assert!(out.contains("migrated ") && out.contains("build.gradle.kts\n"), "{out}");
+    assert!(out.ends_with("1 file changed.\n"), "{out}");
     assert!(std::fs::read_to_string(&build).unwrap().contains("id(\"io.github.hexay.ktrs\")"));
 
     let (code, out, _) = migrate(&[path]);

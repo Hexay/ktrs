@@ -13,7 +13,6 @@ mod gradle;
 mod gradle_plugins;
 mod maven;
 mod pom;
-mod repos;
 mod scan;
 mod spotless_gradle;
 
@@ -118,10 +117,6 @@ impl Doc {
         let text = if crlf { raw.replace("\r\n", "\n") } else { raw };
         let path = std::path::absolute(path).unwrap_or_else(|_| path.to_path_buf());
         Some(Doc { rel: rel(root, &path), path, text, edits: Edits::default(), crlf })
-    }
-
-    pub(crate) fn is_groovy(&self) -> bool {
-        self.path.extension().is_some_and(|e| e == "gradle")
     }
 
     fn finish(self) -> Option<FileChange> {
