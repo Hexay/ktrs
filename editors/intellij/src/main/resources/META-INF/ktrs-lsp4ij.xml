@@ -1,0 +1,12 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="com.redhat.devtools.lsp4ij">
+        <server id="ktrs" name="ktrs" factoryClass="io.github.hexay.ktrs.intellij.lsp4ij.KtrsLanguageServerFactory">
+            <description><![CDATA[ktlint diagnostics and ktfmt or ktlint formatting (<code>ktrs lsp</code>).]]></description>
+        </server>
+        <fileNamePatternMapping patterns="*.kt;*.kts" serverId="ktrs" languageId="kotlin"/>
+    </extensions>
+    <projectListeners>
+        <listener class="io.github.hexay.ktrs.intellij.lsp4ij.KtrsLsp4ijSettingsListener"
+                  topic="io.github.hexay.ktrs.intellij.KtrsSettingsListener"/>
+    </projectListeners>
+</idea-plugin>

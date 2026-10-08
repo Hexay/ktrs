@@ -1,0 +1,9 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="com.intellij">
+        <platform.lsp.serverSupportProvider implementation="io.github.hexay.ktrs.intellij.lsp.KtrsLspServerSupportProvider"/>
+    </extensions>
+    <projectListeners>
+        <listener class="io.github.hexay.ktrs.intellij.lsp.KtrsLspSettingsListener"
+                  topic="io.github.hexay.ktrs.intellij.KtrsSettingsListener"/>
+    </projectListeners>
+</idea-plugin>

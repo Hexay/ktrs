@@ -1,5 +1,5 @@
 # On a `v*` tag: build `ktrs` + `ktfmt` + `ktlint` for six targets and publish them as a GitHub release,
-# one archive per target plus SHA256SUMS; then the JVM jar, the VS Code extension and the Homebrew formula.
+# one archive per target plus SHA256SUMS; then the JVM jar, the VS Code extension, the IntelliJ plugin and the Homebrew formula.
 name: release
 
 on:
@@ -188,6 +188,39 @@ jobs:
           name: vscode
           path: vsix/*.vsix
 
+  # The IntelliJ IDEA / Android Studio plugin (io.github.hexay.ktrs) with all six binaries bundled, attached to the
+  # release as ktrs-intellij-<version>.zip; to the JetBrains Marketplace when JETBRAINS_MARKETPLACE_TOKEN exists.
+  # The Marketplace takes a new plugin's first version only by hand (https://plugins.jetbrains.com/plugin/add):
+  # upload that zip there once, then this job publishes every later version.
+  intellij:
+    needs: build
+    runs-on: ubuntu-24.04
+    env:
+      JETBRAINS_MARKETPLACE_TOKEN: ${{ secrets.JETBRAINS_MARKETPLACE_TOKEN }}
+    defaults:
+      run:
+        working-directory: editors/intellij
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Bundle the binaries
+        working-directory: .
+        run: bash tools/release/bundle-natives.sh dist editors/intellij/bin
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21, cache: gradle }
+      - name: Build the plugin
+        run: ./gradlew --console=plain buildPlugin -PktrsVersion=${GITHUB_REF_NAME#v}
+      - name: Publish to the JetBrains Marketplace
+        if: env.JETBRAINS_MARKETPLACE_TOKEN != ''
+        run: ./gradlew --console=plain publishPlugin -PktrsVersion=${GITHUB_REF_NAME#v}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: intellij
+          path: editors/intellij/build/distributions/ktrs-intellij-*.zip
+
   # ghcr.io/hexay/ktrs:<version> and :latest for linux/amd64 + arm64, from the static musl binaries (docker/Dockerfile).
   docker:
     needs: build
@@ -266,12 +299,13 @@ jobs:
           done
 
   release:
-    needs: [build, java, vscode]
+    needs: [build, java, vscode, intellij]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/download-artifact@v4
         with:
           merge-multiple: true
+      # ktrs-*.zip includes the IntelliJ plugin (ktrs-intellij-<version>.zip).
       - name: Checksums
         run: sha256sum ktrs-*.tar.gz ktrs-*.zip ktrs-*.jar ktrs-*.vsix > SHA256SUMS
       - name: Publish

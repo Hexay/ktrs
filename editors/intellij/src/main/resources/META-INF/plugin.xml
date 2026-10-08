@@ -1,0 +1,27 @@
+<idea-plugin>
+    <id>io.github.hexay.ktrs</id>
+    <name>ktrs</name>
+    <vendor url="https://github.com/Hexay/ktrs">hexay</vendor>
+    <description><![CDATA[
+<p>ktlint diagnostics, quick fixes and ktfmt or ktlint formatting for Kotlin, from
+<a href="https://github.com/Hexay/ktrs">ktrs</a>'s native language server (<code>ktrs lsp</code>). No JVM, a few
+milliseconds per file.</p>
+<ul>
+  <li><b>Diagnostics</b>: ktlint violations as you type, with the rule id.</li>
+  <li><b>Quick fixes</b>: fix one violation, fix all autocorrectable ones, suppress a rule on the line or in the file.</li>
+  <li><b>Formatting</b>: Reformat Code with ktfmt or ktlint's <code>--format</code>.</li>
+  <li><b>Build-aware</b>: reads the ktfmt/ktlint setup from Gradle or Maven.</li>
+</ul>
+<p>Runs on IntelliJ's LSP client (IntelliJ IDEA 2025.3+, Android Studio 2026.2+) or, in IDEs without it, on
+<a href="https://plugins.jetbrains.com/plugin/23257-lsp4ij">LSP4IJ</a>. Settings: <b>Settings | Tools | ktrs</b>.</p>
+]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends optional="true" config-file="ktrs-lsp.xml">com.intellij.modules.lsp</depends>
+    <depends optional="true" config-file="ktrs-lsp4ij.xml">com.redhat.devtools.lsp4ij</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <projectConfigurable parentId="tools" id="io.github.hexay.ktrs" displayName="ktrs"
+                             instance="io.github.hexay.ktrs.intellij.KtrsConfigurable"/>
+    </extensions>
+</idea-plugin>

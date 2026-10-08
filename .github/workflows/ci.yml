@@ -1,5 +1,5 @@
 # The self-contained gates: parser fixtures, PSI accessor hashes, ktfmt goldens, CLI tests, the JVM
-# wrapper, the Wasm build, the VS Code extension. Corpus diffs need the JVM oracles and run outside CI (see CLAUDE.md).
+# wrapper, the Wasm build, the VS Code extension, the IntelliJ plugin. Corpus diffs need the JVM oracles and run outside CI (see CLAUDE.md).
 name: ci
 
 on:
@@ -49,6 +49,22 @@ jobs:
       - name: Test the JVM wrapper and the Gradle plugin against target/debug/ktrs
         working-directory: java
         run: ./gradlew --console=plain test
+
+  # Unit tests, the integration test against target/debug/ktrs over both LSP clients, and the Plugin Verifier
+  # against the since-build IntelliJ IDEA and the current Android Studio.
+  intellij:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        run: rustup toolchain install stable --profile minimal && rustup default stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo build --locked --bins
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21, cache: gradle }
+      - name: Test and verify the plugin
+        working-directory: editors/intellij
+        run: ./gradlew --console=plain test buildPlugin verifyPlugin -PverifyAndroidStudio
 
   vscode:
     runs-on: ubuntu-24.04
