@@ -11,7 +11,7 @@ use ktrs_cli::ktlint::jpath::JPath;
 use ktrs_cli::ktlint::ktlint_jar::JvmEnv;
 
 #[path = "../common/mod.rs"]
-mod common;
+pub mod common;
 pub use common::TempDir;
 
 pub struct Project {

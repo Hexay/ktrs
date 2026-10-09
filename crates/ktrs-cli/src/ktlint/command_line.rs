@@ -163,6 +163,7 @@ impl KtlintCli {
             format: args.format,
             relative: args.relative,
             gradle_events: args.gradle_events.as_deref(),
+            github: args.ktrs_lint.github_reporter,
         };
         let cx = Context { console: &self.console, logger, working_dir: &self.working_dir, user_home: &self.user_home, env: &env };
         let mut reporter = aggregated_reporter(&baseline, &settings, &cx)?;
@@ -209,7 +210,7 @@ impl KtlintCli {
                 start.elapsed().as_millis()
             )
         });
-        if file_number == 0 {
+        if file_number == 0 && args.ktrs_lint.changed_files.is_none() {
             logger.warn(KTLINT_COMMAND_LINE, || format!("No files matched {}", java_list(&patterns)));
         }
         if run.processor.contains_unfixed_lint_errors.load(Ordering::SeqCst) {
@@ -238,8 +239,11 @@ impl KtlintCli {
 
     fn lint_files(&self, run: &Run, patterns: &[String], baseline: &Baseline, reporter: &mut dyn ReporterV2, logger: &Logger) -> Result<(), Exit> {
         let root_dir = self.working_dir.normalize();
-        let files = file_sequence(patterns, &root_dir, &self.user_home, logger)
+        let mut files = file_sequence(patterns, &root_dir, &self.user_home, logger)
             .map_err(|e| Exit::Crash(format!("java.util.regex.PatternSyntaxException: {e}")))?;
+        if let Some(changed) = &run.args.ktrs_lint.changed_files {
+            files.retain(|file| changed.contains(&file.to_path_buf()));
+        }
         let failure: Mutex<Option<Exit>> = Mutex::new(None);
         let reporter = Mutex::new(reporter);
         let relative_base = run.args.relative_to.as_ref().and_then(|dir| self.working_dir.resolve(dir)).unwrap_or_else(|| self.working_dir.clone());

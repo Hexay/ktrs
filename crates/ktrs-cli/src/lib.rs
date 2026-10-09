@@ -7,10 +7,13 @@
 //!   `ktrs serve` for build tools (ktfmt and ktlint requests), `ktrs lsp` (crates/ktrs-lsp) for editors, and
 //!   `ktrs migrate` (crates/ktrs-project's `migrate`) for switching builds to the drop-ins.
 
+pub mod changed_since;
+pub mod github_annotations;
 pub mod java_launcher;
 pub mod ktfmt;
 pub mod ktlint;
 pub mod ktrs;
+pub mod ktrs_fmt;
 pub mod ktrs_lint;
 pub mod migrate;
 pub mod serve;

@@ -103,6 +103,7 @@ pub struct KtlintArgs {
     pub gradle_events: Option<String>,
     pub relative_to: Option<String>,
     pub editor_config_overrides: Vec<String>,
+    pub ktrs_lint: crate::ktlint::ktrs_only::KtrsLintOptions,
 }
 
 impl Default for KtlintArgs {
@@ -128,6 +129,7 @@ impl Default for KtlintArgs {
             gradle_events: None,
             relative_to: None,
             editor_config_overrides: Vec::new(),
+            ktrs_lint: Default::default(),
         }
     }
 }

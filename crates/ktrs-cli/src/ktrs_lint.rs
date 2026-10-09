@@ -8,11 +8,14 @@
 
 use ktrs_lint::rule_provider::rule_providers_in;
 
+use crate::changed_since::{ChangedFiles, OPTION as CHANGED_SINCE};
+use crate::github_annotations::REPORTER_ID;
 use crate::ktlint::KtlintCli;
 use crate::ktlint::args::KtlintArgs;
 use crate::ktlint::command_line::Exit;
 use crate::ktlint::jar_providers::jvm_only_jar;
 use crate::ktlint::ktlint_jar::run_ktlint_jar;
+use crate::ktlint::ktrs_only::KtrsLintOptions;
 use crate::ktlint::logger::{Level, Logger};
 use crate::ktlint::version::{KTLINT_VERSION_OPTION, exit_value, resolve_ktlint_version};
 
@@ -20,7 +23,10 @@ pub const HELP: &str = "\
 Lint options (ktrs lint; the flags of the ktlint drop-in):
   -F, --format                      Fix what can be autocorrected, report the rest
   --reporter <id[,output=file]>     plain (default), plain?group_by_file, plain-summary, json,
-                                      checkstyle, sarif, html, format; repeatable
+                                      checkstyle, sarif, html, format, github (GitHub Actions
+                                      annotations, `::error file=...`); repeatable
+  --changed-since <ref>             Only files that differ from the merge base of <ref> and HEAD,
+                                      uncommitted and untracked ones included (needs git)
   -R, --ruleset <jar[,jar]>         Also run the rules of a ktlint rule set JAR; repeatable. Other
                                       than compose-rules, runs ktlint's jar (needs `java`)
   --baseline <file>                 Ignore the violations recorded in <file> (written if missing)
@@ -41,19 +47,35 @@ pub fn run(args: &[String]) -> Result<i32, String> {
 /// [`run`] in `cli`'s working directory and console.
 pub fn run_with(cli: &KtlintCli, args: &[String]) -> Result<i32, String> {
     let ktlint_version = resolve_ktlint_version(args, &cli.working_dir.to_path_buf())?;
-    let parsed = KtlintArgs { ktlint_version, ..parse_lint_args(args)? };
+    let mut parsed = KtlintArgs { ktlint_version, ..parse_lint_args(args)? };
     let list_rules = args.iter().any(|a| a == LIST_RULES);
     if let Some(jar) = jvm_only_jar(&parsed, &cli.working_dir, &cli.user_home) {
         if list_rules {
             return Err(format!("{LIST_RULES} can not list the rules of '{jar}', a ktlint plugin JAR ktrs can not run natively"));
+        }
+        if let Some(option) = ktrs_only_option(&parsed) {
+            return Err(format!("{option} is not available with '{jar}', a ktlint plugin JAR that runs on ktlint's jar"));
         }
         return Ok(run_ktlint_jar(&cli.jvm, ktlint_version, &ktlint_argv(&parsed), &cli.working_dir.to_path_buf(), &cli.console, &jar));
     }
     if list_rules {
         return Ok(print_rule_ids(cli, &parsed));
     }
+    if let Some(reference) = &parsed.ktrs_lint.changed_since {
+        parsed.ktrs_lint.changed_files = Some(ChangedFiles::since(reference, &cli.working_dir.to_path_buf())?);
+    }
     ktrs_lint::engine::silence_caught_rule_panics();
     Ok(cli.run_lint(&parsed))
+}
+
+/// The option of this run that ktlint's jar does not have, if any.
+fn ktrs_only_option(args: &KtlintArgs) -> Option<String> {
+    let is_github = |reporter: &String| reporter.split([',', '?']).next() == Some(REPORTER_ID);
+    if args.ktrs_lint.changed_since.is_some() {
+        Some(CHANGED_SINCE.to_owned())
+    } else {
+        args.reporter_configurations.iter().any(is_github).then(|| format!("--reporter {REPORTER_ID}"))
+    }
 }
 
 fn print_rule_ids(cli: &KtlintCli, args: &KtlintArgs) -> i32 {
@@ -71,7 +93,8 @@ fn print_rule_ids(cli: &KtlintCli, args: &KtlintArgs) -> i32 {
 
 /// The options without `--ktlint-version`, which [`resolve_ktlint_version`] reads.
 pub fn parse_lint_args(args: &[String]) -> Result<KtlintArgs, String> {
-    let mut parsed = KtlintArgs { relative: true, ..KtlintArgs::default() };
+    let ktrs_lint = KtrsLintOptions { github_reporter: true, ..KtrsLintOptions::default() };
+    let mut parsed = KtlintArgs { relative: true, ktrs_lint, ..KtlintArgs::default() };
     let mut args = args.iter();
     while let Some(arg) = args.next() {
         let (flag, inline_value) = match arg.split_once('=') {
@@ -86,6 +109,7 @@ pub fn parse_lint_args(args: &[String]) -> Result<KtlintArgs, String> {
             "--baseline" => parsed.baseline_path = value()?,
             "--editorconfig" => parsed.editor_config_path = Some(value()?),
             "--stdin-name" => parsed.stdin_path = Some(value()?),
+            CHANGED_SINCE => parsed.ktrs_lint.changed_since = Some(value()?),
             KTLINT_VERSION_OPTION => drop(value()?),
             LIST_RULES => {}
             "--limit" => {
@@ -102,6 +126,9 @@ pub fn parse_lint_args(args: &[String]) -> Result<KtlintArgs, String> {
     }
     if parsed.stdin_path.is_some() && !parsed.stdin {
         return Err("--stdin-name can only be used when reading from stdin (-)".to_owned());
+    }
+    if parsed.stdin && parsed.ktrs_lint.changed_since.is_some() {
+        return Err(format!("{CHANGED_SINCE} can not be used when reading from stdin (-)"));
     }
     if !parsed.stdin && parsed.arguments.is_empty() {
         parsed.arguments.push(".".to_owned());

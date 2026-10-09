@@ -93,3 +93,10 @@ pub fn assert_contains_exactly(mut actual: Vec<PathBuf>, expected: &[&Path]) {
     expected.sort();
     assert_eq!(actual, expected);
 }
+
+/// `git <args>` in `dir`, with an identity and no signing whatever the machine's configuration.
+pub fn git(dir: &Path, args: &[&str]) {
+    let config = ["-c", "user.name=ktrs", "-c", "user.email=ktrs@example.com", "-c", "commit.gpgsign=false", "-c", "core.autocrlf=false"];
+    let output = std::process::Command::new("git").arg("-C").arg(dir).args(config).args(args).output().unwrap();
+    assert!(output.status.success(), "git {args:?}: {}", String::from_utf8_lossy(&output.stderr));
+}

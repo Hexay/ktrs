@@ -2,16 +2,18 @@
 
 mod common;
 
+use std::io::Cursor;
+use std::path::Path;
+
 use common::{TempDir, strings, write_text};
-use ktrs_cli::ktfmt::Main;
-use ktrs_cli::ktrs::parse_fmt_args;
+use ktrs_cli::ktrs_fmt::{parse_fmt_args, run_with};
 
 /// Runs `ktrs fmt <args>` with `input` on stdin: exit code and stdout.
 fn fmt(input: &str, args: &[&str]) -> (i32, String) {
     let parsed = parse_fmt_args(&strings(args)).unwrap();
-    let main = Main::new(std::io::Cursor::new(input.as_bytes().to_vec()), Vec::new(), Vec::new());
-    let exit_code = main.run_parsed(&parsed);
-    (exit_code, String::from_utf8(main.into_streams().0).unwrap())
+    let mut out = Vec::new();
+    let exit_code = run_with(&parsed, Path::new("."), Cursor::new(input.as_bytes().to_vec()), &mut out, Vec::new()).unwrap();
+    (exit_code, String::from_utf8(out).unwrap())
 }
 
 const CODE: &str = "fun f() {\n  val x = 1\n}\n";
@@ -40,4 +42,9 @@ fn bad_arguments() {
     assert!(parse_fmt_args(&strings(&["--bogus"])).is_err());
     assert!(parse_fmt_args(&strings(&["-", "A.kt"])).is_err());
     assert!(parse_fmt_args(&strings(&["--stdin-name", "A.kt", "A.kt"])).is_err());
+    assert!(parse_fmt_args(&strings(&["--changed-since", "main", "-"])).is_err());
+    assert!(parse_fmt_args(&strings(&["--changed-since"])).is_err());
+    assert!(parse_fmt_args(&strings(&["--reporter", "github"])).is_err(), "only with --check");
+    assert!(parse_fmt_args(&strings(&["--check", "--reporter", "sarif"])).is_err());
+    assert!(parse_fmt_args(&strings(&["--check", "--reporter=plain"])).is_ok());
 }

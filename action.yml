@@ -9,6 +9,32 @@ inputs:
     description: Release tag to install, e.g. v0.2.0 (default the latest)
     required: false
     default: ""
+  check:
+    description: >-
+      What to run after installing, findings as annotations on the pull request's diff: `fmt` (`ktrs fmt --check`),
+      `lint` (`ktrs lint`) or `fmt lint` (default: nothing, install only)
+    required: false
+    default: ""
+  changed-only:
+    description: >-
+      With `check`: only the Kotlin files changed since `base`. The checkout needs the history back to it
+      (actions/checkout `fetch-depth: 0`)
+    required: false
+    default: "false"
+  base:
+    description: >-
+      The ref `changed-only` compares with (default: the pull request's base commit; on a push the commit before
+      it, or the default branch for a new branch or a force push)
+    required: false
+    default: ""
+  fmt-args:
+    description: More arguments for `ktrs fmt --check`, e.g. `--style kotlinlang src`
+    required: false
+    default: ""
+  lint-args:
+    description: More arguments for `ktrs lint`, e.g. `--ktlint-version 1.8 src`
+    required: false
+    default: ""
 
 runs:
   using: composite
@@ -22,3 +48,16 @@ runs:
       run: |
         sh "$GITHUB_ACTION_PATH/install.sh"
         echo "$KTRS_INSTALL_DIR" >> "$GITHUB_PATH"
+    - name: Check Kotlin files
+      if: inputs.check != ''
+      shell: bash
+      env:
+        KTRS_INSTALL_DIR: ${{ runner.tool_cache }}/ktrs/bin
+        KTRS_CHECK: ${{ inputs.check }}
+        KTRS_CHANGED_ONLY: ${{ inputs.changed-only }}
+        KTRS_BASE: ${{ inputs.base }}
+        KTRS_EVENT_BASE: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.event.before }}
+        KTRS_DEFAULT_BASE: origin/${{ github.event.repository.default_branch }}
+        KTRS_FMT_ARGS: ${{ inputs.fmt-args }}
+        KTRS_LINT_ARGS: ${{ inputs.lint-args }}
+      run: sh "$GITHUB_ACTION_PATH/tools/action/check.sh"

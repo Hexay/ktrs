@@ -56,10 +56,12 @@ Linux, add `--user "$(id -u):$(id -g)"` to keep fixed files owned by you.
 ktrs fmt                              # format every .kt/.kts under the current directory
 ktrs fmt --style kotlinlang src/      # styles: meta (default), google, kotlinlang
 ktrs fmt --check                      # CI: list files that would change, exit 1 if any
+ktrs fmt --changed-since main         # only files changed since the merge base with main
 ktrs fmt - < Foo.kt                   # stdin to stdout, for editors
 
 ktrs lint                             # check every .kt/.kts under the current directory
 ktrs lint --format src/               # autocorrect what can be fixed, report the rest
+ktrs lint --changed-since main        # only files changed since the merge base with main
 ktrs lint --reporter json - < Foo.kt  # reporters: plain, json, checkstyle, sarif, html, ...
 ```
 
@@ -118,11 +120,32 @@ ktrs migrate --write    # apply them
 
 ### GitHub Actions
 
+Check a pull request's Kotlin files, with each finding shown as an annotation on the diff:
+
 ```yaml
+- uses: actions/checkout@v4
+  with: { fetch-depth: 0 }         # changed-only needs the history back to the base commit
 - uses: Hexay/ktrs@v0.5.1          # Linux, macOS and Windows
-- run: ktrs fmt --check --style kotlinlang
-- run: ktrs lint
+  with:
+    check: fmt lint                # ktrs fmt --check and ktrs lint (or just one of them)
+    changed-only: true             # only the files the pull request changes
+    fmt-args: --style kotlinlang   # lint-args likewise
 ```
+
+`changed-only` compares with the pull request's base commit. On a push it compares with the commit
+before the push, or with the default branch for a new branch or a force push; `base: <ref>` overrides
+this. Without `check`, the action only installs the binaries, and you run them yourself:
+
+```yaml
+- uses: Hexay/ktrs@v0.5.1
+- run: ktrs fmt --check --style kotlinlang
+- run: ktrs lint --reporter github --changed-since origin/main
+```
+
+`--changed-since <ref>` (`ktrs fmt` and `ktrs lint`) keeps the files that differ from the merge base
+of `<ref>` and `HEAD`, including uncommitted and untracked ones. `--reporter github` (`ktrs lint` and
+`ktrs fmt --check`) prints the findings as annotations. GitHub shows at most 10 annotations per step;
+the job log has all of them.
 
 ### pre-commit
 

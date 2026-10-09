@@ -21,6 +21,8 @@ Milestone 1: the parser's tree must be identical to the Kotlin compiler's PSI (`
   releases build `--profile dist` (`.github/workflows/release.yml`).
   Adoption gaps and integrations: research/08-drop-in-replacement.md. `ktrs serve` is the build-tool
   server (protocol in `crates/ktrs-cli/src/serve.rs`).
+- `action.yml` — the GitHub Action: installs via `install.sh`; its `check` input runs `tools/action/check.sh`
+  (`ktrs fmt --check`/`ktrs lint` with `--reporter github`, `--changed-since`).
 - `crates/ktrs-lsp` — `ktrs lsp` (lsp-server, sync): ktlint diagnostics/fixes/suppressions, ktfmt or ktlint formatting;
   protocol and settings in its `src/lib.rs` docs; tests `cargo test -p ktrs-cli --test lsp` (fixes vs our `ktlint -F`).
 - `crates/ktrs-wasm` + `site/` — the browser playground (plain Wasm exports, no bindgen); build and

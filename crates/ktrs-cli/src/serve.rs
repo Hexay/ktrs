@@ -31,7 +31,7 @@ use std::path::Path;
 use ktrs_fmt::{FormatError, FormattingOptions, TrailingCommaManagementStrategy};
 
 use crate::ktfmt::editor_config_resolver;
-use crate::ktrs::style;
+use crate::ktrs_fmt::style;
 use crate::serve_ktlint::KtlintRequests;
 
 pub const PROTOCOL_VERSION: u32 = 2;

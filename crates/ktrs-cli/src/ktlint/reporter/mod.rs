@@ -4,6 +4,7 @@
 pub mod baseline;
 pub mod checkstyle;
 pub mod format;
+pub mod github;
 pub mod html;
 pub mod java_map;
 pub mod json;
