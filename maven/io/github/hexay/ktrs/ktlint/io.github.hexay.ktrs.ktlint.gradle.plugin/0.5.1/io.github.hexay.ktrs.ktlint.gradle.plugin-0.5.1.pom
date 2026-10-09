@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>io.github.hexay.ktrs.ktlint</groupId>
+  <artifactId>io.github.hexay.ktrs.ktlint.gradle.plugin</artifactId>
+  <version>0.5.1</version>
+  <packaging>pom</packaging>
+  <name>ktrs ktlint (ktlint-gradle drop-in)</name>
+  <description>Drop-in replacement for org.jlleitschuh.gradle.ktlint 14.2.0: same DSL, tasks and reports, linting through ktrs, a native port of ktlint 1.8.0 and 2.0.0-ALPHA-4.</description>
+  <dependencies>
+    <dependency>
+      <groupId>io.github.hexay</groupId>
+      <artifactId>ktrs-gradle-plugin</artifactId>
+      <version>0.5.1</version>
+    </dependency>
+  </dependencies>
+</project>

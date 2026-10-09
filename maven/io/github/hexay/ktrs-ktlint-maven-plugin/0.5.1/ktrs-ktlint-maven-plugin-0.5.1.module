@@ -1,0 +1,128 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "io.github.hexay",
+    "module": "ktrs-ktlint-maven-plugin",
+    "version": "0.5.1",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "9.8.0"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 11,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "ktrs-ktlint-maven-plugin-0.5.1.jar",
+          "url": "ktrs-ktlint-maven-plugin-0.5.1.jar",
+          "size": 67372,
+          "sha512": "3fd6e86b4d8bb194120055095c20cb61074b1c468e773418ed2110b83b7a80a18b5a4016792c73ae63463e231af682a8e4c483c87fb259993d915a70ae778fd9",
+          "sha256": "ab3c6a09865964a85dce8d2dce788f7ce5c4f7a24de0902c232a3d631b52ee1c",
+          "sha1": "135021b1b9f093d40714310c829222a8e45d365a",
+          "md5": "8d33651cf86befa237d0cd4e9661bbaa"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 11,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "io.github.hexay",
+          "module": "ktrs",
+          "version": {
+            "requires": "0.5.1"
+          }
+        },
+        {
+          "group": "org.apache.maven.shared",
+          "module": "maven-shared-utils",
+          "version": {
+            "requires": "3.4.2"
+          }
+        },
+        {
+          "group": "org.apache.maven.reporting",
+          "module": "maven-reporting-impl",
+          "version": {
+            "requires": "3.1.0"
+          },
+          "excludes": [
+            {
+              "group": "org.codehaus.plexus",
+              "module": "plexus-container-default"
+            },
+            {
+              "group": "com.google.collections",
+              "module": "google-collections"
+            },
+            {
+              "group": "dom4j",
+              "module": "dom4j"
+            },
+            {
+              "group": "org.apache.struts",
+              "module": "*"
+            }
+          ]
+        },
+        {
+          "group": "org.dom4j",
+          "module": "dom4j",
+          "version": {
+            "requires": "2.1.5"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "ktrs-ktlint-maven-plugin-0.5.1.jar",
+          "url": "ktrs-ktlint-maven-plugin-0.5.1.jar",
+          "size": 67372,
+          "sha512": "3fd6e86b4d8bb194120055095c20cb61074b1c468e773418ed2110b83b7a80a18b5a4016792c73ae63463e231af682a8e4c483c87fb259993d915a70ae778fd9",
+          "sha256": "ab3c6a09865964a85dce8d2dce788f7ce5c4f7a24de0902c232a3d631b52ee1c",
+          "sha1": "135021b1b9f093d40714310c829222a8e45d365a",
+          "md5": "8d33651cf86befa237d0cd4e9661bbaa"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "ktrs-ktlint-maven-plugin-0.5.1-sources.jar",
+          "url": "ktrs-ktlint-maven-plugin-0.5.1-sources.jar",
+          "size": 31044,
+          "sha512": "a3cb7e1d19c3ccbe50cce1f9240cbb2cab21199fb04dfb1e3e2a510e2ab04313fbbf2b7776f9411e953d998ea6c41ebb0e37a9db6924bae81c3fb4c497c18505",
+          "sha256": "b3fc6ebfc27f132276f923192eaed07f8ecf6be76e774036dc83b9ca8764d43b",
+          "sha1": "5ce35ff491a63d31ff3539eea5e8ef12fb8a84d0",
+          "md5": "cfd17c33341849cb126cc4ddd21afbe7"
+        }
+      ]
+    }
+  ]
+}

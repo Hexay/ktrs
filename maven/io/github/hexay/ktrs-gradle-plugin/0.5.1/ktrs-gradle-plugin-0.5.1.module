@@ -1,0 +1,136 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "io.github.hexay",
+    "module": "ktrs-gradle-plugin",
+    "version": "0.5.1",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "9.8.0"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "2.4.10"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "ktrs-gradle-plugin-0.5.1.jar",
+          "url": "ktrs-gradle-plugin-0.5.1.jar",
+          "size": 195321,
+          "sha512": "9c31bfe64e0202bbe9233ed7b49870e06561098cd02b9eaff783efb3910af4a992a62d19983dbb0cc3fa2060140d7ea4ab8a82365f29de6a4c47e03ee34d7968",
+          "sha256": "037b295e93cd46f33df3bea54e6dbea57f7018c0d9e419bf8b8065a54a91d6a0",
+          "sha1": "434f24993438f135372aba8e74ad67e14fe9c162",
+          "md5": "1f9253af1e546a9e0698254f039431a4"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "dependencies": [
+        {
+          "group": "io.github.hexay",
+          "module": "ktrs",
+          "version": {
+            "requires": "0.5.1"
+          }
+        },
+        {
+          "group": "io.github.java-diff-utils",
+          "module": "java-diff-utils",
+          "version": {
+            "requires": "4.17"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "2.4.10"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "ktrs-gradle-plugin-0.5.1.jar",
+          "url": "ktrs-gradle-plugin-0.5.1.jar",
+          "size": 195321,
+          "sha512": "9c31bfe64e0202bbe9233ed7b49870e06561098cd02b9eaff783efb3910af4a992a62d19983dbb0cc3fa2060140d7ea4ab8a82365f29de6a4c47e03ee34d7968",
+          "sha256": "037b295e93cd46f33df3bea54e6dbea57f7018c0d9e419bf8b8065a54a91d6a0",
+          "sha1": "434f24993438f135372aba8e74ad67e14fe9c162",
+          "md5": "1f9253af1e546a9e0698254f039431a4"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "ktrs-gradle-plugin-0.5.1-javadoc.jar",
+          "url": "ktrs-gradle-plugin-0.5.1-javadoc.jar",
+          "size": 261,
+          "sha512": "1487e5a20c9e4d74f298e07c42e96a61be11b7a768c3fbc199ee138cd68e1fc2267d1cfe3f11f288acc05df755315344d052cc5f6f751f126ab4fe1caa5125ea",
+          "sha256": "c6deada2fac53b8ea6523dbda77597b128006674616f140f04df23264c6d1aa3",
+          "sha1": "2ad14aed781c4a73ed4dbb421966d408a0a06686",
+          "md5": "f43436d6bec321290f6af228ad602604"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "ktrs-gradle-plugin-0.5.1-sources.jar",
+          "url": "ktrs-gradle-plugin-0.5.1-sources.jar",
+          "size": 50255,
+          "sha512": "aa71d295933f1c4b3044a94cb58995ed14e5ff823e95053fee83ded2f27745e9e17fdcdd77176d8010c0e25904110bca08f281a69d56c8318b45c245f16e656b",
+          "sha256": "ee8b8a1a28addc3ff39c4056f56e08ca67c7aa1a8b38fb436d6db938d41c58ab",
+          "sha1": "05f320bcbc93d74c921abdd40645ae49d2ef8746",
+          "md5": "2a9b6957e23b85b62fb7b125006fd4f8"
+        }
+      ]
+    }
+  ]
+}

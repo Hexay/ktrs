@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <!-- This module was also published with a richer model, Gradle metadata,  -->
+  <!-- which should be used instead. Do not delete the following line which  -->
+  <!-- is to indicate to Gradle or any Gradle module metadata file consumer  -->
+  <!-- that they should prefer consuming it instead. -->
+  <!-- do_not_remove: published-with-gradle-metadata -->
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>io.github.hexay</groupId>
+  <artifactId>ktrs-ktlint-maven-plugin</artifactId>
+  <version>0.5.1</version>
+  <packaging>maven-plugin</packaging>
+  <name>ktrs ktlint Maven plugin</name>
+  <description>Drop-in replacement for com.github.gantsign.maven:ktlint-maven-plugin 3.7.1: same goals, parameters and reports, linting through ktrs, a native port of ktlint 1.8.0 and 2.0.0-ALPHA-4.</description>
+  <url>https://github.com/Hexay/ktrs</url>
+  <licenses>
+    <license>
+      <name>MIT</name>
+      <url>https://github.com/Hexay/ktrs/blob/master/LICENSE-MIT</url>
+    </license>
+    <license>
+      <name>Apache-2.0</name>
+      <url>https://github.com/Hexay/ktrs/blob/master/LICENSE-APACHE</url>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <id>Hexay</id>
+      <name>Hexay</name>
+      <url>https://github.com/Hexay</url>
+    </developer>
+  </developers>
+  <scm>
+    <connection>scm:git:https://github.com/Hexay/ktrs.git</connection>
+    <url>https://github.com/Hexay/ktrs</url>
+  </scm>
+  <dependencies>
+    <dependency>
+      <groupId>io.github.hexay</groupId>
+      <artifactId>ktrs</artifactId>
+      <version>0.5.1</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.shared</groupId>
+      <artifactId>maven-shared-utils</artifactId>
+      <version>3.4.2</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.reporting</groupId>
+      <artifactId>maven-reporting-impl</artifactId>
+      <version>3.1.0</version>
+      <scope>runtime</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.codehaus.plexus</groupId>
+          <artifactId>plexus-container-default</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.google.collections</groupId>
+          <artifactId>google-collections</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>dom4j</groupId>
+          <artifactId>dom4j</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.struts</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.dom4j</groupId>
+      <artifactId>dom4j</artifactId>
+      <version>2.1.5</version>
+      <scope>runtime</scope>
+    </dependency>
+  </dependencies>
+</project>
