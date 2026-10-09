@@ -7,6 +7,7 @@ mod formatter;
 mod formatter_context;
 mod formatting_options;
 pub mod input;
+mod kotlin_code;
 mod kotlin_input_ast_visitor;
 pub mod kotlin_text;
 mod multiline_string_formatter;
@@ -19,11 +20,12 @@ mod trailing_commas;
 
 use std::fmt;
 
-use crate::doc::{FormatterException, FormattingError};
+use crate::doc::{FormatterException, FormattingError, RangeSet};
 
-pub use formatter::{GOOGLE_FORMAT, KOTLINLANG_FORMAT, META_FORMAT, format_meta, format_remove_unused_imports};
+pub use formatter::{GOOGLE_FORMAT, KOTLINLANG_FORMAT, META_FORMAT, format_meta};
 pub use formatting_options::{Builder as FormattingOptionsBuilder, FormattingOptions, TrailingCommaManagementStrategy};
 pub use input::ParseError;
+pub use kotlin_code::{FileType, KotlinCode};
 
 /// Whatever `Formatter.format` throws.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -31,7 +33,7 @@ pub enum FormatError {
     Parse(ParseError),
     Formatting(FormattingError),
     Formatter(FormatterException),
-    /// Any other JVM exception, as its `toString()` (e.g. `IndexOutOfBoundsException` on a lone shebang line).
+    /// Any other JVM exception, as its `toString()` (e.g. `IllegalArgumentException` for an unsupported file type).
     Runtime(String),
     /// The parser's `AssertionError`, a JVM `Error` ktfmt's CLI doesn't catch (research/24, finding 4).
     MissedTokens(ktrs_syntax::MissedTokens),
@@ -69,7 +71,17 @@ impl From<FormatterException> for FormatError {
     }
 }
 
-/// `Formatter.format(options, code)`: formats a whole file; fails like ktfmt on unparseable input.
-pub fn format(code: &str, options: &FormattingOptions) -> Result<String, FormatError> {
-    formatter::format(options, code)
+/// `Formatter.format(options, KotlinCode(code, fileType))`: formats a whole file; fails like ktfmt on unparseable input.
+pub fn format(code: &str, file_type: FileType, options: &FormattingOptions) -> Result<String, FormatError> {
+    formatter::format(options, &KotlinCode::from(code, file_type)?, None)
+}
+
+/// `Formatter.format(options, code, characterRanges)`: with ranges (byte offsets into `code.code`),
+/// only those are pretty-printed; the whole-file cleanup passes still run.
+pub fn format_code(
+    options: &FormattingOptions,
+    code: &KotlinCode,
+    character_ranges: Option<&RangeSet>,
+) -> Result<String, FormatError> {
+    formatter::format(options, code, character_ranges)
 }

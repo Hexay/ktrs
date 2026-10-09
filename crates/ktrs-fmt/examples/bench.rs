@@ -13,6 +13,8 @@ use std::{
     time::{Duration, Instant},
 };
 
+use ktrs_fmt::FileType;
+
 #[global_allocator]
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
@@ -39,7 +41,8 @@ fn main() {
     let (mut total, mut parse) = (0.0, 0.0);
     let mut per_file = Vec::new();
     for (path, text) in &texts {
-        let t = clock.best_of(reps, || ktrs_fmt::format(text, &ktrs_fmt::META_FORMAT));
+        let file_type = FileType::of_file_or_script(Some(path.as_path()));
+        let t = clock.best_of(reps, || ktrs_fmt::format(text, file_type, &ktrs_fmt::META_FORMAT));
         parse += clock.best_of(reps, || ktrs_parser::parse_file(text, ktrs_parser::FileKind::Script));
         total += t;
         per_file.push((t, text.len(), path));
@@ -64,8 +67,8 @@ fn run_parallel(texts: &[(PathBuf, String)], threads: usize, clock: &Clock, mb: 
             .map(|_| {
                 s.spawn(|| {
                     clock.best_of(1, || {
-                        while let Some((_, text)) = texts.get(next.fetch_add(1, Ordering::Relaxed)) {
-                            drop(ktrs_fmt::format(text, &ktrs_fmt::META_FORMAT));
+                        while let Some((path, text)) = texts.get(next.fetch_add(1, Ordering::Relaxed)) {
+                            drop(ktrs_fmt::format(text, FileType::of_file_or_script(Some(path.as_path())), &ktrs_fmt::META_FORMAT));
                         }
                     })
                 })

@@ -20,6 +20,7 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
         self.block(Indent::ZERO, |v| {
             if let Some(context_receiver_list) = &context_receiver_list {
                 v.visit_context_receiver_list(context_receiver_list);
+                v.builder.forced_break();
             }
             if let Some(modifier_list) = &modifier_list {
                 v.visit_modifier_list(modifier_list);
@@ -206,7 +207,7 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
 
     /// Example `context(logger: Logger, raise: Raise<Error>)`, or the legacy receiver form
     /// `context(Logger, Raise<Error>)` (still used by function types).
-    pub(super) fn handle_context_receiver_list(&mut self, context_receiver_list: &KtContextReceiverList) {
+    pub(super) fn visit_context_receiver_list(&mut self, context_receiver_list: &KtContextReceiverList) {
         self.sync(context_receiver_list);
         self.token("context");
         self.visit_each_comma_separated(
@@ -219,11 +220,6 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
                 ..self.comma_separated()
             },
         );
-    }
-
-    pub(super) fn visit_context_receiver_list(&mut self, context_receiver_list: &KtContextReceiverList) {
-        self.handle_context_receiver_list(context_receiver_list);
-        self.builder.forced_break();
     }
 }
 

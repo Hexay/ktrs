@@ -13,7 +13,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use ktrs_fmt::{FormattingOptions, GOOGLE_FORMAT, KOTLINLANG_FORMAT, META_FORMAT, format};
+use ktrs_fmt::{FileType, FormattingOptions, GOOGLE_FORMAT, KOTLINLANG_FORMAT, KotlinCode, META_FORMAT, format_code};
 
 use crate::corpus_diff::collect;
 
@@ -149,8 +149,11 @@ fn check(dir: &Path, oracle: &Path, rejected: &HashSet<String>, options: &Format
     // The CLI strips a UTF-8 BOM before formatting.
     let code = text.strip_prefix('\u{feff}').unwrap_or(&text);
     // An already-formatted file is not rewritten, so its BOM survives.
+    // Mirrors `Main.format`: already formatted iff the output equals the code with its line
+    // separators unified, and then the file (with any BOM) is left alone.
     let formatted = panic::catch_unwind(AssertUnwindSafe(|| {
-        format(code, options).map(|out| if out == code { text.clone() } else { out })
+        let code = KotlinCode::from(code, FileType::of_file(file)?)?;
+        format_code(options, &code, None).map(|out| if out == code.to_string() { text.clone() } else { out })
     }));
     result.time = start.elapsed();
     result.outcome = match (formatted, oracle_rejected) {

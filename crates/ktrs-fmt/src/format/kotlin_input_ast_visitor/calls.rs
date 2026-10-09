@@ -24,6 +24,10 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
         lambda_indent: Indent,
         negative_lambda_indent: Indent,
     ) {
+        // `KtCallElement.trailingLambda`, which upstream's callers evaluate before any op of this call.
+        if lambda_arguments.len() > 1 {
+            return self.throw_parse_error("Maximum one trailing lambda is allowed", &lambda_arguments[1].upcast());
+        }
         self.block(lambda_indent, |v| {
             // Tracks whether a break in the argument list requires indenting the lambda.
             let mut broke_before_brace: Option<BreakTag> = None;
@@ -37,13 +41,9 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
                     }
                 });
             });
-            match lambda_arguments.len() {
-                0 => {}
-                1 => {
-                    v.builder.space();
-                    v.visit_argument_internal(&lambda_arguments[0].upcast(), false, broke_before_brace.as_ref());
-                }
-                _ => v.throw_parse_error("Maximum one trailing lambda is allowed", &lambda_arguments[1].upcast()),
+            if let Some(trailing_lambda) = lambda_arguments.first() {
+                v.builder.space();
+                v.visit_argument_internal(&trailing_lambda.upcast(), false, broke_before_brace.as_ref());
             }
         });
     }
@@ -151,6 +151,12 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
             self.builder.break_op(FillMode::Unified, " ", brace_plus_zero_indent.clone());
         }
 
+        let block_comments: Vec<PsiElement> = body_expression
+            .node()
+            .children()
+            .map(|c| c.psi())
+            .filter(|c| c.is::<PsiComment>() && c.text_slice().starts_with("/*"))
+            .collect();
         if has_statements {
             self.builder.break_op(FillMode::Unified, "", brace_plus_block_indent.clone());
             self.block(brace_plus_block_indent, |v| {
@@ -170,26 +176,16 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
                 }
                 v.builder.break_op(FillMode::Unified, " ", brace_plus_zero_indent.clone());
             });
-        } else if has_comments {
-            let block_comments: Vec<PsiElement> = body_expression
-                .node()
-                .children()
-                .map(|c| c.psi())
-                .filter(|c| c.is::<PsiComment>() && c.text_slice().starts_with("/*"))
-                .collect();
+        } else if !block_comments.is_empty() {
             self.builder.break_op(FillMode::Unified, "", brace_plus_block_indent.clone());
             self.block(brace_plus_block_indent, |v| {
                 v.fence_comments();
                 v.builder.blank_line_wanted(BlankLineWanted::NO);
-                if block_comments.len() == 1 {
-                    v.token(&block_comments[0].text());
-                } else {
-                    for (i, comment) in block_comments.iter().enumerate() {
-                        if i > 0 {
-                            v.builder.forced_break();
-                        }
-                        v.token(comment.text_slice());
+                for (i, comment) in block_comments.iter().enumerate() {
+                    if i > 0 {
+                        v.builder.forced_break();
                     }
+                    v.token(comment.text_slice());
                 }
                 v.builder.break_op(FillMode::Unified, " ", brace_plus_zero_indent.clone());
             });

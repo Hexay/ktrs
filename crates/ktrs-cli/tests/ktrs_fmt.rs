@@ -37,6 +37,26 @@ fn editorconfig_applies_to_stdin_at_the_stdin_name() {
 }
 
 #[test]
+fn lines_and_offsets_format_part_of_the_input() {
+    let code = "fun untouched ( ) =   1\n\nfun test() {\n  val selected    =   2\n  val adjacent    =   3\n}\n";
+    let selected = "fun untouched ( ) =   1\n\nfun test() {\n  val selected = 2\n  val adjacent    =   3\n}\n";
+    assert_eq!(fmt(code, &["--lines", "4", "-"]), (0, selected.to_owned()));
+    assert_eq!(fmt(code, &["--lines=4:4", "-"]).1, selected);
+    let offset = code.find("selected").unwrap().to_string();
+    assert_eq!(fmt(code, &["--offset", &offset, "--length", "0", "-"]).1, selected);
+    assert_eq!(fmt(code, &["--check", "--lines", "1", "-"]).0, 1);
+
+    assert!(parse_fmt_args(&strings(&["--lines", "x", "-"])).is_err());
+    assert!(parse_fmt_args(&strings(&["--offset", "3", "-"])).is_err());
+    assert!(parse_fmt_args(&strings(&["--lines", "1"])).is_err(), "the default path is a directory");
+    assert!(parse_fmt_args(&strings(&["--lines", "1", "A.kt", "B.kt"])).is_err());
+    assert!(parse_fmt_args(&strings(&["--lines", "1", "--changed-since", "main", "A.kt"])).is_err());
+    assert!(parse_fmt_args(&strings(&["--offset", "1", "--length", "2", "--changed-since=main", "A.kt"])).is_err());
+    let github = parse_fmt_args(&strings(&["--check", "--reporter", "github", "--lines", "1", "A.kt"])).unwrap();
+    assert!(github.github && !github.parsed.line_ranges.is_empty());
+}
+
+#[test]
 fn bad_arguments() {
     assert!(parse_fmt_args(&strings(&["--style", "pretty"])).is_err());
     assert!(parse_fmt_args(&strings(&["--bogus"])).is_err());

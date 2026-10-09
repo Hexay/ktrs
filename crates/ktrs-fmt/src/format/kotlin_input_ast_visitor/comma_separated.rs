@@ -10,15 +10,15 @@ use super::KotlinInputAstVisitor;
 /// The named arguments of `visitEachCommaSeparated`; `KotlinInputAstVisitor::comma_separated` has
 /// upstream's defaults.
 #[derive(Clone, Copy)]
-pub(super) struct EachCommaSeparated {
+pub(super) struct EachCommaSeparated<'p> {
     /// Each element on its own line, even if they'd fit on one, and a trailing comma is emitted.
     pub has_trailing_comma: bool,
     /// Place all elements (not the prefix/postfix) in a block, negatively indented without a leading break.
     pub wrap_in_block: bool,
     /// Break before the first element.
     pub leading_break: bool,
-    pub prefix: Option<&'static str>,
-    pub postfix: Option<&'static str>,
+    pub prefix: Option<&'p str>,
+    pub postfix: Option<&'p str>,
     /// Break after the prefix, before the block.
     pub break_after_prefix: bool,
     /// Break after the last element; redundant with a trailing comma.
@@ -30,7 +30,7 @@ pub(super) fn psi_list<T: Into<PsiElement>>(list: Vec<T>) -> Vec<PsiElement> {
 }
 
 impl KotlinInputAstVisitor<'_, '_, '_> {
-    pub(super) fn comma_separated(&self) -> EachCommaSeparated {
+    pub(super) fn comma_separated(&self) -> EachCommaSeparated<'static> {
         EachCommaSeparated {
             has_trailing_comma: false,
             wrap_in_block: true,
@@ -42,13 +42,14 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
         }
     }
 
-    /// e.g., `a: Int, b: Int, c: Int` in `fun foo(a: Int, b: Int, c: Int) { ... }`.
+    /// e.g., `(a: Int, b: Int, c: Int)` in `(a: Int, b: Int, c: Int) -> Unit`.
     pub(super) fn visit_parameter_list(&mut self, list: &KtParameterList) {
         self.visit_each_comma_separated(
             &psi_list(list.parameters()),
             EachCommaSeparated {
                 has_trailing_comma: list.trailing_comma().is_some(),
-                wrap_in_block: false,
+                prefix: Some("("),
+                postfix: Some(")"),
                 ..self.comma_separated()
             },
         );
@@ -58,7 +59,7 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
     /// optionally wrapped in `prefix`/`postfix`. Returns a [BreakTag] telling whether a break was
     /// taken, but only when the list doesn't end in a negative closing indent (no trailing comma and
     /// no break before the postfix); otherwise `None`.
-    pub(super) fn visit_each_comma_separated(&mut self, list: &[PsiElement], args: EachCommaSeparated) -> Option<BreakTag> {
+    pub(super) fn visit_each_comma_separated(&mut self, list: &[PsiElement], args: EachCommaSeparated<'_>) -> Option<BreakTag> {
         let EachCommaSeparated {
             has_trailing_comma,
             wrap_in_block,

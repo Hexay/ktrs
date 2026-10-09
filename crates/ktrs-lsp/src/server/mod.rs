@@ -13,8 +13,8 @@ use lsp_server::{Connection, ErrorCode, Message, Notification, Request, Response
 use lsp_types::notification::{self as n, Notification as _};
 use lsp_types::request::{self as r, Request as _};
 use lsp_types::{
-    CodeActionKind, CodeActionOptions, CodeActionParams, CodeActionProviderCapability, DocumentFormattingParams, InitializeParams,
-    InitializeResult, LogMessageParams, MessageType, OneOf, PublishDiagnosticsParams, SaveOptions, ServerCapabilities, ServerInfo,
+    CodeActionKind, CodeActionOptions, CodeActionParams, CodeActionProviderCapability, DocumentFormattingParams,
+    DocumentRangeFormattingParams, InitializeParams, InitializeResult, LogMessageParams, MessageType, OneOf, PublishDiagnosticsParams, SaveOptions, ServerCapabilities, ServerInfo,
     ShowMessageParams, TextDocumentSyncCapability, TextDocumentSyncKind, TextDocumentSyncOptions, TextDocumentSyncSaveOptions, TextEdit,
     Uri,
 };
@@ -60,6 +60,7 @@ fn capabilities() -> ServerCapabilities {
             ..TextDocumentSyncOptions::default()
         })),
         document_formatting_provider: Some(OneOf::Left(true)),
+        document_range_formatting_provider: Some(OneOf::Left(true)),
         code_action_provider: Some(CodeActionProviderCapability::Options(CodeActionOptions {
             code_action_kinds: Some(vec![CodeActionKind::QUICKFIX, CodeActionKind::new(FIX_ALL_KIND)]),
             ..CodeActionOptions::default()
@@ -124,6 +125,7 @@ impl<'c> Server<'c> {
         let id = request.id.clone();
         let result = match request.method.as_str() {
             r::Formatting::METHOD => params(request.params).map(|p| self.formatting(p)).and_then(to_value),
+            r::RangeFormatting::METHOD => params(request.params).map(|p| self.range_formatting(p)).and_then(to_value),
             r::CodeActionRequest::METHOD => params(request.params).map(|p| self.code_actions(p)).and_then(to_value),
             method => return Response::new_err(id, ErrorCode::MethodNotFound as i32, format!("unsupported request {method}")),
         };
@@ -180,13 +182,24 @@ impl<'c> Server<'c> {
     }
 
     fn formatting(&mut self, params: DocumentFormattingParams) -> Option<Vec<TextEdit>> {
-        let uri = params.text_document.uri;
+        self.format(params.text_document.uri, None)
+    }
+
+    fn range_formatting(&mut self, params: DocumentRangeFormattingParams) -> Option<Vec<TextEdit>> {
+        self.format(params.text_document.uri, Some(params.range))
+    }
+
+    /// The edits formatting the document, or with `range` only that part of it (ktfmt only).
+    fn format(&mut self, uri: Uri, range: Option<lsp_types::Range>) -> Option<Vec<TextEdit>> {
         let path = self.documents.get(&uri)?.path.clone();
         let effective = self.effective(path.as_deref());
         let document = self.documents.get(&uri)?;
         let name = path.as_ref().map_or_else(|| uri.as_str().to_owned(), |p| p.display().to_string());
         let formatted = match effective.formatter? {
-            Formatter::Ktfmt { settings, editorconfig } => ktfmt(&document.text, &ktfmt_options(&settings, editorconfig, path.as_deref()), &name),
+            Formatter::Ktfmt { settings, editorconfig } => {
+                ktfmt(&document.text, &ktfmt_options(&settings, editorconfig, path.as_deref()), path.as_deref(), range, &name)
+            }
+            Formatter::Ktlint(_) if range.is_some() => Err(format!("{name}: ktlint has no range formatting; format the document instead")),
             Formatter::Ktlint(config) => {
                 let sender = &self.connection.sender;
                 let engine = self.engines.get_or_build(&config, &mut |warning| send_show(sender, MessageType::WARNING, warning));

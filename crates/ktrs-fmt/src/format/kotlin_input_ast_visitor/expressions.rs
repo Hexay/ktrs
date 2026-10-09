@@ -8,12 +8,16 @@ use crate::format::input::whitespace_tombstones::replace_trailing_whitespace_wit
 
 use super::KotlinInputAstVisitor;
 use super::comma_separated::{EachCommaSeparated, psi_list};
-use super::declarations::DeclarationKind;
 
 impl KotlinInputAstVisitor<'_, '_, '_> {
     /// Example `val (a, b: Int) = Pair(1, 2)` or `val [a, b] = Pair(1, 2)`
     pub(super) fn visit_destructuring_declaration(&mut self, destructuring_declaration: &KtDestructuringDeclaration) {
         self.sync(destructuring_declaration);
+        // The only modifiers a destructuring declaration can have are annotations.
+        if let Some(modifier_list) = destructuring_declaration.modifier_list() {
+            self.visit_modifier_list(&modifier_list);
+            self.builder.forced_break();
+        }
         if let Some(val_or_var_keyword) = destructuring_declaration.val_or_var_keyword() {
             self.token(val_or_var_keyword.text_slice());
             self.builder.space();
@@ -22,17 +26,18 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
         let opening_delimiter = destructuring_declaration.l_par().map_or_else(|| "(".to_owned(), |p| p.text());
         let closing_delimiter = destructuring_declaration.r_par().map_or_else(|| ")".to_owned(), |p| p.text());
         let ebi = self.expression_break_indent();
-        self.block(Indent::ZERO, |v| {
-            v.token(&opening_delimiter);
-            v.builder.break_op(FillMode::Unified, "", ebi.clone());
-            v.block(ebi.clone(), |v| {
-                v.visit_each_comma_separated(
-                    &psi_list(destructuring_declaration.entries()),
-                    EachCommaSeparated { has_trailing_comma, wrap_in_block: true, ..v.comma_separated() },
-                );
-            });
+        self.block(ebi.clone(), |v| {
+            v.visit_each_comma_separated(
+                &psi_list(destructuring_declaration.entries()),
+                EachCommaSeparated {
+                    has_trailing_comma,
+                    prefix: Some(opening_delimiter.as_str()),
+                    postfix: Some(closing_delimiter.as_str()),
+                    break_before_postfix: false,
+                    ..v.comma_separated()
+                },
+            );
         });
-        self.token(&closing_delimiter);
         if let Some(initializer) = destructuring_declaration.initializer() {
             self.builder.space();
             self.token("=");
@@ -45,15 +50,15 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
         }
     }
 
-    /// Example `a: String` or `x = a` which is part of `(a: String, x = a)`
+    /// Example `val a: String` or `x = a` which is part of `(val a: String, x = a)`
     pub(super) fn visit_destructuring_declaration_entry(&mut self, multi_declaration_entry: &KtDestructuringDeclarationEntry) {
         self.sync(multi_declaration_entry);
         let Some(name) = multi_declaration_entry.name_identifier().map(|n| n.text()) else { return self.fail() };
         let initializer = multi_declaration_entry.initializer().map(|i| i.upcast::<KtExpression>());
+        let val_or_var_keyword = multi_declaration_entry.own_val_or_var_keyword().map(|k| k.text());
         self.declare_one(
-            DeclarationKind::Parameter,
             multi_declaration_entry.modifier_list().as_ref(),
-            None,
+            val_or_var_keyword.as_deref(),
             None,
             None,
             Some(&name),

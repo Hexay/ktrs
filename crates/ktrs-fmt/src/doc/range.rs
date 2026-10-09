@@ -95,7 +95,7 @@ impl BoundedRange {
 }
 
 /// `TreeRangeSet<Integer>`: disjoint, unconnected ranges sorted by lower bound.
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct RangeSet {
     ranges: Vec<BoundedRange>,
 }
@@ -154,12 +154,34 @@ impl RangeSet {
         self.ranges.get(i).is_some_and(|r| r.contains(k)).then_some(i)
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.ranges.is_empty()
+    }
+
+    /// `addAll(other)`.
+    pub fn add_all(&mut self, other: &RangeSet) {
+        for range in &other.ranges {
+            self.add_bounded(*range);
+        }
+    }
+
     /// `subRangeSet(Range.closed(lower, upper))`.
     pub fn sub_range_set_closed(&self, lower: i32, upper: i32) -> RangeSet {
-        let bound = BoundedRange {
+        self.sub_range_set_bounded(BoundedRange {
             lower: (lower, false),
             upper: (upper, true),
-        };
+        })
+    }
+
+    /// `subRangeSet(Range.closedOpen(lower, upper))`.
+    pub fn sub_range_set(&self, range: Range) -> RangeSet {
+        self.sub_range_set_bounded(BoundedRange {
+            lower: (range.lower, false),
+            upper: (range.upper, false),
+        })
+    }
+
+    fn sub_range_set_bounded(&self, bound: BoundedRange) -> RangeSet {
         let ranges = self
             .ranges
             .iter()

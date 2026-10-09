@@ -1,4 +1,5 @@
-//! Port of ktfmt's `cli/MainTest.kt` (v0.64), first half; the rest, in order, is `ktfmt_main_flags.rs`.
+//! Port of ktfmt's `cli/MainTest.kt` (v0.65), first part; the rest, in order, is `ktfmt_main_flags.rs`
+//! and `ktfmt_main_partial.rs`.
 
 mod common;
 
@@ -165,7 +166,7 @@ fn kotlinlang_style_is_passed_to_formatter_file() {
 }
 
 #[test]
-fn kotlinlang_style_is_passed_to_formatter_stdin() {
+fn kotlinlang_style_is_used_for_stdin_without_an_editor_config_path() {
     let code = "fun f() {
 for (child in
 node.next.next.next.next.next.next.next.next.next.next.next.next.next.next.data()) {
@@ -180,6 +181,22 @@ println(child)
     }
 }
 ";
-    let r = run(code, &["--kotlinlang-style", "-"]);
+    let r = run(code, &["--kotlinlang-style", "--enable-editorconfig", "-"]);
     assert_eq!(r.out, formatted);
+}
+
+#[test]
+fn stdin_name_is_used_for_editor_config_without_reading_the_named_file() {
+    let root = TempDir::new("main");
+    write_text(&root.path().join(".editorconfig"), "root = true\n[src/Foo.kt]\nindent_size = 4");
+    let named_file = root.path().join("src/Foo.kt");
+    fs::create_dir_all(named_file.parent().unwrap()).unwrap();
+    let named_file_content = [0, 1, 2, 3];
+    fs::write(&named_file, named_file_content).unwrap();
+
+    let r = run("fun test() {\nprintln(\"stdin\")\n}\n", &["--enable-editorconfig", &format!("--stdin-name={}", arg(&named_file)), "-"]);
+
+    assert_eq!(r.exit_code, 0);
+    assert_eq!(r.out, "fun test() {\n    println(\"stdin\")\n}\n");
+    assert_eq!(fs::read(&named_file).unwrap(), named_file_content);
 }

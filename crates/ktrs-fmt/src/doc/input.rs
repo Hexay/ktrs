@@ -92,8 +92,15 @@ impl<'s> Tok<'s> {
     }
 
     #[inline]
+    pub fn is_shebang(&self) -> bool {
+        self.text.starts_with("#!")
+    }
+
+    /// A shebang is treated like a comment, otherwise it would not be preserved in the output; it
+    /// can only be at the start of the file (the parser fails otherwise).
+    #[inline]
     pub fn is_comment(&self) -> bool {
-        self.is_slash_slash_comment() || self.is_slash_star_comment()
+        self.is_slash_slash_comment() || self.is_slash_star_comment() || self.is_shebang()
     }
 }
 

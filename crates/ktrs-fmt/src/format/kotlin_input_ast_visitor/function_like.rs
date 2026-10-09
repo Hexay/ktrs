@@ -8,10 +8,8 @@ use crate::format::psi_utils::parens_have_only_whitespace_between;
 
 use super::KotlinInputAstVisitor;
 use super::comma_separated::{EachCommaSeparated, psi_list};
-use super::declarations::DeclarationKind;
 
-/// The parts of a `KtParameterList` the visitor reads; also stands for the fake list of
-/// `getParameterListWithBugFixes`.
+/// The parts of a `KtParameterList` the visitor reads.
 pub(super) struct ParameterList {
     pub parameters: Vec<KtParameter>,
     pub trailing_comma: Option<PsiElement>,
@@ -73,6 +71,7 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
         self.block_if(Indent::ZERO, force_trailing_break, |v| {
             if let Some(context_receiver_list) = context_receiver_list {
                 v.visit_context_receiver_list(context_receiver_list);
+                v.builder.forced_break();
             }
             if let Some(modifier_list) = modifier_list {
                 v.visit_modifier_list(modifier_list);
@@ -139,19 +138,7 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
                     v.visit(Some(body_expression));
                 } else {
                     v.builder.space();
-                    v.block(Indent::ZERO, |v| {
-                        v.token("=");
-                        if v.is_lambda_or_scoping_function(Some(body_expression)) {
-                            v.visit_lambda_or_scoping_function(Some(body_expression), true);
-                        } else if v.is_chained_scoping_function(body_expression) {
-                            v.visit_chained_scoping_function(&body_expression.upcast(), true);
-                        } else {
-                            v.block(ebi.clone(), |v| {
-                                v.builder.break_op(FillMode::Independent, " ", Indent::ZERO);
-                                v.block(Indent::ZERO, |v| v.visit(Some(body_expression)));
-                            });
-                        }
-                    });
+                    v.block(Indent::ZERO, |v| v.format_initializer_expression(body_expression, "="));
                 }
             }
             v.builder.guess_token(";");
@@ -199,7 +186,9 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
                 self.builder.blank_line_wanted(BlankLineWanted::PRESERVE);
             }
             first = false;
+            self.mark_for_partial_format();
             self.visit_statement(statement);
+            self.mark_for_partial_format();
         }
     }
 
@@ -209,7 +198,6 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
         let name = property.name_identifier().map(|n| n.text());
         self.block(Indent::ZERO, |v| {
             v.declare_one(
-                DeclarationKind::Field,
                 property.modifier_list().as_ref(),
                 Some(&val_or_var_keyword.text()),
                 property.type_parameter_list().as_ref(),

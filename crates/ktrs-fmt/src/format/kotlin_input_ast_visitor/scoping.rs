@@ -89,14 +89,13 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
 
         self.visit_lambda_or_scoping_function(Some(&root), emit_leading_break);
 
-        self.block(self.expression_break_indent(), |v| {
-            for part in &parts[1..] {
-                let Some(part) = part.cast::<KtQualifiedExpression>() else { return v.fail() };
-                if force_break_before_chain {
-                    v.builder.forced_break();
-                } else {
-                    v.builder.break_op(FillMode::Unified, "", Indent::ZERO);
-                }
+        // The break before each selector stays outside the selector's block, at the lambda's level,
+        // so it is taken exactly when the lambda breaks (#640).
+        let fill_mode = if force_break_before_chain { FillMode::Forced } else { FillMode::Unified };
+        for part in &parts[1..] {
+            let Some(part) = part.cast::<KtQualifiedExpression>() else { return self.fail() };
+            self.builder.break_op(fill_mode, "", self.expression_break_indent());
+            self.block(self.expression_break_indent(), |v| {
                 let Some(operation_sign) = part.operation_sign() else { return v.fail() };
                 v.token(operation_sign.value());
                 let selector_expression = part.selector_expression();
@@ -114,8 +113,8 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
                 } else {
                     v.visit(selector_expression.as_ref());
                 }
-            }
-        });
+            });
+        }
     }
 
     /// Whether `expression` is a scoping-function call whose lambda body spans multiple source lines.

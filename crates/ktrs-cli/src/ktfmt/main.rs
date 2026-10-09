@@ -1,4 +1,4 @@
-//! Port of ktfmt's `cli/Main.kt` (v0.64): formats files in place (in parallel) or stdin to stdout.
+//! Port of ktfmt's `cli/Main.kt` (v0.65): formats files in place (in parallel) or stdin to stdout.
 //! Messages, exit codes and write decisions match ktfmt's (`tools/ktfmt-oracle/cli-diff.sh`).
 //! Deviation: each file's messages are printed in file order, not in completion order.
 
@@ -8,11 +8,11 @@ use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 
-use ktrs_fmt::FormatError;
+use ktrs_fmt::{FileType, FormatError, KotlinCode};
 use ktrs_syntax::caught_panic::catch_quietly;
 
 use super::editor_config_resolver;
-use super::parsed_args::{ParseResult, ParsedArgs, process_args};
+use super::parsed_args::{ArgsException, ParseResult, ParsedArgs, process_args};
 
 const EXIT_CODE_FAILURE: i32 = 1;
 const EXIT_CODE_SUCCESS: i32 = 0;
@@ -76,9 +76,13 @@ impl<R: Read + Send, O: Write + Send, E: Write + Send> Main<R, O, E> {
                 EXIT_CODE_FAILURE
             }
             // Upstream's argfile read throws out of `main`: the JVM reports it and exits with 1.
-            Err(e) => {
+            Err(ArgsException::Io(e)) => {
                 let file = Path::new(&input_args[0][1..]);
                 report.err(&format!("Exception in thread \"main\" java.io.FileNotFoundException: {}", java_io_message(Some(file), &e)));
+                EXIT_CODE_FAILURE
+            }
+            Err(ArgsException::IllegalArgument(message)) => {
+                report.err(&format!("Exception in thread \"main\" java.lang.IllegalArgumentException: {message}"));
                 EXIT_CODE_FAILURE
             }
         };
@@ -107,6 +111,12 @@ impl<R: Read + Send, O: Write + Send, E: Write + Send> Main<R, O, E> {
         let files = expand_args_to_file_names(&parsed_args.file_names);
         if files.is_empty() {
             self.flush(&Report { err: format!("Error: no .kt files found{LINE_SEPARATOR}"), ..Report::default() });
+            return EXIT_CODE_FAILURE;
+        }
+
+        if is_partial_format(parsed_args) && files.len() != 1 {
+            let message = "partial formatting is only supported for a single file";
+            self.flush(&Report { err: format!("{message}{LINE_SEPARATOR}"), ..Report::default() });
             return EXIT_CODE_FAILURE;
         }
 
@@ -152,24 +162,37 @@ impl<R: Read + Send, O: Write + Send, E: Write + Send> Main<R, O, E> {
             report.err(&format!("Error formatting {file_name}: {}; skipping.", java_io_message(file, &e)));
         };
 
-        let formatting_options = match file {
-            Some(file) if args.editor_config => {
-                editor_config_resolver::resolve_formatting_options(file, &args.formatting_options)
+        let stdin_file = args.stdin_name.as_deref().filter(|it| !it.is_empty()).map(Path::new);
+        let editor_config_file = file.or(stdin_file);
+        let formatting_options = match editor_config_file {
+            Some(editor_config_file) if args.editor_config => {
+                editor_config_resolver::resolve_formatting_options(editor_config_file, &args.formatting_options)
             }
             _ => args.formatting_options,
         };
-        let bytes = match file {
-            Some(file) => fs::read(file).map_err(&mut io_error)?,
+        let (bytes, file_type) = match file {
+            Some(file) => (fs::read(file).map_err(&mut io_error)?, FileType::of_file(file)),
             None => {
                 let mut bytes = Vec::new();
                 self.input.lock().unwrap().read_to_end(&mut bytes).map_err(&mut io_error)?;
-                bytes
+                (bytes, Ok(FileType::Script))
             }
         };
         let text = String::from_utf8_lossy(&bytes);
-        let code = text.strip_prefix(UTF8_BOM).unwrap_or(&text);
-        let formatted_code = match catch_quietly(|| ktrs_fmt::format(code, &formatting_options)) {
-            Ok(Ok(formatted_code)) => formatted_code,
+        let text = text.strip_prefix(UTF8_BOM).unwrap_or(&text);
+        let formatted = catch_quietly(|| -> Result<(bool, String), FormatError> {
+            let code = KotlinCode::from(text, file_type?)?;
+            let formatted_code = if !is_partial_format(args) {
+                ktrs_fmt::format_code(&formatting_options, &code, None)?
+            } else {
+                let mut ranges = code.utf16_ranges_to_char_ranges(&args.character_ranges);
+                ranges.add_all(&code.line_ranges_to_char_ranges(&args.line_ranges));
+                ktrs_fmt::format_code(&formatting_options, &code, Some(&ranges))?
+            };
+            Ok((code.to_string() == formatted_code, formatted_code))
+        });
+        let (already_formatted, formatted_code) = match formatted {
+            Ok(Ok(formatted)) => formatted,
             Ok(Err(e)) => {
                 report_error(report, &file_name, &e);
                 return Err(());
@@ -177,7 +200,6 @@ impl<R: Read + Send, O: Write + Send, E: Write + Send> Main<R, O, E> {
             // A formatter bug: like an unexpected JVM exception, it fails only this file.
             Err(_) => return Err(()),
         };
-        let already_formatted = code == formatted_code;
 
         if args.dry_run {
             if !already_formatted {
@@ -203,6 +225,10 @@ impl<R: Read + Send, O: Write + Send, E: Write + Send> Main<R, O, E> {
             }
         }
     }
+}
+
+fn is_partial_format(args: &ParsedArgs) -> bool {
+    !args.line_ranges.is_empty() || !args.character_ranges.is_empty()
 }
 
 trait Flush {

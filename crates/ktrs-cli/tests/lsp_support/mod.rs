@@ -80,6 +80,11 @@ impl Client {
         serde_json::from_value(self.request("textDocument/formatting", params)).unwrap()
     }
 
+    pub fn format_range(&mut self, uri: &Uri, range: lsp_types::Range) -> Option<Vec<TextEdit>> {
+        let params = json!({"textDocument": {"uri": uri}, "range": range, "options": {"tabSize": 4, "insertSpaces": true}});
+        serde_json::from_value(self.request("textDocument/rangeFormatting", params)).unwrap()
+    }
+
     /// The code actions over the whole document as (title, kind, edits for `uri`).
     pub fn code_actions(&mut self, uri: &Uri, only: Option<&[&str]>) -> Vec<(String, String, Vec<TextEdit>)> {
         let range = json!({"start": {"line": 0, "character": 0}, "end": {"line": 10000, "character": 0}});

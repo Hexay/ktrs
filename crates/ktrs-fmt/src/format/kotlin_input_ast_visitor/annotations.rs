@@ -4,6 +4,7 @@
 use ktrs_psi::*;
 
 use crate::doc::{FillMode, Indent};
+use crate::format::psi_utils::top_level_annotations;
 
 use super::KotlinInputAstVisitor;
 use super::comma_separated::psi_list;
@@ -23,6 +24,7 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
             // In Kotlin 2.3+, context receiver lists are children of the modifier list.
             if let Some(context_receiver_list) = psi.cast::<KtContextReceiverList>() {
                 self.visit_context_receiver_list(&context_receiver_list);
+                self.builder.forced_break();
                 continue;
             }
 
@@ -48,12 +50,11 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
             let base_expression = expression.base_expression();
 
             v.block(Indent::ZERO, |v| {
-                let annotation_entries = expression.annotation_entries();
-                for (i, annotation_entry) in annotation_entries.iter().enumerate() {
-                    if i != 0 {
+                for (index, annotation) in top_level_annotations(expression).iter().enumerate() {
+                    if index > 0 {
                         v.builder.break_op(FillMode::Unified, " ", Indent::ZERO);
                     }
-                    v.visit(Some(annotation_entry));
+                    v.visit(Some(annotation));
                 }
             });
 

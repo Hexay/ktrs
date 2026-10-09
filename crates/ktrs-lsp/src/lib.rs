@@ -9,7 +9,12 @@
 //!   `data` = `{"autocorrectable": bool}`. Its range is the token at ktlint's line and column, zero-width when
 //!   there is none. An unparsable file gets no diagnostics.
 //! - `textDocument/formatting` with the effective formatter: ktfmt, or ktlint's `--format` (fix every
-//!   autocorrectable error). The result is one edit covering the changed lines. No range formatting.
+//!   autocorrectable error). The result is one edit covering the changed lines.
+//! - `textDocument/rangeFormatting`, ktfmt only (ktlint: `null` and a log line): ktfmt's partial formatting
+//!   (`--offset`/`--length`). The statements or members the range touches are pretty-printed whole; an empty
+//!   range means the one at the cursor. As in ktfmt, the whole-file cleanups still run afterwards (unused and
+//!   unsorted imports, redundant semicolons, managed trailing commas, `trimIndent` strings), so the edit can
+//!   reach outside the range.
 //! - `textDocument/codeAction`, for the ktlint errors in the range: `Fix <rule>` (quickfix, only that error),
 //!   `Suppress <rule> on this line` / `in this file` (quickfix, ktlint's `insertSuppression`), and
 //!   `Fix all autocorrectable ktlint violations` (`source.fixAll.ktlint`).

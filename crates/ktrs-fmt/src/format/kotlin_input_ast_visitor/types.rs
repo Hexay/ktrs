@@ -36,24 +36,10 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
         });
     }
 
-    /// Example `Int`, `(String)` or `() -> Int`. The modifier list can be inside the parens
-    /// (`(@Composable (x) -> Unit)`) or outside (`@Composable ((x) -> Unit)`), so walk the children.
+    /// Example `Int`, `(String)` or `() -> Int`
     pub(super) fn visit_type_reference(&mut self, type_reference: &KtTypeReference) {
-        self.sync(type_reference);
-        let modifier_list = type_reference.modifier_list().map(PsiElement::from);
         let type_element = type_reference.type_element().map(PsiElement::from);
-        for child in type_reference.node().children() {
-            let psi = child.psi();
-            if Some(&psi) == modifier_list.as_ref() {
-                self.visit(modifier_list.as_ref());
-            } else if Some(&psi) == type_element.as_ref() {
-                self.visit(type_element.as_ref());
-            } else if child.element_type() == SyntaxKind::LPAR {
-                self.token("(");
-            } else if child.element_type() == SyntaxKind::RPAR {
-                self.token(")");
-            }
-        }
+        self.format_type(type_reference, type_element.as_ref());
     }
 
     pub(super) fn visit_dynamic_type(&mut self, _type: &KtDynamicType) {
@@ -62,23 +48,28 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
 
     /// Example: `String?` or `((Int) -> Unit)?`; there can be multiple layers of parens.
     pub(super) fn visit_nullable_type(&mut self, nullable_type: &KtNullableType) {
-        self.sync(nullable_type);
-
-        let modifier_list = nullable_type.modifier_list().map(PsiElement::from);
         let inner_type = nullable_type.inner_type().map(PsiElement::from);
-        for child in nullable_type.node().children() {
+        self.format_type(nullable_type, inner_type.as_ref());
+        self.token("?");
+    }
+
+    /// The type can have several modifier lists: inside the parens (`(@Composable (x) -> Unit)`),
+    /// outside (`@Composable ((x) -> Unit)`) or both (`@Composable (suspend (x) -> Unit)`), so
+    /// walk the children.
+    fn format_type(&mut self, type_: &PsiElement, type_element: Option<&PsiElement>) {
+        self.sync(type_);
+        for child in type_.node().children() {
             let psi = child.psi();
-            if Some(&psi) == modifier_list.as_ref() {
-                self.visit(modifier_list.as_ref());
-            } else if Some(&psi) == inner_type.as_ref() {
-                self.visit(inner_type.as_ref());
+            if psi.is::<KtModifierList>() {
+                self.visit(Some(&psi));
+            } else if Some(&psi) == type_element {
+                self.visit(type_element);
             } else if child.element_type() == SyntaxKind::LPAR {
                 self.token("(");
             } else if child.element_type() == SyntaxKind::RPAR {
                 self.token(")");
             }
         }
-        self.token("?");
     }
 
     /// Example: `String` or `List<Int>`,

@@ -1,5 +1,5 @@
 //! The `ktfmt` CLI on fuzzer finds (research/24-fuzzing.md, findings 6 and 7); expected stderr is the
-//! ktfmt 0.64 jar's without stack frames (`tools/fuzz/differs.sh`).
+//! ktfmt 0.65 jar's without stack frames (`tools/fuzz/differs.sh`).
 
 mod common;
 
@@ -40,7 +40,7 @@ fn parse_error_below_visit_element_is_reported_as_formatting_error() {
     let file = root.path().join("t.kts");
     write_text(&file, "foo {} {}");
     let r = run("", &[&arg(&file)]);
-    let error = "1:1: error: com.facebook.ktfmt.format.ParseError: 1:8: error: Maximum one trailing lambda is allowed";
+    let error = "1:1: error: org.jetbrains.kotlinx.ktfmt.format.ParseError: 1:8: error: Maximum one trailing lambda is allowed";
     assert_eq!(r.exit_code, 1);
     assert_eq!(r.err, format!("{}:{error}{LS}com.google.googlejavaformat.FormattingError: {error}{LS}", arg(&file)));
 }

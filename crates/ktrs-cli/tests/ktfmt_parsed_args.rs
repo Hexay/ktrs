@@ -1,15 +1,27 @@
-//! Port of ktfmt's `cli/ParsedArgsTest.kt` (v0.64).
+//! Port of ktfmt's `cli/ParsedArgsTest.kt` (v0.65).
 
 mod common;
 
 use std::fs;
 
 use common::{TempDir, strings, write_text};
-use ktrs_cli::ktfmt::{ParseResult, ParsedArgs, parse_options, process_args};
-use ktrs_fmt::{FormattingOptions, GOOGLE_FORMAT, KOTLINLANG_FORMAT, META_FORMAT};
+use ktrs_cli::ktfmt::{ArgsException, ParseResult, ParsedArgs, parse_options, process_args};
+use ktrs_fmt::{FormattingOptions, GOOGLE_FORMAT, KOTLINLANG_FORMAT, META_FORMAT, Range, RangeSet};
 
 fn parse(args: &[&str]) -> ParseResult {
-    parse_options(&strings(args))
+    parse_options(&strings(args)).expect("parseOptions returns")
+}
+
+fn error(message: &str) -> ParseResult {
+    ParseResult::Error(message.to_owned())
+}
+
+fn ranges(ranges: &[(i32, i32)]) -> RangeSet {
+    let mut range_set = RangeSet::create();
+    for &(lower, upper) in ranges {
+        range_set.add(Range::closed_open(lower, upper));
+    }
+    range_set
 }
 
 fn assert_succeeds(parse_result: ParseResult) -> ParsedArgs {
@@ -42,6 +54,8 @@ fn parse_result_ok(
         stdin_name: None,
         editor_config: false,
         quiet: false,
+        line_ranges: RangeSet::create(),
+        character_ranges: RangeSet::create(),
     })
 }
 
@@ -116,6 +130,77 @@ fn parse_options_recognizes_stdin_name() {
 }
 
 #[test]
+fn parse_options_recognizes_lines_ranges() {
+    let parsed = assert_succeeds(parse(&["--lines=1:3,5", "--lines", "7", "foo.kt"]));
+    assert_eq!(parsed.line_ranges, ranges(&[(0, 3), (4, 5), (6, 7)]));
+}
+
+#[test]
+fn parse_options_recognizes_line_alias() {
+    let parsed = assert_succeeds(parse(&["--line=1", "foo.kt"]));
+    assert_eq!(parsed.file_names, strings(&["foo.kt"]));
+    assert_eq!(parsed.line_ranges, ranges(&[(0, 1)]));
+
+    assert_eq!(assert_succeeds(parse(&["--line", "2", "foo.kt"])).line_ranges, ranges(&[(1, 2)]));
+}
+
+#[test]
+fn parse_options_recognizes_offset_and_length_pairs() {
+    let parsed = assert_succeeds(parse(&["--offset=10", "--length=5", "--offset", "20", "--length", "0", "foo.kt"]));
+    assert_eq!(parsed.character_ranges, ranges(&[(10, 15), (20, 21)]));
+}
+
+#[test]
+fn parse_options_rejects_lines_without_value() {
+    assert_eq!(parse(&["--lines"]), error("required value was not provided for: --lines"));
+}
+
+#[test]
+fn parse_options_rejects_invalid_lines_range() {
+    assert_eq!(parse(&["--lines=not-a-line", "foo.kt"]), error("invalid line range for --lines: not-a-line"));
+}
+
+#[test]
+fn parse_options_rejects_offset_without_value() {
+    assert_eq!(parse(&["--offset"]), error("required value was not provided for: --offset"));
+}
+
+#[test]
+fn parse_options_rejects_invalid_offset() {
+    let parse_result = parse(&["--offset=not-an-offset", "--length=1", "foo.kt"]);
+    assert_eq!(parse_result, error("invalid integer value for --offset: not-an-offset"));
+}
+
+#[test]
+fn parse_options_rejects_mismatched_offset_and_length_counts() {
+    assert_eq!(parse(&["--offset=1", "foo.kt"]), error("--offset and --length flags must be provided in matching pairs"));
+}
+
+#[test]
+fn parse_options_rejects_lines_with_multiple_files() {
+    let parse_result = parse(&["--lines=1", "foo.kt", "bar.kt"]);
+    assert_eq!(parse_result, error("partial formatting is only supported for a single file"));
+}
+
+#[test]
+fn parse_options_rejects_offset_with_multiple_files() {
+    let parse_result = parse(&["--offset=1", "--length=1", "foo.kt", "bar.kt"]);
+    assert_eq!(parse_result, error("partial formatting is only supported for a single file"));
+}
+
+// Not upstream's: what its code does around the tested cases (checked against the jar by cli-diff.sh).
+#[test]
+fn range_flags_reject_what_upstream_rejects() {
+    assert_eq!(parse(&["--linesX=1", "foo.kt"]), error("Unexpected option: --linesX"));
+    assert_eq!(parse(&["--offsets=1", "foo.kt"]), error("Unexpected option: --offsets"));
+    assert_eq!(parse(&["--lines=5:2", "foo.kt"]), error("invalid line range for --lines: 5:2"));
+    assert_eq!(parse(&["--lines=1:2:3", "foo.kt"]), error("invalid line range for --lines: 1:2:3"));
+    assert_eq!(parse(&["--length", "foo.kt"]), error("invalid integer value for --length: foo.kt"));
+    let thrown = parse_options(&strings(&["--offset=10", "--length=-3", "foo.kt"]));
+    assert!(matches!(thrown, Err(ArgsException::IllegalArgument(message)) if message == "Invalid range: [10..7)"));
+}
+
+#[test]
 fn parse_options_accepts_stdin_name_with_empty_value() {
     let parsed = assert_succeeds(parse(&["--stdin-name=", "-"]));
     assert_eq!(parsed.stdin_name.as_deref(), Some(""));
@@ -171,7 +256,7 @@ fn arg_version_overrides_all_others() {
 #[test]
 fn process_args_use_the_at_file_option_with_non_existing_file() {
     let e = process_args(&strings(&["@non-existing-file"])).expect_err("expected an IO error");
-    assert_eq!(e.kind(), std::io::ErrorKind::NotFound);
+    assert!(matches!(e, ArgsException::Io(e) if e.kind() == std::io::ErrorKind::NotFound));
 }
 
 #[test]
@@ -205,5 +290,5 @@ fn last_style_in_args_wins() {
 #[test]
 fn error_when_parsing_multiple_args_and_one_is_unknown() {
     let test_result = parse(&["@unknown", "--google-style", "File.kt"]);
-    assert_eq!(test_result, ParseResult::Error("Unexpected option: @unknown".to_owned()));
+    assert_eq!(test_result, error("Unexpected option: @unknown"));
 }

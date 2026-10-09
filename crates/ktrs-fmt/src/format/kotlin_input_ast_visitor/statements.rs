@@ -6,8 +6,6 @@ use ktrs_psi::*;
 use crate::doc::{FillMode, Indent};
 
 use super::KotlinInputAstVisitor;
-use super::comma_separated::{EachCommaSeparated, psi_list};
-use super::declarations::DeclarationKind;
 
 impl KotlinInputAstVisitor<'_, '_, '_> {
     /// Example `for (i in items) { ... }`
@@ -84,7 +82,6 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
                 let val_or_var_keyword = parameter.val_or_var_keyword().map(|k| k.text());
                 let name = parameter.name_identifier().map(|n| n.text());
                 v.declare_one(
-                    DeclarationKind::Parameter,
                     parameter.modifier_list().as_ref(),
                     val_or_var_keyword.as_deref(),
                     None,
@@ -142,7 +139,7 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
         self.sync(type_);
 
         if let Some(function_type_context_receiver_list) = type_.context_receiver_list() {
-            self.handle_context_receiver_list(&function_type_context_receiver_list);
+            self.visit_context_receiver_list(&function_type_context_receiver_list);
             self.builder.space();
         }
 
@@ -150,19 +147,7 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
             self.visit(Some(&receiver));
             self.token(".");
         }
-        self.block(self.expression_break_indent(), |v| {
-            if let Some(parameter_list) = type_.parameter_list() {
-                v.visit_each_comma_separated(
-                    &psi_list(parameter_list.parameters()),
-                    EachCommaSeparated {
-                        prefix: Some("("),
-                        postfix: Some(")"),
-                        has_trailing_comma: parameter_list.trailing_comma().is_some(),
-                        ..v.comma_separated()
-                    },
-                );
-            }
-        });
+        self.block(self.expression_break_indent(), |v| v.visit(type_.parameter_list().as_ref()));
         self.builder.space();
         self.token("->");
         self.builder.space();

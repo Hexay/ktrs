@@ -177,62 +177,48 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
     }
 
     pub(super) fn visit_kt_file(&mut self, file: &KtFile) {
-        self.mark_for_partial_format();
-        let import_list_empty = file.import_list().is_none_or(|l| l.text_all(is_kotlin_whitespace));
-
-        let mut is_first = true;
-        for child in file.children() {
-            if child.text_all(is_kotlin_whitespace) {
-                continue;
-            }
-
-            let blank_line_wanted = if is_first {
-                BlankLineWanted::NO
-            } else if child.is::<PsiComment>() {
-                continue;
-            } else if child.is::<KtScript>() && import_list_empty {
-                BlankLineWanted::PRESERVE
-            } else {
-                BlankLineWanted::YES
-            };
-            self.builder.blank_line_wanted(blank_line_wanted);
-
-            self.visit(Some(&child));
-            is_first = false;
-        }
-        self.mark_for_partial_format();
+        self.format_file(file.children());
     }
 
     pub(super) fn visit_script(&mut self, script: &KtScript) {
-        self.mark_for_partial_format();
-        let mut last_child_had_blank_line_before = false;
-        let mut last_child_is_context_receiver = false;
-        let mut first = true;
         let Some(block_expression) = script.block_expression() else { return self.fail() };
-        for child in block_expression.children() {
+        self.format_file(block_expression.children());
+    }
+
+    /// `FileFormatter.formatFile(file)`, given `file.children`.
+    fn format_file(&mut self, children: Vec<PsiElement>) {
+        self.mark_for_partial_format();
+        let mut prev: Option<PsiElement> = None;
+        for child in children {
             if child.text_all(is_kotlin_whitespace) {
                 continue;
             }
-            self.builder.forced_break();
-            let child_gets_blank_line_before = !child.is::<KtProperty>();
-            if first {
-                self.builder.blank_line_wanted(BlankLineWanted::PRESERVE);
-            } else if last_child_is_context_receiver {
-                self.builder.blank_line_wanted(BlankLineWanted::NO);
-            } else if !child.is::<PsiComment>() && (child_gets_blank_line_before || last_child_had_blank_line_before) {
-                self.builder.blank_line_wanted(BlankLineWanted::YES);
+            if child.is::<PsiComment>() {
+                continue;
             }
+            self.builder.forced_break();
+            self.builder.blank_line_wanted(should_preserve_line_break(prev.as_ref(), &child));
+            self.builder.mark_for_partial_format();
             self.visit(Some(&child));
             self.builder.guess_token(";");
-            last_child_had_blank_line_before = child_gets_blank_line_before;
-            last_child_is_context_receiver = child.is::<KtScriptInitializer>()
-                && child
-                    .first_child()
-                    .and_then(|c| c.first_child())
-                    .and_then(|c| c.first_child())
-                    .is_some_and(|c| c.text() == "context");
-            first = false;
+            self.builder.mark_for_partial_format();
+            prev = Some(child);
         }
         self.mark_for_partial_format();
+    }
+}
+
+fn should_preserve_line_break(prev: Option<&PsiElement>, curr: &PsiElement) -> BlankLineWanted {
+    let Some(prev) = prev else { return BlankLineWanted::PRESERVE };
+    // The parser doesn't attach `context(Something)` to a top-level function (it could be a call):
+    // no blank line between that script initializer and the declaration.
+    let prev_is_context_receiver = prev.is::<KtScriptInitializer>()
+        && prev.first_child().and_then(|c| c.first_child()).and_then(|c| c.first_child()).is_some_and(|c| c.text() == "context");
+    if prev_is_context_receiver {
+        BlankLineWanted::NO
+    } else if (prev.is::<KtProperty>() && curr.is::<KtProperty>()) || curr.is::<PsiComment>() {
+        BlankLineWanted::PRESERVE
+    } else {
+        BlankLineWanted::YES
     }
 }

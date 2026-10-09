@@ -3,7 +3,7 @@
 //! result it returns, `[status u8][length u32 LE][UTF-8]`, and frees it with [`dealloc`].
 //! Build: `tools/release/build-site.sh`.
 
-use ktrs_fmt::{FormattingOptions, GOOGLE_FORMAT, KOTLINLANG_FORMAT, META_FORMAT};
+use ktrs_fmt::{FileType, FormattingOptions, GOOGLE_FORMAT, KOTLINLANG_FORMAT, META_FORMAT};
 
 pub const STATUS_OK: u8 = 0;
 pub const STATUS_ERROR: u8 = 1;
@@ -51,7 +51,8 @@ pub fn format_code(code: &str, style: u32, max_width: u32) -> (u8, String) {
     if max_width > 0 {
         options.max_width = max_width as i32;
     }
-    match ktrs_fmt::format(code, &options) {
+    // A script, as ktfmt's CLI parses stdin: there is no file name.
+    match ktrs_fmt::format(code, FileType::Script, &options) {
         Ok(formatted) => (STATUS_OK, formatted),
         Err(e) => (STATUS_ERROR, e.to_string()),
     }

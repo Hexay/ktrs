@@ -1,4 +1,4 @@
-//! Port of ktfmt's `cli/MainTest.kt` (v0.64), second half (from `resolves 'kt' and 'kts'`), in order.
+//! Port of ktfmt's `cli/MainTest.kt` (v0.65), second part (from `resolves 'kt' and 'kts'` to `--quiet`), in order.
 
 mod common;
 

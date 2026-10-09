@@ -5,11 +5,12 @@
 use std::io::{self, Read, Write};
 use std::path::{Path, PathBuf};
 
-use ktrs_fmt::{FormattingOptions, GOOGLE_FORMAT, KOTLINLANG_FORMAT, META_FORMAT};
+use ktrs_fmt::{FormattingOptions, GOOGLE_FORMAT, KOTLINLANG_FORMAT, META_FORMAT, RangeSet};
 
 use crate::changed_since::{ChangedFiles, OPTION as CHANGED_SINCE};
 use crate::github_annotations::{Annotations, REPORTER_ID, UnformattedFiles};
-use crate::ktfmt::{Main, ParsedArgs, editor_config_resolver, expand_args_to_file_names};
+use crate::ktfmt::parsed_args::{character_ranges, parse_line_ranges, to_int_or_null};
+use crate::ktfmt::{Main, ParsedArgs, expand_args_to_file_names};
 
 pub const HELP: &str = "\
 Format options:
@@ -24,6 +25,10 @@ Format options:
                                       ktfmt_trailing_comma_management_strategy); for stdin, at
                                       --stdin-name
   --stdin-name <name>               Name (path) of the stdin input, for messages and .editorconfig
+  --lines <lines>                   Format only these lines of one file, like 5 or 1:12,14
+                                      (repeatable); import and other whole-file cleanups still run
+  --offset <n> --length <n>         Format only this character range of one file (repeatable pairs;
+                                      length 0: the line at the offset)
   -v, --verbose                     Report each formatted file";
 
 #[derive(Clone, Debug)]
@@ -77,8 +82,11 @@ pub fn parse_fmt_args(args: &[String]) -> Result<FmtArgs, String> {
         stdin_name: None,
         editor_config: false,
         quiet: true,
+        line_ranges: RangeSet::create(),
+        character_ranges: RangeSet::create(),
     };
     let (mut keep_unused_imports, mut changed_since, mut github) = (false, None, false);
+    let (mut offsets, mut lengths, mut explicit_path) = (Vec::new(), Vec::new(), false);
     let mut args = args.iter();
     while let Some(arg) = args.next() {
         let (flag, inline_value) = match arg.split_once('=') {
@@ -94,6 +102,12 @@ pub fn parse_fmt_args(args: &[String]) -> Result<FmtArgs, String> {
             "--keep-unused-imports" => keep_unused_imports = true,
             "--editorconfig" => parsed.editor_config = true,
             "--stdin-name" => parsed.stdin_name = Some(value()?),
+            "--lines" => parse_line_ranges(&mut parsed.line_ranges, &value()?)?,
+            "--offset" | "--length" => {
+                let value = value()?;
+                let number = to_int_or_null(&value).ok_or(format!("invalid integer value for {flag}: {value}"))?;
+                if flag == "--offset" { offsets.push(number) } else { lengths.push(number) }
+            }
             "-v" | "--verbose" => parsed.quiet = false,
             "-" => parsed.file_names.push(arg.clone()),
             _ if flag.starts_with('-') => return Err(format!("unknown option {arg}")),
@@ -103,6 +117,8 @@ pub fn parse_fmt_args(args: &[String]) -> Result<FmtArgs, String> {
     parsed.formatting_options.remove_unused_imports = !keep_unused_imports;
     if parsed.file_names.is_empty() {
         parsed.file_names.push(".".to_owned());
+    } else {
+        explicit_path = true;
     }
     let reads_stdin = parsed.file_names.iter().any(|f| f == "-");
     if reads_stdin && parsed.file_names.len() > 1 {
@@ -117,11 +133,18 @@ pub fn parse_fmt_args(args: &[String]) -> Result<FmtArgs, String> {
     if github && !parsed.dry_run {
         return Err(format!("--reporter {REPORTER_ID} needs --check"));
     }
-    // Unlike ktfmt 0.64 (the `ktfmt` binary), resolve .editorconfig for stdin at --stdin-name, as
-    // ktfmt's next release will: editors format buffers through stdin.
-    if let (true, true, Some(name)) = (reads_stdin, parsed.editor_config, &parsed.stdin_name) {
-        parsed.formatting_options =
-            editor_config_resolver::resolve_formatting_options(Path::new(name), &parsed.formatting_options);
+    if offsets.len() != lengths.len() {
+        return Err("--offset and --length must be given in matching pairs".to_owned());
+    }
+    parsed.character_ranges = character_ranges(&offsets, &lengths)?;
+    if !parsed.line_ranges.is_empty() || !parsed.character_ranges.is_empty() {
+        if parsed.file_names.len() != 1 || !explicit_path {
+            return Err("--lines and --offset/--length format part of a single file".to_owned());
+        }
+        // The ranges are positions in one named file, not in whichever files changed.
+        if changed_since.is_some() {
+            return Err(format!("--lines and --offset/--length can not be combined with {CHANGED_SINCE}"));
+        }
     }
     Ok(FmtArgs { parsed, changed_since, github })
 }

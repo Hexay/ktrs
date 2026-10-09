@@ -102,9 +102,29 @@ fn formats_with_the_configured_tool() {
     let mut client = Client::start(json!({"format": {"tool": "ktfmt"}, "ktfmt": {"style": "kotlinlang"}}));
     let uri = client.open(&dir.path().join("A.kt"), MANY_VIOLATIONS);
     let formatted = ktrs_lsp::apply_edits(MANY_VIOLATIONS, &client.format(&uri).unwrap());
-    assert_eq!(formatted, ktrs_fmt::format(MANY_VIOLATIONS, &ktrs_fmt::KOTLINLANG_FORMAT).unwrap());
+    assert_eq!(formatted, ktrs_fmt::format(MANY_VIOLATIONS, ktrs_fmt::FileType::Regular, &ktrs_fmt::KOTLINLANG_FORMAT).unwrap());
     client.change(&uri, 2, &formatted);
     assert_eq!(client.format(&uri), Some(Vec::new()), "formatted code has no edits");
+    client.shutdown();
+}
+
+#[test]
+fn range_formatting_is_ktfmts_partial_formatting() {
+    const CODE: &str = "fun untouched ( ) =   1\n\nfun test() {\n  val selected    =   2\n  val adjacent    =   3\n}\n";
+    let dir = TempDir::new("lsp-range");
+    let mut client = Client::start(json!({"format": {"tool": "ktfmt"}}));
+    let uri = client.open(&dir.path().join("A.kt"), CODE);
+    let selected = Range::new(Position::new(3, 6), Position::new(3, 14));
+    let formatted = ktrs_lsp::apply_edits(CODE, &client.format_range(&uri, selected).unwrap());
+    assert_eq!(formatted, "fun untouched ( ) =   1\n\nfun test() {\n  val selected = 2\n  val adjacent    =   3\n}\n");
+    let cursor = Range::new(Position::new(4, 4), Position::new(4, 4));
+    let formatted = ktrs_lsp::apply_edits(CODE, &client.format_range(&uri, cursor).unwrap());
+    assert_eq!(formatted, "fun untouched ( ) =   1\n\nfun test() {\n  val selected    =   2\n  val adjacent = 3\n}\n");
+    client.shutdown();
+
+    let mut client = Client::start(json!({"format": {"tool": "ktlint"}}));
+    let uri = client.open(&dir.path().join("A.kt"), CODE);
+    assert_eq!(client.format_range(&uri, selected), None, "ktlint has no range formatting");
     client.shutdown();
 }
 

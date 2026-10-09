@@ -1,25 +1,18 @@
-//! `KotlinInputAstVisitor.kt` lines 1363-1585: `declareOne`, `emitBackingField`,
-//! `getParameterListWithBugFixes`.
+//! `DeclarationFormatter.kt` `emitPropertyDeclaration` (still `declare_one`), `emitBackingField`;
+//! `ExpressionFormatter.kt` `formatInitializerExpression`.
 
 use ktrs_psi::*;
 
-use crate::doc::{BlankLineWanted, FillMode, Indent};
+use crate::doc::{FillMode, Indent};
 
 use super::KotlinInputAstVisitor;
 use super::function_like::ParameterList;
-
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub(super) enum DeclarationKind {
-    Field,
-    Parameter,
-}
 
 impl KotlinInputAstVisitor<'_, '_, '_> {
     /// Declare one variable or variable-like thing, e.g. `var a: Int = 5` or `a: Int`.
     #[allow(clippy::too_many_arguments)]
     pub(super) fn declare_one(
         &mut self,
-        kind: DeclarationKind,
         modifiers: Option<&KtModifierList>,
         val_or_var_keyword: Option<&str>,
         type_parameters: Option<&KtTypeParameterList>,
@@ -32,14 +25,6 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
         accessors: Option<&[KtPropertyAccessor]>,
         backing_field: Option<&KtBackingField>,
     ) {
-        let vertical_annotation_break = self.gen_sym();
-
-        let is_field = kind == DeclarationKind::Field;
-
-        if is_field {
-            self.builder.blank_line_wanted(BlankLineWanted::conditional(&vertical_annotation_break));
-        }
-
         let ebi = self.expression_break_indent();
         self.visit(modifiers);
         self.block(Indent::ZERO, |v| {
@@ -102,8 +87,7 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
                 }
             } else if let Some(initializer) = initializer {
                 v.builder.space();
-                v.token("=");
-                v.emit_initializer(initializer);
+                v.format_initializer_expression(initializer, "=");
             }
         });
         // for example `field = value`, `private set`, or `get = 2 * field`
@@ -124,7 +108,7 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
 
                     if let Some(component) = component.cast::<KtPropertyAccessor>() {
                         let Some(name_placeholder) = component.name_placeholder() else { return v.fail() };
-                        let parameter_list = v.get_parameter_list_with_bug_fixes(&component);
+                        let parameter_list = component.parameter_list().map(|l| ParameterList::of(&l));
                         let body_expression = component
                             .body_block_expression()
                             .map(|b| b.upcast::<KtExpression>())
@@ -155,14 +139,12 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
         }
 
         self.builder.guess_token(";");
-
-        if is_field {
-            self.builder.blank_line_wanted(BlankLineWanted::conditional(&vertical_annotation_break));
-        }
     }
 
-    /// The `= initializer` tail shared by `declareOne` and `emitBackingField` (after the `=` token).
-    fn emit_initializer(&mut self, initializer: &KtExpression) {
+    /// `ExpressionFormatter.formatInitializerExpression`: `= initializer` of a property, backing
+    /// field or expression body, or `assignment_op lambda` of an assignment.
+    pub(super) fn format_initializer_expression(&mut self, initializer: &KtExpression, assignment_op: &str) {
+        self.token(assignment_op);
         if self.is_lambda_or_scoping_function(Some(initializer)) {
             self.visit_lambda_or_scoping_function(Some(initializer), true);
         } else if self.is_chained_scoping_function(initializer) {
@@ -192,25 +174,8 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
 
             if let Some(initializer) = backing_field.initializer() {
                 v.builder.space();
-                v.token("=");
-                v.emit_initializer(&initializer);
+                v.format_initializer_expression(&initializer, "=");
             }
         });
-    }
-
-    /// Kotlin 1.9.10 bug workaround (KT-70922): getters have no parameter list and the parens are
-    /// children of the accessor, so upstream builds a fake list.
-    fn get_parameter_list_with_bug_fixes(&self, accessor: &KtPropertyAccessor) -> Option<ParameterList> {
-        if accessor.body_expression().is_none() && accessor.body_block_expression().is_none() {
-            return None;
-        }
-
-        let parameter_list = accessor.parameter_list();
-        Some(ParameterList {
-            parameters: accessor.value_parameters(),
-            trailing_comma: parameter_list.as_ref().and_then(|l| l.trailing_comma()),
-            left_parenthesis: parameter_list.as_ref().and_then(|l| l.left_parenthesis()),
-            right_parenthesis: parameter_list.as_ref().and_then(|l| l.right_parenthesis()),
-        })
     }
 }

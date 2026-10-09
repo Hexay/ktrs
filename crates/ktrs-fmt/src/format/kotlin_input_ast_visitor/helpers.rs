@@ -151,7 +151,7 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
 /// The first line of `Throwables.getStackTraceAsString(t)`; the frames can't be matched.
 fn java_stack_trace_header(exception: &FormatError) -> String {
     match exception {
-        FormatError::Parse(e) => format!("com.facebook.ktfmt.format.ParseError: {e}"),
+        FormatError::Parse(e) => format!("org.jetbrains.kotlinx.ktfmt.format.ParseError: {e}"),
         _ => exception.to_string(),
     }
 }

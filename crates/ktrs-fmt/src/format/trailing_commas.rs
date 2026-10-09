@@ -62,8 +62,8 @@ impl Suggestor {
         SyntaxKind::CLASS_BODY,
     ];
 
-    /// Records the item after which a trailing comma should be inserted: only in multi-line lists of
-    /// more than one element that have none yet.
+    /// Records the item after which a trailing comma should be inserted: only in non-empty multi-line
+    /// lists that have none yet.
     pub fn take_element(&mut self, element: &KtElement) {
         if element.is::<KtEnumEntry>() || element.is::<KtWhenEntry>() {
             return;
@@ -83,13 +83,13 @@ impl Suggestor {
         }
 
         // Cheap necessary conditions go before building the list (all checks here are pure): every
-        // item is a composite child, and most lists have fewer than two items or are one line.
-        if !Self::may_be_list(element) || !has_two_composite_children(element) || !element.text_contains('\n') {
+        // item is a composite child, and most lists are empty or one line.
+        if !Self::may_be_list(element) || !has_composite_child(element) || !element.text_contains('\n') {
             return; // Only suggest trailing commas where there is already a line break
         }
         let Some(list) = extract_managed_list(element) else { return };
-        if list.items.len() <= 1 {
-            return; // Never insert commas to single-element lists
+        if list.items.is_empty() {
+            return; // Never insert commas to empty lists
         }
         if list.trailing_comma.is_some() {
             return; // Never insert a comma if there already is one somehow
@@ -131,13 +131,11 @@ fn extract_managed_list(element: &PsiElement) -> Option<ManagedList> {
     }
 }
 
-fn has_two_composite_children(element: &PsiElement) -> bool {
+fn has_composite_child(element: &PsiElement) -> bool {
     let tree = element.tree();
     let (mut child, end) = (element.id() + 1, tree.subtree_end(element.id()));
-    let mut count = 0;
     while child < end {
-        count += usize::from(!tree.is_token(child));
-        if count == 2 {
+        if !tree.is_token(child) {
             return true;
         }
         child = tree.subtree_end(child);

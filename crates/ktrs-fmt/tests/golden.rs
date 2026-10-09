@@ -1,7 +1,7 @@
-//! Runs every `testdata/ktfmt/<suite>/<case>.input.kt` through `ktrs_fmt::format` with the options in
-//! `<case>.options` and requires byte-identical `<case>.expected.kt`, or an `Err` when `<case>.error`
-//! exists (ktfmt rejected the input). Cases come from ktfmt's own tests, re-verified against the
-//! real jar: `tools/ktfmt-oracle/extract-goldens.sh`. Ratchet: only cases listed in
+//! Runs every `testdata/ktfmt/<group>/<case>.input.kt` through `ktrs_fmt::format` with the file type
+//! and options in `<case>.options` and requires byte-identical `<case>.expected.kt`, or an `Err` when
+//! `<case>.error` exists (ktfmt rejected the input). Cases come from ktfmt's own file-based tests,
+//! re-derived with the real jar: `tools/ktfmt-oracle/extract-goldens.sh`. Ratchet: only cases listed in
 //! `tests/golden-passing.txt` must pass; `UPDATE_PASSING=1 cargo test -p ktrs-fmt --test golden`
 //! rewrites that list.
 
@@ -10,7 +10,7 @@ use std::panic::{self, AssertUnwindSafe};
 use std::path::{Path, PathBuf};
 use std::{env, fs};
 
-use ktrs_fmt::{FormattingOptions, META_FORMAT, TrailingCommaManagementStrategy, format};
+use ktrs_fmt::{FileType, FormattingOptions, META_FORMAT, TrailingCommaManagementStrategy, format};
 
 const SHOWN_FAILURES: usize = 5;
 
@@ -103,7 +103,8 @@ fn run_case(base: &Path) -> Outcome {
     let options_text = fs::read_to_string(sibling(base, ".options")).unwrap();
     let expected = fs::read_to_string(sibling(base, ".expected.kt")).ok();
 
-    let result = match panic::catch_unwind(AssertUnwindSafe(|| format(&input, &parse_options(&options_text)))) {
+    let (file_type, options) = parse_options(&options_text);
+    let result = match panic::catch_unwind(AssertUnwindSafe(|| format(&input, file_type, &options))) {
         Ok(result) => result,
         Err(payload) => {
             let message = payload
@@ -128,14 +129,22 @@ fn run_case(base: &Path) -> Outcome {
     }
 }
 
-/// Maps the `key=value` lines written by the extractor (ktfmt's `FormattingOptions` property names).
-fn parse_options(text: &str) -> FormattingOptions {
+/// Maps the `key=value` lines written by the extractor (`fileType` and ktfmt's `FormattingOptions` property names).
+fn parse_options(text: &str) -> (FileType, FormattingOptions) {
     let mut options = META_FORMAT;
+    let mut file_type = FileType::Regular;
     for (key, value) in text.lines().filter_map(|l| l.split_once('=')) {
         let (key, value) = (key.trim(), value.trim());
         let number = || value.parse::<i32>().unwrap_or_else(|_| panic!("bad {key}={value}"));
         let flag = || value == "true";
         match key {
+            "fileType" => {
+                file_type = match value {
+                    "REGULAR" => FileType::Regular,
+                    "SCRIPT" => FileType::Script,
+                    _ => panic!("bad {key}={value}"),
+                }
+            }
             "maxWidth" => options.max_width = number(),
             "blockIndent" => options.block_indent = number(),
             "continuationIndent" => options.continuation_indent = number(),
@@ -149,7 +158,7 @@ fn parse_options(text: &str) -> FormattingOptions {
             _ => panic!("unknown option {key}"),
         }
     }
-    options
+    (file_type, options)
 }
 
 fn first_difference(expected: &str, actual: &str) -> Outcome {

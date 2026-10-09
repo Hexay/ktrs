@@ -2,7 +2,6 @@
 //! array access.
 
 use ktrs_psi::*;
-use ktrs_syntax::SyntaxKind;
 
 use crate::doc::{BlankLineWanted, FillMode, Indent, RealOrImaginary};
 use crate::format::enum_entry_list::EnumEntryList;
@@ -112,7 +111,9 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
                 };
                 v.builder.blank_line_wanted(blank_line_between_members);
 
+                v.mark_for_partial_format();
                 v.block(Indent::ZERO, |v| v.visit(Some(curr)));
+                v.mark_for_partial_format();
                 v.builder.guess_token(";");
                 v.builder.forced_break();
 
@@ -141,11 +142,7 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
     /// Example `in 1..2` as part of a when expression
     pub(super) fn visit_when_condition_in_range(&mut self, condition: &KtWhenConditionInRange) {
         self.sync(condition);
-        // TODO: replace with 'condition.isNegated' once https://youtrack.jetbrains.com/issue/KT-34395 is fixed.
-        let is_negated = condition
-            .first_child()
-            .is_some_and(|c| c.node().find_child_by_type(SyntaxKind::NOT_IN).is_some());
-        self.token(if is_negated { "!in" } else { "in" });
+        self.token(if condition.is_negated() { "!in" } else { "in" });
         self.builder.space();
         self.visit(condition.range_expression().as_ref());
     }
@@ -204,21 +201,18 @@ impl KotlinInputAstVisitor<'_, '_, '_> {
 
     /// Example `[3]` in `a[3]` or `a[3].b`; shared by top-level array expressions and qualified chains.
     pub(super) fn visit_array_access_brackets(&mut self, expression: &KtArrayAccessExpression) {
-        let ebi = self.expression_break_indent();
-        self.block(Indent::ZERO, |v| {
-            v.token("[");
-            v.builder.break_op(FillMode::Unified, "", ebi.clone());
-            v.block(ebi.clone(), |v| {
-                v.visit_each_comma_separated(
-                    &psi_list(expression.index_expressions()),
-                    EachCommaSeparated {
-                        has_trailing_comma: expression.trailing_comma().is_some(),
-                        wrap_in_block: true,
-                        ..v.comma_separated()
-                    },
-                );
-            });
+        self.block(self.expression_break_indent(), |v| {
+            v.visit_each_comma_separated(
+                &psi_list(expression.index_expressions()),
+                EachCommaSeparated {
+                    has_trailing_comma: expression.trailing_comma().is_some(),
+                    wrap_in_block: true,
+                    prefix: Some("["),
+                    postfix: Some("]"),
+                    break_before_postfix: false,
+                    ..v.comma_separated()
+                },
+            );
         });
-        self.token("]");
     }
 }

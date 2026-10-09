@@ -2,7 +2,7 @@
 //! (see `ktrs_fuzz::is_java_exception`); every other panic is a finding.
 #![no_main]
 
-use ktrs_fmt::{GOOGLE_FORMAT, KOTLINLANG_FORMAT, META_FORMAT};
+use ktrs_fmt::{FileType, GOOGLE_FORMAT, KOTLINLANG_FORMAT, META_FORMAT};
 use libfuzzer_sys::fuzz_target;
 
 ktrs_fuzz::splice_mutators!();
@@ -10,6 +10,8 @@ ktrs_fuzz::splice_mutators!();
 fuzz_target!(|data: &[u8]| {
     let Some(text) = ktrs_fuzz::fuzz_input(data) else { return };
     for options in [&META_FORMAT, &GOOGLE_FORMAT, &KOTLINLANG_FORMAT] {
-        let _ = ktrs_fuzz::tolerate_java_panics(|| ktrs_fmt::format(text, options));
+        for file_type in [FileType::Regular, FileType::Script] {
+            let _ = ktrs_fuzz::tolerate_java_panics(|| ktrs_fmt::format(text, file_type, options));
+        }
     }
 });

@@ -16,7 +16,7 @@
 //! | `max-width`, `block-indent`, `continuation-indent` | positive integers | the style's |
 //! | `remove-unused-imports` | `true`, `false` | `true` |
 //! | `trailing-commas` | `none`, `only_add`, `complete` | the style's |
-//! | `path` | the file's path, for `.editorconfig` and to prefix messages | none |
+//! | `path` | the file's path, for `.editorconfig`, to prefix messages, and for the parse (`.kt`: a regular file, else a script) | none |
 //! | `editorconfig` | `true`, `false`: apply `.editorconfig` at `path` over the above | `false` |
 //!
 //! A response is `status=ok` or `status=error`, `changed=true|false` (ok only), any tool-specific
@@ -28,7 +28,7 @@ use std::io::{self, Read, Write};
 use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::path::Path;
 
-use ktrs_fmt::{FormatError, FormattingOptions, TrailingCommaManagementStrategy};
+use ktrs_fmt::{FileType, FormatError, FormattingOptions, TrailingCommaManagementStrategy};
 
 use crate::ktfmt::editor_config_resolver;
 use crate::ktrs_fmt::style;
@@ -121,7 +121,8 @@ fn format_request(fields: &Fields, code: &str) -> Result<Formatted, String> {
         _ => request.options,
     };
     let name = request.path.as_deref();
-    match catch_unwind(AssertUnwindSafe(|| ktrs_fmt::format(code, &options))) {
+    let file_type = FileType::of_file_or_script(name.map(Path::new));
+    match catch_unwind(AssertUnwindSafe(|| ktrs_fmt::format(code, file_type, &options))) {
         Ok(Ok(formatted)) => {
             let changed = formatted != code;
             Ok(Formatted { code: formatted, changed, header: String::new() })
