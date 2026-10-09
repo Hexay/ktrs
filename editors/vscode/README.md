@@ -5,7 +5,8 @@ native language server (`ktrs lsp`). No JVM, a few milliseconds per file.
 
 - **Diagnostics**: ktlint violations as you type, with the rule id as the code.
 - **Quick fixes**: fix one violation, fix all autocorrectable ones, suppress a rule on the line or in the file.
-- **Formatting**: `Format Document` with ktfmt or ktlint's `--format`.
+- **Formatting**: `Format Document` with ktfmt or ktlint's `--format`; `Format Selection` with ktfmt (its partial
+  formatting: the statements the selection touches, plus ktfmt's whole-file import and trailing-comma cleanup).
 - **Build-aware**: reads the setup from Gradle or Maven (ktfmt-gradle, ktlint-gradle, kotlinter, Spotless, the Maven
   plugins, convention plugins, the version catalog). Without one it shows ktlint 1.8 diagnostics and doesn't format.
 

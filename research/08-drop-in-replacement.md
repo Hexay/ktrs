@@ -225,7 +225,7 @@ ids plus 7 experimental (https://github.com/ktlint/ktlint/blob/master/documentat
 | B1 | Maven Central `ktrs-native` jar (bundled binaries plus a `ProcessBuilder` shim with a batch/stdin API). | M |
 | B2 | Upstream Spotless PR: `ktfmt().pathToExe(...)` or a `ktrs()` step with auto-download from B1. Pass the file path so `.editorconfig` works. | M |
 | B3 | A Gradle plugin, or an upstream executable mode for ktfmt-gradle, using one batch process per task rather than per file. | M |
-| B4 | Track ktfmt releases: 0.65 (package move, `--lines/--offset`, native). Add `--lines/--offset` when upstream releases them. | M, recurring |
+| B4 | Track ktfmt releases. 0.65 (released 2026-10-07, `org.jetbrains.kotlinx:ktfmt`): ported in ktrs-fmt and the `ktfmt` binary, incl. `--lines`/`--offset`/`--length`, `.kt` vs `.kts` parsing, single-item trailing commas; gates `range-diff.sh`, `cli-diff.sh`. Not ported: `--experimental-engine` (rejected). Open: the Spotless/ktfmt-gradle/Maven drop-ins, `ktrs migrate` and the README still name 0.64, which those plugins bundle. Sections above describe the 0.64 CLI. | M, recurring |
 | B5 | Optional: Wasm build → dprint plugin, playground, VS Code extension. | M |
 
 ### Phase C: ktlint (after A and B; see 04 §7 for the ~33–37k LOC estimate)

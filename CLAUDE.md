@@ -94,7 +94,7 @@ Milestone 1: the parser's tree must be identical to the Kotlin compiler's PSI (`
   `crates/ktrs-psi/tests/data`; regeneration commands in `tests/fixtures.rs`). Corpus, in the background:
   `psi-accessors.sh hashes corpus [--script] > target/psi-accessors/corpus[-script].jvm.hashes`, then
   `psi_accessors compare corpus target/psi-accessors/corpus[-script].jvm.hashes [--script]`.
-- `cargo test -p ktrs-fmt --test golden` — ktfmt's own test cases in `testdata/ktfmt/<suite>/`, ratchet
+- `cargo test -p ktrs-fmt --test golden` — ktfmt's own file-based cases in `testdata/ktfmt/<group>/`, ratchet
   `tests/golden-passing.txt`. Regenerate (JVM, background): `tools/ktfmt-oracle/extract-goldens.sh`.
 - `cargo fmt-diff [meta|google|kotlinlang]` (repo root) — byte diff vs real ktfmt on the corpus; oracle built
   in the background by `tools/ktfmt-oracle/ktfmt-oracle.sh <style> corpus target/ktfmt-oracle/<style>`.
@@ -116,6 +116,8 @@ Milestone 1: the parser's tree must be identical to the Kotlin compiler's PSI (`
   `ktlint-compare.sh` also diffs two ktlint versions (1.8 vs 2.0: research/22).
 - `cargo test -p ktrs-cli` — ktfmt's and ktlint's CLI and reporter tests, ported. `tools/ktfmt-oracle/cli-diff.sh` (JVM, ~2 min) — the
   `ktfmt` binary vs the ktfmt jar on stdout/stderr/exit code/files (`ONLY=<regex>`, `KEEP=1`).
+  `tools/ktfmt-oracle/range-diff.sh [dir] [files] [seed] [binary]` (JVM, background) — partial formatting
+  (`--lines`, `--offset`/`--length`) vs the jar on random ranges over a corpus sample.
   `tools/ktlint-oracle/cli-diff.sh [ktlint-binary]` (JVM, testbox, background) — same for `ktlint` vs the ktlint jar;
   unported rules are disabled on both sides; accepted mismatches in `tools/parity/known-diffs/ktlint-cli.tsv`.
 - `.github/workflows/parity.yml` — the gates above that need JVM oracles or the corpus (not the holdout), nightly +
