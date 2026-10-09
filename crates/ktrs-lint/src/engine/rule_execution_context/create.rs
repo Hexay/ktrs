@@ -12,6 +12,7 @@ use crate::editorconfig::{EditorConfig, KtlintVersion};
 use crate::engine::code::{Code, KtLintException, KtLintParseException};
 use crate::engine::ktlint_rule_engine::{KtLintRuleEngine, UTF8_BOM};
 use crate::engine::position_in_text_locator::PositionInTextLocator;
+use crate::engine::rule_filter::RULE_EXECUTION_RULE_FILTER_LOGGER;
 use crate::engine::suppression_locator::SuppressionLocator;
 
 const RULE_EXECUTION_CONTEXT_LOGGER_1_8: &str = "com.pinterest.ktlint.rule.engine.internal.RuleExecutionContext";
@@ -50,6 +51,9 @@ pub(crate) fn create_rule_execution_context(
         warn_if_property_is_obsolete(engine, &editor_config, "ktlint_disabled_rules", "0.49");
     }
     let setup = engine.rule_setup(editor_config);
+    for warning in &setup.rule_filter_warnings {
+        engine.warn(RULE_EXECUTION_RULE_FILTER_LOGGER, || warning.clone());
+    }
     if let Some(message) = &setup.rule_filter_error {
         return Err(KtLintException::IllegalState(message.clone()));
     }

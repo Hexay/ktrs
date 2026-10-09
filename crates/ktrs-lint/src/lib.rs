@@ -14,7 +14,7 @@
 //!   `before_first_node`, for the properties it lists in `uses_editor_config_properties`
 //!   ([`editorconfig`]); marker interfaces (`Experimental`, ...) are `is_*` methods of [`RuleV2`].
 //! - A Kotlin exception (NPE on `!!`, a failed cast) is a panic whose message starts with the exception
-//!   name; the engine turns a rule's panic into a [`KtLintRuleException`].
+//!   name; the engine turns a rule's panic into a [`KtLintRuleException`] (see `engine/rule_panic.rs`).
 
 pub mod ast_node_edit;
 pub mod ast_node_extension;

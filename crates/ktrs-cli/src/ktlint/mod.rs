@@ -3,9 +3,11 @@
 //! With `--ktlint-version=1.8` (or `ktrs_ktlint_version = 1.8`) it is the 1.8.0 CLI instead: [`version`].
 //!
 //! A run that loads a rule set (`-R`) or reporter (`artifact=`) JAR with JVM code is handed to the real ktlint
-//! jar ([`ktlint_jar`]). Deviations: `--log-level=debug|trace` prints only the
-//! CLI's own messages, not the engine's; help text is wrapped for 80 columns whatever the terminal; a rule
-//! crash shows the panic, not a JVM stack trace.
+//! jar ([`ktlint_jar`]). Deviations: the engine logs only its WARNs, so
+//! `--log-level=debug|trace` adds only the CLI's own messages; help text is wrapped for 80 columns whatever the
+//! terminal; a rule crash's `KtLintRuleException` has no stack frames (`\tat ...` lines), its cause named by the
+//! JVM class (ktrs-lint `engine/rule_panic.rs`). Log lines name file workers `pool-1-thread-N` like the JVM, but
+//! which worker takes which file is our own scheduling.
 
 pub mod args;
 pub mod baseline;

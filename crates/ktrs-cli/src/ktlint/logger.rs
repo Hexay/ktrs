@@ -4,6 +4,7 @@
 use ktrs_lint::editorconfig::KtlintVersion;
 
 use crate::ktlint::console::{Console, LINE_SEPARATOR};
+use crate::ktlint::parallel::WORKER_THREAD_PREFIX;
 use crate::ktlint::version;
 
 pub const KTLINT_COMMAND_LINE: &str = "io.github.ktlint.core.cli.internal.KtlintCommandLine";
@@ -72,16 +73,15 @@ impl Logger {
         level != Level::Off && level >= self.min_level
     }
 
-    /// Logs `message()` from `logger` (a 2.0 class name, renamed to the run's package) on the main
-    /// thread, if `level` is enabled.
+    /// Logs `message()` from `logger` (a 2.0 class name, renamed to the run's package), if `level` is enabled.
     pub fn log(&self, level: Level, logger: &str, message: impl FnOnce() -> String) {
         if self.is_enabled(level) {
             let logger = match logger.strip_prefix(version::package(KtlintVersion::V2_0)) {
                 Some(class) => format!("{}{class}", version::package(self.ktlint_version)),
                 None => logger.to_owned(),
             };
-            self.console
-                .out(&format!("{} [main] {} {logger} -- {}{LINE_SEPARATOR}", local_time(), level.name(), message()));
+            let line = format!("{} [{}] {} {logger} -- {}{LINE_SEPARATOR}", local_time(), thread_name(), level.name(), message());
+            self.console.out(&line);
         }
     }
 
@@ -103,6 +103,15 @@ impl Logger {
 
     pub fn error(&self, logger: &str, message: impl FnOnce() -> String) {
         self.log(Level::Error, logger, message);
+    }
+}
+
+/// The JVM thread: a file worker's name (see `parallel.rs`), else `main` (test threads carry test names).
+fn thread_name() -> String {
+    let current = std::thread::current();
+    match current.name() {
+        Some(name) if name.starts_with(WORKER_THREAD_PREFIX) => name.to_owned(),
+        _ => "main".to_owned(),
     }
 }
 

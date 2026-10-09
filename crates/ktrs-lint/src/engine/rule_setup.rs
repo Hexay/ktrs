@@ -23,6 +23,8 @@ pub(crate) struct RuleSetup {
     pub(crate) visitor_provider: VisitorProvider,
     /// 1.8's `RunAfterRuleFilter` failed: the `IllegalStateException` message every file then throws.
     pub(crate) rule_filter_error: Option<String>,
+    /// `RuleExecutionRuleFilter`'s WARNs, which upstream logs for every file.
+    pub(crate) rule_filter_warnings: Vec<String>,
     rule_editor_configs: Mutex<HashMap<RuleId, Arc<EditorConfig>>>,
 }
 
@@ -53,13 +55,12 @@ impl RuleSetupCache {
         // The version's rule set stands in for the engine's providers, so suppressions of rules it lacks
         // are "unknown or not loaded" as in that release.
         let engine_rule_providers = &rule_providers_in(engine_rule_providers, ktlint_version);
+        let rule_execution_rule_filter = RuleExecutionRuleFilter::new(&editor_config);
         let mut rule_providers = apply_rule_filters(
             engine_rule_providers,
-            &[
-                &InternalRuleProvidersFilter::new(engine_rule_providers),
-                &RuleExecutionRuleFilter::new(&editor_config),
-            ],
+            &[&InternalRuleProvidersFilter::new(engine_rule_providers), &rule_execution_rule_filter],
         );
+        let rule_filter_warnings = rule_execution_rule_filter.into_warnings();
         let mut rule_filter_error = None;
         if ktlint_version.is_1_8() {
             match run_after_rule_filter(rule_providers) {
@@ -76,6 +77,7 @@ impl RuleSetupCache {
             ktlint_version,
             rule_providers,
             rule_filter_error,
+            rule_filter_warnings,
             rule_editor_configs: Mutex::default(),
         });
         let mut entries = self.entries.lock().unwrap();

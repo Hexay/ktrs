@@ -125,8 +125,8 @@ say "run in debug mode"; the obsolete-property warning; four small rule fixes (X
 - **`--stdin-path` without `./`** (#3322): 1.8 looks up `.editorconfig` from the relative path and so misses the working
   directory's; ktrs resolves it against the working directory as 2.0 does (not covered by a scenario that differs).
 - Logging thread names: in file mode 1.8 logs per-file warnings (obsolete properties) from `pool-1-thread-N` in
-  nondeterministic order; ktrs logs `[main]`.
-- Not exercised: a mid-file BOM in format mode, rule crashes (the URL/class-name switches are unit-level only).
+  nondeterministic order; ktrs names its workers the same way, with its own file-to-worker assignment.
+- Not exercised: a mid-file BOM in format mode (rule crashes: cli-diff's `crash_*` scenarios).
 
 ## How to run
 

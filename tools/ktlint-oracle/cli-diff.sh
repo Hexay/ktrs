@@ -91,10 +91,13 @@ scenario() {
     command -v cygpath >/dev/null && w_win=$(cygpath -m "$w_abs")
     for s in out err; do
       # JVM lambda identities (`RuleKt$$Lambda/0x…@1a2b`) differ per run; on Windows the tree shows as C:/… and C:\….
-      grep -av $'^\tat \|^\t\.\.\. [0-9]* more' "$dir/$s.raw" \
+      # Stack frames also inside reporter strings (json escapes them as \n\tat ...); the JVM's pool thread
+      # that takes a file is scheduling-dependent.
+      grep -av $'^\tat \|^\t\.\.\. [0-9]* \\(more\\|common frames omitted\\)$' "$dir/$s.raw" \
         | sed -E -e 's/^[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3} /HH:MM:SS.mmm /' -e "s#$w_abs#<W>#g" -e "s#$w_win#<W>#g" \
         -e "s#${w_win//\//\\\\}#<W>#g" -e 's/\$\$Lambda\/0x[0-9a-f]+@[0-9a-f]+/$$Lambda@<id>/g' \
-        -e 's/ktlint-backup\.[-0-9a-f]+/ktlint-backup.<hash>/' > "$dir/$s"
+        -e 's/ktlint-backup\.[-0-9a-f]+/ktlint-backup.<hash>/' -e 's/\[pool-1-thread-[0-9]+\]/[pool-1-thread-N]/' \
+        -e 's/\\n\\tat [^\\"]*//g' -e 's/\\n\\t\.\.\. [0-9]+ more//g' > "$dir/$s"
     done
     # Reports written into the tree can hold absolute paths too.
     grep -rlaF --exclude-dir=.git "$w_abs" "$dir/w" | while read -r f; do sed -i "s#$w_abs#<W>#g" "$f"; done
@@ -196,6 +199,21 @@ scenario lint_ignore "" "" --ignore-autocorrect-failures --relative src
 scenario format_force_lint "" "" -F --force-lint-after-format --relative src
 scenario format_limit "" "" -F --limit=1 --relative src/A.kt
 scenario limit "" "" --limit=2 --relative src
+
+# Engine output: a rule crash (indent's "Stack should be empty", format only), a file that doesn't converge in
+# 3 format runs, the engine's own warnings. Inputs: corpus files in cli-diff-data/ (Apache-2.0).
+crash='mkdir -p crash && cp "$here/cli-diff-data/example-flow-09.kt" crash/'
+converge='mkdir -p converge && cp "$here/cli-diff-data/AndroidDnsTest.kt" converge/'
+scenario crash_format "" "$crash" -F crash
+scenario crash_format_relative "" "$crash" -F --relative crash
+scenario crash_lint "" "$crash" --relative crash
+scenario crash_json "" "$crash" -F --relative --reporter=json crash
+scenario crash_plain_group "" "$crash" -F --relative '--reporter=plain?group_by_file' crash
+scenario crash_stdin crash/example-flow-09.kt "$crash" --stdin -F
+scenario converge_format "" "$converge" -F --relative converge
+scenario converge_stdin converge/AndroidDnsTest.kt "$converge" --stdin -F
+scenario converge_lint "" "$converge" --relative converge
+scenario suppression_disabled "" "printf 'ktlint_internal_ktlint-suppression = disabled\n' >> .editorconfig" --relative src/A.kt
 
 # Reporters.
 scenario rep_plain "" "" --reporter=plain --relative src

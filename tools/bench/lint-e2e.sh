@@ -60,8 +60,12 @@ median() { # file column
 
 fmt_s() { awk -v s="$1" 'BEGIN { if (s < 1) printf "%.0f ms", s*1000; else printf "%.2f s", s }'; }
 
-# ktlint's log lines start with a wall-clock timestamp.
-norm() { sed -E 's/^[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3} //' "$1" | sort; }
+# As tools/ktlint-oracle/cli-diff.sh: log timestamps and pool thread numbers vary, ktrs has no JVM stack frames.
+norm() {
+  grep -av $'^\tat \|^\t\.\.\. [0-9]* \\(more\\|common frames omitted\\)$' "$1" \
+    | sed -E -e 's/^[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3} //' -e 's/\[pool-1-thread-[0-9]+\]/[pool-1-thread-N]/' \
+      -e 's/\\n\\tat [^\\"]*//g' -e 's/\\n\\t\.\.\. [0-9]+ more//g' | sort
+}
 same_sorted() { cmp -s <(norm "$1") <(norm "$2") && echo same || echo "DIFF($(diff <(norm "$1") <(norm "$2") | grep -c '^[<>]'))"; }
 
 parity() { # slug -> one line, ktrs vs kt2

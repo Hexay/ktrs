@@ -102,9 +102,8 @@ sides, style ktlint_official, lint rows + `-F` trees; branch at 6c76ea2's code):
 Exit codes equal everywhere. The 1.8 differences are the known KDoc-lexer rows of research/26 (standard
 no-multi-spaces / no-trailing-spaces; Json.kt's ` * ` lines in `-F`), not compose. Held-out compose rows cover 25 of
 the 34 rules (preview-public 120, parameter-naming 114, modifier-missing 83, … , 4 vm-injection).
-cli-diff with 0.6.7 (native): identical but for `ruleset_jar_format`, whose CodeFormatter WARN the jar logs from
-`[pool-1-thread-N]` and ktrs from `[main]` (thread assignment is nondeterministic upstream; already a known 1.8
-deviation in research/26); stdin -F matches.
+cli-diff with 0.6.7 (native): identical, `ruleset_jar_format` included since ktrs names its file workers
+`pool-1-thread-N` too (cli-diff masks N: thread assignment is nondeterministic upstream).
 
 ## How to run
 

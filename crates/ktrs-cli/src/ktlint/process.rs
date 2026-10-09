@@ -3,7 +3,8 @@
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use ktrs_lint::editorconfig::KtlintVersion;
-use ktrs_lint::{AutocorrectDecision, Code, KtLintException, KtLintRuleEngine, LintError};
+use ktrs_lint::engine::jvm_throwable_string;
+use ktrs_lint::{AutocorrectDecision, Code, KtLintException, KtLintRuleEngine, KtLintRuleException, LintError};
 
 use crate::ktlint::baseline::does_not_contain;
 use crate::ktlint::command_line::{Exit, ExitCode};
@@ -98,7 +99,7 @@ impl Processor<'_> {
                     }
                     _ => {
                         self.console.out(&code.content);
-                        self.log_exception(&e, code)?;
+                        self.log_exception(&e)?;
                         Err(Exit::Code(ExitCode::ExceptionStdin))
                     }
                 };
@@ -162,7 +163,7 @@ impl Processor<'_> {
                         self.lint(&Code::from_snippet(&code.content, true), baseline_lint_errors)
                     }
                     _ => {
-                        self.log_exception(&e, code)?;
+                        self.log_exception(&e)?;
                         Err(Exit::Code(ExitCode::ExceptionStdin))
                     }
                 };
@@ -213,14 +214,24 @@ impl Processor<'_> {
         self.to_ktlint_cli_error(e, code).map(|e| e.detail).unwrap_or_default()
     }
 
-    /// `logger.error(e) {}`: an empty message, then logback's rendering of the exception.
-    fn log_exception(&self, e: &KtLintException, code: &Code) -> Result<(), Exit> {
-        let exception = match e {
-            KtLintException::Rule(_) => self.to_ktlint_cli_error(e, code)?.detail,
-            _ => return Err(crash(e)),
-        };
-        self.logger.error(KTLINT_COMMAND_LINE, || format!("{LINE_SEPARATOR}{}", exception.trim_end()));
+    /// `logger.error(e) {}`: the `{}` lambda's `Unit` as message, then logback's rendering of the exception.
+    fn log_exception(&self, e: &KtLintException) -> Result<(), Exit> {
+        let KtLintException::Rule(r) = e else { return Err(crash(e)) };
+        self.logger.error(KTLINT_COMMAND_LINE, || {
+            let trace = self.stack_trace_to_string(r);
+            format!("kotlin.Unit{LINE_SEPARATOR}{}", trace.strip_suffix(LINE_SEPARATOR).unwrap_or(&trace))
+        });
         Ok(())
+    }
+
+    /// `e.stackTraceToString()` without the stack frames (see `mod.rs`).
+    fn stack_trace_to_string(&self, r: &KtLintRuleException) -> String {
+        let (v2_0, version) = (package(KtlintVersion::V2_0), package(self.ktlint_version));
+        // The engine names 2.0's repository in the standard rules' `About`; 1.8's is pinterest's.
+        let message = r.message.replace(repository(KtlintVersion::V2_0), repository(self.ktlint_version));
+        let cause = jvm_throwable_string(&r.cause);
+        let cause = cause.strip_prefix(v2_0).map_or(cause.clone(), |class| format!("{version}{class}"));
+        format!("{version}.rule.engine.api.KtLintRuleException: {message}{LINE_SEPARATOR}Caused by: {cause}{LINE_SEPARATOR}")
     }
 
     /// `Exception.toKtlintCliError(code)`; other exceptions are rethrown (a crash).
@@ -238,18 +249,14 @@ impl Processor<'_> {
                 self.logger.debug(KTLINT_COMMAND_LINE, || {
                     format!("Internal Error ({}) in {file} at position '{}:{}", r.rule_id, r.line, r.col)
                 });
-                // The engine names 2.0's repository in the standard rules' `About`; 1.8's is pinterest's.
-                let message = r.message.replace(repository(KtlintVersion::V2_0), repository(self.ktlint_version));
                 let detail = format!(
                     "Internal Error (rule '{}') in {file} at position '{}:{}. Please create a ticket at \
-                     {}/issues and provide the source code that triggered an error.\n\
-                     {}.rule.engine.api.KtLintRuleException: {message}{LINE_SEPARATOR}Caused by: {}{LINE_SEPARATOR}",
+                     {}/issues and provide the source code that triggered an error.\n{}",
                     r.rule_id,
                     r.line,
                     r.col,
                     repository(self.ktlint_version),
-                    package(self.ktlint_version),
-                    r.cause
+                    self.stack_trace_to_string(r)
                 );
                 Ok(KtlintCliError::new(r.line, r.col, "", &detail, Status::KtlintRuleEngineException))
             }

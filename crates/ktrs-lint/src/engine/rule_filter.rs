@@ -1,6 +1,7 @@
 //! Ports of ktlint-rule-engine `internal/rulefilter/RuleFilter.kt`, `InternalRuleProvidersFilter.kt` and
 //! `RuleExecutionRuleFilter.kt`.
 
+use std::cell::RefCell;
 use std::collections::HashMap;
 
 use crate::editorconfig::{
@@ -11,6 +12,9 @@ use crate::editorconfig::{
 use crate::engine::internal_rules::{KTLINT_SUPPRESSION_RULE_ID, ktlint_suppression_rule_provider};
 use crate::rule::RuleV2;
 use crate::rule_provider::RuleV2Provider;
+
+pub(crate) const RULE_EXECUTION_RULE_FILTER_LOGGER: &str =
+    "io.github.ktlint.core.rule.engine.internal.rulefilter.RuleExecutionRuleFilter";
 
 pub trait RuleFilter {
     fn filter(&self, rule_providers: Vec<RuleV2Provider>) -> Vec<RuleV2Provider>;
@@ -75,11 +79,17 @@ impl RuleFilter for InternalRuleProvidersFilter {
 /// The providers of the rules that are enabled in the `.editorconfig`.
 pub struct RuleExecutionRuleFilter<'a> {
     editor_config: &'a EditorConfig,
+    warnings: RefCell<Vec<String>>,
 }
 
 impl RuleExecutionRuleFilter<'_> {
     pub fn new(editor_config: &EditorConfig) -> RuleExecutionRuleFilter<'_> {
-        RuleExecutionRuleFilter { editor_config }
+        RuleExecutionRuleFilter { editor_config, warnings: RefCell::default() }
+    }
+
+    /// What `filter` logged at WARN (upstream: on every file; here replayed from the cached `RuleSetup`).
+    pub fn into_warnings(self) -> Vec<String> {
+        self.warnings.into_inner()
     }
 
     fn disable_ktlint_entirely(&self) -> bool {
@@ -127,6 +137,7 @@ impl RuleFilter for RuleExecutionRuleFilter<'_> {
         let rule_execution_filter = RuleExecutionFilter {
             rule_execution_properties: self.rule_execution_properties(&rule_providers),
             code_style_value: self.editor_config.get(&CODE_STYLE_PROPERTY),
+            warnings: &self.warnings,
         };
         rule_providers
             .into_iter()
@@ -136,12 +147,13 @@ impl RuleFilter for RuleExecutionRuleFilter<'_> {
 }
 
 /// The rule execution properties of the `.editorconfig` (no `EditorConfigProperty` exists for them).
-struct RuleExecutionFilter {
+struct RuleExecutionFilter<'a> {
     rule_execution_properties: HashMap<String, Option<RuleExecution>>,
     code_style_value: CodeStyleValue,
+    warnings: &'a RefCell<Vec<String>>,
 }
 
-impl RuleExecutionFilter {
+impl RuleExecutionFilter<'_> {
     fn is_enabled(&self, rule_provider: &RuleV2Provider) -> bool {
         self.is_rule_enabled(&*rule_provider.create_new_rule_instance())
     }
@@ -150,8 +162,11 @@ impl RuleExecutionFilter {
     /// enabled alone, or one rule disabled when its group is enabled.
     fn is_rule_enabled(&self, rule: &dyn RuleV2) -> bool {
         match self.rule_execution(&rule_execution_property_name(rule.rule_id().value())) {
-            // ktlint-suppression can't be disabled (upstream logs a warning).
-            Some(RuleExecution::Disabled) if rule.rule_id() == KTLINT_SUPPRESSION_RULE_ID => true,
+            Some(RuleExecution::Disabled) if rule.rule_id() == KTLINT_SUPPRESSION_RULE_ID => {
+                let warning = format!("Rule '{}' can not be disabled via the '.editorconfig'", rule.rule_id().value());
+                self.warnings.borrow_mut().push(warning);
+                true
+            }
             Some(it) => it == RuleExecution::Enabled,
             None => self.is_rule_conditionally_enabled(rule),
         }

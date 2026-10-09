@@ -36,5 +36,5 @@ pub use ktlint_rule_engine_suppression::{
 pub use position_in_text_locator::PositionInTextLocator;
 pub use rule_execution_context::{EmitAndApprove, execute_rules, set_verify_visited_types};
 pub(crate) use rule_execution_context::verifying_shortcuts;
-pub use rule_panic::silence_caught_rule_panics;
+pub use rule_panic::{jvm_throwable_string, silence_caught_rule_panics};
 pub use suppression_locator::SuppressionLocator;
