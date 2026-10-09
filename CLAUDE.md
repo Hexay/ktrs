@@ -28,6 +28,9 @@ Milestone 1: the parser's tree must be identical to the Kotlin compiler's PSI (`
 - `editors/vscode` — the VS Code extension `hexay.ktrs` (TypeScript client of `ktrs lsp`; settings mirror the table in
   `crates/ktrs-lsp/src/lib.rs`). Test: `cargo build --bins`, then `npm test` in it (downloads VS Code, background it).
   Release: `tools/release/package-vscode.sh` (one VSIX per target with its binary + universal).
+- `editors/intellij` — IntelliJ/Android Studio plugin `io.github.hexay.ktrs` (platform LSP via `ktrs-lsp.xml`, LSP4IJ via
+  `ktrs-lsp4ij.xml`; settings mirror VS Code's). Test: `cargo build --bins`, then `./gradlew test buildPlugin verifyPlugin`
+  in it (JDK 21, ~4 GB RAM: testbox, background).
 - `npm/cli` — `@ktrs/cli` (JS launcher of the `@ktrs/cli-<os>-<cpu>` binary packages); release generates all seven,
   versions stamped from the tag: `node tools/release/package-npm.mjs <archives dir> <out> <tag>`.
 - `docker/Dockerfile` — `ghcr.io/hexay/ktrs` (distroless static + release musl binaries, no compile); context:

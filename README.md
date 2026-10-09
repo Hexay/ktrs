@@ -25,7 +25,7 @@ it ships as small native binaries with no runtime.
 - 🔌 **Drop-in.** The `ktfmt` and `ktlint` binaries accept the originals' flags, messages and exit
   codes, so existing scripts, hooks and CI keep working.
 - 🧩 **Fits your setup.** Integrations for GitHub Actions, pre-commit, Spotless, ktfmt-gradle and
-  ktlint-gradle drop-in plugins, and Neovim, Helix, Zed, Emacs and VS Code.
+  ktlint-gradle drop-in plugins, and Neovim, Helix, Zed, Emacs, VS Code and IntelliJ/Android Studio.
 - 🌳 **Built on a faithful parser.** ktrs includes a lossless Kotlin parser whose tree matches the
   Kotlin compiler's PSI node for node.
 
@@ -141,7 +141,9 @@ No Rust needed: on first run, the hook downloads the release binaries for its `r
 
 `ktrs lsp` is a language server for ktlint diagnostics, quick fixes and ktfmt or ktlint formatting.
 It runs next to your Kotlin language server and takes its setup from the Gradle or Maven build. In VS
-Code, install the `hexay.ktrs` extension, which bundles it. Editor
+Code, install the `hexay.ktrs` extension, which bundles it. In IntelliJ IDEA 2025.3+ and Android
+Studio, install the `ktrs` plugin (`io.github.hexay.ktrs`, also bundling it; the IDEs without
+the platform LSP client need LSP4IJ), or the release's `ktrs-intellij-<version>.zip` from disk. Editor
 plugins that already run `ktlint` or `ktfmt` (conform.nvim, nvim-lint, none-ls, ALE, apheleia,
 flycheck-kotlin, Helix, Zed, VS Code's mskelton.ktlint, Block's IntelliJ Kotlin Formatter) work
 unchanged with the drop-in binaries; their exact invocations are diffed against the jars. Configs for

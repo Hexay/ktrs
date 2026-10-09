@@ -59,9 +59,12 @@ jobs:
       - name: Install Rust
         run: rustup toolchain install stable --profile minimal && rustup default stable
       - uses: Swatinem/rust-cache@v2
-      - run: cargo build --locked --bins
+      - run: cargo build --locked --bin ktrs
       - uses: actions/setup-java@v4
-        with: { distribution: temurin, java-version: 21, cache: gradle }
+        with: { distribution: temurin, java-version: 21 }
+      # Not setup-java's `cache: gradle`: its key would equal the java job's, and only one of the two would be saved.
+      # This one is keyed per job and also holds the IDEs the tests and the verifier download.
+      - uses: gradle/actions/setup-gradle@v4
       - name: Test and verify the plugin
         working-directory: editors/intellij
         run: ./gradlew --console=plain test buildPlugin verifyPlugin -PverifyAndroidStudio

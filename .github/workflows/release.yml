@@ -210,16 +210,18 @@ jobs:
         working-directory: .
         run: bash tools/release/bundle-natives.sh dist editors/intellij/bin
       - uses: actions/setup-java@v4
-        with: { distribution: temurin, java-version: 21, cache: gradle }
+        with: { distribution: temurin, java-version: 21 }
+      - uses: gradle/actions/setup-gradle@v4
       - name: Build the plugin
         run: ./gradlew --console=plain buildPlugin -PktrsVersion=${GITHUB_REF_NAME#v}
-      - name: Publish to the JetBrains Marketplace
-        if: env.JETBRAINS_MARKETPLACE_TOKEN != ''
-        run: ./gradlew --console=plain publishPlugin -PktrsVersion=${GITHUB_REF_NAME#v}
       - uses: actions/upload-artifact@v4
         with:
           name: intellij
           path: editors/intellij/build/distributions/ktrs-intellij-*.zip
+          if-no-files-found: error
+      - name: Publish to the JetBrains Marketplace
+        if: env.JETBRAINS_MARKETPLACE_TOKEN != ''
+        run: ./gradlew --console=plain publishPlugin -PktrsVersion=${GITHUB_REF_NAME#v}
 
   # ghcr.io/hexay/ktrs:<version> and :latest for linux/amd64 + arm64, from the static musl binaries (docker/Dockerfile).
   docker:
