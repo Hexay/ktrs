@@ -1,0 +1,1 @@
+{"rule":"MagicNumber","path":"/Test.kt","config":{"ignoreNumbers":["65520u"]},"test":"MagicNumberSpec.unsigned integer literals.should not report unsigned integer literal with lowercase u when ignored"}

@@ -1,0 +1,1 @@
+val myDouble = 1.0

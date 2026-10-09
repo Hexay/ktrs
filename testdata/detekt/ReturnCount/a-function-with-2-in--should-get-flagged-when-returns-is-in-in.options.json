@@ -1,0 +1,1 @@
+{"rule":"ReturnCount","path":"/Test.kt","config":{"max":2},"test":"ReturnCountSpec.a function with 2 inner object and exceeded max.should get flagged when returns is in inner object"}

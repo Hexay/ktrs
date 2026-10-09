@@ -1,0 +1,1 @@
+{"rule":"ReturnCount","path":"/Test.kt","config":{"excludeGuardClauses":false,"max":3},"test":"ReturnCountSpec.a file with multiple guard clauses.WithSuperCall.should work normally with super call in between and with EXCLUDE_GUARD_CLAUSES false"}

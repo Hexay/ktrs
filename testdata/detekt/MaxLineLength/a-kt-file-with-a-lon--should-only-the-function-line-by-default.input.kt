@@ -1,0 +1,7 @@
+package anIncrediblyLongAndComplexPackageNameThatProbablyShouldBeMuchShorterButForTheSakeOfTheTestItsNot
+
+import java.nio.file.attribute.PosixFileAttributeView
+
+class Test {
+    fun anIncrediblyLongAndComplexMethodNameThatProbablyShouldBeMuchShorterButForTheSakeOfTheTestItsNot() {}
+}

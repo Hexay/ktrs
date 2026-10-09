@@ -1,0 +1,1 @@
+{"rule":"MagicNumber","path":"/Test.kt","config":{"ignoreNumbers":["1","2","3","-1","0"],"ignorePropertyDeclaration":false},"test":"MagicNumberSpec.a long of -2.should not be ignored when ignoredNumbers contains 2 but not -2"}

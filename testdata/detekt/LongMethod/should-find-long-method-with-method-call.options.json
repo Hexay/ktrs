@@ -1,0 +1,1 @@
+{"rule":"LongMethod","path":"/Test.kt","config":{"allowedLines":5},"test":"LongMethodSpec.should find long method with method call with params on separate lines"}

@@ -1,0 +1,1 @@
+{"rule":"MagicNumber","path":"/Test.kt","config":{"ignoreLocalVariableDeclaration":false},"test":"MagicNumberSpec.a method containing variables with magic numbers.should be reported when ignoreLocalVariableDeclaration is off"}

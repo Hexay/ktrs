@@ -1,0 +1,1 @@
+{"rule":"MagicNumber","path":"/Test.kt","config":{"ignorePropertyDeclaration":true},"test":"MagicNumberSpec.unsigned integer literals.should not report lowercase unsigned literals when ignoring property declarations"}

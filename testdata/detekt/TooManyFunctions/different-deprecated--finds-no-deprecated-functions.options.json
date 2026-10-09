@@ -1,0 +1,1 @@
+{"rule":"TooManyFunctions","path":"/Test.kt","config":{"allowedFunctionsPerClass":1,"allowedFunctionsPerFile":1,"ignoreDeprecated":true},"test":"TooManyFunctionsSpec.different deprecated functions.finds no deprecated functions"}

@@ -1,0 +1,1 @@
+{"rule":"CyclomaticComplexMethod","path":"/Test.kt","config":{"ignoreSimpleWhenEntries":true},"test":"CyclomaticComplexMethodSpec.several complex methods.does not trip for a reasonable amount of simple when entries when ignoreSimpleWhenEntries is true"}

@@ -1,0 +1,1 @@
+{"rule":"SwallowedException","path":"/Test.kt","config":{},"test":"SwallowedExceptionSpec.reports swallowed exceptions when it has multiple throw expressions 2"}

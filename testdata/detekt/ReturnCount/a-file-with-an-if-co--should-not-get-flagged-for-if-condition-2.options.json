@@ -1,0 +1,1 @@
+{"rule":"ReturnCount","path":"/Test.kt","config":{"excludeGuardClauses":true},"test":"ReturnCountSpec.a file with an if condition guard clause with body and 2 returns.should not get flagged for if condition guard clauses"}

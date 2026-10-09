@@ -1,0 +1,1 @@
+{"rule":"FunctionParameterNaming","path":"/Test.kt","config":{},"test":"FunctionParameterNamingSpec.parameters in a function of a class.should detect no violations"}

@@ -1,0 +1,1 @@
+{"rule":"MaxLineLength","path":"/Test.kt","config":{"maxLineLength":60},"test":"MaxLineLengthSpec.code containing comment with long reference url.should not report for long markdown url in kdoc"}

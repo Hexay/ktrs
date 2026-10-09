@@ -1,0 +1,1 @@
+{"rule":"ReturnCount","path":"/Test.kt","config":{"max":2,"excludedFunctions":["factorial","fac"]},"test":"ReturnCountSpec.a subset of functions are ignored.should flag none of the ignored functions"}

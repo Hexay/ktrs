@@ -1,0 +1,1 @@
+1:5	1:9	4:8	fun test	The function test appears to be too complex based on Cyclomatic Complexity (complexity: 2). The maximum allowed complexity for methods is set to '1'

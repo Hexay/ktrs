@@ -1,0 +1,1 @@
+{"rule":"InvalidPackageDeclaration","path":"/detekt-rules-naming/src/test/resources/InvalidPackageDeclarationSpec/src/foo/bar/correct.kt","config":{},"test":"InvalidPackageDeclarationSpec.should pass if package declaration is correct"}

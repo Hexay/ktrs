@@ -1,0 +1,1 @@
+{"rule":"EmptyFunctionBlock","path":"/Test.kt","config":{},"test":"EmptyFunctionBlockSpec.should not flag a default function in an interface"}

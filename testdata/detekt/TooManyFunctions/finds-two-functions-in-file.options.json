@@ -1,0 +1,1 @@
+{"rule":"TooManyFunctions","path":"/Test.kt","config":{"allowedFunctionsPerClass":1,"allowedFunctionsPerEnum":1,"allowedFunctionsPerFile":1,"allowedFunctionsPerInterface":1,"allowedFunctionsPerObject":1},"test":"TooManyFunctionsSpec.finds two functions in file"}

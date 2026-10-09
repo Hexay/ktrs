@@ -1,0 +1,1 @@
+{"rule":"ReturnCount","path":"/Test.kt","config":{"excludeGuardClauses":true},"test":"ReturnCountSpec.a file with guard clauses interleaved with local variable declarations.should not count guard clauses that follow local variable declarations"}

@@ -1,0 +1,1 @@
+const val MY_DOUBLE = 1.0

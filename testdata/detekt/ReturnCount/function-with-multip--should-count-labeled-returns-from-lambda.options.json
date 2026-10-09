@@ -1,0 +1,1 @@
+{"rule":"ReturnCount","path":"/Test.kt","config":{"excludeReturnFromLambda":false},"test":"ReturnCountSpec.function with multiple labeled return statements.should count labeled returns from lambda when activated"}

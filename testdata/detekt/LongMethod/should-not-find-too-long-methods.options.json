@@ -1,0 +1,1 @@
+{"rule":"LongMethod","path":"/Test.kt","config":{"allowedLines":5},"test":"LongMethodSpec.should not find too long methods"}

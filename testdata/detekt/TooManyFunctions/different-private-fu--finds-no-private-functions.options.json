@@ -1,0 +1,1 @@
+{"rule":"TooManyFunctions","path":"/Test.kt","config":{"allowedFunctionsPerClass":1,"allowedFunctionsPerFile":1,"ignorePrivate":true},"test":"TooManyFunctionsSpec.different private functions.finds no private functions"}

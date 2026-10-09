@@ -1,0 +1,1 @@
+{"rule":"MaxLineLength","path":"/Test.kt","config":{},"test":"MaxLineLengthSpec.a kt file with long but suppressed lines.should not report as lines are suppressed"}

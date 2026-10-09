@@ -1,0 +1,1 @@
+class PrimaryConstructorWithAnnotation @SafeVarargs constructor()

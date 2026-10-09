@@ -1,0 +1,1 @@
+val inRange = (1 in 27 downTo 0 step 1)

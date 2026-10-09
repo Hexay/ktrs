@@ -1,0 +1,1 @@
+{"rule":"MagicNumber","path":"/Test.kt","config":{},"test":"MagicNumberSpec.a long of -2.should not be reported by default"}

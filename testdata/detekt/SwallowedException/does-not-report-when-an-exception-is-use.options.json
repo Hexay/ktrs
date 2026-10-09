@@ -1,0 +1,1 @@
+{"rule":"SwallowedException","path":"/Test.kt","config":{},"test":"SwallowedExceptionSpec.does not report when an exception is used as a receiver and the return value is thrown"}

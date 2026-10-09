@@ -1,0 +1,1 @@
+{"rule":"SwallowedException","path":"/Test.kt","config":{"allowedExceptionNameRegex":"myIgnore"},"test":"SwallowedExceptionSpec.ignores given exception name config.ignores given exception name"}

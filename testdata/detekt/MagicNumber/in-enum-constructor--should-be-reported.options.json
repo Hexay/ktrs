@@ -1,0 +1,1 @@
+{"rule":"MagicNumber","path":"/Test.kt","config":{"ignoreNamedArgument":false},"test":"MagicNumberSpec.ignoring named arguments.in enum constructor as named argument.should be reported"}

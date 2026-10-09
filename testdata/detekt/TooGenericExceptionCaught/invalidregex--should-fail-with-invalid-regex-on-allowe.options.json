@@ -1,0 +1,1 @@
+{"rule":"TooGenericExceptionCaught","path":"/Test.kt","config":{"allowedExceptionNameRegex":"*Foo"},"test":"TooGenericExceptionCaughtSpec.InvalidRegex.should fail with invalid regex on allowed exception names"}

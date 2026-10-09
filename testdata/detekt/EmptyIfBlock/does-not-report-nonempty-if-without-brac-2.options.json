@@ -1,0 +1,1 @@
+{"rule":"EmptyIfBlock","path":"/Test.kt","config":{},"test":"EmptyIfBlockSpec.does not report nonempty if without braces but semicolon"}

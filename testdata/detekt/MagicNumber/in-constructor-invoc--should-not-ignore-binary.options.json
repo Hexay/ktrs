@@ -1,0 +1,1 @@
+{"rule":"MagicNumber","path":"/Test.kt","config":{"ignoreNamedArgument":false,"ignorePropertyDeclaration":false},"test":"MagicNumberSpec.ignoring named arguments.in constructor invocation.should not ignore binary"}

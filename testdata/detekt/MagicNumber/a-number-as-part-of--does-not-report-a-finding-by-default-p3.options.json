@@ -1,0 +1,1 @@
+{"rule":"MagicNumber","path":"/Test.kt","config":{},"test":"MagicNumberSpec.a number as part of a range.does not report a finding by default[3]"}

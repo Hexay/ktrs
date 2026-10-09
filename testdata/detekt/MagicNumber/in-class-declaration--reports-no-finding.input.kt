@@ -1,0 +1,1 @@
+class SomeClassWithDefault(val defaultValue: Int = 10)

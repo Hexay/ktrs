@@ -1,0 +1,1 @@
+{"rule":"ReturnCount","path":"/Test.kt","config":{"excludeLabeled":true,"excludeReturnFromLambda":false},"test":"ReturnCountSpec.function with multiple labeled return statements.should be empty when labeled returns are de-activated"}

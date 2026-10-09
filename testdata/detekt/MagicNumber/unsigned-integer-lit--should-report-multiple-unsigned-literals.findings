@@ -1,0 +1,3 @@
+1:9	1:15	8:14	65520U	This expression contains a magic number. Consider defining it to a well named constant.
+2:9	2:17	23:31	0xFFF0UL	This expression contains a magic number. Consider defining it to a well named constant.
+3:9	3:15	40:46	12345U	This expression contains a magic number. Consider defining it to a well named constant.

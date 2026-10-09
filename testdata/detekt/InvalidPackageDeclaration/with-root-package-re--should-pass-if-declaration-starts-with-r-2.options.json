@@ -1,0 +1,1 @@
+{"rule":"InvalidPackageDeclaration","path":"/detekt-rules-naming/src/test/resources/InvalidPackageDeclarationSpec/src/com/example/foo/bar/File.kt","config":{"rootPackage":"com.example","requireRootInDeclaration":true},"test":"InvalidPackageDeclarationSpec.with root package required.should pass if declaration starts with root package"}

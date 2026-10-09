@@ -1,0 +1,1 @@
+{"rule":"MagicNumber","path":"/Test.kt","config":{"ignoreNumbers":["10_00_00"]},"test":"MagicNumberSpec.an integer literal with underscores.should not be reported when ignored with different underscores"}

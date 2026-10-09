@@ -1,0 +1,1 @@
+{"rule":"ReturnCount","path":"/Test.kt","config":{},"test":"ReturnCountSpec.a file with 3 returns.should get flagged by default"}

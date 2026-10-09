@@ -1,0 +1,1 @@
+val myFloat = 1.0f

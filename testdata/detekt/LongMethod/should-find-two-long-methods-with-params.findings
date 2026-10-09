@@ -1,0 +1,2 @@
+1:5	1:15	4:14	fun longMethod	The function longMethod is too long (6). The maximum length is 5.
+9:9	9:25	115:131	fun nestedLongMethod	The function nestedLongMethod is too long (6). The maximum length is 5.

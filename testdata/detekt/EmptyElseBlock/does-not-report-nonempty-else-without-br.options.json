@@ -1,0 +1,1 @@
+{"rule":"EmptyElseBlock","path":"/Test.kt","config":{},"test":"EmptyElseBlockSpec.does not report nonempty else without braces"}

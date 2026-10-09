@@ -1,0 +1,1 @@
+39:5	39:33	870:898	fun complexMethodWith2Statements	The function complexMethodWith2Statements appears to be too complex based on Cyclomatic Complexity (complexity: 6). The maximum allowed complexity for methods is set to '4'

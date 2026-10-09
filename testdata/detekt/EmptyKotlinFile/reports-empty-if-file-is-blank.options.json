@@ -1,0 +1,1 @@
+{"rule":"EmptyKotlinFile","path":"/Test.kt","config":{},"test":"EmptyKotlinFileSpec.reports empty if file is blank"}

@@ -1,0 +1,1 @@
+{"rule":"CyclomaticComplexMethod","path":"/Test.kt","config":{"allowedComplexity":6},"test":"CyclomaticComplexMethodSpec.several complex methods.does not report function that has exactly the allowed complexity"}

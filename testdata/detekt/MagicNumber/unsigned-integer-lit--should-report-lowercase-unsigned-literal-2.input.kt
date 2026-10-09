@@ -1,0 +1,1 @@
+val array = arrayOf(1u, 2u, 65520u)

@@ -1,0 +1,1 @@
+{"rule":"CyclomaticComplexMethod","path":"/Test.kt","config":{"allowedComplexity":1,"ignoreNestingFunctions":false},"test":"CyclomaticComplexMethodSpec.nesting functions.counts three with nesting function 'forEach'"}

@@ -1,0 +1,1 @@
+{"rule":"EmptySecondaryConstructor","path":"/Test.kt","config":{},"test":"EmptyCodeSpec.findsOneEmptySecondaryConstructor"}

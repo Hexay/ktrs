@@ -1,0 +1,9 @@
+1:17	1:19	16:18	A$69	This expression contains a magic number. Consider defining it to a well named constant.
+3:24	3:26	53:55	A$42	This expression contains a magic number. Consider defining it to a well named constant.
+4:33	4:38	88:93	A$93871	This expression contains a magic number. Consider defining it to a well named constant.
+5:37	5:39	130:132	A$10	This expression contains a magic number. Consider defining it to a well named constant.
+9:26	9:33	273:280	A$7328672	This expression contains a magic number. Consider defining it to a well named constant.
+13:35	13:37	345:347	A.Companion$43	This expression contains a magic number. Consider defining it to a well named constant.
+14:43	14:48	390:395	A.Companion$93872	This expression contains a magic number. Consider defining it to a well named constant.
+15:27	15:37	422:432	A.Companion$0x66000000	This expression contains a magic number. Consider defining it to a well named constant.
+16:56	16:66	489:499	A.Companion$0x66000000	This expression contains a magic number. Consider defining it to a well named constant.

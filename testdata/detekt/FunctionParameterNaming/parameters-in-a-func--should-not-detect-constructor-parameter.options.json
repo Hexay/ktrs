@@ -1,0 +1,1 @@
+{"rule":"FunctionParameterNaming","path":"/Test.kt","config":{"excludeClassPattern":"Excluded"},"test":"FunctionParameterNamingSpec.parameters in a function of an excluded class.should not detect constructor parameter"}

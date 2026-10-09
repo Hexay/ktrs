@@ -1,0 +1,1 @@
+{"rule":"TooManyFunctions","path":"/Test.kt","config":{"allowedFunctionsPerClass":1,"allowedFunctionsPerFile":1,"ignoreOverridden":true},"test":"TooManyFunctionsSpec.overridden functions.should not report class with overridden functions, if ignoreOverridden is enabled"}

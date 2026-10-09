@@ -1,0 +1,1 @@
+1:5	1:9	4:8	fun test: Int	Function test has 4 return statements which exceeds the limit of 2.

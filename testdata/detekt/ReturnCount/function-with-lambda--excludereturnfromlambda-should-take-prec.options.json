@@ -1,0 +1,1 @@
+{"rule":"ReturnCount","path":"/Test.kt","config":{"excludeReturnFromLambda":true,"excludeLabeled":false},"test":"ReturnCountSpec.function with lambda which has explicit label.excludeReturnFromLambda should take precedence over excludeLabeled"}

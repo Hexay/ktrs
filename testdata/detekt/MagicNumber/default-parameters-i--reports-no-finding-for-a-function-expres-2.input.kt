@@ -1,0 +1,1 @@
+fun f(p: Duration = 10.toDuration(DurationUnit.MILLISECONDS)) {}

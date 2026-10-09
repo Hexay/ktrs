@@ -1,0 +1,1 @@
+{"rule":"MagicNumber","path":"/Test.kt","config":{"ignoreNumbers":["300.0"]},"test":"MagicNumberSpec.an integer of 300.should not be reported when ignoredNumbers contains a floating point 300"}

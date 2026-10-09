@@ -1,0 +1,1 @@
+{"rule":"EmptyElseBlock","path":"/Test.kt","config":{},"test":"EmptyElseBlockSpec.reports empty else with trailing semicolon and braces"}

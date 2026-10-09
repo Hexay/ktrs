@@ -1,0 +1,1 @@
+{"rule":"ReturnCount","path":"/Test.kt","config":{"max":2,"excludedFunctions":["test"]},"test":"ReturnCountSpec.a function is ignored.should not get flagged"}

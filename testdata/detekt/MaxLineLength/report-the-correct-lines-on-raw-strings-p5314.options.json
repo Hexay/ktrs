@@ -1,0 +1,1 @@
+{"rule":"MaxLineLength","path":"/Test.kt","config":{"maxLineLength":30,"excludeRawStrings":false},"test":"MaxLineLengthSpec.report the correct lines on raw strings with backslash on it - issue #5314[5314]"}

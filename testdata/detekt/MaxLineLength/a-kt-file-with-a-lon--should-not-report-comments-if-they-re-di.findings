@@ -1,0 +1,5 @@
+9:1	9:184	569:752	MaxLineLengthWithLongComments.Companion$val LOREM_IPSUM = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua."	Line detected, which is longer than the defined maximum line length in the code style.
+12:1	12:184	760:943	MaxLineLengthWithLongComments$val loremIpsumField = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua."	Line detected, which is longer than the defined maximum line length in the code style.
+15:1	15:106	962:1067	MaxLineLengthWithLongComments$val thisIsAVeryLongValName = "This is a very, very long String that will break the MaxLineLength"	Line detected, which is longer than the defined maximum line length in the code style.
+17:1	17:94	1069:1162	MaxLineLengthWithLongComments$if	Line detected, which is longer than the defined maximum line length in the code style.
+27:1	27:184	1306:1489	MaxLineLengthWithLongComments$fun getLoremIpsum	Line detected, which is longer than the defined maximum line length in the code style.

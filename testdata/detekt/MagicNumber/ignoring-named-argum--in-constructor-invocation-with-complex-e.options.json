@@ -1,0 +1,1 @@
+{"rule":"MagicNumber","path":"/Test.kt","config":{"ignoreNamedArgument":true},"test":"MagicNumberSpec.ignoring named arguments.in constructor invocation with complex expression"}

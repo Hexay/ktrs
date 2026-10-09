@@ -1,0 +1,1 @@
+val myBinary = 0b01001

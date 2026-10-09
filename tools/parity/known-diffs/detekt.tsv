@@ -1,0 +1,3 @@
+# cargo detekt-diff: accepted row mismatches against the detekt jar, `<run>\t<-|+>\t<file>\t<row>` (`-`: only the jar
+# reports it, `+`: only ktrs does; `<row>` as in rows.tsv without the file column). A listed row that no longer
+# differs fails as stale. Reasons in a comment above each group; research/33 "Spike result".

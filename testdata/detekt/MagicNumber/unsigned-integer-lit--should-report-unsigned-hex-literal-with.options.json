@@ -1,0 +1,1 @@
+{"rule":"MagicNumber","path":"/Test.kt","config":{"ignorePropertyDeclaration":false},"test":"MagicNumberSpec.unsigned integer literals.should report unsigned hex literal with lowercase u"}

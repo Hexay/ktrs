@@ -1,0 +1,1 @@
+{"rule":"EmptyWhileBlock","path":"/Test.kt","config":{},"test":"EmptyCodeSpec.findsEmptyWhile"}

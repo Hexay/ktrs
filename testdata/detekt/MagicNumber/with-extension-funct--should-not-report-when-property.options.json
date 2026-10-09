@@ -1,0 +1,1 @@
+{"rule":"MagicNumber","path":"/Test.kt","config":{"ignoreExtensionFunctions":true,"ignorePropertyDeclaration":false},"test":"MagicNumberSpec.with extension function.should not report when property"}

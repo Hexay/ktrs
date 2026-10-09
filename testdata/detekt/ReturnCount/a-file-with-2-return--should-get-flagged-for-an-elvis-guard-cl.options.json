@@ -1,0 +1,1 @@
+{"rule":"ReturnCount","path":"/Test.kt","config":{"excludeGuardClauses":true},"test":"ReturnCountSpec.a file with 2 returns and an ELVIS guard clause which is not the first statement.should get flagged for an ELVIS guard clause which is not the first statement"}

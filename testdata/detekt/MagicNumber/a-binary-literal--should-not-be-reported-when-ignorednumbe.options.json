@@ -1,0 +1,1 @@
+{"rule":"MagicNumber","path":"/Test.kt","config":{"ignoreNumbers":["0b01001"]},"test":"MagicNumberSpec.a binary literal.should not be reported when ignoredNumbers contains a binary literal 0b01001"}

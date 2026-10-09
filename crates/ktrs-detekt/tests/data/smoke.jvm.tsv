@@ -1,0 +1,92 @@
+src/main/kotlin/other/Aliases2.kt	3	1	3	23	44	66	PackageNaming	Error	package smoke.Bad_name	Package name should match the pattern: [a-z]+(\\.[a-z][A-Za-z0-9]*)*
+src/main/kotlin/other/Aliases2.kt	5	5	5	6	72	73	FunctionOnlyReturningConstant	Error	fun f	f is returning a constant. Prefer declaring a constant instead.
+src/main/kotlin/smoke/Aliases.kt	3	1	3	23	31	53	InvalidPackageDeclaration	Error	package smoke.Bad_name	The package declaration does not match the actual file location.
+src/main/kotlin/smoke/Aliases.kt	5	5	5	6	59	60	FunctionOnlyReturningConstant	Error	fun f	f is returning a constant. Prefer declaring a constant instead.
+src/main/kotlin/smoke/Blank.kt	1	1	1	1	0	0	EmptyKotlinFile	Error	.Blank.kt	The empty Kotlin file Blank.kt can be removed.
+src/main/kotlin/smoke/Bom.kt	3	21	3	23	35	37	EmptyIfBlock	Error	{}	This empty block of code can be removed.
+src/main/kotlin/smoke/Broken.kt	3	20	3	22	34	36	EmptyIfBlock	Error	{}	This empty block of code can be removed.
+src/main/kotlin/smoke/Broken.kt	4	34	4	36	71	73	EmptyWhileBlock	Error	C${}	This empty block of code can be removed.
+src/main/kotlin/smoke/Cr.kt	4	15	4	17	39	41	EmptyIfBlock	Error	{}	This empty block of code can be removed.
+src/main/kotlin/smoke/Crlf.kt	4	15	4	17	39	41	EmptyIfBlock	Error	{}	This empty block of code can be removed.
+src/main/kotlin/smoke/Empty.kt	1	1	1	1	0	0	EmptyKotlinFile	Error	.Empty.kt	The empty Kotlin file Empty.kt can be removed.
+src/main/kotlin/smoke/LongLine.kt	5	1	5	122	148	269	MaxLineLength	Error	// 😀😀😀😀😀xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx	Line detected, which is longer than the defined maximum line length in the code style.
+src/main/kotlin/smoke/LongLine.kt	7	1	7	122	391	512	MaxLineLength	Error	// éxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx	Line detected, which is longer than the defined maximum line length in the code style.
+src/main/kotlin/smoke/LongLine.kt	11	1	11	122	886	1007	MaxLineLength	Error	val v = xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx	Line detected, which is longer than the defined maximum line length in the code style.
+src/main/kotlin/smoke/LongLine.kt	13	1	13	136	1018	1153	MaxLineLength	Error	println("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")	Line detected, which is longer than the defined maximum line length in the code style.
+src/main/kotlin/smoke/LongLine.kt	14	1	14	142	1154	1295	MaxLineLength	Error	println(""" xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx """)	Line detected, which is longer than the defined maximum line length in the code style.
+src/main/kotlin/smoke/LongLine.kt	21	1	21	150	1731	1880	MaxLineLength	Error	// see https://example.com/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx .	Line detected, which is longer than the defined maximum line length in the code style.
+src/main/kotlin/smoke/LongLine.kt	22	1	22	146	1881	2026	MaxLineLength	Error	// see foo://example.com/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx	Line detected, which is longer than the defined maximum line length in the code style.
+src/main/kotlin/smoke/LongLine.kt	25	1	25	143	2295	2437	MaxLineLength	Error	// see http://e.com:x/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx	Line detected, which is longer than the defined maximum line length in the code style.
+src/main/kotlin/smoke/LongLine.kt	26	1	26	144	2438	2581	MaxLineLength	Error	// see http://e.com/a^bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx	Line detected, which is longer than the defined maximum line length in the code style.
+src/main/kotlin/smoke/LongLine.kt	27	1	27	145	2582	2726	MaxLineLength	Error	// see http://e.com/a%zzxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx	Line detected, which is longer than the defined maximum line length in the code style.
+src/main/kotlin/smoke/LongLine.kt	28	1	28	142	2727	2868	MaxLineLength	Error	// see http://e.com/[xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx	Line detected, which is longer than the defined maximum line length in the code style.
+src/main/kotlin/smoke/LongLine.kt	30	1	30	144	3012	3155	MaxLineLength	Error	// see http://e.com/a|bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx	Line detected, which is longer than the defined maximum line length in the code style.
+src/main/kotlin/smoke/LongLine.kt	31	1	31	145	3156	3300	MaxLineLength	Error	// see jar:http://e.com/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx	Line detected, which is longer than the defined maximum line length in the code style.
+src/main/kotlin/smoke/LongLine.kt	34	1	34	140	3588	3727	MaxLineLength	Error	// see [docs] (http://e.com/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)	Line detected, which is longer than the defined maximum line length in the code style.
+src/main/kotlin/smoke/LongLine.kt	37	1	37	129	3987	4115	MaxLineLength	Error	// xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx [Foo bar]	Line detected, which is longer than the defined maximum line length in the code style.
+src/main/kotlin/smoke/LongLine.kt	38	1	38	127	4116	4242	MaxLineLength	Error	/* xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx */	Line detected, which is longer than the defined maximum line length in the code style.
+src/main/kotlin/smoke/LongLine.kt	39	1	39	140	4243	4382	MaxLineLength	Error	// xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx trailing 	Line detected, which is longer than the defined maximum line length in the code style.
+src/main/kotlin/smoke/LongLine.kt	9	5	9	6	638	639	MayBeConstant	Error	// 😀😀😀😀😀xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx // 😀xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx // éxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx // éxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx val s = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"	s can be a `const val`.
+src/main/kotlin/smoke/Magic.kt	6	7	6	8	226	227	EqualsWithHashCodeExist	Error	M	A class should always override hashCode when overriding equals and the other way around.
+src/main/kotlin/smoke/Magic.kt	8	14	8	15	429	430	FunctionOnlyReturningConstant	Error	@Ann(16) fun g	g is returning a constant. Prefer declaring a constant instead.
+src/main/kotlin/smoke/Magic.kt	9	5	9	7	451	453	FunctionOnlyReturningConstant	Error	fun g2: Int	g2 is returning a constant. Prefer declaring a constant instead.
+src/main/kotlin/smoke/Magic.kt	4	19	4	23	46	50	MagicNumber	Error	0xFF	This expression contains a magic number. Consider defining it to a well named constant.
+src/main/kotlin/smoke/Magic.kt	4	36	4	41	63	68	MagicNumber	Error	1_000	This expression contains a magic number. Consider defining it to a well named constant.
+src/main/kotlin/smoke/Magic.kt	4	43	4	45	70	72	MagicNumber	Error	3L	This expression contains a magic number. Consider defining it to a well named constant.
+src/main/kotlin/smoke/Magic.kt	4	47	4	51	74	78	MagicNumber	Error	2.5f	This expression contains a magic number. Consider defining it to a well named constant.
+src/main/kotlin/smoke/Magic.kt	4	53	4	56	80	83	MagicNumber	Error	1e3	This expression contains a magic number. Consider defining it to a well named constant.
+src/main/kotlin/smoke/Magic.kt	4	59	4	60	86	87	MagicNumber	Error	0	This expression contains a magic number. Consider defining it to a well named constant.
+src/main/kotlin/smoke/Magic.kt	4	72	4	73	99	100	MagicNumber	Error	3	This expression contains a magic number. Consider defining it to a well named constant.
+src/main/kotlin/smoke/Magic.kt	4	75	4	80	102	107	MagicNumber	Error	0b101	This expression contains a magic number. Consider defining it to a well named constant.
+src/main/kotlin/smoke/Magic.kt	4	82	4	85	109	112	MagicNumber	Error	42u	This expression contains a magic number. Consider defining it to a well named constant.
+src/main/kotlin/smoke/Magic.kt	4	87	4	91	114	118	MagicNumber	Error	42UL	This expression contains a magic number. Consider defining it to a well named constant.
+src/main/kotlin/smoke/Magic.kt	4	131	4	132	158	159	MagicNumber	Error	9	This expression contains a magic number. Consider defining it to a well named constant.
+src/main/kotlin/smoke/Magic.kt	4	134	4	136	161	163	MagicNumber	Error	.5	This expression contains a magic number. Consider defining it to a well named constant.
+src/main/kotlin/smoke/Magic.kt	4	149	4	152	176	179	MagicNumber	Error	0.0	This expression contains a magic number. Consider defining it to a well named constant.
+src/main/kotlin/smoke/Magic.kt	5	37	5	38	217	218	MagicNumber	Error	9	This expression contains a magic number. Consider defining it to a well named constant.
+src/main/kotlin/smoke/Magic.kt	6	72	6	74	291	293	MagicNumber	Error	M$12	This expression contains a magic number. Consider defining it to a well named constant.
+src/main/kotlin/smoke/Magic.kt	7	31	7	33	410	412	MagicNumber	Error	EE.A$15	This expression contains a magic number. Consider defining it to a well named constant.
+src/main/kotlin/smoke/Magic.kt	8	6	8	8	421	423	MagicNumber	Error	16	This expression contains a magic number. Consider defining it to a well named constant.
+src/main/kotlin/smoke/Magic.kt	4	1	4	153	28	180	MaxLineLength	Error	fun f1	Line detected, which is longer than the defined maximum line length in the code style.
+src/main/kotlin/smoke/Magic.kt	6	1	6	160	220	379	MaxLineLength	Error	M	Line detected, which is longer than the defined maximum line length in the code style.
+src/main/kotlin/smoke/Magic.kt	3	5	3	6	19	20	MayBeConstant	Error	val a = 0x0d	a can be a `const val`.
+src/main/kotlin/smoke/Magic.kt	6	132	6	133	351	352	MayBeConstant	Error	M.Companion$val q = 13;	q can be a `const val`.
+src/main/kotlin/smoke/Magic.kt	5	8	5	9	188	189	UnusedParameter	Error	x: Int = 7	Function parameter `x` is unused.
+src/main/kotlin/smoke/NoEol.kt	3	21	3	23	35	37	EmptyIfBlock	Error	{}	This empty block of code can be removed.
+src/main/kotlin/smoke/NoEol.kt	3	25	3	25	39	39	NewLineAtEndOfFile	Error	smoke.NoEol.kt	The file NoEol.kt is not ending with a new line.
+src/main/kotlin/smoke/OnlyPackage.kt	1	1	1	14	0	13	EmptyKotlinFile	Error	smoke.OnlyPackage.kt	The empty Kotlin file OnlyPackage.kt can be removed.
+src/main/kotlin/smoke/Signatures.kt	21	59	21	62	697	700	EmptyCatchBlock	Error	Outer.Named${ }	Empty catch block detected. If the exception can be safely ignored, name the exception according to one of the exemptions as per the configuration of this rule.
+src/main/kotlin/smoke/Signatures.kt	16	19	16	21	447	449	EmptyDoWhileBlock	Error	Outer.Inner${}	This empty block of code can be removed.
+src/main/kotlin/smoke/Signatures.kt	17	53	17	55	517	519	EmptyFinallyBlock	Error	Outer.Inner.Companion${}	This empty block of code can be removed.
+src/main/kotlin/smoke/Signatures.kt	14	46	14	48	378	380	EmptyForBlock	Error	Outer.Inner${}	This empty block of code can be removed.
+src/main/kotlin/smoke/Signatures.kt	22	41	22	43	745	747	EmptyFunctionBlock	Error	Outer.E.A${}	This empty block of code can be removed.
+src/main/kotlin/smoke/Signatures.kt	24	52	24	54	851	853	EmptyFunctionBlock	Error	Outer.<no name provided>${}	This empty block of code can be removed.
+src/main/kotlin/smoke/Signatures.kt	25	23	25	25	878	880	EmptyFunctionBlock	Error	Outer${}	This empty block of code can be removed.
+src/main/kotlin/smoke/Signatures.kt	27	19	27	21	901	903	EmptyFunctionBlock	Error	{}	This empty block of code can be removed.
+src/main/kotlin/smoke/Signatures.kt	15	42	15	44	424	426	EmptyIfBlock	Error	Outer.Inner${}	This empty block of code can be removed.
+src/main/kotlin/smoke/Signatures.kt	28	37	28	39	940	942	EmptyIfBlock	Error	{}	This empty block of code can be removed.
+src/main/kotlin/smoke/Signatures.kt	17	42	17	44	506	508	EmptyTryBlock	Error	Outer.Inner.Companion${}	This empty block of code can be removed.
+src/main/kotlin/smoke/Signatures.kt	21	34	21	37	672	675	EmptyTryBlock	Error	Outer.Named${ }	This empty block of code can be removed.
+src/main/kotlin/smoke/Signatures.kt	18	28	18	39	551	562	EmptyWhenBlock	Error	Outer.Inner$when (1) {}	This when block is empty.
+src/main/kotlin/smoke/Signatures.kt	12	26	12	28	320	322	EmptyWhileBlock	Error	Outer.Inner${}	This empty block of code can be removed.
+src/main/kotlin/smoke/Signatures.kt	21	45	21	57	683	695	SwallowedException	Error	Outer.Named$e: Exception	The caught exception is swallowed. The original exception could be lost.
+src/main/kotlin/smoke/Signatures.kt	21	45	21	57	683	695	TooGenericExceptionCaught	Error	Outer.Named$e: Exception	The caught exception is too generic. Prefer catching specific exceptions to the case that is currently handled.
+src/main/kotlin/smoke/Signatures.kt	25	9	25	20	864	875	FunctionNaming	Error	Outer$fun `back tick`	Function names should match the pattern: [a-z][a-zA-Z0-9]*
+src/main/kotlin/smoke/Signatures.kt	6	7	6	12	69	74	MatchingDeclarationName	Error	Outer<T : Any, U> : ComparableSerializableBase	The file name 'Signatures' does not match the name of the single top-level declaration 'Outer'.
+src/main/kotlin/smoke/Signatures.kt	10	28	10	29	246	247	UnusedParameter	Error	Outer.Inner$a: Int	Function parameter `a` is unused.
+src/main/kotlin/smoke/Signatures.kt	11	28	11	29	281	282	UnusedParameter	Error	Outer.Inner$b: Int	Function parameter `b` is unused.
+src/main/kotlin/smoke/Signatures.kt	14	20	14	21	352	353	UnusedParameter	Error	Outer.Inner$a: Int	Function parameter `a` is unused.
+src/main/kotlin/smoke/Signatures.kt	4	1	4	28	34	61	WildcardImport	Error	import kotlin.collections.*	kotlin.collections.* is a wildcard import. Replace it with fully qualified imports.
+src/main/kotlin/smoke/Suppress.kt	3	1	3	14	35	48	TooManyFunctions	Error	smoke.Suppress.kt	File 'Suppress.kt' with '19' functions detected. The maximum allowed functions per file is set to '11'
+src/main/kotlin/smoke/Suppress.kt	13	39	13	41	526	528	EmptyIfBlock	Error	{}	This empty block of code can be removed.
+src/main/kotlin/smoke/Suppress.kt	15	56	15	58	647	649	EmptyIfBlock	Error	{}	This empty block of code can be removed.
+src/main/kotlin/smoke/Suppress.kt	18	59	18	61	830	832	EmptyIfBlock	Error	{}	This empty block of code can be removed.
+src/main/kotlin/smoke/Suppress.kt	19	49	19	51	883	885	EmptyIfBlock	Error	{}	This empty block of code can be removed.
+src/main/kotlin/smoke/Suppress.kt	23	54	23	56	1093	1095	EmptyIfBlock	Error	{}	This empty block of code can be removed.
+src/main/kotlin/smoke/Utf16.kt	3	41	3	43	55	57	EmptyIfBlock	Error	{}	This empty block of code can be removed.
+src/main/kotlin/smoke/Utf16.kt	4	42	4	44	101	103	EmptyIfBlock	Error	{}	This empty block of code can be removed.
+src/main/kotlin/smoke/Utf16.kt	5	21	5	23	126	128	EmptyIfBlock	Error	{}	This empty block of code can be removed.
+src/main/kotlin/smoke/script.kts	3	10	3	12	49	51	EmptyFunctionBlock	Error	{}	This empty block of code can be removed.
+src/main/kotlin/smoke/script.kts	1	21	1	23	20	22	EmptyIfBlock	Error	{}	This empty block of code can be removed.
+src/test/kotlin/smoke/InTest.kt	5	9	5	11	114	116	EmptyFunctionBlock	Error	{}	This empty block of code can be removed.
+src/test/kotlin/smoke/InTest.kt	4	40	4	52	76	88	SwallowedException	Error	e: Exception	The caught exception is swallowed. The original exception could be lost.

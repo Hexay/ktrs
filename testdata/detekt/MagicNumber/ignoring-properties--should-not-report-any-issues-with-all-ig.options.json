@@ -1,0 +1,1 @@
+{"rule":"MagicNumber","path":"/Test.kt","config":{"ignorePropertyDeclaration":true,"ignoreAnnotation":true,"ignoreHashCodeFunction":true,"ignoreConstantDeclaration":true,"ignoreCompanionObjectPropertyDeclaration":true},"test":"MagicNumberSpec.ignoring properties.should not report any issues with all ignore flags"}

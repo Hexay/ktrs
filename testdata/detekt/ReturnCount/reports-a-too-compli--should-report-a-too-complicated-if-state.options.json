@@ -1,0 +1,1 @@
+{"rule":"ReturnCount","path":"/Test.kt","config":{"excludeGuardClauses":true},"test":"ReturnCountSpec.reports a too-complicated if statement for being a guard clause.should report a too-complicated if statement for being a guard clause, with EXCLUDE_GUARD_CLAUSES on"}

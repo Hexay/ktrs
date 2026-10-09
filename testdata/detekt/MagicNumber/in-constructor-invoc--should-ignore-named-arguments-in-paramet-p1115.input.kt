@@ -1,0 +1,1 @@
+@JvmStatic fun setCustomDimension(@IntRange(from = 0, to = 19) index: Int, value: String?) {}

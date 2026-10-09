@@ -1,0 +1,1 @@
+{"rule":"MagicNumber","path":"/Test.kt","config":{"ignoreNumbers":["-2f"]},"test":"MagicNumberSpec.a long of -2.should be ignored when ignoredNumbers contains it as floating point"}

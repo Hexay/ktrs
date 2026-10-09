@@ -1,0 +1,1 @@
+{"rule":"SwallowedException","path":"/Test.kt","config":{"ignoredExceptionTypes":["IllegalArgumentException"]},"test":"SwallowedExceptionSpec.when given listOf(IllegalArgumentException) ignores given exception types config.reports exception type that is missing in the configuration"}

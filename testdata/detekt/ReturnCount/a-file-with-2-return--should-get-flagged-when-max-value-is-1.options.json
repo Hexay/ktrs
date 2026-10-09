@@ -1,0 +1,1 @@
+{"rule":"ReturnCount","path":"/Test.kt","config":{"max":1},"test":"ReturnCountSpec.a file with 2 returns.should get flagged when max value is 1"}

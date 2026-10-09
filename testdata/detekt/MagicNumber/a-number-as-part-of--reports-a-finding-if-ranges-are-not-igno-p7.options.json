@@ -1,0 +1,1 @@
+{"rule":"MagicNumber","path":"/Test.kt","config":{"ignoreRanges":false,"ignorePropertyDeclaration":false},"test":"MagicNumberSpec.a number as part of a range.reports a finding if ranges are not ignored[7]"}

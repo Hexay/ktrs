@@ -1,0 +1,1 @@
+{"rule":"MagicNumber","path":"/Test.kt","config":{"ignorePropertyDeclaration":false},"test":"MagicNumberSpec.a long of -2.should be reported when ignorePropertyDeclaration is off"}

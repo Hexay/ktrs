@@ -1,0 +1,1 @@
+{"rule":"MaxLineLength","path":"/Test.kt","config":{},"test":"MaxLineLengthSpec.a kt file with some long lines.should report meaningful signature for all violations"}

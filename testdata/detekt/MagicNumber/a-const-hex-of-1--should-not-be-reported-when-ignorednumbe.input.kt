@@ -1,0 +1,1 @@
+const val MY_HEX = 0x1

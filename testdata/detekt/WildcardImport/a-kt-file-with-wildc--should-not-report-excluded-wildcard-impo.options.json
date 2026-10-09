@@ -1,0 +1,1 @@
+{"rule":"WildcardImport","path":"/Test.kt","config":{"excludeImports":["java.io.*"]},"test":"WildcardImportSpec.a kt file with wildcard imports.should not report excluded wildcard imports"}

@@ -1,0 +1,1 @@
+expect annotation class NeedsConstructor()

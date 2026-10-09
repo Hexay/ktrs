@@ -1,0 +1,1 @@
+{"rule":"CyclomaticComplexMethod","path":"/Test.kt","config":{"allowedComplexity":1},"test":"CyclomaticComplexMethodSpec.different complex constructs.counts different loops"}

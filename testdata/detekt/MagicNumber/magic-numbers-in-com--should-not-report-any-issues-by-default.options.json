@@ -1,0 +1,1 @@
+{"rule":"MagicNumber","path":"/Test.kt","config":{},"test":"MagicNumberSpec.magic numbers in companion object property assignments.should not report any issues by default"}

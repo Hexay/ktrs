@@ -6,6 +6,7 @@ use std::{
 
 mod codegen;
 mod corpus_diff;
+mod detekt_diff;
 mod fmt_diff;
 mod lint_diff;
 mod lint_oracle;
@@ -21,7 +22,8 @@ fn main() -> ExitCode {
         Some("corpus-diff") => corpus_diff::run(&project_root(), &args[1..]),
         Some("fmt-diff") => fmt_diff::run(&project_root(), &args[1..]),
         Some("lint-diff") => lint_diff::run(&project_root(), &args[1..]),
-        _ => Err("usage: cargo xtask codegen | corpus-diff [dir] | fmt-diff [style] [dir] | lint-diff [style] [--experimental] [--oracle DIR] [--counts] [--require-format]"
+        Some("detekt-diff") => detekt_diff::run(&project_root(), &args[1..]),
+        _ => Err("usage: cargo xtask codegen | corpus-diff [dir] | fmt-diff [style] [dir] | lint-diff [style] [--experimental] [--oracle DIR] [--counts] [--require-format] | detekt-diff [default|all-rules] [--oracle DIR] [--counts]"
             .to_string()),
     };
     match result {

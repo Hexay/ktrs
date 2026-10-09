@@ -1,0 +1,1 @@
+{"rule":"EmptyDefaultConstructor","path":"/Test.kt","config":{},"test":"EmptyDefaultConstructorSpec.should not report empty constructors for annotation classes with actual - #1362[1362]"}

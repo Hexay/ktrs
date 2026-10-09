@@ -1,0 +1,2 @@
+8:7	8:8	63:64	A	Class 'A' with '2' functions detected. The maximum allowed functions per class is set to '1'
+1:1	1:1	0:0	.Test.kt	File 'Test.kt' with '2' functions detected. The maximum allowed functions per file is set to '1'

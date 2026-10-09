@@ -1,0 +1,1 @@
+{"rule":"ReturnCount","path":"/Test.kt","config":{},"test":"ReturnCountSpec.function with lambda which has explicit label.should not count labeled return of lambda with explicit label when deactivated by default"}

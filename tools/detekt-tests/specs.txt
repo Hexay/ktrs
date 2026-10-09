@@ -1,0 +1,7 @@
+# Upstream spec files extract-goldens.sh compiles and runs: `<module> <package> <glob under the module's test package dir>`.
+# One line per rule set; add a rule's spec when the rule is ported (a spec that fails to compile fails the whole run).
+detekt-rules-empty-blocks dev.detekt.rules.emptyblocks *.kt
+detekt-rules-complexity dev.detekt.rules.complexity {CyclomaticComplexMethod,LongMethod,TooManyFunctions}Spec.kt
+detekt-rules-exceptions dev.detekt.rules.exceptions {SwallowedException,TooGenericExceptionCaught}Spec.kt
+detekt-rules-naming dev.detekt.rules.naming {FunctionParameterNaming,InvalidPackageDeclaration,PackageNaming}Spec.kt
+detekt-rules-style dev.detekt.rules.style {MagicNumber,MaxLineLength,ReturnCount,WildcardImport}Spec.kt

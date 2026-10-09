@@ -1,0 +1,1 @@
+{"rule":"TooManyFunctions","path":"/Test.kt","config":{"thresholdInClasses":0},"test":"TooManyFunctionsSpec.should suppress TooManyFunctionsRule on class level"}

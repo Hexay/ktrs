@@ -1,0 +1,1 @@
+{"rule":"MagicNumber","path":"/Test.kt","config":{"ignoreNumbers":["65520UL"]},"test":"MagicNumberSpec.unsigned integer literals.should not report unsigned long literal when ignored"}

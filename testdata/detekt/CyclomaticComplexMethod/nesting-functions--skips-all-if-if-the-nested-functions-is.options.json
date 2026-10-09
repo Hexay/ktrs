@@ -1,0 +1,1 @@
+{"rule":"CyclomaticComplexMethod","path":"/Test.kt","config":{"allowedComplexity":1,"nestingFunctions":[]},"test":"CyclomaticComplexMethodSpec.nesting functions.skips all if if the nested functions is empty"}

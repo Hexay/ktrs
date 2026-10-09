@@ -1,0 +1,1 @@
+{"rule":"MagicNumber","path":"/Test.kt","config":{"ignorePropertyDeclaration":false},"test":"MagicNumberSpec.unsigned integer literals.should report mixed case unsigned literals"}

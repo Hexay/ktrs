@@ -1,0 +1,1 @@
+{"rule":"MagicNumber","path":"/Test.kt","config":{},"test":"MagicNumberSpec.functions with and without braces which return values.does not report functions that always returns a constant value"}

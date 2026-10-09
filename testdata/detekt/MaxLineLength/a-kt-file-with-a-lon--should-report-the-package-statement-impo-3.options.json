@@ -1,0 +1,1 @@
+{"rule":"MaxLineLength","path":"/Test.kt","config":{"maxLineLength":40,"excludePackageStatements":false,"excludeImportStatements":false},"test":"MaxLineLengthSpec.a kt file with a long package name, long import statements and a long line.should report the package statement, import statements and line if they're not excluded"}

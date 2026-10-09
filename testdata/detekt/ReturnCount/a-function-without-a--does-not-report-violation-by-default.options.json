@@ -1,0 +1,1 @@
+{"rule":"ReturnCount","path":"/Test.kt","config":{},"test":"ReturnCountSpec.a function without a body.does not report violation by default"}

@@ -6,6 +6,7 @@ license.workspace = true
 publish = false
 
 [dependencies]
+ktrs-detekt = { path = "../crates/ktrs-detekt" }
 ktrs-fmt.workspace = true
 ktrs-lint.workspace = true
 ktrs-parser.workspace = true

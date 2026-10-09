@@ -1,0 +1,1 @@
+1:5	1:14	4:13	fun readUsers: Flowable<User>	Function readUsers has 3 return statements which exceeds the limit of 2.

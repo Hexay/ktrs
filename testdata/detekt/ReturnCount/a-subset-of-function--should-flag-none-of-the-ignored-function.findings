@@ -1,0 +1,1 @@
+10:5	10:8	142:145	fun fac: Int	Function fac has 3 return statements which exceeds the limit of 2.

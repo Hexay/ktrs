@@ -1,0 +1,1 @@
+{"rule":"MagicNumber","path":"/Test.kt","config":{"ignorePropertyDeclaration":false},"test":"MagicNumberSpec.an if statement with magic numbers.should be reported"}

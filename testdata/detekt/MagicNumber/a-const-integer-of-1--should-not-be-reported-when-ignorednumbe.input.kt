@@ -1,0 +1,1 @@
+const val MY_INT = 1

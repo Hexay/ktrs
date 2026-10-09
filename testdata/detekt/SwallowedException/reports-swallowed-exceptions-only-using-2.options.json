@@ -1,0 +1,1 @@
+{"rule":"SwallowedException","path":"/Test.kt","config":{},"test":"SwallowedExceptionSpec.reports swallowed exceptions only using exception strings via variables"}

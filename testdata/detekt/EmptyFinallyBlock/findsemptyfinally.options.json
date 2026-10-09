@@ -1,0 +1,1 @@
+{"rule":"EmptyFinallyBlock","path":"/Test.kt","config":{},"test":"EmptyCodeSpec.findsEmptyFinally"}

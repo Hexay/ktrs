@@ -1,0 +1,1 @@
+{"rule":"MaxLineLength","path":"/Test.kt","config":{"maxLineLength":65},"test":"MaxLineLengthSpec.report the correct lines on interpolated strings - issue #5314[5314]"}

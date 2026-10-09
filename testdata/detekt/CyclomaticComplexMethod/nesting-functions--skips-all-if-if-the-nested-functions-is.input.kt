@@ -1,0 +1,4 @@
+fun test() {
+    for (i in 1..10) {}
+    (1..10).forEach {}
+}

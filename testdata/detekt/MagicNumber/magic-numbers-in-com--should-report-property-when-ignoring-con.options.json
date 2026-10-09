@@ -1,0 +1,1 @@
+{"rule":"MagicNumber","path":"/Test.kt","config":{"ignorePropertyDeclaration":false,"ignoreConstantDeclaration":true,"ignoreCompanionObjectPropertyDeclaration":false},"test":"MagicNumberSpec.magic numbers in companion object property assignments.should report property when ignoring constants but not properties and companion objects"}

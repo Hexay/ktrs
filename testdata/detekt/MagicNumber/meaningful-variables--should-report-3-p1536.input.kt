@@ -1,0 +1,1 @@
+fun bar() { foo(3) }; fun foo(n: Int) {}

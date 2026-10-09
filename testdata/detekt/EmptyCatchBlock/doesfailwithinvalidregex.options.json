@@ -1,0 +1,1 @@
+{"rule":"EmptyCatchBlock","path":"/Test.kt","config":{"allowedExceptionNameRegex":"*foo"},"test":"EmptyCodeSpec.doesFailWithInvalidRegex"}

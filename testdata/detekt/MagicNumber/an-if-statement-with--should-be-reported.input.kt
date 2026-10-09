@@ -1,0 +1,1 @@
+val myInt = if (5 < 6) 7 else 8

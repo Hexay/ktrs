@@ -1,0 +1,1 @@
+{"rule":"MagicNumber","path":"/Test.kt","config":{"ignoreLocalVariableDeclaration":true,"ignoreNamedArgument":true},"test":"MagicNumberSpec.meaningful variables - #1536.should not report named 3[1536]"}

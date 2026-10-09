@@ -1,0 +1,1 @@
+{"rule":"MagicNumber","path":"/Test.kt","config":{"ignoreNumbers":["banana"],"ignorePropertyDeclaration":false},"test":"MagicNumberSpec.an invalid ignoredNumber.throws a NumberFormatException"}

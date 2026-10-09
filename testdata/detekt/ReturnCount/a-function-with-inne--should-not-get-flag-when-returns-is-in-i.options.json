@@ -1,0 +1,1 @@
+{"rule":"ReturnCount","path":"/Test.kt","config":{"max":2},"test":"ReturnCountSpec.a function with inner object.should not get flag when returns is in inner object"}

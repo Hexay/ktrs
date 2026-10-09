@@ -1,0 +1,1 @@
+{"rule":"WildcardImport","path":"/Test.kt","config":{},"test":"WildcardImportSpec.a kt file with wildcard imports.should report all wildcard imports"}

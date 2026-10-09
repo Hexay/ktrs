@@ -1,0 +1,1 @@
+{"rule":"CyclomaticComplexMethod","path":"/Test.kt","config":{"allowedComplexity":1,"nestingFunctions":["let","apply","also"]},"test":"CyclomaticComplexMethodSpec.nesting functions.skips 'forEach' as it is not specified"}

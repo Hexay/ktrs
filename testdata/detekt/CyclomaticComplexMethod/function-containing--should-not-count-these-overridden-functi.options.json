@@ -1,0 +1,1 @@
+{"rule":"CyclomaticComplexMethod","path":"/Test.kt","config":{},"test":"CyclomaticComplexMethodSpec.function containing object literal with many overridden functions.should not count these overridden functions to base functions complexity"}

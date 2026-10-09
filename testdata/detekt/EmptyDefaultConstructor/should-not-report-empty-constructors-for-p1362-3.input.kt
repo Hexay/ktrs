@@ -1,0 +1,1 @@
+actual annotation class NeedsConstructor actual constructor()

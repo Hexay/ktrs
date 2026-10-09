@@ -1,0 +1,1 @@
+{"rule":"MagicNumber","path":"/Test.kt","config":{"ignorePropertyDeclaration":false},"test":"MagicNumberSpec.an integer literal with underscores.should be reported when ignorePropertyDeclaration is off"}

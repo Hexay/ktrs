@@ -1,0 +1,1 @@
+{"rule":"PackageNaming","path":"/Test.kt","config":{"packagePattern":"^(package_1)$"},"test":"PackageNamingSpec.should use custom name for package"}

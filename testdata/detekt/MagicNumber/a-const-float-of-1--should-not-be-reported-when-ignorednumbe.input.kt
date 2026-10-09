@@ -1,0 +1,1 @@
+const val MY_FLOAT = 1.0f

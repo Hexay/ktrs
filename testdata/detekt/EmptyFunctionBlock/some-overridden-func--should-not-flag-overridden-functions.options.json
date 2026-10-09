@@ -1,0 +1,1 @@
+{"rule":"EmptyFunctionBlock","path":"/Test.kt","config":{"ignoreOverridden":true},"test":"EmptyFunctionBlockSpec.some overridden functions.should not flag overridden functions"}

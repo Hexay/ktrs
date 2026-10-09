@@ -1,0 +1,1 @@
+fun bar() { val a = 3; foo(a) }; fun foo(n: Int) {}

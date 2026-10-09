@@ -1,0 +1,1 @@
+{"rule":"PackageNaming","path":"/Test.kt","config":{},"test":"PackageNamingSpec.should find a camel case package name"}

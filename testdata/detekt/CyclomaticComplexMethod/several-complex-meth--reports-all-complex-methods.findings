@@ -1,0 +1,5 @@
+2:5	2:33	62:90	fun complexMethodWithSingleWhen1	The function complexMethodWithSingleWhen1 appears to be too complex based on Cyclomatic Complexity (complexity: 5). The maximum allowed complexity for methods is set to '4'
+11:5	11:33	290:318	fun complexMethodWithSingleWhen2	The function complexMethodWithSingleWhen2 appears to be too complex based on Cyclomatic Complexity (complexity: 5). The maximum allowed complexity for methods is set to '4'
+21:5	21:33	520:548	fun complexMethodWithSingleWhen3: String	The function complexMethodWithSingleWhen3 appears to be too complex based on Cyclomatic Complexity (complexity: 5). The maximum allowed complexity for methods is set to '4'
+31:5	31:33	738:766	fun complexMethodWithSingleWhen4	The function complexMethodWithSingleWhen4 appears to be too complex based on Cyclomatic Complexity (complexity: 5). The maximum allowed complexity for methods is set to '4'
+39:5	39:33	870:898	fun complexMethodWith2Statements	The function complexMethodWith2Statements appears to be too complex based on Cyclomatic Complexity (complexity: 6). The maximum allowed complexity for methods is set to '4'

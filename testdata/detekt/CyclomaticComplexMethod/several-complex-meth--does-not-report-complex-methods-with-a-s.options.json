@@ -1,0 +1,1 @@
+{"rule":"CyclomaticComplexMethod","path":"/Test.kt","config":{"allowedComplexity":4,"ignoreSingleWhenExpression":true},"test":"CyclomaticComplexMethodSpec.several complex methods.does not report complex methods with a single when expression"}

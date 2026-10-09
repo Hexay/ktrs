@@ -1,0 +1,1 @@
+{"rule":"MaxLineLength","path":"/Test.kt","config":{"maxLineLength":40},"test":"MaxLineLengthSpec.a kt file with a long package name, long import statements and a long line.should only the function line by default"}

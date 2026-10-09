@@ -1,0 +1,1 @@
+{"rule":"ReturnCount","path":"/Test.kt","config":{"excludeGuardClauses":true,"max":1},"test":"ReturnCountSpec.WithScopedAssignment.should ignore scoped assignments"}
