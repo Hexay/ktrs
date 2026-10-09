@@ -128,6 +128,26 @@
 //!   `operation_reference`; KtBinaryExpressionWithTypeRHS `left`, `right`, `operation_reference`.
 //! - KDocName `qualifier`, `name_text_range`, `name_text`, `qualified_name`; KDocImpl/KDocSection/KDocTag/
 //!   KDocLink are traversed with `get_children_of_type`.
+//!
+//! Beyond ktfmt's scope, for the detekt port (`kt/annotated.rs`, `kt/named.rs`, `kt/members.rs`, `psi_utils.rs`;
+//! oracle lines in `tools/psi-accessors/src/Members.java`):
+//! - Base: `text_offset` (per class), `start_offset_skipping_comments`, `find_descendant_of_type`,
+//!   `any_descendant_of_type`, `for_each_descendant_of_type_in_preorder`, `find_children_of_type`.
+//! - KtAnnotated (every implementor, the file included) `annotation_entries`; KtModifierListOwner `has_modifier`,
+//!   `visibility_modifier`, `visibility_modifier_type`, `is_private`, `is_protected`, `has_expect_modifier`,
+//!   `has_actual_modifier`; KtNamedDeclaration `name`, `name_as_safe_name` ([`Name`]; a KtScript has none here:
+//!   upstream derives it from the file name); KtTypeParameterListOwner `type_parameters`; KtDeclaration
+//!   `containing_class_or_object`, `containing_class`.
+//! - KtFile `declarations`, `package_directive`, `package_fq_name`, `file_annotation_list`, `find_element_at`,
+//!   `elements_in_range`; [`FqName`] `starts_with`; KtClassOrObject `declarations`, `secondary_constructors`,
+//!   `super_type_list_entries`, `is_top_level`, `is_object_literal`; KtClass `is_interface`; KtClassBody
+//!   `declarations`, `secondary_constructors`, `containing_class_or_object`; KtNamedFunction `is_top_level`,
+//!   `has_body`, `is_local`; KtProperty `is_top_level`, `is_member`, `is_local`; KtParameter/KtParameterList
+//!   `owner_function`.
+//! - KtBlockExpression `statements`; KtReturnExpression `labeled_expression`; KtLambdaArgument
+//!   `get_lambda_expression`; KtExpression `unpack_function_literal`, `get_qualified_expression_for_receiver`,
+//!   `get_qualified_expression_for_receiver_or_this`, `last_block_statement_or_this`; KtCallElement
+//!   `get_call_name_expression`, `value_arguments`.
 
 mod ast_node;
 mod cast;
@@ -136,6 +156,7 @@ pub mod classes;
 mod element;
 mod element_text;
 mod kt;
+mod psi_utils;
 mod tokens;
 mod tree_util;
 mod types;

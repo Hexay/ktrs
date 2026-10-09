@@ -27,6 +27,16 @@ impl FqName {
         segments
     }
 
+    /// `startsWith(other: FqName)`. Gotcha: false for the root on either side unless `other` is a whole-segment
+    /// prefix, so no non-root name starts with the root.
+    pub fn starts_with(&self, other: &FqName) -> bool {
+        if self.is_root() {
+            return false;
+        }
+        let (this, other) = (self.as_string().as_bytes(), other.as_string().as_bytes());
+        this.starts_with(other) && (this.len() == other.len() || this[other.len()] == b'.')
+    }
+
     /// `NameRenderingUtils.render(toUnsafe())`: the segments joined by `.`, each backticked when needed.
     pub fn render(&self) -> String {
         self.path_segments().iter().map(|s| render_name(s)).collect::<Vec<_>>().join(".")

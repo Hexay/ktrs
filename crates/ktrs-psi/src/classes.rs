@@ -155,6 +155,11 @@ pub fn is_modifier_list_owner(kind: SyntaxKind) -> bool {
     is_declaration(kind) || matches!(kind, TYPE_REFERENCE | PACKAGE_DIRECTIVE | TYPE_PROJECTION)
 }
 
+/// `KtAnnotated` besides the file: modifier list owners, annotated expressions and type constraints.
+pub fn is_annotated(kind: SyntaxKind) -> bool {
+    is_modifier_list_owner(kind) || matches!(kind, ANNOTATED_EXPRESSION | TYPE_CONSTRAINT)
+}
+
 pub fn is_reference_expression(kind: SyntaxKind) -> bool {
     is_simple_name_expression(kind)
         || matches!(

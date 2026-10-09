@@ -65,23 +65,24 @@ impl PsiElement {
 
     /// psiUtil `getParentOfType<T>(strict)` = `PsiTreeUtil.getParentOfType(element, T, strict)`.
     pub fn get_parent_of_type<T: PsiType>(&self, strict: bool) -> Option<T> {
-        let mut element = Some(self.clone());
+        // One handle moved up the tree: a `parent()` per step would clone the tree's `Rc` each time.
+        let mut element = self.clone();
         if strict {
             if self.is_file() {
                 return None;
             }
-            element = self.parent();
+            element.move_to(self.tree().parent(self.id())?);
         }
-        while let Some(e) = element {
-            if let Some(t) = e.cast::<T>() {
-                return Some(t);
+        loop {
+            if T::can_cast(&element) {
+                return Some(T::cast_unchecked(element));
             }
-            if e.is_file() {
+            if element.is_file() {
                 return None;
             }
-            element = e.parent();
+            let parent = element.tree().parent(element.id())?;
+            element.move_to(parent);
         }
-        None
     }
 
     /// psiUtil `getChildOfType<T>()` = `PsiTreeUtil.getChildOfType`.

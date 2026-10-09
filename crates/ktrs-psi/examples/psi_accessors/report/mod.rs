@@ -5,6 +5,7 @@ mod classes;
 mod control;
 mod decls;
 mod exprs;
+mod members;
 mod recorder;
 
 use std::path::{Path, PathBuf};
@@ -167,6 +168,7 @@ fn describe(ctx: &mut Ctx, e: &PsiElement) {
 
     decls::describe(ctx, e);
     exprs::describe(ctx, e);
+    members::describe(ctx, e);
 }
 
 /// `.kt`/`.kts` files under `dir` as (relative path with `/`, path); `fixture` keeps only those with a

@@ -69,5 +69,6 @@ final class Base {
 
         Decls.describe(e, sb);
         Exprs.describe(e, sb);
+        Members.describe(e, sb);
     }
 }

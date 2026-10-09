@@ -58,6 +58,11 @@ impl PsiElement {
         PsiElement { tree: self.tree.clone(), id }
     }
 
+    /// Repoints this handle at another element of the same tree.
+    pub(crate) fn move_to(&mut self, id: ElementId) {
+        self.id = id;
+    }
+
     pub fn is_leaf(&self) -> bool {
         self.tree.is_token(self.id)
     }
@@ -101,11 +106,6 @@ impl PsiElement {
 
     pub fn text_length(&self) -> usize {
         self.text_range().len().into()
-    }
-
-    /// `PsiElement.getTextOffset()` for elements that don't override it (ktfmt only reads it for arguments).
-    pub fn text_offset(&self) -> usize {
-        self.start_offset()
     }
 
     pub fn parent(&self) -> Option<PsiElement> {

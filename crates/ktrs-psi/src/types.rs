@@ -35,6 +35,7 @@ psi_types! {
     KtFunction(e) => node_where(e, is_function);
     KtClassOrObject(e) => node_of(e, &[CLASS, ENUM_ENTRY, OBJECT_DECLARATION]);
     KtModifierListOwner(e) => node_where(e, is_modifier_list_owner);
+    KtAnnotated(e) => e.is_file() || node_where(e, is_annotated);
     KtTypeParameterListOwner(e) => node_where(e, is_type_parameter_list_owner);
     KtValVarKeywordOwner(e) => node_of(e, &[PROPERTY, VALUE_PARAMETER, DESTRUCTURING_DECLARATION, DESTRUCTURING_DECLARATION_ENTRY]);
     KtDeclarationWithInitializer(e) => node_of(e, &[FUN, PROPERTY, DESTRUCTURING_DECLARATION, DESTRUCTURING_DECLARATION_ENTRY, PROPERTY_ACCESSOR, BACKING_FIELD]);
