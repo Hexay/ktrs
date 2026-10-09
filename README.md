@@ -119,7 +119,7 @@ ktrs migrate --write    # apply them
 ### GitHub Actions
 
 ```yaml
-- uses: Hexay/ktrs@v0.5.0          # Linux, macOS and Windows
+- uses: Hexay/ktrs@v0.5.1          # Linux, macOS and Windows
 - run: ktrs fmt --check --style kotlinlang
 - run: ktrs lint
 ```
@@ -130,7 +130,7 @@ No Rust needed: on first run, the hook downloads the release binaries for its `r
 
 ```yaml
 - repo: https://github.com/Hexay/ktrs
-  rev: v0.5.0
+  rev: v0.5.1
   hooks:
     - id: ktrs-fmt          # also: ktrs-fmt-check, ktfmt (with ktfmt's flags in `args`)
       args: [--style, kotlinlang]
@@ -158,7 +158,7 @@ both: [docs/editors.md](docs/editors.md).
 
 ```kotlin
 plugins {
-    id("io.github.hexay.ktrs") version "0.5.0"   // was: id("com.ncorti.ktfmt.gradle") version "0.27.0"
+    id("io.github.hexay.ktrs") version "0.5.1"   // was: id("com.ncorti.ktfmt.gradle") version "0.27.0"
 }
 ```
 
@@ -171,7 +171,7 @@ reports and formatted files match the original with ktlint 1.8.0
 
 ```kotlin
 plugins {
-    id("io.github.hexay.ktrs.ktlint") version "0.5.0"   // was: id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
+    id("io.github.hexay.ktrs.ktlint") version "0.5.1"   // was: id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
 }
 ```
 
@@ -183,7 +183,7 @@ compose-rules runs natively; other rule sets run the task through the real ktlin
 ```kotlin
 buildscript {
     repositories { mavenCentral() }
-    dependencies { classpath("io.github.hexay:ktrs:0.5.0") }
+    dependencies { classpath("io.github.hexay:ktrs:0.5.1") }
 }
 
 spotless {
@@ -235,7 +235,7 @@ console output, reports and formatted files match the original
 <plugin>
   <groupId>io.github.hexay</groupId>                   <!-- was: com.github.gantsign.maven -->
   <artifactId>ktrs-ktlint-maven-plugin</artifactId>    <!-- was: ktlint-maven-plugin -->
-  <version>0.5.0</version>
+  <version>0.5.1</version>
   <executions><execution><goals><goal>check</goal></goals></execution></executions>
 </plugin>
 ```
@@ -256,7 +256,7 @@ plugin dependency; the other options stay as they are (Maven 3.9+, Java 17+):
     </kotlin>
   </configuration>
   <dependencies>
-    <dependency><groupId>io.github.hexay</groupId><artifactId>ktrs</artifactId><version>0.5.0</version></dependency>
+    <dependency><groupId>io.github.hexay</groupId><artifactId>ktrs</artifactId><version>0.5.1</version></dependency>
   </dependencies>
 </plugin>
 ```
