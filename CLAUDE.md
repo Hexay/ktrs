@@ -57,6 +57,11 @@ Milestone 1: the parser's tree must be identical to the Kotlin compiler's PSI (`
   that release's jar; other `-R`/reporter jars hand the run to the real ktlint jar (`ktrs-cli/src/ktlint/ktlint_jar.rs`).
   Status, gates, pin bump: research/27-custom-rulesets-impl.md.
   `crates/ktrs-editorconfig` — ec4j 1.2.0 port (ktlint's `.editorconfig` semantics; ktfmt still uses ec4rs).
+- `crates/ktrs-detekt` — detekt `v2.0.0-alpha.6` light mode over ktrs-psi (pin `tools/sync-detekt.sh`): engine + 27 rules,
+  no CLI; conventions `src/lib.rs`, status research/33 "Spike result". Gates: `cargo test -p ktrs-detekt --release`
+  (goldens `testdata/detekt/`, ratchet `tests/golden-passing.txt`; regenerate: `tools/detekt-tests/extract-goldens.sh`, JVM,
+  background); `cargo detekt-diff [default|all-rules]` vs `tools/detekt-oracle/detekt-probe.sh corpus
+  target/detekt-oracle/<run> [--all-rules]` (JVM, background). Cost: `cargo run -p ktrs-detekt --release --example bench`.
 - `crates/ktrs-project` — static detection of a build's ktfmt/ktlint setup (Gradle Kotlin/Groovy DSL, convention
   plugins, version catalog, Maven) for `ktrs lsp`; sources and limits in `src/lib.rs` docs; spot check:
   `cargo run -p ktrs-project --example detect -- <file or dir>...`. Its `src/migrate/` backs `ktrs migrate` (swaps

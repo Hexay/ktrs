@@ -564,7 +564,7 @@ Everything here is alpha.6 unless a "1.23.8:" note says otherwise.
 
 - Row = rule instance id, severity (`Error` default, from config only), message, start line:col, end line:col,
   text range, base-path-relative path, signature. `detekt-api/…/Issue.kt`, `Location.kt`, `Entity.kt`.
-- Line/column from `PsiDiagnosticUtils` on the LF-normalized text, 1-based (columns in UTF-16 units: unverified in
+- Line/column from `PsiDiagnosticUtils` on the LF-normalized text, 1-based (columns in UTF-16 units: confirmed by the spike, "Spike result"; before that unverified in
   this checkout; ktrs offsets are UTF-8, `PositionInTextLocator` is the existing UTF-16 table).
 - Reported element: `Entity.from(element)`, `Entity.atName(decl)` (name identifier), or
   `Entity.atPackageOrFirstDecl(file)`.
@@ -790,3 +790,111 @@ turns this into a number.
   `"dev.detekt" filename:libs.versions.toml` (1,030), `"detekt-formatting" filename:libs.versions.toml` (1,716),
   `"detekt-rules-ktlint-wrapper"` (363), `filename:detekt.yml` (6,400), `filename:detekt-baseline.xml` (2,772),
   `"io.nlopez.compose.rules:detekt"` (834), `"buildUponDefaultConfig"` (9,104). Lower bounds, public repos only.
+
+## Spike result (2026-10-09)
+
+Phase 0 as defined in section 6, on branch `worktree-agent-acb240cca722776d9`. Verdict: **go**.
+
+| Criterion | Result |
+|---|---|
+| (a) rows identical to the jar on the corpus, per file as multisets | **Go.** 6,123 of 6,123 files identical, default config: 24,015 rows of the 27 rules on both sides, every column (line, UTF-16 column, end, UTF-16 offsets, rule, severity, signature, message). Same against the `--all-rules` oracle. No known diffs, no panics. |
+| (b) their goldens pass | **Go.** 374 of 374 cases recorded from 19 upstream spec files (224 upstream tests), exact row order (LongMethod: as a set). |
+| (c) rule pass cheaper than the parse | **Go.** 27 rules: 0.53 s against 0.77 s of parsing (6,123 files, 30.8 MB, one thread, best of 3; three runs: 0.69 parses each). The jar needs 22.9 s (10 cores, probe API, parallel) for the 76 default rules. |
+
+The "27 rules" of section 6 count EmptyFunctionBlock twice (it is in `empty-blocks` and in the top twelve). Ported: those
+26 plus FunctionParameterNaming, the next rule by findings (192).
+
+### What was built
+
+- `crates/ktrs-detekt` (4.8k lines; conventions in `src/lib.rs`): `api` (Config, config properties, Rule, Finding, Entity,
+  Location, Issue, signatures), `engine` (rule descriptors, Analyzer, `@Suppress`, path filters), `config` (YAML subset,
+  YamlConfig, CompositeConfig, AllRulesConfig, DisabledAutoCorrectConfig, bundled default config), `psi` and `metrics`
+  (the detekt-psi-utils and detekt-metrics parts the rules call), `rules` (5 rule sets, 27 rules, one file per upstream file).
+- `crates/ktrs-psi`: about 45 accessors and psiUtil helpers (list in its `src/lib.rs`), each with a line in the JVM oracle
+  (`tools/psi-accessors/src/Members.java`); fixture hashes regenerated, 680 of 680 in both modes (Kotlin 2.4.20).
+- `tools/sync-detekt.sh` (pin, sources, jar with SHA check), `tools/detekt-oracle` (`DetektProbe.kt` on detekt-tooling's
+  API, `detekt-probe.sh`, smoke files), `tools/detekt-tests/extract-goldens.sh` (recording `Rule.lint`, `specs.txt`),
+  `testdata/detekt/<RuleName>/`, `cargo detekt-diff`, `examples/{detekt_probe,bench}`.
+- `java_glob.rs` moved from ktrs-cli to ktrs-editorconfig (both engines match paths with it).
+
+### Findings
+
+1. **Columns and offsets are UTF-16 units** (the unverified point of section 2). Smoke file `Utf16.kt`: the same block is
+   at column 41 after `é` and 42 after an emoji; a line of 116 code points and 121 UTF-16 units is over the 120 limit.
+   Also observed: a BOM is not part of the text, CRLF and lone CR are line breaks, an empty file reports at 1:1.
+   `crates/ktrs-detekt/tests/smoke.rs` pins these against the jar's rows (`tests/data/smoke.jvm.tsv`).
+2. **A full walk per rule would be too slow; a sparse one is exact and cheap.** Upstream walks the tree once per rule. A
+   rule only acts on the kinds its `visit*` overrides receive, and the flat tree lets a visitor jump between those
+   (`src/visitor.rs`): same order, same pruning, same state. `detekt_visitor!` derives the kinds from the overridden
+   methods. The full walk was not built or measured; the estimate before writing it was several parses for 27 rules.
+3. **Cost per rule has a floor.** Alone, the cheapest rules take 0.03 s each (4% of the parse): a rule instance, its
+   config reads and its node list per file. Together the 27 take 0.53 s, not the 1.3 s their single runs add up to,
+   because the index is shared. At this rate 134 rules would cost about 2.6 parses; the per-file fixed cost
+   (instantiation, suppression check, list build) is the thing to cut during phase 2. Slowest alone: WildcardImport
+   0.16 s (builds an `ImportPath` per import), LongMethod 0.14 s, CyclomaticComplexMethod 0.10 s.
+4. **Quirks reproduced** (all visible in goldens or corpus rows): `FqName.startsWith(root)` is false; MagicNumber strips
+   literal suffixes one after the other, so `0x0d` reads as `0x0`; `linesOfCode` skips comments by exact class, so a
+   KDoc's `/**` and `*/` lines count; MaxLineLength's "raw string" exemption applies to any string template that is
+   the last element of the line by `textOffset`; `-0` is a magic number (`Double.equals`); enum entries take their
+   super types from the initializer list (the only corpus diff of the first run: two signatures).
+5. **Rust is about 2.2 times the Kotlin**, not 1.3: 2,100 lines for 950 lines of rule code (config accessors and
+   constructors are explicit).
+6. **The 2.4.10 / 2.4.20 parser difference did not show** in these rules; none reads KDoc structure. The `comments` set
+   will be the test.
+7. **Operational:** a Bazel server started under `flock ~/bench.lock` inherits the lock's descriptor and held the
+   testbox lock for about 100 minutes after its job ended. Jobs that start daemons need `flock -o`.
+
+### Stubbed or unverified
+
+- YAML: a line-based subset (block maps and sequences, one-line flow sequences, plain and quoted scalars, comments,
+  core-schema scalars). No anchors, tags, block scalars, flow maps, multi-line scalars or several documents: those are
+  errors. Decision 8's parser and resolver are phase 1.
+- `ignoreAnnotated` and `ignoreFunction` (AnnotationSuppressor, FunctionSuppressor): not ported; a config that sets
+  either panics. No ported rule's default uses them.
+- Regexes go through `KotlinRegex` (the `regex` crate): no lookaround or backreferences. MaxLineLength's two fixed
+  patterns are rewritten without them. A user pattern that needs them panics.
+- `URL(...).toURI()` (MaxLineLength) is approximated (`kotlin.rs`); covered by a dozen smoke lines and the corpus's
+  5,368 rows.
+- AllRulesConfig takes an empty deprecated-rules list (the jar's `deprecation.properties` is generated at build time).
+- `languageVersionSettings`, the "requires type resolution" debug lines, config validation, baseline, reports, CLI:
+  not started.
+- Row order was compared as multisets only. The golden runner checks order per rule; order across rule sets follows the
+  jar's service file and is assumed, not checked.
+- `KtScript.getName()` (from the file name) is not in ktrs-psi.
+- Of the workspace gates only these ran on this branch (testbox): `cargo check -p ktrs-psi -p ktrs-detekt -p xtask
+  -p ktrs-cli --all-targets`, `cargo test -p ktrs-psi`, `cargo test -p ktrs-detekt`, `cargo test -p ktrs-fmt --test golden`.
+
+### What the full port needs that the spike showed
+
+- A backtracking Java-regex engine or a dependency for one (`fullyQualifiedNameGlobToRegex` uses lookahead; user
+  patterns can use anything).
+- A shared home for the Java-isms now spread over crates: `KotlinRegex` (ktrs-lint), `java_glob` (ktrs-editorconfig),
+  the golden runner's `run_all`/`ratchet` (rewritten in `tests/golden/main.rs`).
+- Rule names of the 93 analysis rules (for `RuleInstance` lists in SARIF and the debug lines), without their code.
+- `file.rs` in ktrs-psi is over 300 lines: split it.
+- parity.yml: an oracle job (`sync-detekt.sh`, `detekt-probe.sh corpus`, cached by the pin and the corpus REVISIONS), then
+  `cargo detekt-diff default` and `all-rules`; the goldens already run in `cargo test -p ktrs-detekt` and need no JVM.
+  About 30 lines next to the ktlint jobs. Not added yet.
+
+### Revised sizes
+
+| Phase | Section 6 | Revised | Why |
+|---|--:|--:|---|
+| 0. Spike | 4–5k Rust, 0.6k JVM/shell | 5.6k Rust + 0.7k in ktrs-psi, 0.6k JVM/shell (done) | |
+| 1. CLI | 4–5k | 5–6k | plus the suppressors, the YAML resolver and the regex engine |
+| 2a–2f. Remaining 107 core rules | 6.9k | 10–11k | 2.2x of 4.4k Kotlin, plus about 1k of psi-utils and metrics |
+| Core light mode, phases 0–2 | 15k | 21–23k | |
+
+Phases 3 and 4 are unchanged.
+
+### Reproduce the spike
+
+```sh
+tools/sync-detekt.sh
+tools/detekt-oracle/detekt-probe.sh corpus target/detekt-oracle/default              # JVM, background
+tools/detekt-oracle/detekt-probe.sh corpus target/detekt-oracle/all-rules --all-rules
+cargo detekt-diff default && cargo detekt-diff all-rules
+tools/detekt-tests/extract-goldens.sh                                                # JVM, background
+cargo test -p ktrs-detekt --release
+cargo run -p ktrs-detekt --release --example bench corpus 3 --per-rule
+```
