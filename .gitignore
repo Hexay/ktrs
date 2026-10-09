@@ -19,3 +19,6 @@
 /java/native/
 __pycache__/
 /crates/ktrs-project/tests/fixtures/**/.gradle/
+/tools/detekt-oracle/lib/
+/tools/detekt-oracle/build/
+/tools/detekt-tests/lib/
