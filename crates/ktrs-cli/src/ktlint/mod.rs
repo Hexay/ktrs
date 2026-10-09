@@ -20,7 +20,7 @@ pub mod gradle;
 mod hand_off_args;
 pub(crate) mod jar_providers;
 mod java_printf;
-pub mod java_glob;
+pub use ktrs_editorconfig::java_glob;
 pub mod jpath;
 pub mod ktrs_only;
 pub mod ktlint_jar;

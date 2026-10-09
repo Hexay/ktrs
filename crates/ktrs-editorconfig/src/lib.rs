@@ -7,9 +7,13 @@
 //! - One Rust fn per Java method, `snake_case`, in file order; Java builders collapse into plain structs.
 //! - `Resource`/`ResourcePath` are file-system paths; `Ec4jPath` is a `/`-separated relative path string.
 //! - Exceptions are `Err(ParseException)`; `IOException`s become `ParseException`s of type `Other`.
+//!
+//! [`java_glob`] is the JDK's other glob dialect (`FileSystem.getPathMatcher("glob:...")`), kept here because the
+//! ktlint CLI and the detekt engine both match paths with it.
 
 pub mod editor_config;
 mod glob;
+pub mod java_glob;
 mod parser;
 pub mod property_type;
 mod resource_properties_service;
