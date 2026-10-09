@@ -133,8 +133,10 @@ jobs:
           cd pages
           touch .nojekyll
           git add -A
-          git -c user.name=github-actions[bot] -c user.email=41898282+github-actions[bot]@users.noreply.github.com \
-            commit -q -m "maven: io.github.hexay:ktrs, the Gradle and Maven plugins ${GITHUB_REF_NAME#v}"
+          # config, not -c on the commit: the rebase below also needs a committer once another job has pushed
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -q -m "maven: io.github.hexay:ktrs, the Gradle and Maven plugins ${GITHUB_REF_NAME#v}"
           git push -q origin gh-pages
       # The Maven plugin depends on io.github.hexay:ktrs, so the jar goes first.
       - name: Publish to Maven Central
@@ -337,8 +339,10 @@ jobs:
       - name: Commit it
         run: |
           git add Formula/ktrs.rb
-          git -c user.name=github-actions[bot] -c user.email=41898282+github-actions[bot]@users.noreply.github.com \
-            commit -q -m "Homebrew formula for $GITHUB_REF_NAME"
+          # config, not -c on the commit: the rebase below also needs a committer once another job has pushed
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -q -m "Homebrew formula for $GITHUB_REF_NAME"
           git pull -q --rebase origin master
           git push -q origin HEAD:master
 
@@ -372,8 +376,10 @@ jobs:
       - name: Commit it
         run: |
           git add bucket/ktrs.json
-          git -c user.name=github-actions[bot] -c user.email=41898282+github-actions[bot]@users.noreply.github.com \
-            commit -q -m "Scoop manifest for $GITHUB_REF_NAME"
+          # config, not -c on the commit: the rebase below also needs a committer once another job has pushed
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -q -m "Scoop manifest for $GITHUB_REF_NAME"
           git pull -q --rebase origin master
           git push -q origin HEAD:master
 
