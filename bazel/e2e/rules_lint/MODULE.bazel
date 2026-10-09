@@ -1,0 +1,10 @@
+"ktrs' ktfmt and ktlint binaries under aspect rules_lint (README: Integrations, Bazel)."
+
+module(name = "ktrs_e2e_rules_lint")
+
+bazel_dep(name = "aspect_rules_lint", version = "2.9.1")
+bazel_dep(name = "rules_multitool", version = "1.11.1")
+
+multitool = use_extension("@rules_multitool//multitool:extension.bzl", "multitool")
+multitool.hub(lockfile = "//:ktrs.lock.json")
+use_repo(multitool, "multitool")

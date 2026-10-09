@@ -1,0 +1,4 @@
+/bazel-*
+/MODULE.bazel.lock
+# test.sh puts the lockfile under test here
+/ktrs.lock.json

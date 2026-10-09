@@ -1,0 +1,23 @@
+load("//tools/lint:kotlin.bzl", "kt_jvm_library")
+load("//tools/lint:linters.bzl", "ktlint_test")
+
+kt_jvm_library(
+    name = "clean",
+    srcs = ["Clean.kt"],
+)
+
+kt_jvm_library(
+    name = "violation",
+    srcs = ["Violation.kt"],
+)
+
+ktlint_test(
+    name = "clean_ktlint_test",
+    srcs = [":clean"],
+)
+
+ktlint_test(
+    name = "violation_ktlint_test",
+    srcs = [":violation"],
+    expected_exit_code = 1,
+)

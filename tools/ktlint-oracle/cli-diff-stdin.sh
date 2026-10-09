@@ -1,4 +1,5 @@
-# Sourced by cli-diff.sh: stdin scenarios, then the exact invocations of editor integrations (docs/editors.md).
+# Sourced by cli-diff.sh: stdin scenarios, then the exact invocations of editor integrations (docs/editors.md) and
+# of CI integrations (README).
 
 scenario stdin stdin.kt "" --stdin
 scenario stdin_format stdin.kt "" --stdin -F
@@ -54,3 +55,15 @@ scenario ed_apheleia_clean stdin.kt "printf 'fun a() = 1\\n' > stdin.kt" --log-l
 scenario ed_vscode src/A.kt "" --stdin -F --log-level none --stdin-path src/A.kt
 scenario ed_vscode_bad src/Bad.kt "" --stdin -F --log-level none --stdin-path src/Bad.kt
 scenario ed_vscode_ec ec/sub/E.kt "" --stdin -F --stdin-path ec/sub/E.kt --log-level=none
+
+# CI integrations (README "Bazel", "reviewdog and Danger"). danger-ktlint 0.0.9 (the PR's .kt files come first):
+scenario ci_danger "" "" src/A.kt src/sub/B.kt --reporter=json --relative --log-level=none
+scenario ci_danger_clean "" "" src/sub/CTest.kt --reporter=json --relative --log-level=none
+scenario ci_danger_bad "" "" src/A.kt src/Bad.kt --reporter=json --relative --log-level=none
+# reviewdog and the Danger plugins that read a report file:
+scenario ci_report_checkstyle "" "" --relative --reporter=checkstyle,output=ktlint.xml
+scenario ci_report_sarif "" "" --relative --reporter=sarif,output=ktlint.sarif
+scenario ci_report_json "" "" --relative --reporter=json,output=ktlint.json
+# rules_lint's lint_ktlint_aspect (no patterns: the sandbox holds only the target's srcs):
+scenario ci_rules_lint "" "" --editorconfig=.editorconfig --relative
+scenario ci_rules_lint_color "" "" --color --editorconfig=.editorconfig --relative

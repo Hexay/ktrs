@@ -40,6 +40,8 @@ Milestone 1: the parser's tree must be identical to the Kotlin compiler's PSI (`
 - Package managers: `Formula/` (brew tap) and `bucket/` (Scoop) are committed by the release workflow; winget manifests
   go to microsoft/winget-pkgs only with `WINGET_TOKEN`. Generators `tools/release/{homebrew-formula,scoop-manifest,
   winget-manifests}.sh <tag> <SHA256SUMS>` (try one on a past release's sums). `cargo binstall`: root `Cargo.toml` metadata.
+  Bazel: `multitool-lock.sh` (same arguments) prints the release's rules_multitool lockfile; `bazel/e2e/rules_lint/test.sh
+  <lockfile>` runs rules_lint on it (`bazel/e2e/local-lock.sh <bin dir>` for built binaries; Bazel: testbox or CI; research/35).
 - `java/` — `io.github.hexay:ktrs`: JVM wrapper around `ktrs serve` (bundled binaries, Spotless `KtrsStep` and
   `KtrsKtlintStep`: research/28). Tests: `cargo build --bins`, then `java/gradlew -p java test` (JAVA_HOME = tools/jdk/*).
   `java/gradle-plugin` — `io.github.hexay.ktrs`, ktfmt-gradle 0.27.0 drop-in (same DSL/tasks/FQNs), and

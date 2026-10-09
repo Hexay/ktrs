@@ -1,8 +1,10 @@
 # 35 — Bazel, reviewdog and Danger integrations (design, 2026-10-09)
 
-Design only, nothing built. Upstream facts were read at the tags named (via `gh api`); local facts from this tree at
-`ed15609` (v0.5.1). Items marked **UNVERIFIED** were inferred, not observed. Nothing here was run under Bazel: the
-first deliverable of part A exists partly to check those inferences.
+Design, with A1 and B1 built (2026-10-09): `tools/release/multitool-lock.sh`, `bazel/e2e/rules_lint`, the README
+sections and the `ci_*` scenarios of `tools/ktlint-oracle/cli-diff.sh`. Upstream facts were read at the tags named (via
+`gh api`); local facts from this tree at `ed15609` (v0.5.1). What the e2e runs showed, including every item first marked
+UNVERIFIED, is in A.6 and B.4; where they contradict the design text, the text was corrected. A2, A3, B2 and B3 are
+not built.
 
 ## TL;DR
 
@@ -19,7 +21,7 @@ first deliverable of part A exists partly to check those inferences.
 | Rule set | Version | Tool it runs | Can a native binary be swapped in? |
 |---|---|---|---|
 | [rules_kotlin](https://github.com/bazelbuild/rules_kotlin/tree/v2.4.20) `ktlint_test`/`ktlint_fix`/`ktlint_config` (`kotlin/lint.bzl`) | v2.4.20 (2026-09-17) | ktlint **1.8.0** jar (`PINTEREST_KTLINT` in `versions.bzl`, `http_file` → `java_import` → `java_binary` `com.pinterest.ktlint.Main`) | **No.** `_ktlint_tool` is a private attr; no toolchain, no bzlmod tag. Replacing the repo still needs a jar with that main class. Needs a patch or replacement rules. |
-| [rules_lint](https://github.com/aspect-build/rules_lint/tree/v2.9.1) `lint_ktlint_aspect` (`lint/ktlint.bzl`) | v2.9.1 (2026-09-18), Bazel ≥ 7.6 | `binary` label; its `ktlint` module tag fetches ktlint **1.2.1** | **Yes**, `binary = <native ktlint>`. But a JDK is still an action input and toolchain, the action is `run_shell` (bash on Windows), and there is no fix/patch output. |
+| [rules_lint](https://github.com/aspect-build/rules_lint/tree/v2.9.1) `lint_ktlint_aspect` (`lint/ktlint.bzl`) | v2.9.1 (2026-09-18), Bazel ≥ 7.6 | `binary` label; its `ktlint` module tag fetches ktlint **1.2.1** | **Yes**, `binary = <native ktlint>` (observed, A.6). But a JDK is still an action input and toolchain, `baseline_file` is mandatory, the action is `run_shell` (bash on Windows), and there is no fix/patch output. Works on Bazel 8.8.1 only out of the box (A.6). |
 | rules_lint `format_multirun` / `format_test` (`format/`) | same | `kotlin = <label>`; its `ktfmt` tag fetches ktfmt **0.46**, wrapped by the user in a `java_binary` | **Yes, zero changes.** Kotlin goes through the generic branch of `format.sh`; nothing JVM-specific. |
 | [bazel_rules_detekt](https://github.com/buildfoundation/bazel_rules_detekt) | 0.8.2.x | detekt | Not ktlint/ktfmt. |
 | Others | — | BCR has no `rules_ktlint`, `rules_ktfmt`, `ktlint`, `ktfmt` module; only an unmaintained 2021 repo turned up | — |
@@ -34,9 +36,10 @@ Command lines that a drop-in must reproduce:
 | rules_lint format | fix: `ktfmt <kotlin_fix_args> <files...>`; check: `ktfmt --set-exit-if-changed --dry-run <files...>`; files from `git ls-files` for `*.kt *.ktm *.kts`, via `xargs -0`, cwd = the real workspace |
 
 Consequences for the binaries (check in A1's e2e):
-- rules_lint's aspect depends on the no-argument default patterns over a tree of **file symlinks** (sandbox). Without a
-  sandbox (Windows, `local`) that walk covers the whole execroot; this is an upstream flaw, same with the jar.
-- rules_lint format passes `.ktm` files to `ktfmt`.
+- rules_lint's aspect depends on the no-argument default patterns over a tree of **file symlinks** (sandbox); that
+  works. Without a sandbox (`--spawn_strategy=local`, so also Windows) the execroot holds **directory** symlinks, which
+  the walk does not enter: "No files matched", exit 0, the target passes unlinted (A.6). Not compared with the jar.
+- rules_lint format passes `.ktm` files to `ktfmt`, which skips them silently (A.6).
 - rules_lint's ktlint SARIF is rebuilt from plain text, so the plain reporter's `path:line:col: message (rule)` rows are
   the contract there.
 
@@ -57,7 +60,7 @@ Consequences for the binaries (check in A1's e2e):
 - (a) costs a day and tests the binaries under Bazel before any Starlark is written.
 - (c) alone leaves us dependent on rules_lint's pinning choices (it still ships ktlint 1.2.1 and ktfmt 0.46).
 - We do not write our own lint aspect in A2: rules_lint's works with the native binary, and its helpers live under
-  `//lint/private` (**UNVERIFIED** whether loading them from another module is supported API).
+  `//lint/private` (loading `lint_aspect.bzl` from another module works, A.6; it is still undocumented).
 
 ### A.3 What to build
 
@@ -66,10 +69,14 @@ Consequences for the binaries (check in A1's e2e):
   `ktlint`, each with six `kind: archive` binaries (`url`, `sha256`, `os`, `cpu`, `file: ktrs-<tag>-<target>/<tool>[.exe]`).
   Sources `release-assets.sh` like the Homebrew and Scoop generators. The release job uploads it as
   `ktrs-<tag>.multitool.lock.json`. Lockfile schema: [rules_multitool](https://github.com/bazel-contrib/rules_multitool) v1.11.1.
+  **Built**; the v0.5.1 output validates against that tag's `lockfile.schema.json`. v0.5.1 itself has no such asset.
 - README "Integrations → Bazel": `multitool.hub(lockfile = ...)`; `format_multirun(kotlin = "@multitool//tools/ktfmt",
   kotlin_fix_args = [...])`; `lint_ktlint_aspect(binary = "@multitool//tools/ktlint", editorconfig = ..., baseline_file = ...)`;
   a note that rules_kotlin's rules need A2.
-- `bazel/e2e/rules_lint/`: a workspace with those recipes and a few fixture sources; CI job below.
+- `bazel/e2e/rules_lint/`: a workspace with those recipes and a few fixture sources. **Built**: `test.sh <lockfile>`
+  asserts the outcomes; ci.yml's `bazel` job runs it on `target/debug` binaries (`bazel/e2e/local-lock.sh`, `file://`
+  urls), release.yml's on the published lockfile. Its `kt_jvm_library` is a stand-in rule of the same kind name, so the
+  job needs no Kotlin compiler; the real rules_kotlin 2.4.20 rule gave the same report once (A.6).
 
 **A2 — `rules_ktrs` (M).** Layout, in this repo (same release tag, same SHA256SUMS, binaries built in the same CI):
 
@@ -158,7 +165,7 @@ None of this can run on the dev machine (RAM); it is CI-only by design.
 | Walk leaves the execroot | Without `root = true` at the workspace root, the walk continues through the output base up to `/`, so a `~/.editorconfig` can leak in (the jar has the same flaw). | `--ktrs-editorconfig-root=<execroot>` passed by the rules |
 | `--editorconfig=<file>` | In ktlint this only supplies defaults for properties no discovered file sets; rules_kotlin and rules_lint both pass it | Keep the flag for compatibility; discovery inputs are the separate `editorconfigs` attr |
 | ktfmt | Reads `.editorconfig` only with `--enable-editorconfig` | Off unless `editorconfigs` is set |
-| `HOME` | ktlint's SARIF writes `originalUriBaseIds` from `user.home`; `~` expansion uses it too (`command_line.rs:63`) | Actions run with an empty env. **UNVERIFIED** that the SARIF is then byte-stable across machines: e2e asserts it. |
+| `HOME` | ktlint's SARIF writes `originalUriBaseIds` from `user.home`; `~` expansion uses it too (`command_line.rs:63`) | Observed (A.6): the SARIF differs with `HOME` and is `file:///` without it. A2's actions must run without `HOME` (or with a fixed one); its e2e asserts it. |
 | `-R` rule sets | compose-rules 0.6.7 runs natively; any other jar hands off to the ktlint jar, which downloads and needs Java | A2 exposes no `ruleset` attr; A3+ could add compose-rules only. Hand-off inside an action is unsupported. |
 | Report files | `--reporter=plain,output=` and `--reporter=sarif,output=` are declared outputs; `--relative` makes paths execroot-relative, which equals workspace-relative for source files | Output group `ktrs_report`; with `--remote_download_outputs=minimal` add `--remote_download_regex` for them |
 | Checkstyle | Available as a reporter | `ktlint_config.reporters` later; not in A2 |
@@ -168,6 +175,35 @@ None of this can run on the dev machine (RAM); it is CI-only by design.
 | Cache key | binary, srcs, declared `.editorconfig` files, flags | A change to a root `.editorconfig` invalidates every lint action (same as rules_lint's ruff) |
 | Fix | Must write to the source tree | `bazel run` only (`ktlint_fix`, `ktfmt_fix`, rules_lint `format`); never in a build action |
 | Windows | `ctx.actions.run` on an `.exe` needs no bash; `run_shell` and sh launchers do | See A.3 |
+
+### A.6 Observed in the A1 e2e (testbox, Linux x86-64, 2026-10-09)
+
+`bazel/e2e/rules_lint` with rules_lint 2.9.1, rules_multitool 1.11.1 and the v0.5.1 release binaries, Bazel 8.8.1
+unless noted. `test.sh` passes with the generated v0.5.1 lockfile (17 s, 15 s repeated; the first cold run spent 329 s
+in module resolution and downloads) and with a `local-lock.sh` lockfile of `file://` urls.
+
+| Question | Observed |
+|---|---|
+| Does `format_multirun(kotlin = "@multitool//tools/ktfmt")` work unchanged? | Yes. `format.check` lists `src/Violation.kt` and exits 1; `format` rewrites it; `format.check` then exits 0. |
+| `.ktm` files | rules_lint passes them; `ktfmt` neither lists nor rewrites them and reports nothing. |
+| Does `lint_ktlint_aspect(binary = <native ktlint>)` work? | Yes: `.out`, `.out.exit_code` (1 / 0), SARIF `.report` with `src/Violation.kt` rows; `lint_test` passes or fails on the exit code; `fail_on_violation` fails the build. |
+| `baseline_file = None` | Rejected at load: "Aspect attribute '_baseline_file' has no default value". A baseline file is mandatory; one without entries works. |
+| No file arguments | Command line: `ktlint --color --editorconfig=.editorconfig --baseline=ktlint-baseline.xml --relative`. In the sandbox only the target's own srcs are linted (a second file of the package does not appear). |
+| No sandbox (`--spawn_strategy=local`) | `No files matched [**/*.kt, **/*.kts]`, exit 0: nothing is linted and the target passes. The execroot's `src` is a directory symlink. Not compared with the jar. |
+| ktlint's log lines | They go to stdout, so into `.out` (an INFO line even for a clean target). `args = ["--log-level=none"]` leaves only the report; a clean target's `.out` is then empty. |
+| Is a JDK needed? | As an input, yes: 116 of the action's 120 inputs are `local_jdk` files and `JAVA_HOME` is set; the binary never runs it. With no `java` on `PATH`, analysis fails ("Cannot find Java binary bin/java ... local_jdk"). `--java_runtime_version=remotejdk_21` fixes that by downloading a 353 MB JDK. |
+| The `editorconfig =` file | A declared input and applied: removing its `ktlint_standard_no-wildcard-imports = disabled` line brings the row back. |
+| Undeclared nested `src/.editorconfig` | Not applied in the sandbox (it is not there). |
+| Walk above the execroot | Confirmed: without `root = true`, a `.editorconfig` in a directory above Bazel's output root (`ktlint_standard = disabled`) emptied the report, exit 0. With `root = true` it is ignored. |
+| rules_lint's own multitool entries | None named `ktfmt` or `ktlint`, so the shared `multitool` hub has no clash. |
+| `//lint/private:lint_aspect.bzl` from another module | Loads (no `visibility()`); undocumented all the same. |
+| Real `kt_jvm_library` (rules_kotlin 2.4.20) instead of the stand-in | Same report and exit code. |
+| Bazel 7.7.1 | Format works; the ktlint aspect fails to load: `@rules_java//java/common/rules:java_runtime.bzl is not visible for loading from package @aspect_rules_lint//lint`. Upstream; a newer rules_java was not tried. |
+| Bazel 9.3.0 | Fails in analysis: rules_lint's transitive rules_go uses the removed `CcInfo` global. Upstream; overrides were not tried. |
+| `--reporter=sarif` and `HOME` (for A2) | `originalUriBaseIds.%SRCROOT%.uri` is `file://$HOME/`; `file:///` with an empty environment. Two machines differ unless the action has no `HOME`. |
+
+Still **UNVERIFIED**: whether BCR reviewers accept the name `rules_ktrs` (only a submission can tell). Not run:
+Windows and macOS, remote execution.
 
 ## B. reviewdog and Danger
 
@@ -179,7 +215,7 @@ None of this can run on the dev machine (RAM); it is CI-only by design.
 | reviewdog input | ktrs output today | Suggestions |
 |---|---|---|
 | `-f=checkstyle` | `ktlint --reporter=checkstyle --relative`, `ktrs lint --reporter checkstyle` | no (format has none) |
-| `-f=sarif` | `--reporter=sarif` | no: reviewdog maps SARIF `fixes`, but ktlint's reporter (and our 1:1 port, `reporter/sarif.rs`) emits only `startLine`/`startColumn` |
+| `-f=sarif` | `--reporter=sarif`, **without** `--relative` (B.4) | no: reviewdog maps SARIF `fixes`, but ktlint's reporter (and our 1:1 port, `reporter/sarif.rs`) emits only `startLine`/`startColumn` |
 | `-efm="%f:%l:%c: %m"` | default plain reporter | no |
 | `-f=diff` | none directly: `ktfmt`/`ktrs fmt`/`ktlint -F` write in place, then `git diff` | **yes**, one per hunk, no rule attribution |
 | `-f=rdjsonl` / `rdjson` | none | yes |
@@ -236,7 +272,7 @@ is `action.yml`, a ~40-line script and four or five workflows (release bump, dep
 |---|---|---|
 | Setup | none, no token, works on fork PRs | token with `pull-requests: write`; forks degrade to annotations |
 | Scope | files changed since a ref | lines: `-filter-mode=added\|diff_context\|file\|nofilter` |
-| Volume | GitHub caps annotations per step and per job (commonly cited 10 + 10 and 50; **UNVERIFIED** against current docs) | review comments, 30 per run; Checks API reporters uncapped by those limits |
+| Volume | GitHub's REST docs (Checks, read 2026-10-09): "limited to 10 warning annotations and 10 error annotations per step", and 50 annotations per Checks API request. A per-job cap of 50 is not in the docs. | review comments, 30 per run; Checks API reporters uncapped by those limits |
 | Committable suggestions | no | yes (`github-pr-review`, GitLab MR discussions) |
 | Other hosts | GitHub only | GitLab, Bitbucket, Gerrit, Gitea |
 
@@ -247,6 +283,19 @@ cost plus B2. `--changed-since` also helps reviewdog runs (fewer files to lint b
 Recommendation: **README recipes, no separate action repo now.** If demand appears, add it as a subdirectory action in
 this repo (`uses: Hexay/ktrs/reviewdog@<tag>`), which shares the release tag and `install.sh`; a separate
 `Hexay/action-ktrs` only matters for a second Marketplace listing and costs its own release and depup upkeep.
+
+### B.4 Observed for B1 (testbox, 2026-10-09)
+
+reviewdog 0.21.2 with `-reporter=local -filter-mode=added` on a git repo with one added violating file, v0.5.1 binaries.
+
+| Input | Observed |
+|---|---|
+| `ktlint --relative --reporter=checkstyle,output=ktlint.xml`, then `reviewdog -f=checkstyle < ktlint.xml` | All five rows reported; `-fail-level=error` exits 1. `ktrs lint --reporter checkstyle` piped in gives the same rows. |
+| `ktlint --relative \| reviewdog -efm="%f:%l:%c: %m"` | Same rows. |
+| `--reporter=sarif` with `--relative` | **Nothing reported**, exit 0: the uris are relative to the working directory but declared relative to `%SRCROOT%` = `file://$HOME/`, so reviewdog resolves them to files that are not in the diff. |
+| `--reporter=sarif` without `--relative` | Rows reported (uris are relative to `$HOME`, as the base says). |
+| `ktlint -F` or `ktfmt`, then `git diff \| reviewdog -f=diff -f.diff.strip=1` | One suggestion per hunk (checked with `-reporter=rdjsonl`). action-suggester itself needs a pull request and was not run. |
+| danger-ktlint's command line and the report-file invocations | `cli-diff.sh` scenarios `ci_*` (8): identical to the 2.0.0-ALPHA-4 and the 1.8.0 jars. No Danger run was made. |
 
 ## Sizes
 

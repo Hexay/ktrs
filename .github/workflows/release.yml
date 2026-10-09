@@ -1,5 +1,6 @@
 # On a `v*` tag: build `ktrs` + `ktfmt` + `ktlint` for six targets and publish them as a GitHub release,
-# one archive per target plus SHA256SUMS; then the JVM jar, the VS Code extension, the IntelliJ plugin and the Homebrew formula.
+# one archive per target plus SHA256SUMS and a rules_multitool lockfile; then the JVM jar, the VS Code extension, the
+# IntelliJ plugin and the Homebrew formula.
 name: release
 
 on:
@@ -306,16 +307,43 @@ jobs:
     needs: [build, java, vscode, intellij]
     runs-on: ubuntu-24.04
     steps:
+      # Into a subdirectory: the artifacts land in the workspace root.
+      - uses: actions/checkout@v4
+        with:
+          path: src
+          sparse-checkout: tools/release
       - uses: actions/download-artifact@v4
         with:
           merge-multiple: true
       # ktrs-*.zip includes the IntelliJ plugin (ktrs-intellij-<version>.zip).
       - name: Checksums
         run: sha256sum ktrs-*.tar.gz ktrs-*.zip ktrs-*.jar ktrs-*.vsix > SHA256SUMS
+      # For Bazel's rules_multitool. Generated from SHA256SUMS, so it is not listed there.
+      - name: rules_multitool lockfile
+        run: bash src/tools/release/multitool-lock.sh "$GITHUB_REF_NAME" SHA256SUMS > "ktrs-$GITHUB_REF_NAME.multitool.lock.json"
       - name: Publish
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --generate-notes ktrs-*.tar.gz ktrs-*.zip ktrs-*.jar ktrs-*.vsix SHA256SUMS
+        run: |
+          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --generate-notes \
+            ktrs-*.tar.gz ktrs-*.zip ktrs-*.jar ktrs-*.vsix SHA256SUMS "ktrs-$GITHUB_REF_NAME.multitool.lock.json"
+
+  # The rules_lint recipes of the README's Bazel section against the published lockfile: real downloads and checksums.
+  bazel:
+    needs: release
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: bazel-contrib/setup-bazel@0.19.0
+        with:
+          bazelisk-cache: true
+          repository-cache: bazel/e2e/rules_lint/MODULE.bazel
+      - name: Format and lint the e2e workspace
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" -p "ktrs-$GITHUB_REF_NAME.multitool.lock.json" -D "$RUNNER_TEMP"
+          bash bazel/e2e/rules_lint/test.sh "$RUNNER_TEMP/ktrs-$GITHUB_REF_NAME.multitool.lock.json"
 
   # Formula/ktrs.rb for `brew tap hexay/ktrs https://github.com/Hexay/ktrs`: generated from the
   # release's checksums, installed and tested from a scratch tap, then committed to master.

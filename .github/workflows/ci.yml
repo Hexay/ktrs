@@ -50,6 +50,26 @@ jobs:
         working-directory: java
         run: ./gradlew --console=plain test
 
+  # rules_lint's formatter and ktlint aspect running target/debug/{ktfmt,ktlint} (bazel/e2e/rules_lint). The release
+  # workflow repeats it on the published lockfile.
+  bazel:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        run: rustup toolchain install stable --profile minimal && rustup default stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo build --locked --bins
+      - uses: bazel-contrib/setup-bazel@0.19.0
+        with:
+          bazelisk-cache: true
+          repository-cache: bazel/e2e/rules_lint/MODULE.bazel
+      # The lockfile goes outside target/: rust-cache prunes it.
+      - name: Format and lint the e2e workspace
+        run: |
+          bash bazel/e2e/local-lock.sh target/debug > "$RUNNER_TEMP/ktrs.lock.json"
+          bash bazel/e2e/rules_lint/test.sh "$RUNNER_TEMP/ktrs.lock.json"
+
   # Unit tests, the integration test against target/debug/ktrs over both LSP clients, and the Plugin Verifier
   # against the since-build IntelliJ IDEA and the current Android Studio.
   intellij:

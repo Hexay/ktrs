@@ -1,0 +1,12 @@
+load("@aspect_rules_lint//format:defs.bzl", "format_multirun")
+
+format_multirun(
+    name = "format",
+    kotlin = "@multitool//tools/ktfmt",
+    kotlin_check_args = [
+        "--kotlinlang-style",
+        "--set-exit-if-changed",
+        "--dry-run",
+    ],
+    kotlin_fix_args = ["--kotlinlang-style"],
+)
