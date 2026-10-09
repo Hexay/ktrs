@@ -21,6 +21,8 @@ or estimate. Registry checks are direct API calls: `crates.io/api/v1/crates/<n>`
 - Side finding: **`@ktrs/cli` is not on npm** (404, and `scope:ktrs` search returns 0), so the npm job has never
   published. Whether the `@ktrs` scope is registered is unverified.
 - About 4 to 5 weeks of work in six phases; eight owner decisions in §8.
+- Phase 0 (§9): the name `kotlin-syntax` conflicts with the Kotlin brand guidelines, `Arc<Tree>` costs 4.5% on
+  format (not adopted), and deep nesting overflows the stack.
 
 ## 1. Audit of the public Rust API
 
@@ -106,8 +108,8 @@ A new facade crate, and the existing crates declared unstable. Reasons:
   or `@ktrs/syntax` (§4). It says what it is, and it is findable by someone who has never heard of ktrs.
 - Reusing `ktrs-parser` would mean breaking it to hide `builder`/`parsing`, and it cannot re-export `ktrs-psi`
   (which depends on it).
-- Unverified: the Kotlin Foundation's trademark guidelines for a third-party package named `kotlin-*`.
-  `tree-sitter-kotlin` and `kotlin-parser` exist as precedent; the README should say "unofficial" either way.
+- The Kotlin Foundation's guidelines do not allow it as worded: see "Phase 0 results". `tree-sitter-kotlin` and
+  `kotlin-parser` exist as precedent, not as permission; the README should say "unofficial" either way.
 - I: register `ktrs` on PyPI now. `pip install ktrs` should one day mean the CLI (as with ruff), not the parser.
 
 ### Minimal API (sketch)
@@ -439,14 +441,89 @@ Phases 3 and 4 are independent after 1. Phase 2 can trail them: the first Python
 | # | Decision | Recommendation |
 |---|---|---|
 | 1 | Facade crate or stabilize the existing crates | New facade crate; mark `ktrs-*` as internal. |
-| 2 | Name | `kotlin-syntax` on crates.io, PyPI and npm (all free today). Check the Kotlin trademark guidelines first; fall back to `ktrs-kotlin` / `@ktrs/syntax`. Register `ktrs` on PyPI for a future CLI package. |
+| 2 | Name | `kotlin-syntax` on crates.io, PyPI and npm (all free today). Check the Kotlin trademark guidelines first; fall back to `ktrs-kotlin` / `@ktrs/syntax`. Register `ktrs` on PyPI for a future CLI package. Checked: the guidelines conflict with `kotlin-syntax` (§9); needs a new owner call. |
 | 3 | Versioning | Share the workspace version; breaking facade changes are minor bumps while 0.x; kinds stable by name, `#[non_exhaustive]`, pin bumps that only add kinds are minor. |
-| 4 | Typed layer | Reuse `ktrs-psi` through `Arc<Tree>` if the bench cost is under 1%, otherwise a generated layer. Either way one accessor table drives Rust, `.pyi` and `.d.ts`. |
+| 4 | Typed layer | Reuse `ktrs-psi` through `Arc<Tree>` if the bench cost is under 1%, otherwise a generated layer. Either way one accessor table drives Rust, `.pyi` and `.d.ts`. Measured 4.5% (§9): generated layer. |
 | 5 | Mutation | Text edits only in v1. Keep `ktrs-ast` internal. |
 | 6 | Offsets in bindings | Host-native by default (Python `str` indices, JS UTF-16 units) so slicing works, with `byte_range` beside it. Rust stays UTF-8 bytes. |
 | 7 | JavaScript route | Wasm only for v1, flat arrays read in JS; napi later only if Wasm parse is under half of native and someone needs it. |
 | 8 | Python wheels and publishing | abi3-py39, eight wheels + sdist, own workspace under `bindings/python`, root `pyproject.toml` untouched, Trusted Publishing gated on a repository variable. Free-threaded wheels on request. |
 
-Open items that are not decisions: whether the `@ktrs` npm scope exists and why `@ktrs/cli` is absent; parser
-behaviour on very deep nesting; how `MissedTokens` should appear in the facade (the tree omits those tokens, so the
-"tokens spell the input" guarantee needs its exact wording); Wasm parse throughput and artifact sizes.
+Open items that are not decisions: whether the `@ktrs` npm scope exists and why `@ktrs/cli` is absent; how
+`MissedTokens` should appear in the facade (the tree omits those tokens, so the "tokens spell the input" guarantee
+needs its exact wording); Wasm parse throughput and artifact sizes.
+
+## 9. Phase 0 results (2026-10-09, at be448f2)
+
+Measured on the testbox under `flock ~/bench.lock taskset -c 0-4,6-10`. Nothing of phase 1 is built: the name
+check below blocks it.
+
+### Name: `kotlin-syntax` is not allowed by the guidelines as worded (decision 2 reopened)
+
+Source: <https://kotlinfoundation.org/guidelines/> ("Kotlin brand assets usage guidelines"), section
+"I. Kotlin word trademark", fetched 2026-10-09. Quotes:
+
+- "Where identifying that a product or service is built on the Kotlin programming language or runs the Kotlin
+  programming language, use the product's own name followed by "in Kotlin®", "for Kotlin®", "compatible with
+  Kotlin®", "running Kotlin®" etc. Do not incorporate Kotlin into the product name."
+- "Whether you're referring to a product, company or service, you shouldn't incorporate Kotlin as your brand name,
+  i.e. your company cannot be called "Kotlin Consulting" or "Kotlin IDE"."
+- "The Trademark may never be used in a manner that would cause confusion as to JetBrains, Google, or the Kotlin
+  Foundation's sponsorship, affiliation, or endorsement, including as part of a company name, product name, domain
+  name, or business trading name."
+- FAQ (<https://kotlinfoundation.org/faq/>): "Any use of the Trademark other than those described in the
+  Guidelines must be approved in advance."
+
+Reading (I): the page has no carve-out for package or repository identifiers. `kotlin-syntax` has no name of its
+own and leads with the mark, the shape of the "Kotlin IDE" example; it also reads as an official artifact, which is
+the confusion the third quote is about. Referential text is fine ("a syntax tree library for Kotlin®").
+
+Options:
+
+| Option | Fit with the guidelines |
+|---|---|
+| A name without the mark (`kt-syntax` is free on crates.io; `ktrs-tree`, `ktrs-api` unchecked), described as "for Kotlin®" | Complies. Less findable; keywords and the description carry "kotlin". |
+| `ktrs-kotlin` (the doc's fallback) | Own name first, the `tree-sitter-kotlin` / `mockito-kotlin` shape. Still "incorporates" the mark, so tolerated practice rather than compliance. |
+| Keep `kotlin-syntax` and ask the Foundation's Trademark Subcommittee first | Compliant only with a written yes. |
+
+Whatever the name, the README carries "not affiliated with or endorsed by the Kotlin Foundation or JetBrains".
+The same question applies to the PyPI and npm names in §3 and §4.
+
+### `Rc<Tree>` to `Arc<Tree>`: about 4.5% on format, so not adopted (decision 4 resolved)
+
+Change measured: `Parse::tree` and `PsiElement::tree` as `Arc<Tree>` (`ktrs-syntax/src/lib.rs`,
+`ktrs-psi/src/element.rs`), nothing else. `cargo build --release -p ktrs-{parser,fmt} --example bench`, both
+binaries run interleaved on the same pinned cores, corpus of 6123 files / 30.8 MB, best of 5 reps per file.
+
+| Bench | `Rc` (base) | `Arc` | Change |
+|---|---|---|---|
+| fmt `bench corpus 5`, "format = N parses", 5 rounds | 5.84, 5.84, 5.83, 5.82, 5.81 | 6.11, 6.10, 6.08, 6.07, 6.10 | +4.5% |
+| same runs, CPU-s for the corpus | 4.32 (all 5) | 4.52, 4.49, 4.49, 4.49, 4.49 | +3.9% |
+| parser `bench corpus 5`, `parse_file` s, 3 rounds | 0.753, 0.753, 0.754 | 0.752, 0.754, 0.753 | none |
+
+- A first run with 1 rep while the box was loaded gave 5.65/5.75/6.02 against 5.97/6.32/5.87: too noisy to resolve
+  1%, hence best-of-5.
+- The gate was under 1%, so `ktrs-psi` keeps `Rc` and the typed layer is the generated one (route 2 in §2).
+- The facade does not need `Arc<Tree>`: `SourceFile` owns the `Tree` by value (`Rc::into_inner(parse.tree)`, the
+  parser returns the only reference) and `Node<'a>` borrows it, so `SourceFile` is `Send + Sync` and bindings wrap
+  `Arc<SourceFile>` + id as planned. Only `PsiElement` interop is lost.
+
+### Very deep nesting overflows the stack
+
+The parser is recursive descent and aborts the process ("thread 'main' has overflowed its stack"; not a panic, so
+`catch_unwind` does not help). Parser `bench` on generated one-file inputs, release build:
+
+| Shape | 8 MB stack (Linux main thread) |
+|---|---|
+| nested lambdas `{ run { run {` | fine at 8000, overflow at 10000 |
+| `((((1))))`, `f(f(f(1)))`, `if (a) { if (a) {`, `List<List<`, `class A { class A {`, `else if` chain | fine at 10000, overflow at 100000 |
+| `a.b().b()`, `1 + 1 + 1`, `---1` | no overflow at 100000 (25 s and 35 s for the first two: quadratic) |
+
+Nested lambdas against the stack size (`ulimit -s`): 1 MB (Windows main thread) fine at 1000, overflow at 2000;
+2 MB (Rust's default for spawned threads) fine at 2000, overflow at 3000. About 0.5 to 1 KB of stack per level.
+
+Proposal for the facade entry (unbuilt): run the parse with a known stack (`stacker::maybe_grow` or a scoped
+thread with an explicit size) so the limit is the same on every platform and thread, and refuse input whose
+bracket depth, counted on the token stream, exceeds a documented maximum with an error instead of aborting. The
+parser and its output stay untouched. Bindings need this before anything else: an abort kills the Python
+interpreter or traps the Wasm instance.
