@@ -1,7 +1,6 @@
 package io.github.hexay.ktrs.intellij
 
-import com.intellij.ide.plugins.PluginManagerCore
-import com.intellij.openapi.extensions.PluginId
+import com.intellij.openapi.application.PathManager
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -56,7 +55,8 @@ object KtrsBinary {
         return if (windows) "ktrs.exe" else "ktrs"
     }
 
-    private fun pluginDir(): Path? = PluginManagerCore.getPlugin(PluginId.getId(PLUGIN_ID))?.pluginPath
+    // <plugin>/lib/<jar>. Not PluginManager(Core) lookups: internal API in Android Studio 2026.2 (verifyPlugin fails).
+    private fun pluginDir(): Path? = PathManager.getJarForClass(KtrsBinary::class.java)?.parent?.parent
 
     // The IDE's plugin installer may drop the zip entries' mode bits.
     private fun ensureExecutable(file: Path) {

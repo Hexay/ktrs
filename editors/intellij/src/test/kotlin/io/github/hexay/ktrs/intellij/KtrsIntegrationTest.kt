@@ -1,8 +1,13 @@
 package io.github.hexay.ktrs.intellij
 
+import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerImpl
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
+import com.redhat.devtools.lsp4ij.ConnectDocumentToLanguageServerSetupParticipant
 import com.intellij.openapi.fileTypes.FileTypeManager
 import com.intellij.openapi.fileTypes.PlainTextFileType
 import com.intellij.openapi.application.runWriteAction
@@ -12,6 +17,7 @@ import com.intellij.testFramework.UsefulTestCase
 import com.intellij.testFramework.builders.EmptyModuleFixtureBuilder
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
+import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl
 import com.intellij.testFramework.fixtures.impl.TempDirTestFixtureImpl
 import java.nio.file.Files
 import java.nio.file.Path
@@ -38,7 +44,7 @@ abstract class KtrsIntegrationTest(private val client: String) : UsefulTestCase(
             formatTool = "ktfmt"
             ktfmtStyle = "kotlinlang"
         }
-        // The test IDE loads no Kotlin plugin.
+        // Plain text: keeps the bundled Kotlin plugin's analysis out of the highlights.
         runWriteAction { FileTypeManager.getInstance().associateExtension(PlainTextFileType.INSTANCE, "kt") }
     }
 
@@ -53,15 +59,27 @@ abstract class KtrsIntegrationTest(private val client: String) : UsefulTestCase(
 
     fun testDiagnosticsAndFormatting() {
         fixture.configureByText("Main.kt", "fun  f( ) = 1\n")
-        val warnings = await("a ktlint diagnostic") { fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).filter(::fromKtrs).ifEmpty { null } }
-        assertTrue(warnings.joinToString { it.description }, warnings.any { "no-multi-spaces" in it.description.orEmpty() || "space" in it.description.orEmpty() })
+        fileOpened(fixture.project, fixture.file.virtualFile)
+        val warnings = await("the no-multi-spaces diagnostic") {
+            highlights().takeIf { infos -> infos.any(::isNoMultiSpaces) }
+        }
+        assertEquals(HighlightSeverity.WARNING, warnings.first(::isNoMultiSpaces).severity)
 
         WriteCommandAction.runWriteCommandAction(fixture.project) { CodeStyleManager.getInstance(fixture.project).reformat(fixture.file) }
         val formatted = await("the formatted document") { fixture.editor.document.text.takeIf { it == "fun f() = 1\n" } }
         assertEquals("fun f() = 1\n", formatted)
     }
 
-    private fun fromKtrs(info: HighlightInfo) = info.severity >= HighlightSeverity.WEAK_WARNING && !info.description.isNullOrEmpty()
+    protected open fun fileOpened(project: Project, file: VirtualFile) {}
+
+    /** The platform client's annotator results plus what LSP4IJ applies straight to the markup model. */
+    private fun highlights(): List<HighlightInfo> {
+        // canChangeDocument: the platform client restarts the daemon when diagnostics arrive, mid-highlighting.
+        val passes = CodeInsightTestFixtureImpl.instantiateAndRun(fixture.file, fixture.editor, IntArray(0), true)
+        return passes + DaemonCodeAnalyzerImpl.getHighlights(fixture.editor.document, null, fixture.project)
+    }
+
+    private fun isNoMultiSpaces(info: HighlightInfo) = "Unnecessary long whitespace" in info.description.orEmpty()
 
     private fun <T : Any> await(what: String, probe: () -> T?): T {
         val deadline = System.nanoTime() + 60_000_000_000
@@ -78,4 +96,9 @@ abstract class KtrsIntegrationTest(private val client: String) : UsefulTestCase(
 
 class PlatformLspIntegrationTest : KtrsIntegrationTest(KtrsClients.PLATFORM)
 
-class Lsp4ijIntegrationTest : KtrsIntegrationTest(KtrsClients.LSP4IJ)
+class Lsp4ijIntegrationTest : KtrsIntegrationTest(KtrsClients.LSP4IJ) {
+    // LSP4IJ subscribes to fileOpened in projectOpened, which the test project may fire after the fixture opens the file.
+    override fun fileOpened(project: Project, file: VirtualFile) {
+        ConnectDocumentToLanguageServerSetupParticipant().fileOpened(FileEditorManager.getInstance(project), file)
+    }
+}

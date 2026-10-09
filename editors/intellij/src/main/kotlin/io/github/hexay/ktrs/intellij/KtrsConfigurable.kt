@@ -5,15 +5,15 @@ import com.intellij.openapi.options.BoundConfigurable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.dsl.builder.AlignX
-import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.Panel
 import com.intellij.ui.dsl.builder.bindItem
 import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.bindText
 import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.dsl.builder.Row
+import com.intellij.ui.dsl.builder.columns
 import com.intellij.ui.dsl.builder.rows
-import com.intellij.ui.dsl.builder.textListCellRenderer
-import javax.swing.JTextField
+import com.intellij.ui.dsl.listCellRenderer.textListCellRenderer
 import kotlin.reflect.KMutableProperty0
 
 /** Settings | Tools | ktrs. Fields mirror the VS Code extension's settings; "build" = null, the build's value. */
@@ -65,13 +65,13 @@ class KtrsConfigurable(private val project: Project) : BoundConfigurable(KtrsSer
         project.messageBus.syncPublisher(KtrsSettingsListener.TOPIC).settingsChanged()
     }
 
-    private fun com.intellij.ui.dsl.builder.Row.choice(items: List<String>, prop: KMutableProperty0<String>) =
+    private fun Row.choice(items: List<String>, prop: KMutableProperty0<String>) =
         comboBox(items).bindItem({ prop.get() }, { prop.set(it ?: items.first()) })
 
-    private fun <T : Any> com.intellij.ui.dsl.builder.Row.nullableChoice(items: List<T>, prop: KMutableProperty0<T?>) =
+    private fun <T : Any> Row.nullableChoice(items: List<T>, prop: KMutableProperty0<T?>) =
         comboBox(listOf<T?>(null) + items, textListCellRenderer { it?.toString() ?: "build" }).bindItem(prop)
 
-    private fun com.intellij.ui.dsl.builder.Row.intField(prop: KMutableProperty0<Int?>): Cell<JTextField> =
+    private fun Row.intField(prop: KMutableProperty0<Int?>) =
         textField().columns(6).bindText({ prop.get()?.toString().orEmpty() }, { prop.set(it.trim().toIntOrNull()?.takeIf { n -> n > 0 }) })
             .comment("Empty: the style's.")
 }

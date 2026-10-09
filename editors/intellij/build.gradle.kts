@@ -1,10 +1,10 @@
-// The ktrs plugin for IntelliJ IDEA and Android Studio: a client of `ktrs lsp` (see README.md).
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 
 plugins {
     id("org.jetbrains.kotlin.jvm") version "2.4.20"
-    id("org.jetbrains.intellij.platform") version "2.19.0"
+    // No version: the settings plugin (settings.gradle.kts) already put it on the classpath.
+    id("org.jetbrains.intellij.platform")
 }
 
 group = "io.github.hexay"
@@ -60,12 +60,38 @@ tasks.prepareSandbox {
         filePermissions { unix("rwxr-xr-x") }
     }
 }
+// The zip doesn't keep the sandbox's mode bits.
+tasks.buildPlugin {
+    eachFile {
+        if ("/bin/" in path) {
+            permissions { unix("rwxr-xr-x") }
+        }
+    }
+}
 
 // The binary the integration test runs: -PktrsExecutable, else the workspace's debug build.
 val testExecutable = file(providers.gradleProperty("ktrsExecutable").getOrElse(
     "../../target/debug/" + if (System.getProperty("os.name").startsWith("Windows")) "ktrs.exe" else "ktrs"
 )).absolutePath
 
+// The test JVM's flat classpath can't hold both clients: LSP4IJ's lsp4j 1.0 shadows the platform's (NoSuchMethodError
+// in the platform client). So the platform client's integration test runs in its own task, without LSP4IJ.
+val platformLspTest = "*.PlatformLspIntegrationTest"
+val testPlatformLsp = intellijPlatformTesting.testIde.register("testPlatformLsp") {
+    plugins {
+        disablePlugin("com.redhat.devtools.lsp4ij")
+    }
+    task {
+        testClassesDirs = sourceSets.test.get().output.classesDirs
+        classpath = tasks.test.get().classpath.filter { "lsp4ij" !in it.path }
+        dependsOn(tasks.prepareTestSandbox)
+        systemProperty("ktrs.testExecutable", testExecutable)
+        filter.includeTestsMatching(platformLspTest)
+    }
+}
+
 tasks.test {
     systemProperty("ktrs.testExecutable", testExecutable)
+    filter.excludeTestsMatching(platformLspTest)
+    dependsOn(testPlatformLsp.map { it.task })
 }

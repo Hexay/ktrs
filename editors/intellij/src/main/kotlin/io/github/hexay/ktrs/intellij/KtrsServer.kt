@@ -4,6 +4,7 @@ import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import java.nio.file.Files
 import java.nio.file.Path
 
 /** What both LSP integrations share: which files ktrs serves and how it is launched. */
@@ -19,7 +20,8 @@ object KtrsServer {
                 "or set its path in Settings | Tools | ktrs.",
         )
         return GeneralCommandLine(binary.toString(), "lsp")
-            .withWorkingDirectory(project.basePath?.let { Path.of(it) })
+            // basePath may not exist (default project, tests); a missing working directory fails the launch.
+            .withWorkingDirectory(project.basePath?.let { Path.of(it) }?.takeIf { Files.isDirectory(it) })
             .withCharset(Charsets.UTF_8)
     }
 
