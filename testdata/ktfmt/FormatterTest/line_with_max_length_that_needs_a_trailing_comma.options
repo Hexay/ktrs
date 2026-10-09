@@ -1,7 +1,0 @@
-maxWidth=100
-blockIndent=2
-continuationIndent=2
-trailingCommaManagementStrategy=ONLY_ADD
-removeUnusedImports=true
-preserveLambdaBreaks=true
-debuggingPrintOpsAfterFormatting=false

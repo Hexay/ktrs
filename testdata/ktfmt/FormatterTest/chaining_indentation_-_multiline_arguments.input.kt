@@ -1,4 +1,0 @@
-rainbow.shine(
-    infrared,
-    ultraviolet,
-)

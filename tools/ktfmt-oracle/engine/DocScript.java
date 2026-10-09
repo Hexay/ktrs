@@ -1,6 +1,3 @@
-import com.facebook.ktfmt.format.FenceCommentsOp;
-import com.facebook.ktfmt.format.KotlinInput;
-import com.facebook.ktfmt.format.Parser;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
 import com.google.googlejavaformat.*;
@@ -9,6 +6,11 @@ import com.google.googlejavaformat.java.JavaOutput;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
+import org.jetbrains.kotlinx.ktfmt.format.FenceCommentsOp;
+import org.jetbrains.kotlinx.ktfmt.format.FileType;
+import org.jetbrains.kotlinx.ktfmt.format.KotlinCode;
+import org.jetbrains.kotlinx.ktfmt.format.KotlinInput;
+import org.jetbrains.kotlinx.ktfmt.format.Parser;
 
 /** Interprets an op script against a Kotlin input with gjf's real engine; see ktrs doc tests. */
 public class DocScript {
@@ -34,7 +36,7 @@ public class DocScript {
     tags.clear();
     try {
       CommentsHelper helper = (tok, maxWidth, column0) -> tok.getOriginalText();
-      KotlinInput input = new KotlinInput(code, Parser.INSTANCE.parse(code));
+      KotlinInput input = new KotlinInput(code, Parser.INSTANCE.parse(KotlinCode.Companion.from(code, FileType.SCRIPT)));
       JavaOutput out = new JavaOutput("\n", input, helper);
       OpsBuilder b = new OpsBuilder(input, out);
       b.markForPartialFormat();

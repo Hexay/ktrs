@@ -1,1 +1,0 @@
-rainbow.a().b().c()

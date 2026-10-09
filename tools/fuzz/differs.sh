@@ -25,7 +25,7 @@ differing=()
 for side in a b; do
   mkdir -p "$W/$side"; cp "$file" "$W/$side/$name"
   if [[ $tool == ktfmt ]]; then
-    cmd=("$bin/ktfmt"); [[ $side == b ]] && cmd=(java -jar "${KTFMT_JAR:-$repo/tools/ktfmt-oracle/lib/ktfmt-0.64-with-dependencies.jar}")
+    cmd=("$bin/ktfmt"); [[ $side == b ]] && cmd=(java -jar "${KTFMT_JAR:-$repo/tools/ktfmt-oracle/lib/ktfmt-0.65-with-dependencies.jar}")
     run "$side" "${cmd[@]}" "--$style-style" "$name"
   else
     cmd=("$bin/ktlint"); [[ $side == b ]] && cmd=("${KTLINT2:?set KTLINT2}")

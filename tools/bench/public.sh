@@ -14,8 +14,8 @@ set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
 root="$(cd "$here/../.." && pwd)"
 
-KTFMT_VERSION=0.64
-KTFMT_SHA256=5b3d5286fd2defcc7dc8e28c21ddf156cc6b2d8682bdcd929ce4333e7a6201f2
+KTFMT_VERSION=0.65
+KTFMT_SHA256=aba9753b6ab387926179ab7318ba8e0c33dad483ebc72f633e79522265b15214
 ktlint_sha256() {
   case $1 in
     2.0.0-ALPHA-4) echo fb28b3cd57116d1de78867ebd8ce398ede91e91b280b33dc367e0108336b79f1 ;;
@@ -76,7 +76,7 @@ rm -f "$OUT"/*.json "$OUT"/*.md "$OUT/scenarios.tsv"
 
 KTFMT_JAR=$CACHE/jars/ktfmt-$KTFMT_VERSION-with-dependencies.jar
 want_any "$FMT_ALL" && fetch_pinned "$KTFMT_JAR" \
-  "https://repo1.maven.org/maven2/com/facebook/ktfmt/$KTFMT_VERSION/ktfmt-$KTFMT_VERSION-with-dependencies.jar" "$KTFMT_SHA256"
+  "https://repo1.maven.org/maven2/org/jetbrains/kotlinx/ktfmt/$KTFMT_VERSION/ktfmt-$KTFMT_VERSION-with-dependencies.jar" "$KTFMT_SHA256"
 if want_any "$LINT_ALL"; then
   for v in $KTLINTS; do
     sha=$(ktlint_sha256 "$v")

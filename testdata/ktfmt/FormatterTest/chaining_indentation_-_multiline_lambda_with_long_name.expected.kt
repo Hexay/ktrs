@@ -1,5 +1,0 @@
-rainbow
-    .someLongLambdaName {
-      it
-      it
-    }

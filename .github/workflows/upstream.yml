@@ -30,7 +30,7 @@ jobs:
             fi
             echo "$1: $4 available (pinned $3)"
           }
-          check ktfmt facebook/ktfmt "$(pin KTFMT_TAG sync-ktfmt.sh)" "$(gh api repos/facebook/ktfmt/releases/latest --jq .tag_name)"
+          check ktfmt Kotlin/ktfmt "$(pin KTFMT_TAG sync-ktfmt.sh)" "$(gh api repos/Kotlin/ktfmt/releases/latest --jq .tag_name)"
           # ktlint: the newest release on any line, prereleases included (the pin is a 2.0 alpha; 1.x still ships).
           check ktlint pinterest/ktlint "$(pin KTLINT_TAG sync-ktlint.sh)" "$(gh api 'repos/pinterest/ktlint/releases?per_page=1' --jq '.[0].tag_name')"
           check compose-rules mrmans0n/compose-rules "$(pin COMPOSE_RULES_TAG sync-compose-rules.sh)" "$(gh api repos/mrmans0n/compose-rules/releases/latest --jq .tag_name)"

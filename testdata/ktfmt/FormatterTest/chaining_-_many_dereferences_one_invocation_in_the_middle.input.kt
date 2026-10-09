@@ -1,9 +1,0 @@
-rainbow.red.orange.yellow
-    .green
-    .blue
-    .shine()
-    .indigo
-    .violet
-    .cyan
-    .magenta
-    .key

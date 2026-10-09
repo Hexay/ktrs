@@ -8,7 +8,7 @@
 # INPUTS: a flat dir of .kt/.kts files. OUT/report.md is the summary, OUT/mismatches.tsv one row per
 # (tool, style, pass, kind, file), OUT/repro/<file> the inputs involved. Linux.
 # Env: KTRS_BIN = dir with the ktfmt and ktlint binaries (default target/release); KTFMT_JAR (default
-# tools/ktfmt-oracle/lib/ktfmt-0.64-with-dependencies.jar); KTLINT2 = the ktlint-2.0.0-ALPHA-4 release asset
+# tools/ktfmt-oracle/lib/ktfmt-0.65-with-dependencies.jar); KTLINT2 = the ktlint-2.0.0-ALPHA-4 release asset
 # (needed for ktlint); TMO as in tools/parity/*-compare.sh; EC_EXTRA as in tools/parity/ktlint-compare.sh.
 set -euo pipefail
 (($# >= 2)) || { sed -n 2,13p "$0"; exit 2; }
@@ -16,7 +16,7 @@ repo="$(cd "$(dirname "$0")/../.." && pwd)"
 inputs=$(cd "$1" && pwd) out=$2 tools=${3:-all}
 mkdir -p "$out"; out=$(cd "$out" && pwd)
 bin=${KTRS_BIN:-$repo/target/release}
-jar=${KTFMT_JAR:-$repo/tools/ktfmt-oracle/lib/ktfmt-0.64-with-dependencies.jar}
+jar=${KTFMT_JAR:-$repo/tools/ktfmt-oracle/lib/ktfmt-0.65-with-dependencies.jar}
 rm -rf "$out/tree" "$out/repro" "$out/mismatches.tsv" "$out/ktfmt" "$out/ktlint"; mkdir -p "$out/tree" "$out/repro"
 find "$inputs" -maxdepth 1 -type f \( -name '*.kt' -o -name '*.kts' \) -exec cp -t "$out/tree" {} +
 touch "$out/mismatches.tsv"

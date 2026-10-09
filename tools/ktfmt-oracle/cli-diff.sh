@@ -149,6 +149,42 @@ scenario broken_file "" src/broken.kt
 scenario lambdas "" src/lambdas.kt
 scenario argfile "" @args.txt
 scenario argfile_missing "" @missing.txt
+# Partial formatting. Random ranges over real code: range-diff.sh.
+scenario lines "" --lines=2 src/A.kt
+scenario lines_alias "" --line 2 src/A.kt
+scenario lines_multi "" --lines=1:2,3 --lines 1 src/A.kt
+scenario lines_no_value "" --lines
+scenario lines_bad "" --lines=x src/A.kt
+scenario lines_inverted "" --lines=5:2 src/A.kt
+scenario lines_three_parts "" --lines=1:2:3 src/A.kt
+scenario lines_zero "" --lines=0 src/A.kt
+scenario lines_beyond "" --lines=100:200 src/A.kt
+scenario lines_two_files "" --lines=1 src/A.kt src/ok/B.kt
+scenario lines_dir "" --lines=1 src
+scenario lines_dir_one_file "" --lines=1 src/ok
+scenario lines_prefix "" --linesfoo=1 src/A.kt
+scenario lines_dry "" -n --lines=2 src/A.kt
+scenario lines_exit "" --set-exit-if-changed --lines=2 src/A.kt
+scenario lines_crlf "" --lines=2 src/crlf.kt
+scenario lines_bom "" --lines=2 src/bom.kt
+scenario lines_script "" --kotlinlang-style --lines=2:3 src/deep/x/C.kts
+scenario lines_broken "" --lines=1 src/broken.kt
+scenario lines_editorconfig "" --enable-editorconfig --lines=2 ec/indent3/F.kt
+scenario offset "" --offset=3 --length=5 src/A.kt
+scenario offset_cursor "" --offset 30 --length 0 src/A.kt
+scenario offset_two "" --offset=3 --length=5 --offset=40 --length=1 src/A.kt
+scenario offset_unpaired "" --offset=3 src/A.kt
+scenario offset_bad "" --offset=x --length=1 src/A.kt
+scenario offset_no_value "" --length
+scenario offset_negative_length "" --offset=10 --length=-3 src/A.kt
+scenario offset_negative "" --offset=-5 --length=8 src/A.kt
+scenario offset_beyond "" --offset=100000 --length=5 src/A.kt
+scenario offset_prefix "" --offsets=1 --length=1 src/A.kt
+scenario offset_and_lines "" --offset=3 --length=5 --lines=3 src/A.kt
+scenario stdin_lines "$input" --lines=2 -
+scenario stdin_offset "$input" --offset=30 --length=0 -
+scenario stdin_lines_dry "$input" -n --lines=2 -
+scenario stdin_lines_editorconfig "$input" --enable-editorconfig --stdin-name=ec/indent3/F.kt --lines=2 -
 scenario ec_off "" ec
 # One file per run: with many files, ktfmt 0.64's shared ec4j cache races (files fail with
 # "Could not load .editorconfig" or are silently skipped), which we don't reproduce.

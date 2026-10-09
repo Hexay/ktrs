@@ -1,7 +1,0 @@
-fun foo() {
-  while (
-    e1 && e2 && e3 = e4
-  ) {
-    bar()
-  }
-}

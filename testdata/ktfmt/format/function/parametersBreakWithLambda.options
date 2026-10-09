@@ -1,0 +1,8 @@
+fileType=REGULAR
+maxWidth=27
+blockIndent=2
+continuationIndent=4
+trailingCommaManagementStrategy=NONE
+removeUnusedImports=true
+preserveLambdaBreaks=true
+debuggingPrintOpsAfterFormatting=false

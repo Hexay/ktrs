@@ -1,5 +1,0 @@
-fun test() {
-  scope {
-    doSomething()
-  }
-}

@@ -1,7 +1,9 @@
-import com.facebook.ktfmt.format.KotlinInput;
-import com.facebook.ktfmt.format.Parser;
 import com.google.common.collect.Range;
 import com.google.googlejavaformat.Input;
+import org.jetbrains.kotlinx.ktfmt.format.FileType;
+import org.jetbrains.kotlinx.ktfmt.format.KotlinCode;
+import org.jetbrains.kotlinx.ktfmt.format.KotlinInput;
+import org.jetbrains.kotlinx.ktfmt.format.Parser;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
@@ -36,7 +38,7 @@ public class InputDump {
   public static String dump(String code) {
     StringBuilder out = new StringBuilder();
     try {
-      KotlinInput input = new KotlinInput(code, Parser.INSTANCE.parse(code));
+      KotlinInput input = new KotlinInput(code, Parser.INSTANCE.parse(KotlinCode.Companion.from(code, FileType.SCRIPT)));
       out.append("kN ").append(input.getkN()).append('\n');
       for (Input.Token t : input.getTokens()) {
         out.append("B");
