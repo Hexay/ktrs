@@ -1,6 +1,7 @@
-# 34 — kotlinter drop-in: `io.github.hexay.ktrs.kotlinter` (design, 2026-10-09)
+# 34 — kotlinter drop-in: `io.github.hexay.ktrs.kotlinter` (design 2026-10-09, built 2026-10-10)
 
-Design only; nothing here is implemented or was run (no Gradle/cargo/JVM on this machine). It revisits the
+Sections 1 to 7 are the design, corrected where the implementation or an observation of kotlinter 5.7.0 differs;
+decisions D1 to D10 were taken as recommended. What was observed, built and verified: sections 8 to 10. It revisits the
 "No kotlinter" line of memory `ktlint-build-plugins-decision` (2026-10-03). Third plugin id in `java/gradle-plugin`,
 mirroring **jeremymailen/kotlinter-gradle 5.7.0** (latest release, 2026-08-09, tag commit
 `02dd68cb26a9554932a13192b5bc3e706341b44f`), which bundles **ktlint 1.8.0** (`gradle/libs.versions.toml`; written to
@@ -60,9 +61,9 @@ No ordering between lint and format tasks, no aggregate report task, no baseline
 `SourceDirectorySet` (`main`, `test`, `commonMain`, `jvmMain`, …). Android: every `CommonExtension.sourceSets` entry
 (`main`, `debug`, `test`, `androidTest`, flavors; not variants), `**/*.kt` under `java.directories + kotlin.directories`
 (no `.kts`). Tasks are `SourceTask`s: builds use `exclude { … }`, `source(…)`, `include`. The worker skips files whose
-extension is not `kt`/`kts`. Reading the source, the parent tasks are `tasks.register`ed once per matching plugin id, so
-KMP + an Android plugin would register `lintKotlin` twice; upstream has no test for that combination and projects use it
-(kizitonwose/Calendar, firebase-kotlin-sdk) — **what 5.7.0 does there must be observed before it is ported**.
+extension is not `kt`/`kts`. The parent tasks are `tasks.register`ed once per matching plugin id, so a Kotlin plugin
+plus `com.android.base` registers `lintKotlin` twice: 5.7.0 fails such a build at configuration (section 8), and so
+does the drop-in.
 
 **Engine use.** One process-isolated worker per task (`ktlintClasspath`), one static `KtLintRuleEngine(ruleProviders)`:
 no `EditorConfigDefaults`, no override, so configuration is each file's `.editorconfig` chain and ktlint's defaults
@@ -80,7 +81,8 @@ error: `logger.error("<file.path>:<line>:<col>: Lint error > [<rule id>] <detail
 --reporter` run does not do: (a) errors live in a `ConcurrentSkipListSet` ordered by (line, col) only, so **a second error
 at the same position is dropped from every report** (the console still prints it); (b) paths are relative to the project
 directory (`File.toRelativeString`, platform separators), except `sarif`, which gets the absolute path (ktlint's reporter
-then relativizes against `user.home`); (c) file order is the string sort, not source order.
+then relativizes against `user.home`); (c) file order is the string sort, not source order. And (d), observed: with
+ktlint as a library its `ktlintVersion()` is null, so `sarif` has `releases/tag/null` and no `semanticVersion`/`version`.
 
 **Format.** `engine.format(Code.fromFile(file)) { error -> … ALLOW_AUTOCORRECT }`: the 1.3+ overload whose callback runs
 at emit time, in rule execution order, in every one of up to 3 passes (an unfixable error is reported again by each
@@ -142,8 +144,12 @@ Extra task inputs: `ktlintVersion` and the ktrs version (as `BaseKtLintCheckTask
 - `--format`: `engine.format` with an allow-all callback that appends one `error` event per call (status from
   `canBeAutoCorrected`), a `formatted\t<file>` line when the text changed; no reporters. The plugin builds the console
   lines and `<id>-format.txt` from the events.
-- A parse/rule exception row makes the plugin print the rows of the files before it, then throw `KotlinterError` with
-  upstream's text (and empty the report files); ktrs still lints the rest, unseen.
+- A parse/rule exception is an `error` line with the exception's status and its `Throwable.message`, and ends the run
+  as it ends upstream's worker: files are processed in parallel but their results (events, reporter calls, the
+  rewritten file) are applied in order and stop there, and the reporters get no `afterAll` (empty report files). So D8's
+  "ktrs still processes the rest" did not have to be taken: later files are left alone. The plugin prints the rows
+  before it and throws `KotlinterError` with upstream's text.
+- `sarif` in this mode is built without the manifest version (`ReporterSettings::library`).
 
 ## 3. ktlint version and output parity
 
@@ -285,9 +291,65 @@ flavors, format without the "Format fixed >" rows); plugin compiled for Java 17 
 | D9 | Real projects in the gate | Sample scenarios in `parity.yml`; the six real projects on the testbox per release, not nightly |
 | D10 | Portal timing | Ship the new id in its own patch release, after one green testbox run |
 
-## Not verified
+## 8. Observed on kotlinter 5.7.0 (testbox, Linux, Gradle 9.8.0, JDK 21, 2026-10-09)
 
-Nothing was executed. Read from sources only: kotlinter 5.7.0, ktlint 1.8.0 `CodeFormatter.kt` / `KtLintRuleEngine.kt`
-(GitHub), ktlint 2.0.0-ALPHA-4 reporters (`third_party/ktlint`; 1.8.0's `sarif`/`html` assumed equal). Open: NO-SOURCE
-on empty source sets through `LintTask`'s `getSource()` override, reporters' `before`/`after` being no-ops for skipped
-non-Kotlin files, the project list's current kotlinter versions at pin time, Portal behaviour for a mixed upload.
+The upstream side of `tools/kotlinter/parity.sh` (`SIDES=upstream`), then both sides.
+
+| open point | what 5.7.0 does |
+|---|---|
+| KMP + `com.android.library` (AGP 8.13.2, Gradle 8.14.3) | configuration fails: `Cannot add task 'lintKotlin' as a task with that name already exists.` The drop-in, same code, fails with the same text. kizitonwose/Calendar (on 5.3.0) fails this way on both sides once it is on 5.7.0: for such a build neither kotlinter 5.7.0 nor the drop-in is usable |
+| KMP + `com.android.kotlin.multiplatform.library` (AGP 9.2.1) | works: one `lintKotlin`, tasks per Kotlin source set (`lintKotlinAndroidMain`, …). JuulLabs/kable is this shape |
+| `com.android.library` (AGP 9, built-in Kotlin) | works; tasks per Android DSL source set, most of them NO-SOURCE. An empty directory as `ANDROID_HOME` is enough: lint and format never touch the SDK |
+| empty source set | NO-SOURCE for `LintTask` and `FormatTask`, plugin-registered and hand-registered (`SourceTask`'s `@SkipWhenEmpty` survives `LintTask.getSource()`'s override); no report file |
+| source with only non-Kotlin files beside Kotlin ones | skipped silently; the reporters' `before` without `after` leaves no trace in any of the five reports |
+| `formatKotlin` emit order | rule execution order within a pass, pass after pass; an unfixable error once per pass (twice when the first pass fixed something). ktrs's `engine.format` callback stream is the same, row for row, on the samples and on realcode (181 files, 4,927 console rows over lint + format) |
+| lint rows | every error, two or three at one position included; the reports keep the first per position |
+| `sarif` / `html` of ktlint 1.8.0 | `html` as ported. `sarif` differs from the CLI's: (d) of section 1. Fixed in kotlinter mode |
+| failure text | `Execution failed for task ':lintKotlinMain'.` > `There was a failure while executing work items` > `A failure occurred while executing …LintWorkerAction` > `kotlin source lintKotlinMain failed lint check`; a parse error: `lint worker execution error while processing <file>: 4:11 Expecting ')'`, one line, no separate cause line. In-process (`noIsolation`) work prints the same |
+| parse error | rows of the files before it in source order, none after, the five report files empty; `formatKotlin` leaves later files unformatted |
+| console grouping | a task's rows come under `> Task :x`, with `> Task :x FAILED` after them when the worker outlives Gradle's grouping window, else under one `> Task :x FAILED`: timing, merged by `compare.py` |
+
+## 9. Built
+
+- Rust: `crates/ktrs-cli/src/ktlint/kotlinter.rs` (`--ktrs-kotlinter-events`, `SortedThreadSafeReporterWrapper`, tests
+  `kotlinter/tests.rs` and `tests/ktrs_kotlinter.rs`); `hand_off_args` turns the events file into a `json` report.
+- Kotlin: `org/jmailen/gradle/kotlinter/**` (one file per upstream file), `io/github/hexay/ktrs/gradle/kotlinter/
+  KotlinterCommand.kt`, `resources/kotlinter.properties`; TestKit port in `src/test/kotlin/org/jmailen/gradle/kotlinter/`
+  (13 classes: upstream's functional tests incl. Android and Kotlin/JS, `GenerateHookTest`, `WorkerJvmArgsTest`, and
+  `KtlintVersionTest` for D4). Not ported: `RuleSetsTest`, `ReportersTest`, `SortedThreadSafeReporterWrapperTest`
+  (Rust), "workerJvmArgs are passed to the worker jvm" (replaced: accepted and unused).
+- Harness: `tools/kotlinter/parity.sh` (samples), `real.sh` + `REVISIONS` (real projects through `ktrs migrate
+  --write` and a locally published plugin); `tools/ktlint-gradle/compare.py` and `rows.py` shared. `compare.py` used to
+  skip every directory named `kotlin`, `src/main/kotlin` included, so formatted sources were not compared; fixed (the
+  ktlint-gradle scenarios stay identical with sources compared).
+- `ktrs migrate`: the swap and the three notes (`migrate/kotlinter_notes.rs`); `ktrs lsp` detects the new id.
+
+Deviations beyond section 7's: a hand-off run gets `--relative`, so its plain/checkstyle/json/html reports have
+kotlinter's project-relative paths (`sarif` then too, where upstream's is home-relative); "Editorconfig changed,
+resetting KtLint caches" is still logged at info, with nothing to reset.
+
+## 10. Verification (testbox, 2026-10-10)
+
+- `cargo test -p ktrs-cli`: all pass. `cargo test -p ktrs-project --test migrate`: 15 pass, `UPDATE_MIGRATED=1` leaves
+  the committed `migrated/` trees unchanged. `--test gradle`: see open items.
+- `java/gradlew -p java :ktrs-gradle-plugin:test`: 229 tests, 0 failed, 1 skipped (53 of them the kotlinter port, Android
+  classes included, with an empty `ANDROID_HOME`).
+- `tools/kotlinter/parity.sh`: lint-all, lint-ignored, format, format-strict, custom-tasks, parse-error, editorconfig,
+  hook, graph, compose-maven, compose-all, kmp, android, kmp-android, realcode identical (console, exit codes,
+  outcomes incl. UP-TO-DATE / FROM-CACHE / NO-SOURCE, reports, sources, the hook file); custom-rules identical but for
+  the accepted hand-off difference (`tools/parity/known-diffs/kotlinter.tsv`); kmp-android-library: the same
+  configuration failure on both sides.
+- `tools/kotlinter/real.sh`: mock-oauth2-server, kable, jerboa identical (all three are clean: every task succeeds or
+  is NO-SOURCE, no rows); kotlinter's `test-project` identical but for the same hand-off difference; Calendar: the
+  identical configuration failure of section 8.
+
+Open items:
+
+- line/kotlin-jdsl: its catalog is `./libs.versions.toml`, which `ktrs migrate` does not read; it swaps the
+  `apply(plugin = …)` id and notes that no version was found, and the migrated build has no plugin. Not run.
+- kotlinter's `test-project-android` and `-no-kotlin-plugin`: covered by the android and custom-tasks samples only.
+- Windows and macOS parity runs; ktlint `2.0.0-ALPHA-4` under the plugin beyond `KtlintVersionTest`; a rule exception
+  (only parse errors were provoked); a real project with lint errors (the pinned ones are clean, realcode stands in).
+- `cargo test -p ktrs-project --test gradle` fails one old test (`binary_convention_plugin_with_helper_function`) when
+  the checkout sits under a directory named `src`, as the testbox copy did.
+- Plugin Portal behaviour for an upload that adds an id (D10).

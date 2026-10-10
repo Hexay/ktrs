@@ -24,8 +24,8 @@ it ships as small native binaries with no runtime.
   code styles, and ktlint 1.8 in a compatibility mode.
 - 🔌 **Drop-in.** The `ktfmt` and `ktlint` binaries accept the originals' flags, messages and exit
   codes, so existing scripts, hooks and CI keep working.
-- 🧩 **Fits your setup.** Integrations for GitHub Actions, pre-commit, Spotless, ktfmt-gradle and
-  ktlint-gradle drop-in plugins, and Neovim, Helix, Zed, Emacs, VS Code and IntelliJ/Android Studio.
+- 🧩 **Fits your setup.** Integrations for GitHub Actions, pre-commit, Spotless, ktfmt-gradle,
+  ktlint-gradle and kotlinter drop-in plugins, and Neovim, Helix, Zed, Emacs, VS Code and IntelliJ/Android Studio.
 - 🌳 **Built on a faithful parser.** ktrs includes a lossless Kotlin parser whose tree matches the
   Kotlin compiler's PSI node for node.
 
@@ -101,7 +101,6 @@ SHA-256; needs Java), so it works at JVM speed ([research/27](research/27-custom
 
 **Limits.**
 
-- kotlinter runs ktlint inside the JVM and doesn't use these binaries.
 - The `ktfmt` binary parses with Kotlin 2.4.20's grammar; ktfmt 0.65 is built on Kotlin 2.4.10, so
   syntax newer than that is accepted here and rejected there.
 - ktfmt's undocumented `--experimental-engine` flag is rejected.
@@ -116,9 +115,10 @@ argument that sits on its own line).
 
 ### Migrating
 
-`ktrs migrate` switches a build's ktfmt-gradle, ktlint-gradle, ktlint-maven-plugin and Spotless
-setup to the ktrs drop-ins described below, editing only ids, coordinates and versions in place.
-Setups it can't rewrite, such as kotlinter, get a `note:` saying what to change by hand.
+`ktrs migrate` switches a build's ktfmt-gradle, ktlint-gradle, kotlinter, ktlint-maven-plugin and
+Spotless setup to the ktrs drop-ins described below, editing only ids, coordinates and versions in
+place. Setups it can't rewrite, such as a task that runs ktlint from its jar, get a `note:` saying
+what to change by hand.
 
 ```sh
 ktrs migrate            # print the edits as a diff; exit 1 if there are any
@@ -208,6 +208,21 @@ plugins {
 
 `version` defaults to `"1.8.0"`; `"2.0.0-ALPHA-4"` selects 2.0, and other versions fail the build.
 compose-rules runs natively; other rule sets run the task through the real ktlint jar.
+
+**kotlinter drop-in.** The `io.github.hexay.ktrs.kotlinter` plugin replaces
+[kotlinter](https://github.com/jeremymailen/kotlinter-gradle) 5.7.0: the `kotlinter { }` block,
+`lintKotlin`/`formatKotlin` and the per-source-set tasks, `installKotlinterPrePushHook`,
+`ktlint(...)` rule sets and the `org.jmailen.gradle.kotlinter.*` types keep working
+([research/34](research/34-kotlinter-dropin.md)).
+
+```kotlin
+plugins {
+    id("io.github.hexay.ktrs.kotlinter") version "0.5.1"   // was: id("org.jmailen.kotlinter") version "5.7.0"
+}
+```
+
+`ktlintVersion` defaults to `"1.8.0"`, as in kotlinter 5.7.0; versions and rule sets work as in the
+ktlint-gradle drop-in.
 
 **Spotless.** `KtrsStep` replaces `ktfmt()` and `KtrsKtlintStep` replaces `ktlint()` (Spotless 7+):
 

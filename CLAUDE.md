@@ -46,7 +46,8 @@ Milestone 1: the parser's tree must be identical to the Kotlin compiler's PSI (`
   `KtrsKtlintStep`: research/28). Tests: `cargo build --bins`, then `java/gradlew -p java test` (JAVA_HOME = tools/jdk/*).
   `java/gradle-plugin` — `io.github.hexay.ktrs`, ktfmt-gradle 0.27.0 drop-in (same DSL/tasks/FQNs), and
   `io.github.hexay.ktrs.ktlint`, ktlint-gradle 14.2.0 drop-in over `ktrs ktlint` (research/29; parity harness
-  `tools/ktlint-gradle/parity.sh`); tests: `java/gradlew -p java :ktrs-gradle-plugin:test` (TestKit, slow: background it).
+  `tools/ktlint-gradle/parity.sh`), and `io.github.hexay.ktrs.kotlinter`, kotlinter-gradle 5.7.0 drop-in (research/34; parity
+  `tools/kotlinter/parity.sh`); tests: `java/gradlew -p java :ktrs-gradle-plugin:test` (TestKit, slow: background it).
   `java/maven-plugin` — `io.github.hexay:ktrs-ktlint-maven-plugin`, gantsign ktlint-maven-plugin 3.7.1 drop-in (research/31;
   parity `tools/ktlint-maven/parity.sh`). Spotless Maven `implementation=` swap: `java/src/spotlessMaven` (research/30;
   parity `tools/spotless-maven/parity.sh`). Rule set/reporter JAR handling shared by all plugins: `KtlintJars` in the root jar.

@@ -89,8 +89,8 @@ jobs:
             ktrs-*.tar.gz
             ktrs-*.zip
 
-  # The JVM wrapper (io.github.hexay:ktrs) with all six binaries bundled, the Gradle plugin
-  # (io.github.hexay.ktrs) and the Maven plugin (io.github.hexay:ktrs-ktlint-maven-plugin), published to the
+  # The JVM wrapper (io.github.hexay:ktrs) with all six binaries bundled, the Gradle plugin artifact (ids
+  # io.github.hexay.ktrs, .ktrs.ktlint and .ktrs.kotlinter, each with its marker) and the Maven plugin (io.github.hexay:ktrs-ktlint-maven-plugin), published to the
   # GitHub Pages Maven repo; the jar and the Maven plugin to Maven Central only when
   # the MAVEN_CENTRAL_* and SIGNING_* secrets exist, the plugin to the Plugin Portal only when the
   # GRADLE_PUBLISH_* ones do.
