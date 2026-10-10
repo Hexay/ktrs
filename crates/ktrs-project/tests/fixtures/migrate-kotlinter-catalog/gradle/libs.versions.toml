@@ -1,0 +1,11 @@
+[versions]
+kotlin = "2.4.20"
+kotlinter = "5.7.0"
+compose-rules = "0.6.7"
+
+[libraries]
+compose-rules = { module = "io.nlopez.compose.rules:ktlint", version.ref = "compose-rules" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlinter = { id = "org.jmailen.kotlinter", version.ref = "kotlinter" }

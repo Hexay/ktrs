@@ -6,7 +6,7 @@ use crate::{FormatTool, KtlintConfig};
 pub(crate) const KTFMT_PLUGINS: [&str; 2] = ["com.ncorti.ktfmt.gradle", "io.github.hexay.ktrs"];
 pub(crate) const KTLINT_PLUGINS: [&str; 2] = ["org.jlleitschuh.gradle.ktlint", "io.github.hexay.ktrs.ktlint"];
 pub(crate) const SPOTLESS_PLUGINS: [&str; 2] = ["com.diffplug.spotless", "com.diffplug.gradle.spotless"];
-pub(crate) const KOTLINTER_PLUGINS: [&str; 1] = ["org.jmailen.kotlinter"];
+pub(crate) const KOTLINTER_PLUGINS: [&str; 2] = ["org.jmailen.kotlinter", "io.github.hexay.ktrs.kotlinter"];
 
 /// Plugin classes applied by type (`apply<KtlintPlugin>()`).
 pub(crate) fn plugin_of_type(name: &str) -> Option<&'static str> {

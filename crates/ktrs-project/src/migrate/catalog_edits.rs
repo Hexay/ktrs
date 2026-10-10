@@ -1,10 +1,10 @@
-//! `gradle/libs.versions.toml`: ktfmt-gradle / ktlint-gradle entries under `[plugins]` (id) and `[libraries]`
+//! `gradle/libs.versions.toml`: ktfmt-gradle / ktlint-gradle / kotlinter entries under `[plugins]` (id) and `[libraries]`
 //! (implementation artifact or marker) get ktrs's id or coordinates and version; a `version.ref` target is
 //! rewritten when nothing else uses it, otherwise the entry gets its own `version`.
 
 use std::ops::Range;
 
-use super::Notes;
+use super::{Notes, kotlinter_notes};
 use super::coords::{plugin_by_old_id, swap_coords, swap_module};
 use super::edits::Edits;
 use crate::catalog::{normalize, strip_comment};
@@ -32,14 +32,16 @@ pub(crate) fn rewrite(text: &str, version: &str, edits: &mut Edits, notes: &mut 
         let at = e.value.start;
         let plugin = e.section == "plugins";
         let mut entry_edits = Edits::default();
+        let old_version;
         if let Some(s) = quoted(value) {
             let content = &value[s.clone()];
-            let new = if plugin {
-                content.split_once(':').and_then(|(id, _)| plugin_by_old_id(id)).map(|p| p.new_id.to_string())
+            let swap = if plugin {
+                content.split_once(':').and_then(|(id, v)| Some((plugin_by_old_id(id)?.new_id.to_string(), Some(v))))
             } else {
-                swap_coords(content).map(|(module, _)| module)
+                swap_coords(content)
             };
-            let Some(new) = new else { continue };
+            let Some((new, old)) = swap else { continue };
+            old_version = old;
             entry_edits.replace(at + s.start..at + s.end, format!("{new}:{version}"));
         } else {
             let matched = if plugin {
@@ -50,10 +52,16 @@ pub(crate) fn rewrite(text: &str, version: &str, edits: &mut Edits, notes: &mut 
             if !matched {
                 continue;
             }
-            if let Err(why) = swap_version(text, &entries, value, at, version, &mut entry_edits) {
-                notes.gradle(format!("[{}] {}: {why}; set it to \"{version}\" by hand", e.section, e.key));
-                continue;
+            match swap_version(text, &entries, value, at, version, &mut entry_edits) {
+                Ok(old) => old_version = old,
+                Err(why) => {
+                    notes.gradle(format!("[{}] {}: {why}; set it to \"{version}\" by hand", e.section, e.key));
+                    continue;
+                }
             }
+        }
+        if let Some(old) = old_version {
+            kotlinter_notes::check_plugin_version(value, old, notes);
         }
         edits.extend(entry_edits);
         swapped.plugins |= plugin;
@@ -85,17 +93,18 @@ fn swap_library(value: &str, at: usize, edits: &mut Edits) -> bool {
     true
 }
 
-fn swap_version(
-    text: &str,
+/// Sets the entry's version; `Ok`: the version it had, when the entry or its `version.ref` target states one.
+fn swap_version<'a>(
+    text: &'a str,
     entries: &[Entry],
-    value: &str,
+    value: &'a str,
     at: usize,
     version: &str,
     edits: &mut Edits,
-) -> Result<(), String> {
+) -> Result<Option<&'a str>, String> {
     if let Some(r) = field(value, "version") {
         edits.replace(at + r.start..at + r.end, version);
-        return Ok(());
+        return Ok(Some(&value[r]));
     }
     if let Some(r) = field(value, "version.ref") {
         let key = &value[r.clone()];
@@ -106,6 +115,7 @@ fn swap_version(
         let target = entries.iter().find(|e| e.section == "versions" && e.key.trim_matches('"') == key);
         let target_str =
             target.and_then(|t| quoted(&text[t.value.clone()]).map(|q| t.value.start + q.start..t.value.start + q.end));
+        let old = target_str.clone().map(|t| &text[t]);
         match target_str {
             Some(t) if users == 1 => edits.replace(t, version),
             _ => {
@@ -113,12 +123,12 @@ fn swap_version(
                 edits.replace(at + start..at + r.end + 1, format!("version = \"{version}\""));
             }
         }
-        return Ok(());
+        return Ok(old);
     }
     if value.contains("version") {
         return Err("its version isn't a plain string".into());
     }
-    Ok(())
+    Ok(None)
 }
 
 /// Every `key = value` line with its section; values are single-line (inline tables are).

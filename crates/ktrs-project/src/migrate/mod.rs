@@ -2,7 +2,7 @@
 //! "Integrations" (the swaps are listed in `coords.rs`). Edits are textual and in place: ids, coordinates and
 //! version tokens are replaced, and the few lines the README adds (Spotless classpath and Maven dependency)
 //! are inserted with the surrounding indentation. Anything that can't be rewritten without
-//! guessing (versions from expressions, kotlinter, ktlint run from its jar, Spotless options with no ktrs
+//! guessing (versions from expressions, ktlint or ktfmt run from its jar, Spotless options with no ktrs
 //! equivalent) becomes a note instead. Already migrated parts are left alone, so a second run is a no-op.
 
 mod catalog_edits;
@@ -11,6 +11,7 @@ pub mod diff;
 mod edits;
 mod gradle;
 mod gradle_plugins;
+mod kotlinter_notes;
 mod maven;
 mod pom;
 mod scan;

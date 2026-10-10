@@ -8,11 +8,12 @@ use ktrs_project::migrate::{Migration, plan};
 pub const HELP: &str = "\
 Usage: ktrs migrate [--write] [PATH ...]
 
-Switches the build's ktfmt / ktlint setup to the ktrs drop-ins (default PATH: .): ktfmt-gradle and
-ktlint-gradle plugin ids (plugins {}, the version catalog, buildscript or convention-build
-dependencies) and the plugin repository, gantsign's ktlint-maven-plugin, and Spotless's ktfmt/ktlint
-steps (Gradle and Maven). Edits only the ids, coordinates and versions, plus the lines the README
-adds; setups with no drop-in (kotlinter, ktlint run from its jar) get a `note:` on stderr.
+Switches the build's ktfmt / ktlint setup to the ktrs drop-ins (default PATH: .): ktfmt-gradle,
+ktlint-gradle and kotlinter plugin ids (plugins {}, the version catalog, buildscript or
+convention-build dependencies) and the plugin repository, gantsign's ktlint-maven-plugin, and
+Spotless's ktfmt/ktlint steps (Gradle and Maven). Edits only the ids, coordinates and versions, plus
+the lines the README adds; setups with no drop-in (ktlint or ktfmt run from its jar) and settings a
+drop-in doesn't take get a `note:` on stderr.
 
 Without --write, prints the edits as a unified diff and exits 1 if there are any (0 if none).
 

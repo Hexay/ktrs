@@ -1,0 +1,14 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version '2.4.20'
+    id 'io.github.hexay.ktrs.kotlinter' version '0.5.0'
+}
+
+kotlinter {
+    ignoreFailures = true
+    reporters = ['checkstyle', 'plain']
+}
+
+dependencies {
+    ktlint 'io.nlopez.compose.rules:ktlint:0.4.22'
+    implementation project(':other')
+}

@@ -7,7 +7,7 @@ use std::path::{Path, PathBuf};
 use super::coords::{GRADLE_PLUGIN_ARTIFACT, no_drop_in};
 use super::gradle_plugins::{self, PluginUse};
 use super::scan::Script;
-use super::{Doc, Notes, catalog_edits, spotless_gradle};
+use super::{Doc, Notes, catalog_edits, kotlinter_notes, spotless_gradle};
 use crate::catalog::Catalog;
 use crate::gradle::conventions::SKIPPED_DIRS;
 use crate::gradle::properties;
@@ -24,6 +24,8 @@ pub(crate) fn migrate(root: &Path, version: &str, notes: &mut Notes) -> Vec<Doc>
     let mut catalog_doc = Doc::load(root, &catalog_path);
     let catalog = Catalog::parse(catalog_doc.as_ref().map_or("", |d| d.text.as_str()));
 
+    let kotlinter = docs.iter().chain(catalog_doc.iter()).any(|d| kotlinter_notes::mentioned(&d.text));
+
     let mut uses: Vec<PluginUse> = Vec::with_capacity(docs.len());
     for doc in &mut docs {
         notes.file(&doc.rel);
@@ -35,6 +37,10 @@ pub(crate) fn migrate(root: &Path, version: &str, notes: &mut Notes) -> Vec<Doc>
         }
         uses.push(gradle_plugins::rewrite(&s, version, &mut doc.edits, notes));
         gradle_plugins::check_ktlint_version(&s, notes);
+        kotlinter_notes::check_ktlint_version(&s, notes);
+        if kotlinter {
+            kotlinter_notes::check_rule_sets(&s, &catalog, notes);
+        }
         let resolver = |src: &str| resolve(src, &s, &props, &catalog);
         if spotless_gradle::rewrite(&s, &resolver, in_convention_src, &mut doc.edits, notes) {
             spotless_gradle::ensure_classpath(&s, version, &mut doc.edits);
@@ -61,7 +67,7 @@ pub(crate) fn migrate(root: &Path, version: &str, notes: &mut Notes) -> Vec<Doc>
             for &k in &sources {
                 notes.file(&docs[k].rel);
                 notes.gradle(format!(
-                    "applies ktfmt-gradle/ktlint-gradle, but its build's dependency on the plugin isn't a literal or catalog entry; switch it to {GRADLE_PLUGIN_ARTIFACT}:{version} and the ids by hand"
+                    "applies ktfmt-gradle/ktlint-gradle/kotlinter, but its build's dependency on the plugin isn't a literal or catalog entry; switch it to {GRADLE_PLUGIN_ARTIFACT}:{version} and the ids by hand"
                 ));
                 docs[k].edits = Default::default();
                 uses[k] = PluginUse::default();
@@ -76,7 +82,7 @@ pub(crate) fn migrate(root: &Path, version: &str, notes: &mut Notes) -> Vec<Doc>
     if let Some(k) = (0..docs.len()).find(|&k| uses[k].applied).filter(|_| unresolved && swapped.accessors.is_empty()) {
         notes.file(&docs[k].rel);
         notes.gradle(format!(
-            "the build applies ktfmt-gradle/ktlint-gradle by id, but no plugins {{}} version, classpath or catalog entry for it was found; declare {GRADLE_PLUGIN_ARTIFACT}:{version} where the old plugin came from"
+            "the build applies ktfmt-gradle/ktlint-gradle/kotlinter by id, but no plugins {{}} version, classpath or catalog entry for it was found; declare {GRADLE_PLUGIN_ARTIFACT}:{version} where the old plugin came from"
         ));
     }
     docs.extend(catalog_doc);

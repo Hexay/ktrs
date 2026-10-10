@@ -113,7 +113,7 @@ fn convention_plugin_catalog_dependency() {
 fn spotless_gradle_steps() {
     check("migrate-spotless-kts", &[]);
     check("spotless-root", &["build.gradle.kts: Spotless ktlint(): customRuleSets"]);
-    check("groovy-legacy", &["applies ktfmt-gradle/ktlint-gradle by id"]);
+    check("groovy-legacy", &["applies ktfmt-gradle/ktlint-gradle/kotlinter by id"]);
 }
 
 #[test]
@@ -138,15 +138,32 @@ fn maven() {
 }
 
 #[test]
+fn kotlinter_plugins_block_and_catalog() {
+    check("kotlinter-groovy", &[]);
+    check("migrate-kotlinter-catalog", &[]);
+}
+
+#[test]
+fn kotlinter_settings_the_drop_in_differs_on_are_notes() {
+    check(
+        "migrate-kotlinter-notes",
+        &[
+            "build.gradle.kts: kotlinter 4.4.1: the drop-in has kotlinter 5's DSL",
+            "build.gradle.kts: kotlinter { ktlintVersion = \"1.5.0\" }: the kotlinter drop-in runs only",
+            "build.gradle.kts: ktlint(\"some.group:custom-rules:1.0\"): only compose-rules runs natively",
+        ],
+    );
+}
+
+#[test]
 fn no_drop_in_setups_are_notes() {
-    check("kotlinter-groovy", &["build.gradle: kotlinter"]);
     check("ktlint-javaexec", &["build.gradle.kts: ktlint runs from its jar"]);
     check("maven-antrun", &["pom.xml: ktlint runs from its jar"]);
 }
 
 #[test]
 fn migrated_and_unrelated_builds_are_left_alone() {
-    for name in ["ktrs-step", "maven-ktrs", "convention-script", "none"] {
+    for name in ["ktrs-step", "kotlinter-ktrs", "maven-ktrs", "convention-script", "none"] {
         check(name, &[]);
     }
 }

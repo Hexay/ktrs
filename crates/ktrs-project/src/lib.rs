@@ -13,8 +13,9 @@
 //!   build file; later sources override earlier ones field by field.
 //! - Plugins: ktfmt-gradle (`com.ncorti.ktfmt.gradle`, `io.github.hexay.ktrs`), ktlint-gradle
 //!   (`org.jlleitschuh.gradle.ktlint`, `io.github.hexay.ktrs.ktlint`) + `ktlintRuleset` deps, Spotless
-//!   `kotlin {}`/`kotlinGradle {}` (`ktfmt()`, `ktlint()`, ktrs's `KtrsStep`/`KtrsKtlintStep`), kotlinter, and a
-//!   `ktlint` configuration holding the ktlint CLI (the JavaExec recipe). Values resolve through string
+//!   `kotlin {}`/`kotlinGradle {}` (`ktfmt()`, `ktlint()`, ktrs's `KtrsStep`/`KtrsKtlintStep`), kotlinter
+//!   (`org.jmailen.kotlinter`, `io.github.hexay.ktrs.kotlinter`) + `ktlint` deps, and a `ktlint`
+//!   configuration holding the ktlint CLI (the JavaExec recipe). Values resolve through string
 //!   literals, `val`s / `ext` properties of the same file, `gradle.properties` and `gradle/libs.versions.toml`.
 //! - Maven (`maven/`): the pom chain from the topmost contiguous `pom.xml` down to the module: gantsign
 //!   `ktlint-maven-plugin` (and ktrs's drop-in), `spotless-maven-plugin` `<kotlin>`, antrun/exec running the

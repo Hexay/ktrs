@@ -1,10 +1,10 @@
-//! ktfmt-gradle and ktlint-gradle in build scripts: plugin ids (with their `version`) and the implementation
+//! ktfmt-gradle, ktlint-gradle and kotlinter in build scripts: plugin ids (with their `version`) and the implementation
 //! artifact or marker coordinates (`buildscript` classpath, convention-build dependencies).
 
 use super::coords::{plugin_by_old_id, swap_coords};
 use super::edits::Edits;
 use super::scan::{Kind, Script};
-use super::{Notes, VERSIONS_2_0_AND_1_8};
+use super::{Notes, VERSIONS_2_0_AND_1_8, kotlinter_notes};
 
 #[derive(Default, Debug, Clone, Copy)]
 pub(crate) struct PluginUse {
@@ -44,7 +44,10 @@ pub(crate) fn rewrite(s: &Script, version: &str, edits: &mut Edits, notes: &mut 
                 used.applied = true;
                 used.declared |= is_declaration(s, i);
             }
-        } else if let Some((module, _)) = swap_coords(content) {
+        } else if let Some((module, old_version)) = swap_coords(content) {
+            if let Some(v) = old_version {
+                kotlinter_notes::check_plugin_version(content, v, notes);
+            }
             edits.replace(s.toks[i].inner.clone(), format!("{module}:{version}"));
             if s.enclosing(i).iter().any(|&o| s.block_name(o) == Some("buildscript")) {
                 used.buildscript_coords = true;
@@ -81,13 +84,14 @@ fn rewrite_id(s: &Script, i: usize, new_id: &str, version: &str, edits: &mut Edi
         }
         if s.is_ident(j, "version") {
             let k = if s.is_punct(j + 1, '(') { j + 2 } else { j + 1 };
-            if s.plain_str(k).is_none() {
-                let old = s.plain_str(i).unwrap_or_default();
+            let old = s.plain_str(i).unwrap_or_default();
+            let Some(old_version) = s.plain_str(k) else {
                 notes.gradle(format!(
                     "plugin {old}: its version isn't a string literal; set id(\"{new_id}\") version \"{version}\" by hand"
                 ));
                 return false;
-            }
+            };
+            kotlinter_notes::check_plugin_version(old, old_version, notes);
             edits.replace(s.toks[k].inner.clone(), version);
         }
     }

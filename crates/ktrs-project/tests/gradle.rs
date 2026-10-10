@@ -76,6 +76,15 @@ fn kotlinter_groovy() {
 }
 
 #[test]
+fn kotlinter_drop_in_id() {
+    let c = detect_fixture("kotlinter-ktrs/src/main/kotlin/Main.kt");
+    let expected = ktlint_config(V2_0, |k| k.rule_sets = strings(&["io.nlopez.compose.rules:ktlint:0.6.7"]));
+    assert_eq!(c.ktlint, Some(expected), "{:#?}", c.notes);
+    assert_eq!(c.format, Some(Ktlint));
+    assert!(has_note(&c, "build.gradle.kts: plugin io.github.hexay.ktrs.kotlinter"), "{:#?}", c.notes);
+}
+
+#[test]
 fn groovy_legacy_apply_ext_and_properties() {
     let c = detect_fixture("groovy-legacy/src/main/kotlin/Main.kt");
     let expected = ktlint_config(V1_8, |k| {

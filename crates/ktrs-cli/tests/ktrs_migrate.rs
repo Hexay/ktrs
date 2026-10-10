@@ -73,11 +73,11 @@ fn write_keeps_crlf() {
 
 #[test]
 fn notes_go_to_stderr_and_dont_fail() {
-    let dir = copy_fixture("kotlinter-groovy", "notes");
+    let dir = copy_fixture("ktlint-javaexec", "notes");
     let (code, out, err) = migrate(&[dir.to_str().unwrap()]);
     assert_eq!(code, 0);
     assert_eq!(out, "Nothing to migrate.\n");
-    assert!(err.starts_with("note: build.gradle: kotlinter"), "{err}");
+    assert!(err.starts_with("note: build.gradle.kts: ktlint runs from its jar; point the task at"), "{err}");
 }
 
 #[test]

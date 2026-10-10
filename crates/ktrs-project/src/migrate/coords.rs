@@ -16,7 +16,22 @@ pub(crate) struct PluginSwap {
     pub old_artifact: &'static str,
 }
 
-pub(crate) const GRADLE_PLUGINS: [PluginSwap; 2] = [
+impl PluginSwap {
+    /// Whether `matched` (an id, coordinates or catalog entry that matched one of [`GRADLE_PLUGINS`]) is this
+    /// plugin's.
+    pub(crate) fn names(&self, matched: &str) -> bool {
+        let group = self.old_artifact.split(':').next().unwrap_or_default();
+        matched.contains(self.old_id) || matched.contains(group)
+    }
+}
+
+pub(crate) const KOTLINTER: PluginSwap = PluginSwap {
+    old_id: "org.jmailen.kotlinter",
+    new_id: "io.github.hexay.ktrs.kotlinter",
+    old_artifact: "org.jmailen.gradle:kotlinter-gradle",
+};
+
+pub(crate) const GRADLE_PLUGINS: [PluginSwap; 3] = [
     PluginSwap {
         old_id: "com.ncorti.ktfmt.gradle",
         new_id: "io.github.hexay.ktrs",
@@ -27,6 +42,7 @@ pub(crate) const GRADLE_PLUGINS: [PluginSwap; 2] = [
         new_id: "io.github.hexay.ktrs.ktlint",
         old_artifact: "org.jlleitschuh.gradle:ktlint-gradle",
     },
+    KOTLINTER,
 ];
 
 pub(crate) fn plugin_by_old_id(id: &str) -> Option<&'static PluginSwap> {
@@ -37,7 +53,7 @@ fn marker(id: &str) -> String {
     format!("{id}:{id}.gradle.plugin")
 }
 
-/// The replacement for a ktfmt-gradle / ktlint-gradle module (`group:name`: the implementation artifact or
+/// The replacement for a module of one of [`GRADLE_PLUGINS`] (`group:name`: the implementation artifact or
 /// the plugin marker).
 pub(crate) fn swap_module(module: &str) -> Option<String> {
     GRADLE_PLUGINS.iter().find_map(|p| {
@@ -59,14 +75,11 @@ pub(crate) fn swap_coords(coords: &str) -> Option<(String, Option<&str>)> {
     Some((new, parts.next()))
 }
 
-const KOTLINTER: &str =
-    "kotlinter runs ktlint inside the JVM and has no ktrs drop-in; replace it with `ktrs lint` or the `ktlint` binary by hand";
 pub(crate) const KTLINT_JAR: &str = "ktlint runs from its jar; point the task at the `ktlint` binary (same flags) by hand";
 const KTFMT_JAR: &str = "ktfmt runs from its jar; point the task at the `ktfmt` binary (same flags) by hand";
 
 /// Mentions of builds with no drop-in: (needle, what to do).
-const NO_DROP_IN: [(&str, &str); 6] = [
-    ("org.jmailen.kotlinter", KOTLINTER),
+const NO_DROP_IN: [(&str, &str); 5] = [
     ("com.pinterest.ktlint.Main", KTLINT_JAR),
     ("com.pinterest.ktlint:ktlint-cli", KTLINT_JAR),
     ("com.pinterest:ktlint:", KTLINT_JAR),
