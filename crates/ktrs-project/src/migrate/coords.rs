@@ -89,5 +89,19 @@ const NO_DROP_IN: [(&str, &str); 5] = [
 
 /// The first no-drop-in advice `text` mentions.
 pub(crate) fn no_drop_in(text: &str) -> Option<&'static str> {
-    NO_DROP_IN.iter().find(|(needle, _)| text.contains(needle)).map(|(_, advice)| *advice)
+    // Not `ktlint-cli-ruleset-core` or `ktlint-cli-reporter-*`: a rule set's or reporter's API dependencies.
+    let mentions = |needle: &str| text.match_indices(needle).any(|(i, m)| !text[i + m.len()..].starts_with('-'));
+    NO_DROP_IN.iter().find(|(needle, _)| mentions(needle)).map(|(_, advice)| *advice)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_rule_set_api_dependency_is_not_ktlint_run_from_its_jar() {
+        assert_eq!(no_drop_in(r#"compileOnly("com.pinterest.ktlint:ktlint-cli-ruleset-core:1.8.0")"#), None);
+        assert_eq!(no_drop_in(r#"ktlint("com.pinterest.ktlint:ktlint-cli:1.8.0")"#), Some(KTLINT_JAR));
+        assert_eq!(no_drop_in(r#"module = "com.pinterest.ktlint:ktlint-cli""#), Some(KTLINT_JAR));
+    }
 }
