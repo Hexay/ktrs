@@ -1,0 +1,14 @@
+android {
+    namespace = 'com.example'
+    compileSdk = 36
+    defaultConfig { minSdk = 23 }
+    flavorDimensions = ['customFlavor']
+    productFlavors {
+        flavorOne { dimension = 'customFlavor' }
+        flavorTwo { dimension = 'customFlavor' }
+    }
+}
+
+kotlinter {
+    reporters = ['plain']
+}

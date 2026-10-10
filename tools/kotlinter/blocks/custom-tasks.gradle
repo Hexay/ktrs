@@ -1,0 +1,34 @@
+kotlinter {
+    reporters = ['plain', 'checkstyle']
+}
+
+tasks.register('customLint', org.jmailen.gradle.kotlinter.tasks.LintTask) {
+    source(fileTree('src'))
+    exclude { it.file.path.contains('generated') }
+    reports.set([
+        'plain': layout.buildDirectory.file('reports/ktlint/custom-lint.txt').get().asFile,
+        'json': layout.buildDirectory.file('reports/ktlint/custom-lint.json').get().asFile,
+        'sarif': layout.buildDirectory.file('reports/ktlint/custom-lint.sarif.json').get().asFile,
+    ])
+}
+
+tasks.register('noReportLint', org.jmailen.gradle.kotlinter.tasks.LintTask) {
+    source(fileTree('src'))
+    ignoreLintFailures.set(true)
+}
+
+tasks.register('emptyLint', org.jmailen.gradle.kotlinter.tasks.LintTask) {
+    source(fileTree('none'))
+    reports.set(['plain': layout.buildDirectory.file('reports/ktlint/empty-lint.txt').get().asFile])
+}
+
+tasks.register('customFormat', org.jmailen.gradle.kotlinter.tasks.FormatTask) {
+    source(fileTree('src'))
+    exclude { it.file.path.contains('generated') }
+    report.set(layout.buildDirectory.file('reports/ktlint/custom-format.txt'))
+}
+
+tasks.register('emptyFormat', org.jmailen.gradle.kotlinter.tasks.FormatTask) {
+    source(fileTree('none'))
+    report.set(layout.buildDirectory.file('reports/ktlint/empty-format.txt'))
+}

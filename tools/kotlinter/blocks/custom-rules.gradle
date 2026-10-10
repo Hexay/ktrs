@@ -1,0 +1,8 @@
+dependencies {
+    ktlint project(':rules')
+}
+
+kotlinter {
+    reporters = ['plain', 'checkstyle']
+    ignoreLintFailures = true
+}

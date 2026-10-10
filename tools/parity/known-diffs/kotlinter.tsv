@@ -1,0 +1,11 @@
+# tools/kotlinter/parity.sh: org.jmailen.kotlinter 5.7.0 (upstream) vs io.github.hexay.ktrs.kotlinter (ktrs).
+# Format: tools/parity/known_diffs.py.
+# custom-rules: a rule set ktrs can't run natively hands the task to the ktlint jar's CLI, whose --format reports only
+# what it could not fix: no "Format fixed > [rule]" rows and no "<file>: Format fixed" line (research/34, deviations).
+# The formatted sources, the lint rows and the reports are the same.
+custom-rules	console.txt	upstream-only	: Format fixed( > \[|$)
+# tools/kotlinter/real.sh, kotlinter's own test-project (its `rules` rule set): the same hand-off. Nothing but fixed
+# rows was reported there, so upstream's test-format.txt lists them and ours says `ok`.
+kotlinter-test-project	console.txt	upstream-only	: Format fixed( > \[|$)
+kotlinter-test-project	service/build/reports/ktlint/test-format.txt	upstream-only	: Format fixed > \[
+kotlinter-test-project	service/build/reports/ktlint/test-format.txt	ktrs-only	^ok$

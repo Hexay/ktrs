@@ -220,7 +220,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with: { name: parity-cli, path: target/parity, if-no-files-found: ignore }
 
-  # The Gradle and Maven drop-ins vs the plugins they replace (research/29, 30, 31), on target/debug/ktrs.
+  # The Gradle and Maven drop-ins vs the plugins they replace (research/29, 30, 31, 34), on target/debug/ktrs.
+  # kotlinter: the sample scenarios; its Android and real-project runs are manual (research/34).
   build-tools:
     needs: corpus
     runs-on: ubuntu-24.04
@@ -228,7 +229,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        tool: [ktlint-gradle, ktlint-maven, spotless-maven]
+        tool: [ktlint-gradle, ktlint-maven, spotless-maven, kotlinter]
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/parity-setup

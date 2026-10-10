@@ -1,0 +1,8 @@
+kotlin {
+    jvm()
+    js { nodejs() }
+}
+
+kotlinter {
+    reporters = ['plain']
+}

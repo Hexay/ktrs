@@ -1,0 +1,3 @@
+package generated
+
+class Gen{ }

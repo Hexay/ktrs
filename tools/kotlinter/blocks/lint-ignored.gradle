@@ -1,0 +1,4 @@
+kotlinter {
+    ignoreLintFailures = true
+    reporters = ['checkstyle', 'plain']
+}

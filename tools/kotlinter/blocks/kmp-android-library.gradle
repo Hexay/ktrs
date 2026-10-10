@@ -1,0 +1,14 @@
+kotlin {
+    jvm()
+    androidTarget()
+}
+
+android {
+    namespace = 'com.example'
+    compileSdk = 36
+    defaultConfig { minSdk = 23 }
+}
+
+kotlinter {
+    reporters = ['plain']
+}

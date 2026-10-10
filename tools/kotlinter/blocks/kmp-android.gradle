@@ -1,0 +1,12 @@
+kotlin {
+    jvm()
+    android {
+        namespace = 'com.example'
+        compileSdk = 36
+        minSdk = 23
+    }
+}
+
+kotlinter {
+    reporters = ['plain']
+}

@@ -1,0 +1,3 @@
+kotlinter {
+    reporters = ['checkstyle', 'html', 'json', 'plain', 'sarif']
+}

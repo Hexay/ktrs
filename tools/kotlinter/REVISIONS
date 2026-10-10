@@ -1,0 +1,11 @@
+# tools/kotlinter/real.sh: <name> <GitHub repo> <commit> [directory of the Gradle build]. Pinned 2026-10-09.
+# kable, jerboa and Calendar are Android builds: they need ANDROID_HOME (an empty directory will do: lint and format
+# only configure the build).
+mock-oauth2-server navikt/mock-oauth2-server 2cc3ea5f6d158fe430493d4027e0e9da4d86c814
+kotlinter-test-project jeremymailen/kotlinter-gradle 02dd68cb26a9554932a13192b5bc3e706341b44f test-project
+kable JuulLabs/kable ff0d09e69537bb5dbac5a989c9528fb090ccd0fa
+jerboa LemmyNet/jerboa e0e4b9b8cf33d28df03a845f74af1d399990b70e
+Calendar kizitonwose/Calendar c2711b3c7fdf027e9a6bad55be9a7d979a288699
+# Not run: `ktrs migrate` does not rewrite its catalog (./libs.versions.toml, not gradle/), so the migrated build has
+# no plugin (research/34, open items).
+# kotlin-jdsl line/kotlin-jdsl dcd0e28552dd82a3ec7270cd57596e53c5659249

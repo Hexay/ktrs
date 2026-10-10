@@ -1,0 +1,5 @@
+package com.example
+
+class CommonTest{
+    fun test() {   val x = 1 ; println(x) }
+}

@@ -18,8 +18,10 @@ SKIP_BUILD_DIRS = {"kotlin", "classes", "tmp", "intermediates", "libs", "kotlinT
 NOISE = re.compile(
     r"(Starting a Gradle Daemon|BUILD (SUCCESSFUL|FAILED) in|\d+ actionable task|Configuration cache|Reusing configuration"
     r"|Calculating task graph|Consider enabling|Daemon will be stopped|Deprecated Gradle|You can use '--warning-mode"
-    r"|For more on this|See https://docs.gradle.org|w: |Fetching distribution|Downloading https://services\.gradle\.org/|\.+10%|\[Incubating\] Problems report|> Configure project :java)"
+    r"|For more on this|See https://docs.gradle.org|w: |Fetching distribution|Downloading https://services\.gradle\.org/|\.+10%|\[Incubating\] Problems report|> Configure project )"
 )
+# A build's own compile tasks (buildSrc, a rule set project) hit the build cache on whichever side runs second.
+COMPILE_FROM_CACHE = re.compile(r"^(> Task \S*:compile\w+) FROM-CACHE$")
 
 
 def norm(text, side):
@@ -31,7 +33,8 @@ def norm(text, side):
     text = re.sub(r"([\\/]+)" + side + r"([\\/]+project)", r"\1<side>\2", text)
     if SLASHES:
         text = re.sub(r"\x1b\[\d+m", "", text).replace("\\\\", "/").replace("\\", "/")
-    return [line for line in text.splitlines() if ":java" not in line and not NOISE.match(line)]
+    lines = [line for line in text.splitlines() if ":java" not in line and not NOISE.match(line)]
+    return [COMPILE_FROM_CACHE.sub(r"\1", line) for line in lines]
 
 
 def task_order_free(lines):
@@ -75,7 +78,7 @@ def files(side):
     result = {}
     for d, dirs, fs in os.walk(base):
         parent = os.path.basename(d)
-        skip = SKIP_DIRS | (SKIP_BUILD_DIRS if parent == "build" else {"problems"} if parent == "reports" else set())
+        skip = SKIP_DIRS | (SKIP_BUILD_DIRS if parent == "build" else {"problems", "configuration-cache"} if parent == "reports" else set())
         dirs[:] = [x for x in dirs if x not in skip]
         for f in fs:
             rel = os.path.relpath(os.path.join(d, f), base).replace("\\", "/")
