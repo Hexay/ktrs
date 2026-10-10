@@ -1,6 +1,6 @@
 //! Kotlin PSI over the ktrs syntax tree: typed views whose accessors return exactly what the compiler's
 //! PSI classes (Kotlin v2.4.20 psi-api/psi-impl, AST code path) and IntelliJ core (idea/251.27812.49)
-//! return. Scope: everything ktfmt v0.64 calls. Verified by `tests/fixtures.rs` against the JVM oracle
+//! return. Scope: everything ktfmt v0.65 calls. Verified by `tests/fixtures.rs` against the JVM oracle
 //! `tools/psi-accessors` (corpus: `psi_accessors compare`, see that example's header).
 //!
 //! # Porting conventions (Kotlin/Java call -> Rust)

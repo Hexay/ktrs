@@ -1,5 +1,5 @@
-//! `KotlinInputAstVisitor.kt` lines 766-1016: call elements, value argument lists, lambdas, `this`
-//! and simple names.
+//! `CallFormatter.kt` (`formatFunctionCall`, `formatLambdaExpression`), `ListFormatter.kt`
+//! (`formatValueArgumentList`) and `ExpressionFormatter.kt` (`this`, simple names).
 
 use ktrs_psi::*;
 

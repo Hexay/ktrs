@@ -1,5 +1,5 @@
-//! `KotlinInputAstVisitor.kt` lines 2515-2662: loops, `break`/`continue`, parameters, callable
-//! references, class literals, function types.
+//! `ControlFlowExpressionFormatter.kt` (loops, `break`/`continue`), `DeclarationFormatter.kt` (parameters),
+//! `ExpressionFormatter.kt` (callable references, class literals), `TypeFormatter.kt` (function types).
 
 use ktrs_psi::*;
 

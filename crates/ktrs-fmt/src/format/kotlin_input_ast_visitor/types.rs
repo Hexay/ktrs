@@ -1,4 +1,5 @@
-//! `KotlinInputAstVisitor.kt` lines 170-289: named functions and type elements.
+//! `DeclarationFormatter.kt` (`formatNamedFunction`), `TypeFormatter.kt` and `ListFormatter.kt`: named
+//! functions and type elements.
 
 use ktrs_psi::*;
 use ktrs_syntax::SyntaxKind;

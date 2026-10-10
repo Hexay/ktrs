@@ -1,5 +1,5 @@
-//! `KotlinInputAstVisitor.kt` lines 1587-1797: lambdas and scoping functions (`= scope { ... }`,
-//! `runnnnn { ... }.baz()`).
+//! `PsiUtils.kt` (the scoping-lambda predicates) and `CallFormatter.kt` (`formatChainedScopingFunction`,
+//! `formatLambdaOrScopingFunction`): lambdas and scoping functions (`= scope { ... }`, `runnnnn { ... }.baz()`).
 
 use ktrs_psi::*;
 

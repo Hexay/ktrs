@@ -1,5 +1,6 @@
-//! `KotlinInputAstVisitor.kt` lines 1018-1228: parameter lists, `visitEachCommaSeparated`,
-//! arguments, reference and return expressions.
+//! `ListFormatter.kt` (`formatParameterList`, `formatCommaSeparatedList`, here still
+//! `visit_each_comma_separated`), `CallFormatter.kt` (`formatArgument`), and reference and return expressions
+//! (`ExpressionFormatter.kt`, `ControlFlowExpressionFormatter.kt`).
 
 use ktrs_psi::*;
 

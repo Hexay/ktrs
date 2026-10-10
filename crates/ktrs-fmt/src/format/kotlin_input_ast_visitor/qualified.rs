@@ -1,4 +1,5 @@
-//! `KotlinInputAstVisitor.kt` lines 475-764: qualified expression chains and `visitCallExpression`.
+//! `CallFormatter.kt` (`formatQualifiedExpression`, `emitQualifiedExpression`, `formatCallExpression`),
+//! `GroupInfo.kt` (grouping) and `PsiUtils.kt` (`chainParts`, here `break_into_parts`).
 
 use std::collections::VecDeque;
 use std::ops::ControlFlow::{Break, Continue};

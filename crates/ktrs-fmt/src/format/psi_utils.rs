@@ -1,5 +1,6 @@
-//! Port of `PsiUtils.kt` (lines 25-49). `KtParameterList.hasEmptyParens` is the visitor's
-//! `ParameterList::has_empty_parens` (it also serves the accessor's fake list).
+//! Port of `visitor/PsiUtils.kt` (`isLambda`, `hasEmptyParenthesis`, `callExpression`,
+//! `topLevelAnnotations`; its scoping and chain helpers are in the visitor's `scoping.rs` and `qualified.rs`).
+//! `KtParameterList.hasEmptyParenthesis` is the visitor's `ParameterList::has_empty_parens`.
 
 use ktrs_psi::{
     KtAnnotatedExpression, KtAnnotation, KtAnnotationEntry, KtCallExpression, KtExpression, KtQualifiedExpression,

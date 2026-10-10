@@ -1,4 +1,4 @@
-//! Port of ktfmt's `cli/EditorConfigResolverTest.kt` (v0.64).
+//! Port of ktfmt's `cli/EditorConfigResolverTest.kt` (v0.65).
 
 mod common;
 

@@ -1,6 +1,7 @@
-//! `KotlinInputAstVisitor.kt` lines 2879-2990: `markForPartialFormat`, the `OpsBuilder` helper
-//! extensions (`token`, `block`, `sync`, `fenceComments`), `fail`, `visit`, `emitKeywordWithCondition`;
-//! plus getters for the indent fields (lines 147-162), which are `Indent` values cloned on use.
+//! `FormatterState.kt` (`markForPartialFormat`), `OpsUtils.kt` (the `OpsBuilder` extensions `token`,
+//! `block`, `sync`, `fenceComments`), `helpers.kt` (`fail`, `format`, here `visit`),
+//! `ControlFlowExpressionFormatter.kt` (`emitKeywordWithCondition`); plus getters for the indents
+//! (`Indentation.kt` arithmetic as precomputed `Indent` values, cloned on use).
 
 use ktrs_psi::{KtExpression, PsiElement, PsiType};
 

@@ -1,5 +1,6 @@
-//! `KotlinInputAstVisitor.kt` lines 2664-2877: `is`/`as`, collection literals, `try`/`catch`/`finally`,
-//! `throw`, enum entries, type aliases, `visitElement`, `visitKtFile`, `visitScript`.
+//! `ExpressionFormatter.kt` (`is`/`as`, collection literals), `ControlFlowExpressionFormatter.kt`
+//! (`try`/`catch`/`finally`, `throw`), `DeclarationFormatter.kt` (enum entries), `TypeFormatter.kt` (type
+//! aliases), `AbstractKotlinFormatter.kt` (`visitElement`), `FileFormatter.kt` (`formatFile`).
 
 use ktrs_psi::*;
 

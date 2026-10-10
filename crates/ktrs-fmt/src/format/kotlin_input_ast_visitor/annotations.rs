@@ -1,5 +1,5 @@
-//! `KotlinInputAstVisitor.kt` lines 2005-2184: modifier lists, annotations, file annotation lists,
-//! super type lists.
+//! `AnnotationFormatter.kt`, and from `ListFormatter.kt` / `DeclarationFormatter.kt`: modifier lists,
+//! annotations, file annotation lists, super type lists and entries.
 
 use ktrs_psi::*;
 

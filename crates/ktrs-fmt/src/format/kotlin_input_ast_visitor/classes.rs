@@ -1,5 +1,6 @@
-//! `KotlinInputAstVisitor.kt` lines 1799-2003: classes, constructors, initializers, constants,
-//! parentheses, package and import directives, context receiver lists.
+//! `DeclarationFormatter.kt` (classes, constructors, initializers), `ExpressionFormatter.kt` (constants,
+//! parentheses), `FileFormatter.kt` (package and import directives), `ListFormatter.kt` (import and
+//! context receiver lists).
 
 use ktrs_psi::*;
 use ktrs_syntax::SyntaxKind;

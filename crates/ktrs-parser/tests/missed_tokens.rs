@@ -17,7 +17,7 @@ fn lambda_reparse_that_stops_early_reports_the_jvm_text() {
         let missed = parse.first_missed_tokens().unwrap();
         assert_ne!(missed.element, 0, "a chameleon's, not the file's");
         assert_eq!(missed.text, FUZZ_MINIMAL);
-        // The JVM's (ktfmt 0.64 and ktlint 2.0.0-ALPHA-4 jars) stderr and exception, stack trace aside.
+        // The JVM's (ktfmt 0.65 and ktlint 2.0.0-ALPHA-4 jars) stderr and exception, stack trace aside.
         assert_eq!(missed.log(), "ERROR: Tokens [RPAR] were not inserted into the tree. Language: kotlin\nDetails:\nmissedTokensFragment.txt\n{fun<)]<T:@( {})");
         assert_eq!(missed.assertion_error(), "java.lang.AssertionError: Tokens [RPAR] were not inserted into the tree. Language: kotlin");
     }

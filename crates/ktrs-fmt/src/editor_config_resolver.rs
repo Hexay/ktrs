@@ -1,4 +1,4 @@
-//! Port of ktfmt's `cli/EditorConfigResolver.kt` (v0.64). ec4rs finds and cascades the files; the
+//! Port of ktfmt's `cli/EditorConfigResolver.kt` (v0.65). ec4rs finds and cascades the files; the
 //! value parsing here follows ec4j's property types (`getValue(type, default, warn)`: a missing or
 //! invalid value yields the default, a valid one its parsed value, which may be null).
 

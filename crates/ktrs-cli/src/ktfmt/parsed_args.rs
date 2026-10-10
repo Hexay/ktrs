@@ -1,10 +1,10 @@
-//! Port of ktfmt's `cli/ParsedArgs.kt` (v0.65).
-//! Deviation: `--experimental-engine` (undocumented upstream, absent from `--help`) is rejected after
-//! upstream's warning: the experimental kotlinlang formatters are not ported.
+//! Port of ktfmt's `cli/ParsedArgs.kt` (v0.65); `--experimental-engine`: see the module docs.
 
 use std::fs;
 
 use ktrs_fmt::{FormattingOptions, GOOGLE_FORMAT, KOTLINLANG_FORMAT, META_FORMAT, Range, RangeSet};
+
+pub(crate) use super::java_int::to_int_or_null;
 
 pub const KTFMT_VERSION: &str = "0.65";
 
@@ -285,13 +285,4 @@ fn closed_open(lower: i32, upper: i32) -> Result<Range, String> {
         return Err(format!("Invalid range: [{lower}..{upper})"));
     }
     Ok(Range::closed_open(lower, upper))
-}
-
-/// `String.toIntOrNull()`: an optional sign and decimal digits (ASCII only here).
-pub(crate) fn to_int_or_null(value: &str) -> Option<i32> {
-    let digits = value.strip_prefix(['+', '-']).unwrap_or(value);
-    if digits.is_empty() || !digits.bytes().all(|b| b.is_ascii_digit()) {
-        return None;
-    }
-    value.parse().ok()
 }

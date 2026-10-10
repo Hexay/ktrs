@@ -1,4 +1,4 @@
-//! `KotlinInputAstVisitor.kt` lines 1230-1361: binary, postfix, prefix and labeled expressions.
+//! `ExpressionFormatter.kt`: binary, postfix, prefix and labeled expressions.
 
 use std::collections::VecDeque;
 

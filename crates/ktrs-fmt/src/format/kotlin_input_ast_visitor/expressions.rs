@@ -1,5 +1,5 @@
-//! `KotlinInputAstVisitor.kt` lines 2394-2513: destructuring declarations, string templates, `super`,
-//! type parameters and constraints.
+//! `DeclarationFormatter.kt` (destructuring declarations), `ExpressionFormatter.kt` (string templates,
+//! `super`), `ListFormatter.kt` / `TypeFormatter.kt` (type parameters and constraints).
 
 use ktrs_psi::*;
 

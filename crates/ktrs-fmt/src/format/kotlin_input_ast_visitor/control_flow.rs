@@ -1,5 +1,5 @@
-//! `KotlinInputAstVisitor.kt` lines 2186-2392: `when`, class bodies, blocks, `when` conditions, `if`,
-//! array access.
+//! `ControlFlowExpressionFormatter.kt` (`when` and its conditions, `if`), `DeclarationFormatter.kt` (class
+//! bodies, blocks), `CallFormatter.kt` (array access).
 
 use ktrs_psi::*;
 

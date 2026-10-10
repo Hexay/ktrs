@@ -1,7 +1,10 @@
-//! Port of `KotlinInputAstVisitor.kt`: an AST visitor that builds a stream of `Op`s to format. This
-//! file covers lines 141-168 (state) and routes each `override fun visitX` to the inherent method of
-//! the same name; the methods live in the sibling files in upstream order (each file names its range).
-//! Upstream exceptions become `OpsBuilder::fail` plus an early return (see `format` module docs).
+//! Port of ktfmt 0.65's `KotlinInputAstVisitor` (`format/visitor/AbstractKotlinFormatter.kt` and the formatters it
+//! delegates to): an AST visitor that builds a stream of `Op`s to format. This file holds the state
+//! (`FormatterState.kt`) and routes each `override fun visitX` to the inherent method of the same name.
+//!
+//! The sibling files keep the grouping and `visitX` names of 0.64's single `KotlinInputAstVisitor.kt`, which 0.65
+//! split into `visitor/*Formatter.kt` (`formatX`); each file's header names the 0.65 files its functions live in.
+//! Behaviour is 0.65's. Upstream exceptions become `OpsBuilder::fail` plus an early return (see `format` module docs).
 
 mod annotations;
 mod calls;

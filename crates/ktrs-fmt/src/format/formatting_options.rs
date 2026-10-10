@@ -1,4 +1,4 @@
-//! Port of `FormattingOptions.kt` (whole file, lines 17-259).
+//! Port of `FormattingOptions.kt` (whole file), without its private `experimentalEngine` (not ported).
 
 use std::fmt;
 

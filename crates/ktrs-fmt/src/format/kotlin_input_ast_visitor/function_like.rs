@@ -1,5 +1,5 @@
-//! `KotlinInputAstVisitor.kt` lines 291-473: `visitFunctionLikeExpression`, `genSym`, braced blocks,
-//! statements, `visitProperty`, `visitBackingField`.
+//! `DeclarationFormatter.kt` (`emitFunctionDeclaration`, here still `visit_function_like_expression`;
+//! `emitBracedBlock`, `formatProperty`) and `FileFormatter.kt` (`formatStatement(s)`).
 
 use ktrs_psi::*;
 
