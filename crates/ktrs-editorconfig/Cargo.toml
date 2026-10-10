@@ -1,6 +1,6 @@
 [package]
 name = "ktrs-editorconfig"
-description = "Port of ec4j-core 1.2.0 (the EditorConfig library ktlint and ktfmt use): parser, globs, property types, lookup"
+description = "Port of ec4j-core 1.2.0 (the EditorConfig library ktlint and ktfmt use): parser, globs, property types, lookup. Internal to ktrs, unstable API"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

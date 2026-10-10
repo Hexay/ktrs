@@ -1,6 +1,6 @@
 [package]
 name = "ktrs-fmt"
-description = "Kotlin formatter producing byte-identical output to ktfmt"
+description = "Kotlin formatter producing byte-identical output to ktfmt. Internal to ktrs, unstable API"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

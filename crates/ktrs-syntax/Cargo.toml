@@ -1,6 +1,6 @@
 [package]
 name = "ktrs-syntax"
-description = "Kotlin syntax kinds and lossless syntax tree, shaped like the Kotlin compiler's PSI"
+description = "Kotlin syntax kinds and lossless syntax tree, shaped like the Kotlin compiler's PSI. Internal to ktrs, unstable API: use kt-syntax"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

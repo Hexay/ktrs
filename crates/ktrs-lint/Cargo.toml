@@ -1,6 +1,6 @@
 [package]
 name = "ktrs-lint"
-description = "Port of the ktlint 2.0 rule engine and standard rules over the ktrs mutable AST"
+description = "Port of the ktlint 2.0 rule engine and standard rules over the ktrs mutable AST. Internal to ktrs, unstable API"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

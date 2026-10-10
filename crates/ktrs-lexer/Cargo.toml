@@ -1,6 +1,6 @@
 [package]
 name = "ktrs-lexer"
-description = "Kotlin and KDoc lexers, ported from the Kotlin compiler's JFlex specs"
+description = "Kotlin and KDoc lexers, ported from the Kotlin compiler's JFlex specs. Internal to ktrs, unstable API: use kt-syntax"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

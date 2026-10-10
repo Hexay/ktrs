@@ -1,6 +1,6 @@
 [package]
 name = "ktrs-cli"
-description = "Command-line front ends: `ktrs` and flag-compatible `ktfmt` and `ktlint` (binaries: the root `ktrs` package)"
+description = "Command-line front ends: `ktrs` and flag-compatible `ktfmt` and `ktlint` (binaries: the root `ktrs` package). Internal to ktrs, unstable API"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

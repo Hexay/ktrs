@@ -1,6 +1,6 @@
 [package]
 name = "ktrs-lsp"
-description = "Language server for Kotlin formatting and linting: ktlint diagnostics, fixes and suppressions, ktfmt or ktlint formatting"
+description = "Language server for Kotlin formatting and linting: ktlint diagnostics, fixes and suppressions, ktfmt or ktlint formatting. Internal to ktrs, unstable API"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

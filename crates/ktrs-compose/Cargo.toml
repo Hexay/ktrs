@@ -1,6 +1,6 @@
 [package]
 name = "ktrs-compose"
-description = "Port of mrmans0n/compose-rules (the ktlint rule set `compose`) over the ktrs-lint engine"
+description = "Port of mrmans0n/compose-rules (the ktlint rule set `compose`) over the ktrs-lint engine. Internal to ktrs, unstable API"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
