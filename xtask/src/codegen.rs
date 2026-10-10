@@ -3,10 +3,10 @@
 
 use std::{collections::HashSet, fmt::Write, fs, path::Path};
 
-struct Kind {
-    name: String,
+pub(crate) struct Kind {
+    pub(crate) name: String,
     debug_name: String,
-    is_token: bool,
+    pub(crate) is_token: bool,
     keyword: Option<(String, bool)>,
 }
 
@@ -15,7 +15,8 @@ pub(crate) fn run(root: &Path) -> Result<(), String> {
     let tsv = fs::read_to_string(crate_dir.join("kinds.tsv")).map_err(|e| format!("kinds.tsv: {e}"))?;
     let kinds = parse_tsv(&tsv)?;
     let out = render(&kinds);
-    crate::write_if_changed(&crate_dir.join("src/generated/kinds.rs"), &out)
+    crate::write_if_changed(&crate_dir.join("src/generated/kinds.rs"), &out)?;
+    crate::write_if_changed(&root.join("crates/kt-syntax/src/generated/kinds.rs"), &crate::codegen_facade::render(&kinds))
 }
 
 fn parse_tsv(tsv: &str) -> Result<Vec<Kind>, String> {

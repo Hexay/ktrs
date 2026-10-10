@@ -5,6 +5,7 @@ use std::{
 };
 
 mod codegen;
+mod codegen_facade;
 mod corpus_diff;
 mod detekt_diff;
 mod fmt_diff;
