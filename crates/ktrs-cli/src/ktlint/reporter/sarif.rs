@@ -34,13 +34,21 @@ pub struct SarifReporter {
     results: Vec<Json>,
     working_directory: Option<PathBuf>,
     ktlint_release: &'static str,
+    manifest_version: bool,
 }
 
 impl SarifReporter {
+    /// ktlint used as a library (kotlinter's worker): `ktlintVersion(...)` finds no version in a jar manifest and
+    /// is null.
+    pub fn without_manifest_version(mut self) -> SarifReporter {
+        self.manifest_version = false;
+        self
+    }
+
     /// `user_home`: `System.getProperty("user.home")`, which upstream uses as the working directory;
     /// `ktlint_release`: `ktlintVersion(...)`, the jar's version.
     pub fn new(out: Printer, user_home: Option<PathBuf>, ktlint_release: &'static str) -> SarifReporter {
-        SarifReporter { out, user_home, results: Vec::new(), working_directory: None, ktlint_release }
+        SarifReporter { out, user_home, results: Vec::new(), working_directory: None, ktlint_release, manifest_version: true }
     }
 }
 
@@ -74,11 +82,11 @@ impl ReporterV2 for SarifReporter {
     }
 
     fn after_all(&mut self) {
-        let version = self.ktlint_release;
         // 1.8 still names pinterest's repository, and its kotlinx.serialization breaks empty arrays.
-        let ktlint_1_8 = version == release(KtlintVersion::V1_8);
+        let ktlint_1_8 = self.ktlint_release == release(KtlintVersion::V1_8);
+        let version = if self.manifest_version { self.ktlint_release } else { "null" };
         let organization = if ktlint_1_8 { "pinterest" } else { "ktlint" };
-        let driver = Json::Obj(vec![
+        let mut driver = vec![
             ("downloadUri", Json::Str(format!("https://github.com/{organization}/ktlint/releases/tag/{version}"))),
             ("fullName", str("ktlint")),
             ("informationUri", Json::Str(format!("https://github.com/{organization}/ktlint/"))),
@@ -86,9 +94,11 @@ impl ReporterV2 for SarifReporter {
             ("name", str("ktlint")),
             ("organization", str(organization)),
             ("rules", Json::Arr(Vec::new())),
-            ("semanticVersion", str(version)),
-            ("version", str(version)),
-        ]);
+        ];
+        if self.manifest_version {
+            driver.extend([("semanticVersion", str(version)), ("version", str(version))]);
+        }
+        let driver = Json::Obj(driver);
         let mut run = Vec::new();
         if let Some(working_directory) = &self.working_directory {
             let uri = format!("file://{}", sanitize(&working_directory.to_string_lossy()));

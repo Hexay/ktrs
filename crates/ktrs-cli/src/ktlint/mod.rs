@@ -22,6 +22,7 @@ pub(crate) mod jar_providers;
 mod java_printf;
 pub use ktrs_editorconfig::java_glob;
 pub mod jpath;
+pub mod kotlinter;
 pub mod ktrs_only;
 pub mod ktlint_jar;
 mod legacy_rule_set;

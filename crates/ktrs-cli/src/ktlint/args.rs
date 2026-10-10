@@ -1,15 +1,13 @@
 //! The options of `KtlintCommandLine` and its subcommands (`Main.kt`), parsed the way Clikt does.
 
-use std::path::Path;
-use std::sync::LazyLock;
+use std::{path::Path, sync::LazyLock};
 
 use ktrs_editorconfig::EnumValue;
 use ktrs_lint::editorconfig::{CodeStyleValue, KtlintVersion};
 
 use crate::ktlint::clikt::{Arity, Invocation, OptionSpec, expand_argument_files, parse_tokens};
-use crate::ktlint::gradle;
-use crate::ktlint::logger::Level;
 use crate::ktlint::version::{KTLINT_VERSION_OPTION, release, resolve_ktlint_version};
+use crate::ktlint::{gradle, kotlinter, logger::Level};
 
 pub const HELP_MAIN: &str = include_str!("help/help-main.txt");
 const HELP_GENERATE_EDITOR_CONFIG: &str = include_str!("help/help-gen.txt");
@@ -25,7 +23,7 @@ const fn spec(names: &'static [&'static str], arity: Arity) -> OptionSpec {
     OptionSpec { names, arity, hidden: false }
 }
 
-static MAIN_OPTIONS: [OptionSpec; 21] = [
+static MAIN_OPTIONS: [OptionSpec; 22] = [
     spec(&["--version", "-v"], Arity::Flag),
     spec(&["--color"], Arity::Flag),
     spec(&["--color-name"], Arity::Value),
@@ -47,6 +45,7 @@ static MAIN_OPTIONS: [OptionSpec; 21] = [
     OptionSpec { names: &[gradle::EVENTS_OPTION], arity: Arity::Value, hidden: true },
     OptionSpec { names: &[gradle::RELATIVE_TO_OPTION], arity: Arity::Value, hidden: true },
     OptionSpec { names: &[gradle::EDITOR_CONFIG_OVERRIDE_OPTION], arity: Arity::Value, hidden: true },
+    OptionSpec { names: &[kotlinter::EVENTS_OPTION], arity: Arity::Value, hidden: true },
 ];
 
 /// 1.8 still declares `--code-style` (deprecated, an error when used) right after `--version`.
@@ -99,7 +98,8 @@ pub struct KtlintArgs {
     pub arguments: Vec<String>,
     pub min_log_level: Level,
     pub ktlint_version: KtlintVersion,
-    /// ktrs-only (the Gradle plugin's): [`gradle`].
+    /// ktrs-only (the Gradle plugins'): [`gradle`], [`kotlinter`].
+    pub kotlinter_events: Option<String>,
     pub gradle_events: Option<String>,
     pub relative_to: Option<String>,
     pub editor_config_overrides: Vec<String>,
@@ -126,6 +126,7 @@ impl Default for KtlintArgs {
             arguments: Vec::new(),
             min_log_level: Level::Info,
             ktlint_version: KtlintVersion::default(),
+            kotlinter_events: None,
             gradle_events: None,
             relative_to: None,
             editor_config_overrides: Vec::new(),
@@ -235,6 +236,7 @@ fn to_ktlint_args(invocations: &[Invocation], arguments: Vec<String>, ktlint_ver
     if let Some(level) = last("--log-level") {
         args.min_log_level = Level::parse(&level).map_err(|e| format!("invalid value for --log-level: {e}"))?;
     }
+    args.kotlinter_events = last(kotlinter::EVENTS_OPTION);
     args.gradle_events = last(gradle::EVENTS_OPTION);
     args.relative_to = last(gradle::RELATIVE_TO_OPTION);
     args.editor_config_overrides = all(gradle::EDITOR_CONFIG_OVERRIDE_OPTION).collect();

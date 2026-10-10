@@ -89,3 +89,11 @@ fn gradle_plugin_options_are_dropped_and_the_events_file_becomes_a_json_report()
     let hand_off = hand_off_args(&args, &dir.0).unwrap();
     assert_eq!(hand_off.args, ["--reporter=json,output=e.txt", "--reporter=json,output=f.txt", "a.kt"]);
 }
+
+#[test]
+fn kotlinter_events_file_becomes_a_json_report() {
+    let dir = Dir::new("kotlinter");
+    let args = strings(&["--format", "--ktrs-kotlinter-events=e.txt", "--reporter=plain,output=p.txt", "a.kt"]);
+    let hand_off = hand_off_args(&args, &dir.0).unwrap();
+    assert_eq!(hand_off.args, ["--format", "--reporter=json,output=e.txt", "--reporter=plain,output=p.txt", "a.kt"]);
+}

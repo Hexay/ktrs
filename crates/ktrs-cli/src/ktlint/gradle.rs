@@ -10,7 +10,7 @@
 //! | `--ktrs-editorconfig-override=<name>=<value>` | repeatable: an `EditorConfigOverride` entry, which wins over every `.editorconfig` (`ktlint { additionalEditorconfig }`), resolved like `EditorConfigPropertyRegistry.find` |
 //!
 //! A run handed to the ktlint jar ([`crate::ktlint::ktlint_jar`]) drops them, and writes the events file with the
-//! `json` reporter instead ([`hand_off_token`]).
+//! `json` reporter instead (`hand_off_args`).
 
 use std::fs::File;
 use std::io::{BufWriter, Write};
@@ -35,7 +35,7 @@ pub const RELATIVE_TO_OPTION: &str = "--ktrs-relative-to";
 pub const EDITOR_CONFIG_OVERRIDE_OPTION: &str = "--ktrs-editorconfig-override";
 
 /// First line of an events file.
-const EVENTS_HEADER: &str = "# ktrs-gradle-events 1";
+pub(crate) const EVENTS_HEADER: &str = "# ktrs-gradle-events 1";
 
 /// A `file\t<file>` line per linted file (ktlint-gradle's `LintErrorResult`s), then one per error:
 /// `error\t<file>\t<line>\t<col>\t<rule id>\t<status>\t<corrected>\t<detail>`, the status as `KtlintCliError.Status`
@@ -61,21 +61,26 @@ impl ReporterV2 for GradleEventsReporter {
     }
 
     fn on_lint_error(&mut self, file: &str, e: &KtlintCliError) {
-        let status = match e.status {
-            Status::BaselineIgnored => "BASELINE_IGNORED",
-            Status::LintCanNotBeAutocorrected => "LINT_CAN_NOT_BE_AUTOCORRECTED",
-            Status::LintCanBeAutocorrected => "LINT_CAN_BE_AUTOCORRECTED",
-            Status::FormatIsAutocorrected => "FORMAT_IS_AUTOCORRECTED",
-            Status::KotlinParseException => "KOTLIN_PARSE_EXCEPTION",
-            Status::KtlintRuleEngineException => "KTLINT_RULE_ENGINE_EXCEPTION",
-        };
-        let detail = e.detail.replace('\\', "\\\\").replace('\t', "\\t").replace('\n', "\\n").replace('\r', "\\r");
-        let _ = writeln!(self.out, "error\t{file}\t{}\t{}\t{}\t{status}\t{}\t{detail}", e.line, e.col, e.rule_id, e.corrected);
+        let _ = writeln!(self.out, "{}", error_event(file, e));
     }
 
     fn after_all(&mut self) {
         let _ = self.out.flush();
     }
+}
+
+/// The `error` line of an events file ([`GradleEventsReporter`]).
+pub(crate) fn error_event(file: &str, e: &KtlintCliError) -> String {
+    let status = match e.status {
+        Status::BaselineIgnored => "BASELINE_IGNORED",
+        Status::LintCanNotBeAutocorrected => "LINT_CAN_NOT_BE_AUTOCORRECTED",
+        Status::LintCanBeAutocorrected => "LINT_CAN_BE_AUTOCORRECTED",
+        Status::FormatIsAutocorrected => "FORMAT_IS_AUTOCORRECTED",
+        Status::KotlinParseException => "KOTLIN_PARSE_EXCEPTION",
+        Status::KtlintRuleEngineException => "KTLINT_RULE_ENGINE_EXCEPTION",
+    };
+    let detail = e.detail.replace('\\', "\\\\").replace('\t', "\\t").replace('\n', "\\n").replace('\r', "\\r");
+    format!("error\t{file}\t{}\t{}\t{}\t{status}\t{}\t{detail}", e.line, e.col, e.rule_id, e.corrected)
 }
 
 impl Processor<'_> {
@@ -166,9 +171,4 @@ fn not_found(name: &str, known: &[&PropertyRef]) -> String {
 /// also decide the order of the `html` report, kept in a `ConcurrentHashMap` by path).
 pub fn native_separators(route: &str) -> String {
     if cfg!(windows) { route.replace('/', "\\") } else { route.to_owned() }
-}
-
-/// The hand-off's version of a token of these options (`None`: dropped): the events file becomes a `json` report.
-pub fn hand_off_token(option: &str, value: &str) -> Option<String> {
-    (option == EVENTS_OPTION).then(|| format!("--reporter=json,output={value}"))
 }

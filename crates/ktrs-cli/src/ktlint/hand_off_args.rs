@@ -9,6 +9,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 
 use crate::ktlint::clikt::expand_argument_files;
 use crate::ktlint::gradle;
+use crate::ktlint::kotlinter;
 use crate::ktlint::version::KTLINT_VERSION_OPTION;
 
 /// The jar's argv; the temporary argfiles it names are deleted on drop.
@@ -73,12 +74,22 @@ fn argfile_token(token: &str) -> String {
     format!("\"{}\"", token.replace('\\', "\\\\").replace('"', "\\\""))
 }
 
-/// ktrs's own options, which the jar rejects: `--ktlint-version` and the Gradle plugin's ([`gradle`]).
-const KTRS_OPTIONS: [&str; 4] =
-    [KTLINT_VERSION_OPTION, gradle::EVENTS_OPTION, gradle::RELATIVE_TO_OPTION, gradle::EDITOR_CONFIG_OVERRIDE_OPTION];
+/// ktrs's own options, which the jar rejects: `--ktlint-version` and the Gradle plugins' ([`gradle`], [`kotlinter`]).
+const KTRS_OPTIONS: [&str; 5] = [
+    KTLINT_VERSION_OPTION,
+    gradle::EVENTS_OPTION,
+    gradle::RELATIVE_TO_OPTION,
+    gradle::EDITOR_CONFIG_OVERRIDE_OPTION,
+    kotlinter::EVENTS_OPTION,
+];
+
+/// The hand-off's version of a ktrs option (`None`: dropped): a plugin's events file becomes a `json` report.
+fn hand_off_token(option: &str, value: &str) -> Option<String> {
+    (option == gradle::EVENTS_OPTION || option == kotlinter::EVENTS_OPTION).then(|| format!("--reporter=json,output={value}"))
+}
 
 /// Rewrites ktrs's options (`<option> <v>` and `<option>=<v>`) until `--`, over a stream of tokens: dropped, or
-/// replaced by [`gradle::hand_off_token`].
+/// replaced by [`hand_off_token`].
 #[derive(Default)]
 struct KtrsOptionFilter {
     after_separator: bool,
@@ -91,7 +102,7 @@ impl KtrsOptionFilter {
             return Some(token.to_owned());
         }
         if let Some(option) = self.value_of.take() {
-            return gradle::hand_off_token(option, token);
+            return hand_off_token(option, token);
         }
         if token == "--" {
             self.after_separator = true;
@@ -103,7 +114,7 @@ impl KtrsOptionFilter {
                 return None;
             }
             if let Some(value) = token.strip_prefix(option).and_then(|rest| rest.strip_prefix('=')) {
-                return gradle::hand_off_token(option, value);
+                return hand_off_token(option, value);
             }
         }
         Some(token.to_owned())

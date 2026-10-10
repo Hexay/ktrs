@@ -164,9 +164,9 @@ impl KtlintCli {
             relative: args.relative,
             gradle_events: args.gradle_events.as_deref(),
             github: args.ktrs_lint.github_reporter,
+            library: args.kotlinter_events.is_some(),
         };
         let cx = Context { console: &self.console, logger, working_dir: &self.working_dir, user_home: &self.user_home, env: &env };
-        let mut reporter = aggregated_reporter(&baseline, &settings, &cx)?;
         let run = Run {
             processor: Processor {
                 engine: &engine,
@@ -184,7 +184,10 @@ impl KtlintCli {
             error_number: AtomicUsize::new(0),
             advise_to_use_format: AtomicBool::new(false),
         };
-
+        if let Some(events) = args.kotlinter_events.as_deref().filter(|_| !args.stdin) {
+            return self.kotlinter(&run, &patterns, &settings, &cx, events);
+        }
+        let mut reporter = aggregated_reporter(&baseline, &settings, &cx)?;
         reporter.before_all();
         if args.stdin {
             self.lint_stdin(&run, &mut reporter)?;

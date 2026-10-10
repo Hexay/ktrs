@@ -15,6 +15,7 @@ use crate::ktlint::jar_providers::{load_from_jar_file, to_files_uri_list};
 use crate::ktlint::version::package;
 use crate::ktlint::jpath::JPath;
 use crate::ktlint::logger::{Logger, REPORTER_AGGREGATOR};
+use crate::ktlint::reporter::sarif::SarifReporter;
 use crate::ktlint::reporter::{
     KtlintCliError, REPORTER_PROVIDER_IDS, ReporterEnvironment, ReporterOptions, ReporterV2, get_reporter,
 };
@@ -30,6 +31,8 @@ pub struct ReporterSettings<'a> {
     pub gradle_events: Option<&'a str>,
     /// `ktrs lint`: `github` is a reporter id too (`reporter/github.rs`).
     pub github: bool,
+    /// The reporters run as in a JVM that has ktlint as a library, not its CLI jar (`crate::ktlint::kotlinter`).
+    pub library: bool,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -49,6 +52,21 @@ pub struct Context<'a> {
 }
 
 pub fn aggregated_reporter(baseline: &Baseline, settings: &ReporterSettings, cx: &Context) -> Result<AggregatedReporter, Exit> {
+    let mut reporters: Vec<Box<dyn ReporterV2>> = configured_reporters(baseline, settings, cx)?.into_iter().map(|(_, r)| r).collect();
+    if let Some(events) = settings.gradle_events {
+        let path = cx.working_dir.resolve(events).map(|p| p.to_path_buf()).unwrap_or_else(|| events.into());
+        let file = File::create(&path).map_err(|e| Exit::Crash(format!("java.io.FileNotFoundException: {events} ({e})")))?;
+        reporters.push(Box::new(GradleEventsReporter::new(file)));
+    }
+    Ok(AggregatedReporter { reporters })
+}
+
+/// The configured reporters with their ids (`plain` when none is configured).
+pub(crate) fn configured_reporters(
+    baseline: &Baseline,
+    settings: &ReporterSettings,
+    cx: &Context,
+) -> Result<Vec<(String, Box<dyn ReporterV2>)>, Exit> {
     let defaults = ["plain".to_owned()];
     let configurations = if settings.reporter_configurations.is_empty() { &defaults[..] } else { settings.reporter_configurations };
     let mut parsed: Vec<ReporterConfiguration> = Vec::new();
@@ -71,7 +89,7 @@ pub fn aggregated_reporter(baseline: &Baseline, settings: &ReporterSettings, cx:
         let interface = format!("{}.cli.reporter.core.api.ReporterProviderV2", package(cx.logger.ktlint_version()));
         return Err(load_from_jar_file(url, &interface, cx.logger));
     }
-    let mut reporters: Vec<Box<dyn ReporterV2>> = Vec::new();
+    let mut reporters: Vec<(String, Box<dyn ReporterV2>)> = Vec::new();
     let ids: Vec<&str> = REPORTER_PROVIDER_IDS.iter().copied().chain(settings.github.then_some(REPORTER_ID)).collect();
     for configuration in &parsed {
         if !ids.contains(&configuration.id.as_str()) {
@@ -80,14 +98,9 @@ pub fn aggregated_reporter(baseline: &Baseline, settings: &ReporterSettings, cx:
             });
             return Err(Exit::Code(ExitCode::InvalidReporterConfiguration));
         }
-        reporters.push(to_reporter_v2(configuration, settings, cx)?);
+        reporters.push((configuration.id.clone(), to_reporter_v2(configuration, settings, cx)?));
     }
-    if let Some(events) = settings.gradle_events {
-        let path = cx.working_dir.resolve(events).map(|p| p.to_path_buf()).unwrap_or_else(|| events.into());
-        let file = File::create(&path).map_err(|e| Exit::Crash(format!("java.io.FileNotFoundException: {events} ({e})")))?;
-        reporters.push(Box::new(GradleEventsReporter::new(file)));
-    }
-    Ok(AggregatedReporter { reporters })
+    Ok(reporters)
 }
 
 fn parse_reporter_configuration(configuration: &str, settings: &ReporterSettings) -> Result<ReporterConfiguration, String> {
@@ -160,10 +173,13 @@ fn to_reporter_v2(configuration: &ReporterConfiguration, settings: &ReporterSett
         None if settings.stdin => Sink::Err(cx.console.clone()),
         None => Sink::Out(cx.console.clone()),
     };
+    let printer = Printer::new(sink);
     let reporter: Box<dyn ReporterV2> = if configuration.id == REPORTER_ID {
-        Box::new(GithubReporter::new(Printer::new(sink), Annotations::from_env(&cx.env.working_dir)))
+        Box::new(GithubReporter::new(printer, Annotations::from_env(&cx.env.working_dir)))
+    } else if settings.library && configuration.id == "sarif" {
+        Box::new(SarifReporter::new(printer, cx.env.user_home.clone(), cx.env.ktlint_release).without_manifest_version())
     } else {
-        get_reporter(&configuration.id, Printer::new(sink), &configuration.additional_config, cx.env)
+        get_reporter(&configuration.id, printer, &configuration.additional_config, cx.env)
             .expect("a built-in reporter id")
             .map_err(Exit::Crash)?
     };
