@@ -51,7 +51,8 @@ scenario() {
       grep -q "^> Task :loadKtlintReporters" "$out/$name/$side/run.txt" || { echo "$name/$side: gradle did not run ($args)" >&2; status=1; }
     done
   done
-  py_ "$here/compare.py" "$out/$name" ${SLASHES:+--slashes} --known "$known" > "$out/$name.diff" || status=1
+  py_ "$here/compare.py" "$out/$name" --plugin-ids io.github.hexay.ktrs.ktlint org.jlleitschuh.gradle.ktlint ${SLASHES:+--slashes} \
+    --known "$known" > "$out/$name.diff" || status=1
   echo "$name: $(tail -1 "$out/$name.diff") ($(wc -l < "$out/$name.diff") diff lines); $(py_ "$here/rows.py" "$out/$name" | head -1)"
 }
 

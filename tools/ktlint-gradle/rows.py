@@ -1,4 +1,5 @@
-"""rows.py <scenario-dir>: the console error rows of both sides as multisets (paths project-relative)."""
+"""rows.py <scenario-dir>: the console error rows of both sides as multisets (paths project-relative): ktlint-gradle's
+`<file>:<line>:<col> <detail>` and kotlinter's `<file>:<line>:<col>: <Lint error|Format fixed|...> > [<rule>] <detail>`."""
 import collections, re, sys
 
 
@@ -6,7 +7,7 @@ def rows(side):
     text = open(f"{sys.argv[1]}/{side}/console.txt", encoding="utf-8", errors="replace").read()
     out = []
     for line in text.splitlines():
-        m = re.search(r"[\\/]project([\\/].*:\d+:\d+ .*)$", line)
+        m = re.search(r"[\\/]project([\\/].*:\d+:\d+:? .*)$", line)
         if m:
             out.append(m.group(1).replace("\\", "/"))
     return out

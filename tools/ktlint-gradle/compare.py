@@ -1,6 +1,7 @@
-"""compare.py <scenario-dir> [--slashes] [--known FILE]: diffs <dir>/{upstream,ktrs}: the console (each run's task blocks and
-failures in a stable order, Gradle noise dropped) and every project file but build caches and intermediates.
---slashes ignores path separators and ANSI colors; --known applies tools/parity/known_diffs.py entries.
+"""compare.py <scenario-dir> --plugin-ids KTRS UPSTREAM [--slashes] [--known FILE]: diffs <dir>/{upstream,ktrs}: the
+console (each run's task blocks and failures in a stable order, Gradle noise dropped) and every project file but build
+caches and intermediates. --plugin-ids: the drop-in's plugin id, read as the upstream one; --slashes ignores path
+separators and ANSI colors; --known applies tools/parity/known_diffs.py entries.
 Exit 1 when anything differs (last line DIFFERENT, else IDENTICAL)."""
 import os, re, sys
 
@@ -10,7 +11,10 @@ from known_diffs import Known, unified
 root = os.path.abspath(sys.argv[1])
 KNOWN = Known(sys.argv[sys.argv.index("--known") + 1] if "--known" in sys.argv else None, os.path.basename(root))
 SLASHES = "--slashes" in sys.argv
-SKIP_DIRS = {".gradle", ".kotlin", "kotlin", "classes", "tmp", "intermediates", "libs", "kotlinToolingMetadata", "problems"}
+KTRS_ID, UPSTREAM_ID = sys.argv[sys.argv.index("--plugin-ids") + 1 :][:2]
+SKIP_DIRS = {".gradle", ".kotlin"}
+# Under a `build` directory only: `src/main/kotlin` is a source directory.
+SKIP_BUILD_DIRS = {"kotlin", "classes", "tmp", "intermediates", "libs", "kotlinToolingMetadata", "resources", "generated"}
 NOISE = re.compile(
     r"(Starting a Gradle Daemon|BUILD (SUCCESSFUL|FAILED) in|\d+ actionable task|Configuration cache|Reusing configuration"
     r"|Calculating task graph|Consider enabling|Daemon will be stopped|Deprecated Gradle|You can use '--warning-mode"
@@ -23,7 +27,7 @@ def norm(text, side):
     for p in (proj, proj.replace("\\", "/"), proj.replace("\\", "\\\\")):
         text = text.replace(p, "<P>")
     # The plugin id is the one thing a drop-in can't share.
-    text = text.replace("plugin 'io.github.hexay.ktrs.ktlint'", "plugin 'org.jlleitschuh.gradle.ktlint'")
+    text = text.replace(f"plugin '{KTRS_ID}'", f"plugin '{UPSTREAM_ID}'")
     text = re.sub(r"([\\/]+)" + side + r"([\\/]+project)", r"\1<side>\2", text)
     if SLASHES:
         text = re.sub(r"\x1b\[\d+m", "", text).replace("\\\\", "/").replace("\\", "/")
@@ -40,7 +44,19 @@ def task_order_free(lines):
         block = []
 
     def drain():
-        out.extend(x for b in sorted(blocks) for x in b)
+        # A task whose output outlives Gradle's grouping window is printed in two blocks, the outcome on the second.
+        by_task, merged = {}, []
+        for b in blocks:
+            task = re.match(r"> Task (\S+)", b[0]) if b else None
+            first = by_task.get(task.group(1)) if task else None
+            if first is None:
+                merged.append(b)
+                if task:
+                    by_task[task.group(1)] = b
+            else:
+                first[0] = max(first[0], b[0], key=len)
+                first.extend(b[1:])
+        out.extend(x for b in sorted(merged) for x in b)
         blocks.clear()
 
     for line in lines:
@@ -58,7 +74,9 @@ def files(side):
     base = os.path.join(root, side, "project")
     result = {}
     for d, dirs, fs in os.walk(base):
-        dirs[:] = [x for x in dirs if x not in SKIP_DIRS]
+        parent = os.path.basename(d)
+        skip = SKIP_DIRS | (SKIP_BUILD_DIRS if parent == "build" else {"problems"} if parent == "reports" else set())
+        dirs[:] = [x for x in dirs if x not in skip]
         for f in fs:
             rel = os.path.relpath(os.path.join(d, f), base).replace("\\", "/")
             if rel not in ("settings.gradle", "build.gradle", "gradle.properties"):
