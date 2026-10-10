@@ -10,7 +10,8 @@ or estimate. Registry checks are direct API calls: `crates.io/api/v1/crates/<n>`
 - Today's crates are published but are implementation crates: the porting scaffolding (`PsiBuilder`, markers, token
   stream patterns) is public, the handle type is `Rc`-based (`!Send`), and nothing a third party needs first exists
   (descendants, ancestors, line/column, error-to-node, edits, names of declarations, CRLF handling, examples).
-- Proposal: one new facade crate, **`kotlin-syntax`** (free on crates.io, npm and PyPI today), over the existing
+- Proposal: one new facade crate, **`kt-syntax`** (proposed as `kotlin-syntax`; renamed after the trademark check,
+  §9, and built, §10), over the existing
   crates, which get documented as unstable internals (the ruff `0.0.x` / `ra_ap_*` model, without renaming them).
 - The flat tree is the asset for bindings. Python: PyO3 handles = `Arc<file>` + `u32`, one abi3 wheel per platform.
   JavaScript: export the five arrays once and navigate in JS with no boundary crossings, so **Wasm first** and napi
@@ -104,8 +105,8 @@ A new facade crate, and the existing crates declared unstable. Reasons:
 | `ktrs` | ours | taken (unrelated, 2015) | free |
 | `ktrs-parser`, `ktrs-syntax` | ours (internals) | `@ktrs/parser`, `@ktrs/syntax` 404 | free |
 
-- Recommended: `kotlin-syntax` on crates.io and PyPI (`import kotlin_syntax`), and on npm either `kotlin-syntax`
-  or `@ktrs/syntax` (§4). It says what it is, and it is findable by someone who has never heard of ktrs.
+- Recommended at the time: `kotlin-syntax` everywhere. **Decided after §9: `kt-syntax`** on crates.io, PyPI
+  (`import kt_syntax`) and npm, described as "a parser for Kotlin". It says what it is, and it is findable by someone who has never heard of ktrs.
 - Reusing `ktrs-parser` would mean breaking it to hide `builder`/`parsing`, and it cannot re-export `ktrs-psi`
   (which depends on it).
 - The Kotlin Foundation's guidelines do not allow it as worded: see "Phase 0 results". `tree-sitter-kotlin` and
@@ -168,7 +169,7 @@ pub fn apply_edits(text: &str, edits: Vec<TextEdit>) -> Result<String, Overlappi
 impl SyntaxKind { pub fn name(self) -> &'static str; pub fn from_name(s: &str) -> Option<SyntaxKind>; }
 ```
 
-Typed layer, phase 2: `kotlin_syntax::psi`, with the compiler's class and accessor names (`KtNamedFunction`,
+Typed layer, phase 2: `kt_syntax::psi`, with the compiler's class and accessor names (`KtNamedFunction`,
 `value_parameters`), over `Node<'a>`. Two ways to get it:
 
 1. Re-use `ktrs-psi`. Needs `PsiElement` to be constructible from the facade's file, so `Rc<Tree>` must become
@@ -185,7 +186,7 @@ Not in v1: the mutable arena, fragment parsers, `ChameleonCache`, a query langua
 
 ### Stability policy
 
-- Semver-stable: everything in `kotlin-syntax`'s root and `psi` modules. The `ktrs-*` crates say "internal, any
+- Semver-stable: everything in `kt-syntax`'s root and `psi` modules. The `ktrs-*` crates say "internal, any
   release may break" in a README and their crate docs.
 - Version: the workspace version (release.yml rejects a tag that disagrees, and one number is what the release
   process can carry). While 0.x, a breaking facade change is a minor bump.
@@ -225,12 +226,12 @@ Not in v1: the mutable arena, fragment parsers, `ChameleonCache`, a query langua
   `walk()` returning a cursor that moves in place (py-tree-sitter's `TreeCursor`).
 - I: PyO3 call overhead is tens of ns (PyO3 issue 3787), so a full walk of a 100k-element file through per-node
   calls is in the 10 to 50 ms range. That is why the bulk paths exist.
-- Panics are caught at the boundary and raised as `kotlin_syntax.InternalError`.
+- Panics are caught at the boundary and raised as `kt_syntax.InternalError`.
 
 ### API sketch
 
 ```python
-import kotlin_syntax as ks
+import kt_syntax as ks
 
 tree = ks.parse(source)                    # ks.parse(source, script=True); ks.parse_file(path)
 tree.kotlin_version                        # "2.4.20"
@@ -259,7 +260,7 @@ new_source = tree.apply_edits(edits)       # raises on overlap; reparse to conti
 
 ### Packaging and CI
 
-- Layout: `bindings/python/{pyproject.toml, Cargo.toml, src/, python/kotlin_syntax/, tests/}` as its own cargo
+- Layout: `bindings/python/{pyproject.toml, Cargo.toml, src/, python/kt_syntax/, tests/}` as its own cargo
   workspace, excluded from the root one (`fuzz/` is the precedent). This keeps `cargo test --workspace` and the
   manual `cargo publish --workspace` unchanged, and the box never compiles PyO3.
 - The root `pyproject.toml` is untouched: it is the `ktrs-launcher` package that pre-commit installs from the
@@ -335,8 +336,8 @@ export function is<K extends SyntaxKind>(node: Node, kind: K): node is NodeOf<K>
 
 - F: `@ktrs/cli` and every `@ktrs/*` name return 404 today, so the scope either does not exist or is empty. Check
   the org and `NPM_TOKEN` before anything else; this affects the existing npm job too.
-- Name: `@ktrs/syntax` next to `@ktrs/cli` keeps one scope and one token. Unscoped `kotlin-syntax` (free) is more
-  findable and matches the crate and PyPI. Recommended: publish `kotlin-syntax` unscoped; a future native add-on
+- Name: `@ktrs/syntax` next to `@ktrs/cli` keeps one scope and one token. Unscoped `kt-syntax` (free) matches
+  the crate and PyPI. Decided: publish `kt-syntax` unscoped; a future native add-on
   would be `@ktrs/syntax-<os>-<cpu>` optional dependencies, the same shape as `@ktrs/cli-*`.
 - Source in `npm/syntax/` (JS glue, `package.json` at `0.0.0`, tests), crate in `bindings/wasm/` (own workspace,
   `--profile wasm` settings copied: `panic = "abort"`, `strip`). `ktrs-wasm` stays the playground's formatter module.
@@ -397,7 +398,7 @@ So the pitch is "the Kotlin compiler's parser without a JVM, for tools that need
   PyPI problem cannot block the GitHub release (the npm job already works this way).
 - `npm` job: add a Rust install and the Wasm build before `package-npm.mjs`; the publish loop gets one more
   directory. Still gated on `NPM_TOKEN`.
-- crates.io stays manual. `kotlin-syntax` lives in `crates/` and goes out with
+- crates.io stays manual. `kt-syntax` lives in `crates/` and goes out with
   `cargo publish --workspace --exclude ktrs-wasm --exclude xtask`; the bindings are separate workspaces and are
   never in that command.
 - ci.yml: one job each for `bindings/python` (maturin develop + pytest on Linux) and `npm/syntax` (Wasm build +
@@ -427,7 +428,7 @@ So the pitch is "the Kotlin compiler's parser without a JVM, for tools that need
 | Phase | Content | Size |
 |---|---|---|
 | 0 | Owner decisions (§8). Measure `Rc` to `Arc` on the fmt bench (testbox). Check the `@ktrs` npm org and token. Register the names. | S, 1 day |
-| 1 | `crates/kotlin-syntax`: `SourceFile`, `Node`, iterators, `LineIndex`, errors indexed by element, `TextEdit`/`apply_edits`, CRLF/BOM entry, `#[non_exhaustive]` kinds via xtask, README, five examples (metrics, find calls, lint script, codemod, KDoc extraction), semver-checks in CI. "Internal" notes on the `ktrs-*` crates. | M, 4 to 6 days |
+| 1 (done, §10) | `crates/kt-syntax`: `SourceFile`, `Node`, iterators, `LineIndex`, errors indexed by element, `TextEdit`/`apply_edits`, CRLF/BOM entry, `#[non_exhaustive]` kinds via xtask, README, five examples (metrics, find calls, lint script, codemod, KDoc extraction), semver-checks in CI. "Internal" notes on the `ktrs-*` crates. | M, 4 to 6 days |
 | 2 | Typed layer: the accessor table and its codegen, `psi` module, additions beyond ktfmt's scope (`name`, `doc_comment`, modifiers) with JVM oracle rows first. | M to L, 5 to 8 days |
 | 3 | Python: PyO3 crate, generated classes and `.pyi`, pure-Python visitor/transformer, pytest conformance, wheel workflow. | M, 4 to 6 days |
 | 4 | JavaScript: Wasm crate, JS navigation and glue, generated `.d.ts`, conformance, `package-npm.mjs` extension. | M, 4 to 6 days |
@@ -441,7 +442,7 @@ Phases 3 and 4 are independent after 1. Phase 2 can trail them: the first Python
 | # | Decision | Recommendation |
 |---|---|---|
 | 1 | Facade crate or stabilize the existing crates | New facade crate; mark `ktrs-*` as internal. |
-| 2 | Name | `kotlin-syntax` on crates.io, PyPI and npm (all free today). Check the Kotlin trademark guidelines first; fall back to `ktrs-kotlin` / `@ktrs/syntax`. Register `ktrs` on PyPI for a future CLI package. Checked: the guidelines conflict with `kotlin-syntax` (§9); needs a new owner call. |
+| 2 | Name | `kotlin-syntax` on crates.io, PyPI and npm (all free today). Check the Kotlin trademark guidelines first; fall back to `ktrs-kotlin` / `@ktrs/syntax`. Register `ktrs` on PyPI for a future CLI package. Checked: the guidelines conflict with `kotlin-syntax` (§9). **Decided: `kt-syntax`** on all three registries. |
 | 3 | Versioning | Share the workspace version; breaking facade changes are minor bumps while 0.x; kinds stable by name, `#[non_exhaustive]`, pin bumps that only add kinds are minor. |
 | 4 | Typed layer | Reuse `ktrs-psi` through `Arc<Tree>` if the bench cost is under 1%, otherwise a generated layer. Either way one accessor table drives Rust, `.pyi` and `.d.ts`. Measured 4.5% (§9): generated layer. |
 | 5 | Mutation | Text edits only in v1. Keep `ktrs-ast` internal. |
@@ -449,9 +450,8 @@ Phases 3 and 4 are independent after 1. Phase 2 can trail them: the first Python
 | 7 | JavaScript route | Wasm only for v1, flat arrays read in JS; napi later only if Wasm parse is under half of native and someone needs it. |
 | 8 | Python wheels and publishing | abi3-py39, eight wheels + sdist, own workspace under `bindings/python`, root `pyproject.toml` untouched, Trusted Publishing gated on a repository variable. Free-threaded wheels on request. |
 
-Open items that are not decisions: whether the `@ktrs` npm scope exists and why `@ktrs/cli` is absent; how
-`MissedTokens` should appear in the facade (the tree omits those tokens, so the "tokens spell the input" guarantee
-needs its exact wording); Wasm parse throughput and artifact sizes.
+Open items that are not decisions: whether the `@ktrs` npm scope exists and why `@ktrs/cli` is absent; Wasm parse
+throughput and artifact sizes. (`MissedTokens` and deep nesting: resolved in §10.)
 
 ## 9. Phase 0 results (2026-10-09, at be448f2)
 
@@ -522,8 +522,61 @@ The parser is recursive descent and aborts the process ("thread 'main' has overf
 Nested lambdas against the stack size (`ulimit -s`): 1 MB (Windows main thread) fine at 1000, overflow at 2000;
 2 MB (Rust's default for spawned threads) fine at 2000, overflow at 3000. About 0.5 to 1 KB of stack per level.
 
-Proposal for the facade entry (unbuilt): run the parse with a known stack (`stacker::maybe_grow` or a scoped
-thread with an explicit size) so the limit is the same on every platform and thread, and refuse input whose
-bracket depth, counted on the token stream, exceeds a documented maximum with an error instead of aborting. The
-parser and its output stay untouched. Bindings need this before anything else: an abort kills the Python
-interpreter or traps the Wasm instance.
+Bindings need a guard before anything else: an abort kills the Python interpreter or traps the Wasm instance.
+Built in phase 1 (§10).
+
+## 10. Phase 1 as built (2026-10-10): `crates/kt-syntax`
+
+Owner decision after §9: the crate is `kt-syntax`, described as "a parser for Kotlin"; PyPI and npm follow.
+
+### What differs from the sketch in §2
+
+- `parse` and `parse_script` return `Result<SourceFile, ParseError>`. Syntax errors never fail a parse; the three
+  errors are `TooDeeplyNested`, `TooLarge` (4 GiB) and `TokensNotInserted`.
+- `SyntaxKind` is an opaque `Copy` struct with one associated constant per kind (generated by `cargo xtask codegen`
+  into `kt-syntax/src/generated/kinds.rs`), not a `#[non_exhaustive]` enum. Constants work in patterns, a `match`
+  needs a wildcard, no number is exposed, and the internal enum is not in the public API. `name`/`from_name`/`all`.
+- The line index is built with the tree, not on first use: a `OnceLock` in `SourceFile` made clippy flag
+  `HashSet<Node>` (`mutable_key_type`).
+- Position and range queries return `Option` instead of panicking. `covering` returns `Option<Node>`.
+- Added: `had_bom`/`had_crlf` (a codemod can restore what the entry normalized), `Node::comments`, `doc_comment`,
+  `leading_comments`, `insert_before`/`insert_after`, `preorder` with `skip_subtree` in place of a `walk` callback.
+- No `workspace.dependencies` entry: nothing in the workspace depends on the crate and cargo warns about an unused
+  one. It takes `version.workspace` and goes out with `cargo publish --workspace` like the others.
+
+### Open points resolved
+
+- **`MissedTokens`.** The tree of such a parse leaves tokens out, so its text is not the input and every offset
+  after the gap is wrong for edits. The facade returns `ParseError::TokensNotInserted { tokens }` (Display is
+  IntelliJ's message). The guarantee is therefore unconditional: for every `SourceFile`, the tokens in order spell
+  `text()`, which is the input minus a BOM, with `\r\n` as `\n`. No fixture and no corpus file is refused.
+- **Deep nesting.** `MAX_NESTING_DEPTH = 1000` open `(`, `[`, `{`, `${`. The count is exact, on the lexer's tokens,
+  with a typed stack (a closer that does not match stays open, since recovery may skip it); files with at most 1000
+  opening-bracket bytes skip the lexer pass. The parser then runs under `stacker::maybe_grow` with a budget of
+  `max((depth + 32) * 8 KiB, len * 256 B)`, capped at 256 MiB (64 MiB on 32-bit); debug builds use 64 KiB and
+  2 KiB. It runs on the caller's stack when that much is left and on a fresh one otherwise. The per-byte term is
+  for recursion that opens no bracket.
+- Tested on 256 KiB threads, debug and `--profile ci` (`tests/nesting.rs`): ten bracket shapes at depth 1000 give
+  the same dump as the unguarded parser on a 512 MiB stack; depth 1001 and a million `(` give the error; eleven
+  bracket-free chains (3000 `else if`, 3000 `List<`, 60000 prefix operators, ..) parse.
+- **Not covered:** parse time. Parenthesized function types, `((Int) -> Unit) -> Unit`, nested 1000 deep did not
+  finish in 40 minutes (the test shape was dropped). This is the parser's own behaviour (research/24 finding 1),
+  and the depth limit does not bound it. The per-byte stack term is an estimate checked on the shapes above, not
+  a proof for every grammar path. `stacker` on Wasm is unverified (phase 4).
+
+### Cost of the entry point
+
+`cargo run -p kt-syntax --release --example entry_cost corpus 5` on the testbox (6123 files, 30.8 MB, 0 refused):
+`kt_syntax::parse` = 1.073, 1.075, 1.073 `parse_file`s (37.5 MB/s against 40.7). About 5 points are the guard's
+lexer pass and error indexing, 2 the line index. Handing the guard's tokens to the parser would remove most of it.
+
+### Verification (testbox, 2026-10-10)
+
+- `cargo test -p kt-syntax` and `cargo test --profile ci -p kt-syntax`: 21 unit, 16 API, 2 fixture, 4 nesting,
+  3 example tests and 9 doctests (README included) pass in both.
+- `tests/fixtures.rs`: the facade's dump, written against its public navigation only, equals `psi_dump` on every
+  fixture and the compiler's `.txt` for every entry of ktrs-parser's `passing.txt`; tree invariants hold on all.
+- `cargo +stable clippy -p kt-syntax --all-targets` and `RUSTDOCFLAGS="-D warnings" cargo doc -p kt-syntax`: clean.
+- `cargo publish --dry-run -p ktrs-syntax -p ktrs-lexer -p ktrs-parser -p kt-syntax`: packages and verifies.
+- Examples over the corpus: `missing_kdoc` 20044 findings, `rename_call println printLine` 735 calls.
+- Not run: Windows and macOS (CI will), `cargo semver-checks` (nothing released to compare with), the fuzz target.

@@ -407,6 +407,32 @@ reviewdog matches none of them.
   `--reporter=checkstyle,output=ktlint.xml` or `--reporter=sarif,output=ktlint.sarif`.
 - Checkstyle plugins (danger-checkstyle_format, danger-plugin-lint-report) read the `ktlint.xml` above.
 
+## Use the parser as a library
+
+The parser is available on its own as the Rust crate [`kt-syntax`](crates/kt-syntax): a parser for
+Kotlin that builds the compiler's PSI tree (same kinds, same nesting, same error elements) with no JVM.
+It gives you navigation, byte ranges and line/column positions, syntax errors as nodes, comments and
+parsed KDoc, and text edits for codemods.
+
+```rust
+use kt_syntax::{SyntaxKind, parse};
+
+let file = parse("fun old() = 1\nval x = old()\n").unwrap();
+for function in file.root().find_all(&[SyntaxKind::FUN]) {
+    let name = function.child(SyntaxKind::IDENTIFIER).unwrap();
+    println!("{} at {:?}, documented: {}", name.text(), name.range(), function.doc_comment().is_some());
+}
+
+// Edits are text edits: collect them, apply them, get the new source.
+let calls = file.root().find_all(&[SyntaxKind::CALL_EXPRESSION]);
+let edits = calls.filter_map(|call| call.first_child()).map(|callee| callee.replace("new"));
+assert_eq!(file.apply_edits(edits).unwrap(), "fun old() = 1\nval x = new()\n");
+```
+
+`kt-syntax` is the stable API. The `ktrs-*` crates on crates.io are the internals of this repository
+and can change in any release. More in the crate's [README](crates/kt-syntax/README.md), with two
+runnable examples: a lint (`examples/missing_kdoc.rs`) and a codemod (`examples/rename_call.rs`).
+
 ## Performance
 
 Each tool is run from the command line the way users run it: same flags, same files, identical

@@ -72,7 +72,9 @@ Milestone 1: the parser's tree must be identical to the Kotlin compiler's PSI (`
   (`UPDATE_MIGRATED=1` rewrites `tests/fixtures/migrated/`), CLI `cargo test -p ktrs-cli --test ktrs_migrate`.
 - `tools/psi-accessors/psi-accessors.sh` — JVM oracle for ktrs-psi (`one|hashes|dump <dir> [--fixture] [--script]`);
   Rust mirror: `cargo run -p ktrs-psi --release --example psi_accessors -- one|hashes|compare|dump ...`.
-- `xtask` — `cargo xtask codegen` regenerates `ktrs-syntax/src/generated/kinds.rs` from `kinds.tsv`.
+- `crates/kt-syntax` — the public parser library (the only crate with a stable API; `ktrs-*` are internals): facade
+  over syntax/lexer/parser, design and limits research/36. Tests `cargo test -p kt-syntax` (dump == `psi_dump` on the fixtures).
+- `xtask` — `cargo xtask codegen` regenerates `ktrs-syntax/src/generated/kinds.rs` and `kt-syntax`'s from `kinds.tsv`.
 - `tools/psi-dump/psi-dump.sh` — JVM oracle on the pinned compiler: `one <file>`, `tree <in> <out>`, `kinds`,
   `bench <dir> <warmup> <reps>` (warm single-thread baseline to compare with the ktrs `bench` example).
 - `tools/sync-kotlin.sh` — sparse-checks-out the pinned Kotlin sources to `third_party/kotlin` (gitignored)
