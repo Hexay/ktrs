@@ -331,7 +331,8 @@ resetting KtLint caches" is still logged at info, with nothing to reset.
 ## 10. Verification (testbox, 2026-10-10)
 
 - `cargo test -p ktrs-cli`: all pass. `cargo test -p ktrs-project --test migrate`: 15 pass, `UPDATE_MIGRATED=1` leaves
-  the committed `migrated/` trees unchanged. `--test gradle`: see open items.
+  the committed `migrated/` trees unchanged. `cargo test -p ktrs-project`: all pass (but see open items). Rerun after
+  the rebase onto master 53a27d2, with the plugin tests and the sample scenarios.
 - `java/gradlew -p java :ktrs-gradle-plugin:test`: 229 tests, 0 failed, 1 skipped (53 of them the kotlinter port, Android
   classes included, with an empty `ANDROID_HOME`).
 - `tools/kotlinter/parity.sh`: lint-all, lint-ignored, format, format-strict, custom-tasks, parse-error, editorconfig,
@@ -350,6 +351,7 @@ Open items:
 - kotlinter's `test-project-android` and `-no-kotlin-plugin`: covered by the android and custom-tasks samples only.
 - Windows and macOS parity runs; ktlint `2.0.0-ALPHA-4` under the plugin beyond `KtlintVersionTest`; a rule exception
   (only parse errors were provoked); a real project with lint errors (the pinned ones are clean, realcode stands in).
-- `cargo test -p ktrs-project --test gradle` fails one old test (`binary_convention_plugin_with_helper_function`) when
-  the checkout sits under a directory named `src`, as the testbox copy did.
+- `cargo test -p ktrs-project --test gradle` fails one old test (`binary_convention_plugin_with_helper_function`,
+  detection returns nothing) when the checkout sits in a directory named `src`; the same tree passes from a directory
+  named otherwise. Not looked into.
 - Plugin Portal behaviour for an upload that adds an id (D10).

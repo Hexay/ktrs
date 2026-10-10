@@ -18,7 +18,7 @@ SKIP_BUILD_DIRS = {"kotlin", "classes", "tmp", "intermediates", "libs", "kotlinT
 NOISE = re.compile(
     r"(Starting a Gradle Daemon|BUILD (SUCCESSFUL|FAILED) in|\d+ actionable task|Configuration cache|Reusing configuration"
     r"|Calculating task graph|Consider enabling|Daemon will be stopped|Deprecated Gradle|You can use '--warning-mode"
-    r"|For more on this|See https://docs.gradle.org|w: |Fetching distribution|Downloading https://services\.gradle\.org/|\.+10%|\[Incubating\] Problems report|> Configure project )"
+    r"|For more on this|See https://docs.gradle.org|w: |Fetching distribution|Downloading https://services\.gradle\.org/|\.+10%|\[Incubating\] Problems report|> Configure project |Caught exception: Already watching path: )"
 )
 # A build's own compile tasks (buildSrc, a rule set project) hit the build cache on whichever side runs second.
 COMPILE_FROM_CACHE = re.compile(r"^(> Task \S*:compile\w+) FROM-CACHE$")
