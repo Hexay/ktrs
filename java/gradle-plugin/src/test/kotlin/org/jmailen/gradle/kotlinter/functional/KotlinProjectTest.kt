@@ -1,0 +1,238 @@
+package org.jmailen.gradle.kotlinter.functional
+
+import java.io.File
+import org.gradle.testkit.runner.TaskOutcome.FAILED
+import org.gradle.testkit.runner.TaskOutcome.SUCCESS
+import org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
+import org.jmailen.gradle.kotlinter.functional.utils.PLUGIN_ID
+import org.jmailen.gradle.kotlinter.functional.utils.editorConfig
+import org.jmailen.gradle.kotlinter.functional.utils.partlyFixableKotlinClass
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+
+internal class KotlinProjectTest : WithGradleTest.Kotlin() {
+
+    private lateinit var settingsFile: File
+    private lateinit var buildFile: File
+    private lateinit var sourceDir: File
+    private lateinit var editorconfigFile: File
+    private val pathPattern = "(.*\\.kt):\\d+:\\d+".toRegex()
+
+    @BeforeEach
+    fun setup() {
+        settingsFile = testProjectDir.resolve("settings.gradle")
+        buildFile = testProjectDir.resolve("build.gradle")
+        sourceDir = testProjectDir.resolve("src/main/kotlin/").also(File::mkdirs)
+        editorconfigFile = testProjectDir.resolve(".editorconfig")
+    }
+
+    @Test
+    fun `lintKotlinMain fails when lint errors detected`() {
+        settingsFile()
+        buildFile()
+
+        val className = "KotlinClass"
+        kotlinSourceFile(
+            "$className.kt",
+            """
+            class $className {
+                private fun hi(){
+                    println ("hi")
+                }
+            }
+
+            """.trimIndent(),
+        )
+
+        buildAndFail("lintKotlinMain").apply {
+            assertTrue(output.contains("$className.kt:2:21: Lint error > [standard:curly-spacing] Missing spacing before"))
+            assertTrue(output.contains("$className.kt:3:16: Lint error > [standard:paren-spacing] Unexpected spacing before"))
+            output.lines().filter { it.contains("Lint error") }.forEach { line ->
+                val filePath = pathPattern.find(line)?.groups?.get(1)?.value.orEmpty()
+                assertTrue(File(filePath).exists())
+            }
+            assertEquals(FAILED, task(":lintKotlinMain")?.outcome)
+        }
+    }
+
+    @Test
+    fun `lintKotlinMain reports file path when Kotlin parsing fails`() {
+        settingsFile()
+        buildFile()
+
+        val sourceFile = kotlinSourceFile("BrokenKotlinClass.kt", brokenKotlinClass)
+
+        buildAndFail("lintKotlinMain").apply {
+            assertTrue(output.contains("lint worker execution error while processing ${sourceFile.canonicalPath}"))
+            assertTrue(output.contains("Expecting property name or receiver type"))
+            assertEquals(FAILED, task(":lintKotlinMain")?.outcome)
+        }
+    }
+
+    @Test
+    fun `lintKotlinMain succeeds when no lint errors detected`() {
+        settingsFile()
+        buildFile()
+        kotlinSourceFile(
+            "KotlinClass.kt",
+            """
+            class KotlinClass {
+                private fun hi() {
+                    println("hi")
+                }
+            }
+
+            """.trimIndent(),
+        )
+
+        build("lintKotlinMain").apply { assertEquals(SUCCESS, task(":lintKotlinMain")?.outcome) }
+    }
+
+    @Test
+    fun `formatKotlin reports formatted and unformatted files`() {
+        settingsFile()
+        buildFile()
+        kotlinSourceFile("KotlinClass.kt", partlyFixableKotlinClass("KotlinClass"))
+
+        build("formatKotlin").apply {
+            assertEquals(SUCCESS, task(":formatKotlinMain")?.outcome)
+            output.lines().filter { it.contains("Format could not fix") }.forEach { line ->
+                val filePath = pathPattern.find(line)?.groups?.get(1)?.value.orEmpty()
+                assertTrue(File(filePath).exists())
+            }
+        }
+    }
+
+    @Test
+    fun `formatKotlin reports file path when Kotlin parsing fails`() {
+        settingsFile()
+        buildFile()
+
+        val sourceFile = kotlinSourceFile("BrokenKotlinClass.kt", brokenKotlinClass)
+
+        buildAndFail("formatKotlin").apply {
+            assertTrue(output.contains("format worker execution error while processing ${sourceFile.canonicalPath}"))
+            assertTrue(output.contains("Expecting property name or receiver type"))
+            assertEquals(FAILED, task(":formatKotlinMain")?.outcome)
+        }
+    }
+
+    @Test
+    fun `formatKotlin fails when lint errors not automatically fixed and ignoreFormatFailures false`() {
+        settingsFile()
+        buildFileIgnoreFormatFailuresFalse()
+        kotlinSourceFile("KotlinClass.kt", partlyFixableKotlinClass("KotlinClass"))
+
+        buildAndFail("formatKotlin").apply {
+            assertEquals(FAILED, task(":formatKotlinMain")?.outcome)
+            output.lines().filter { it.contains("Format could not fix") }.forEach { line ->
+                val filePath = pathPattern.find(line)?.groups?.get(1)?.value.orEmpty()
+                assertTrue(File(filePath).exists())
+            }
+        }
+    }
+
+    @Test
+    fun `check task runs lintFormat`() {
+        settingsFile()
+        buildFile()
+        kotlinSourceFile("CustomObject.kt", "object CustomObject\n")
+
+        build("check").apply { assertEquals(SUCCESS, task(":lintKotlin")?.outcome) }
+    }
+
+    @Test
+    fun `tasks up-to-date checks`() {
+        settingsFile()
+        buildFile()
+        editorConfig()
+        kotlinSourceFile("CustomObject.kt", "object CustomObject\n")
+
+        build("lintKotlin").apply { assertEquals(SUCCESS, task(":lintKotlin")?.outcome) }
+        build("lintKotlin").apply { assertEquals(UP_TO_DATE, task(":lintKotlin")?.outcome) }
+
+        build("formatKotlin").apply { assertEquals(SUCCESS, task(":formatKotlin")?.outcome) }
+        build("formatKotlin").apply { assertEquals(SUCCESS, task(":formatKotlin")?.outcome) }
+
+        editorconfigFile.appendText("content=updated")
+        build("lintKotlin").apply { assertEquals(SUCCESS, task(":lintKotlin")?.outcome) }
+        build("lintKotlin").apply { assertEquals(UP_TO_DATE, task(":lintKotlin")?.outcome) }
+    }
+
+    @Test
+    fun `plugin is compatible with configuration cache`() {
+        settingsFile()
+        buildFile()
+        kotlinSourceFile("CustomObject.kt", "object CustomObject\n")
+
+        build("lintKotlin", "--configuration-cache").apply {
+            assertEquals(SUCCESS, task(":lintKotlin")?.outcome)
+            assertTrue(output.contains("Configuration cache entry stored"))
+        }
+        build("lintKotlin", "--configuration-cache").apply {
+            assertEquals(UP_TO_DATE, task(":lintKotlin")?.outcome)
+            assertTrue(output.contains("Configuration cache entry reused."))
+        }
+
+        build("formatKotlin", "--configuration-cache").apply {
+            assertEquals(SUCCESS, task(":formatKotlin")?.outcome)
+            assertTrue(output.contains("Configuration cache entry stored"))
+        }
+        build("formatKotlin", "--configuration-cache").apply {
+            assertEquals(SUCCESS, task(":formatKotlin")?.outcome)
+            assertTrue(output.contains("Configuration cache entry reused."))
+        }
+    }
+
+    private fun settingsFile() = settingsFile.apply { writeText("rootProject.name = 'kotlinter'") }
+
+    private fun editorConfig() = editorconfigFile.apply { writeText(editorConfig) }
+
+    private fun buildFile() =
+        buildFile.apply {
+            val buildscript =
+                """
+                plugins {
+                    id 'org.jetbrains.kotlin.jvm'
+                    id '$PLUGIN_ID'
+                }
+
+                repositories {
+                    mavenCentral()
+                }
+                """.trimIndent()
+            writeText(buildscript)
+        }
+
+    private fun buildFileIgnoreFormatFailuresFalse() =
+        buildFile.apply {
+            val buildscript =
+                """
+                plugins {
+                    id 'org.jetbrains.kotlin.jvm'
+                    id '$PLUGIN_ID'
+                }
+
+                repositories {
+                    mavenCentral()
+                }
+
+                kotlinter {
+                    ignoreFormatFailures = false
+                }
+                """.trimIndent()
+            writeText(buildscript)
+        }
+
+    private fun kotlinSourceFile(name: String, content: String) = File(sourceDir, name).apply { writeText(content) }
+
+    private val brokenKotlinClass =
+        """
+        class BrokenKotlinClass {
+            private val =
+        }
+
+        """.trimIndent()
+}

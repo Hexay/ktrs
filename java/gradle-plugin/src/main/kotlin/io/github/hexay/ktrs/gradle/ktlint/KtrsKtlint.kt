@@ -20,10 +20,14 @@ internal class KtrsKtlint(
     private val debug: Boolean,
 ) {
 
-    /** Runs `ktrs ktlint <options> <files>`; returns the exit code: 0, or 1 for lint errors. */
-    fun run(options: List<String>, files: Collection<File>): Int {
-        // Without file arguments ktlint lints the working directory's default patterns.
-        require(files.isNotEmpty()) { "no files to lint" }
+    /**
+     * Runs `ktrs ktlint <options> <files>`; returns the exit code: 0, or 1 for lint errors.
+     *
+     * @param allowNoFiles for options under which ktlint does not lint the working directory's default patterns
+     *   when it gets no file arguments
+     */
+    fun run(options: List<String>, files: Collection<File>, allowNoFiles: Boolean = false): Int {
+        require(allowNoFiles || files.isNotEmpty()) { "no files to lint" }
         val command = listOf(binary(), "ktlint") + options + fileArguments(files)
         log("Running ${command.joinToString(" ")}")
         val process =

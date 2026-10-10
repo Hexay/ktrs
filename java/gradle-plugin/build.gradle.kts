@@ -3,8 +3,9 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
 // `io.github.hexay.ktrs`: a drop-in for cortinico's ktfmt-gradle 0.27.0 that formats through the
-// root project's `ktrs serve` wrapper (as ktfmt 0.65; that plugin release bundles 0.64); `io.github.hexay.ktrs.ktlint`: a drop-in for JLLeitschuh's
-// ktlint-gradle 14.2.0 over `ktrs ktlint`. Tests: `cargo build --bins`, then `java/gradlew -p java :ktrs-gradle-plugin:test`.
+// root project's `ktrs serve` wrapper (as ktfmt 0.65; that plugin release bundles 0.64); `io.github.hexay.ktrs.ktlint`: a drop-in
+// for JLLeitschuh's ktlint-gradle 14.2.0 over `ktrs ktlint`; `io.github.hexay.ktrs.kotlinter`: a drop-in for kotlinter-gradle
+// 5.7.0 over the same. Tests: `cargo build --bins`, then `java/gradlew -p java :ktrs-gradle-plugin:test`.
 plugins {
     kotlin("jvm") version "2.4.10"
     `java-gradle-plugin`
@@ -81,6 +82,15 @@ gradlePlugin {
             description = "Drop-in replacement for org.jlleitschuh.gradle.ktlint 14.2.0: same DSL, tasks and " +
                 "reports, linting through ktrs, a native port of ktlint 1.8.0 and 2.0.0-ALPHA-4."
             tags = listOf("kotlin", "ktlint", "linter", "formatter")
+            compatibility { features { configurationCache = true } }
+        }
+        create("ktrsKotlinter") {
+            id = "io.github.hexay.ktrs.kotlinter"
+            implementationClass = "org.jmailen.gradle.kotlinter.KotlinterPlugin"
+            displayName = "ktrs kotlinter (kotlinter-gradle drop-in)"
+            description = "Drop-in replacement for org.jmailen.kotlinter 5.7.0: same DSL, tasks and reports, " +
+                "linting through ktrs, a native port of ktlint 1.8.0 and 2.0.0-ALPHA-4."
+            tags = listOf("kotlin", "ktlint", "kotlinter", "linter", "formatter")
             compatibility { features { configurationCache = true } }
         }
     }

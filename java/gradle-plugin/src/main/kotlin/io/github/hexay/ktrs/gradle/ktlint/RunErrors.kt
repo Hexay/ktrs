@@ -41,13 +41,16 @@ internal object RunErrors {
         else readJson(lines).map { it.file }.distinct()
     }
 
-    private fun isEvents(lines: List<String>) = lines.firstOrNull()?.startsWith(EVENTS_HEADER) == true
+    fun isEvents(lines: List<String>) = lines.firstOrNull()?.startsWith(EVENTS_HEADER) == true
 
     private fun readEvents(lines: List<String>): List<ReportedError> =
-        lines.filter { it.startsWith("error\t") }.map { line ->
-            val f = line.split('\t', limit = 8)
-            ReportedError(f[1], f[2].toInt(), f[3].toInt(), unescape(f[7]), f[4], f[5], f[6].toBoolean())
-        }
+        lines.filter { it.startsWith("error\t") }.map(::eventError)
+
+    /** The error of an events file's `error` line. */
+    fun eventError(line: String): ReportedError {
+        val f = line.split('\t', limit = 8)
+        return ReportedError(f[1], f[2].toInt(), f[3].toInt(), unescape(f[7]), f[4], f[5], f[6].toBoolean())
+    }
 
     /** ktlint's `json` reporter layout is fixed: one `"key": value` per line. */
     private fun readJson(lines: List<String>): List<ReportedError> {
