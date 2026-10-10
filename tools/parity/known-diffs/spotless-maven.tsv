@@ -1,5 +1,9 @@
 # tools/spotless-maven/parity.sh: stock spotless-maven-plugin <ktlint>/<ktfmt> (upstream) vs the ktrs implementation=
 # swap (ktrs). Format: tools/parity/known_diffs.py.
+# ktfmt scenarios: no entries. Stock <ktfmt> can only run ktfmt 0.64 (com.facebook:ktfmt:jar:0.65 does not exist) and
+# ktrs formats as 0.65, so parity.sh compares the applied sources with the ktfmt 0.65 jar's instead; the console
+# (exit codes, Spotless's messages) is still stock's and matches. Stock 0.64 vs 0.65 on real-ktfmt (2026-10-10): 4 of
+# 152 files, each one trailing comma after a single parameter or argument on its own line (ktfmt #461).
 # real-compose: stock <ktlint> logs ktlint's "Format was not able to resolve all violations" WARN for each file it
 # can't fully fix, once per format pass; KtrsKtlint does not log it (the applied sources and the check failure match).
 real-compose	console.txt	upstream-only	^\[WARNING\] Format was not able to resolve all violations which \(theoretically\) can be autocorrected in file 

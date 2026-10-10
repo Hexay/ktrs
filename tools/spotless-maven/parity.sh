@@ -42,15 +42,24 @@ ktfmt_reference() {
       ec=$'max_line_length = 120\nindent_size = 4\nij_continuation_indent_size = 4\nktfmt_trailing_comma_management_strategy = only_add' ;;
     ktfmt-commas) flags=--kotlinlang-style ec='ktfmt_trailing_comma_management_strategy = none' ;;
   esac
-  [[ -n $ktfmt_jar ]] || { echo "no ktfmt jar: run tools/sync-ktfmt.sh" >&2; exit 2; }
+  if [[ -z $ktfmt_jar ]]; then
+    "$root/tools/sync-ktfmt.sh" >&2 || exit 2
+    ktfmt_jar=$(ls "$root"/tools/ktfmt-oracle/lib/ktfmt-*-with-dependencies.jar | head -1)
+  fi
   rm -rf "$2"; mkdir -p "$2"
   sources "$1" "$2"
   if [[ -n $ec ]]; then
     printf 'root = true\n[*.kt]\n%s\n' "$ec" > "$2/.editorconfig"
     flags+=" --enable-editorconfig"
   fi
-  # shellcheck disable=SC2086
-  (cd "$2" && "$JAVA_HOME/bin/java" -Xss64m -jar "$ktfmt_jar" $flags --quiet src) > "$2/../ktfmt.txt" 2>&1
+  # Until nothing changes: Spotless re-applies a step whose output isn't a fixed point (its PaddedCell), and ktfmt
+  # has such inputs (okhttp's HttpUrl.kt: a KDoc table after a list item).
+  local pass
+  for pass in 1 2 3 4 5; do
+    # shellcheck disable=SC2086
+    (cd "$2" && "$JAVA_HOME/bin/java" -Xss64m -jar "$ktfmt_jar" $flags --quiet --set-exit-if-changed src) \
+      >> "$2/../ktfmt.txt" 2>&1 && break
+  done
   return 0
 }
 
