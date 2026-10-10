@@ -95,13 +95,13 @@ fn spotless(doc: &mut Doc, plugin: &El, src: &str, props: &HashMap<String, Strin
                     .and_then(|p| p.strip_suffix('}'))
                     .map_or(Some(raw), |p| props.get(p).map(String::as_str));
                 let ok = match (step.name.as_str(), resolved) {
-                    ("ktfmt", Some(v)) => v == "0.64" || v.starts_with("0.64."),
+                    ("ktfmt", Some(v)) => v == "0.65" || v.starts_with("0.65."),
                     (_, Some(v)) => VERSIONS_2_0_AND_1_8.contains(&v),
                     (_, None) => false,
                 };
                 if !ok {
                     notes.maven(format!(
-                        "Spotless <{}> version {raw}: ktrs matches ktfmt 0.64 and ktlint 1.8.0 / 2.0.0-ALPHA-4; change or drop <version>, then rerun",
+                        "Spotless <{}> version {raw}: ktrs matches ktfmt 0.65 and ktlint 1.8.0 / 2.0.0-ALPHA-4; change or drop <version>, then rerun",
                         step.name
                     ));
                     continue;

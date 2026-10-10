@@ -9,7 +9,7 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * A Spotless step (Spotless 7 or later) that formats Kotlin like ktfmt 0.64, through ktrs:
+ * A Spotless step (Spotless 7 or later) that formats Kotlin like ktfmt 0.65, through ktrs:
  *
  * <pre>{@code
  * spotless { kotlin { addStep(KtrsStep.create(KtrsOptions.kotlinlang())) } }

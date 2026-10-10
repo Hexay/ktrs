@@ -59,7 +59,7 @@ impl KtfmtPartial {
                 let manage = match value.rsplit('.').next().unwrap_or(value).to_ascii_uppercase().as_str() {
                     "COMPLETE" => Some(true),
                     "NONE" => Some(false),
-                    // ONLY_ADD has no ktfmt 0.64 flag: leave the style's default.
+                    // ONLY_ADD has no ktfmt 0.65 flag: leave the style's default.
                     _ => None,
                 };
                 manage.map(|v| self.manage_trailing_commas = Some(v))

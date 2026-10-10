@@ -1,5 +1,5 @@
 name: Setup ktrs
-description: Install ktrs and its drop-in `ktfmt` and `ktlint` binaries (Kotlin formatting and linting identical to ktfmt 0.64 and ktlint 2.0)
+description: Install ktrs and its drop-in `ktfmt` and `ktlint` binaries (Kotlin formatting and linting identical to ktfmt 0.65 and ktlint 2.0)
 branding:
   icon: check-square
   color: purple

@@ -1,5 +1,9 @@
 # ktfmt-gradle 0.27.0 public surface (for `io.github.hexay.ktrs`)
 
+Status 2026-10-10: ktrs formats as ktfmt 0.65 everywhere; ktfmt-gradle 0.27.0 bundles ktfmt 0.64. The drop-in keeps
+this plugin's DSL, tasks and FQNs, but its output is 0.65's: the first `ktfmtFormat` after switching is the ktfmt
+0.64 to 0.65 diff (README "ktfmt version").
+
 Source: `cortinico/ktfmt-gradle` tag `0.27.0` (latest tag, 2026-08-03; commit a37dda0), cloned `--depth 1`.
 Paths below: `G/` = `plugin-build/plugin/src/main/java/com/ncorti/ktfmt/gradle/`,
 `T/` = `plugin-build/plugin/src/test/java/com/ncorti/ktfmt/gradle/`. Binary API dump: `plugin-build/plugin/api/plugin.api`.

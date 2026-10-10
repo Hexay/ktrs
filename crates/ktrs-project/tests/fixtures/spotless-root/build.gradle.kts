@@ -7,7 +7,7 @@ val ktlintVersion = "1.8.0"
 spotless {
     kotlin {
         target("**/*.kt")
-        ktfmt("0.64").googleStyle().configure {
+        ktfmt("0.65").googleStyle().configure {
             it.setMaxWidth(80)
             it.setBlockIndent(2)
         }

@@ -30,10 +30,14 @@ class KtrsSpotlessMavenFieldsTest {
         assertEquals(options(KtrsKtlint.class.getSuperclass()), options(KtrsKtlint.class));
     }
 
-    /** Without {@code <version>}, stock Spotless runs its default releases: the ones ktrs matches. */
+    /**
+     * Without {@code <version>}, stock Spotless runs its default releases. ktlint's is the one ktrs matches; ktfmt's is
+     * still 0.64 while ktrs formats as 0.65 (README "Integrations"): when this fails, Spotless caught up.
+     */
     @Test
     void defaultVersionsAreSpotlessDefaults() {
-        assertEquals(KtfmtStep.defaultVersion(), KtrsKtfmt.KTFMT_VERSION);
+        assertEquals("0.64", KtfmtStep.defaultVersion());
+        assertEquals("0.65", KtrsKtfmt.KTFMT_VERSION);
         assertEquals(KtLintStep.defaultVersion(), KtlintOptions.DEFAULT_VERSION);
     }
 
@@ -42,15 +46,15 @@ class KtrsSpotlessMavenFieldsTest {
         KtrsKtfmt ktfmt = new KtrsKtfmt();
         set(ktfmt, "version", "0.61");
         String message = assertThrows(IllegalArgumentException.class, () -> ktfmt.newFormatterStep(null)).getMessage();
-        assertTrue(message.startsWith("ktrs formats like ktfmt 0.64, not 0.61"), message);
+        assertTrue(message.startsWith("ktrs formats like ktfmt 0.65, not 0.61"), message);
     }
 
     @Test
-    void ktfmtRejectsAStyleKtfmt064Lacks() {
+    void ktfmtRejectsAStyleKtfmtLacks() {
         KtrsKtfmt ktfmt = new KtrsKtfmt();
         set(ktfmt, "style", "DROPBOX");
         String message = assertThrows(IllegalArgumentException.class, () -> ktfmt.newFormatterStep(null)).getMessage();
-        assertEquals("ktfmt 0.64 has no style DROPBOX: use one of [META, GOOGLE, KOTLINLANG]", message);
+        assertEquals("ktfmt 0.65 has no style DROPBOX: use one of [META, GOOGLE, KOTLINLANG]", message);
     }
 
     @Test

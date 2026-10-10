@@ -3,7 +3,7 @@
 Editor plugins that run the `ktlint` or `ktfmt` CLI work with ktrs unchanged: [install ktrs](../README.md#installation)
 so its `ktlint` and `ktfmt` binaries come first on `PATH`, then use the plugin's stock ktlint/ktfmt setup below.
 Each invocation listed here is checked byte for byte (stdout, stderr, exit code) against the ktlint 2.0.0-ALPHA-4 and
-1.8.0 jars and the ktfmt 0.64 jar by `tools/ktlint-oracle/cli-diff.sh` (`ed_*`, `stdin_*`; ALE's
+1.8.0 jars and the ktfmt 0.65 jar by `tools/ktlint-oracle/cli-diff.sh` (`ed_*`, `stdin_*`; ALE's
 `--ruleset` also as `ruleset_jar_ale*` with `RULESET_JAR`) and `tools/ktfmt-oracle/cli-diff.sh` (`stdin_*`).
 
 ktlint behaves like 2.0.0-ALPHA-4 by default; for 1.8.0 put `ktrs_ktlint_version = 1.8` in `.editorconfig` (see the

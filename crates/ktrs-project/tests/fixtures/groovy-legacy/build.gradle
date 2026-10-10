@@ -23,6 +23,6 @@ spotless {
         if (System.getenv("CI")) {
             println 'ci'
         }
-        ktfmt('0.64').kotlinlangStyle().configure { it.setMaxWidth(110) }
+        ktfmt('0.65').kotlinlangStyle().configure { it.setMaxWidth(110) }
     }
 }

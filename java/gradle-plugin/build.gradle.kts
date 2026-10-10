@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
 // `io.github.hexay.ktrs`: a drop-in for cortinico's ktfmt-gradle 0.27.0 that formats through the
-// root project's `ktrs serve` wrapper; `io.github.hexay.ktrs.ktlint`: a drop-in for JLLeitschuh's
+// root project's `ktrs serve` wrapper (as ktfmt 0.65; that plugin release bundles 0.64); `io.github.hexay.ktrs.ktlint`: a drop-in for JLLeitschuh's
 // ktlint-gradle 14.2.0 over `ktrs ktlint`. Tests: `cargo build --bins`, then `java/gradlew -p java :ktrs-gradle-plugin:test`.
 plugins {
     kotlin("jvm") version "2.4.10"
@@ -70,7 +70,7 @@ gradlePlugin {
             implementationClass = "io.github.hexay.ktrs.gradle.KtrsPlugin"
             displayName = "ktrs (ktfmt-gradle drop-in)"
             description = "Drop-in replacement for com.ncorti.ktfmt.gradle: same DSL and tasks, formatting through " +
-                "ktrs, a native port of ktfmt 0.64 with byte-identical output."
+                "ktrs, a native port of ktfmt 0.65 with byte-identical output (ktfmt-gradle 0.27.0 itself bundles ktfmt 0.64)."
             tags = listOf("kotlin", "ktfmt", "formatter")
             compatibility { features { configurationCache = true } }
         }

@@ -6,7 +6,7 @@ import java.util.Deque;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 /**
- * Formats Kotlin exactly like ktfmt 0.64 (or ktlint, {@link #ktlint}), by talking to long-lived native
+ * Formats Kotlin exactly like ktfmt 0.65 (or ktlint, {@link #ktlint}), by talking to long-lived native
  * {@code ktrs serve} processes: one per concurrent caller, kept for reuse. Thread-safe.
  *
  * <pre>{@code

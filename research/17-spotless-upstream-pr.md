@@ -3,6 +3,10 @@
 Studied `diffplug/spotless` main @ `2c56489` (depth-1 clone in the session scratchpad). `S/` = spotless root,
 `L/` = `S/lib/src/main/java/com/diffplug/spotless/`. Our side: `java/src/main/java/io/github/hexay/ktrs/`.
 Unblocked 2026-10-06: `io.github.hexay:ktrs` is on Maven Central from 0.4.0 (spotless tests use `TestProvisioner.mavenCentral()`).
+Status 2026-10-10: ktrs now formats as ktfmt 0.65 (`org.jetbrains.kotlinx:ktfmt`); every "0.64" below is the state
+this design was written against. Spotless's `KtfmtStep` still defaults to 0.64 and resolves `com.facebook:ktfmt`, so
+it can't run 0.65: `KtrsStep` output equals the ktfmt 0.65 jar's, not stock `ktfmt()`'s
+(`tools/spotless-maven/parity.sh` compares against the jar), and a `parityWithKtfmt` test must wait for Spotless.
 
 ## How ktfmt is wired today
 

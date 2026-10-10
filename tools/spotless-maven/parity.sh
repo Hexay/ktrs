@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
-# Stock spotless-maven-plugin 3.10.3 `<ktfmt>` 0.64 / `<ktlint>` 1.8.0 vs the same configuration swapped to ktrs with
+# Stock spotless-maven-plugin 3.10.3 `<ktfmt>` / `<ktlint>` 1.8.0 vs the same configuration swapped to ktrs with
 # `implementation="io.github.hexay.ktrs.spotless.maven.KtrsKtfmt|KtrsKtlint"` (research/30): per scenario and side,
 # spotless:check, spotless:apply, spotless:check on a fresh project; compares exit codes, Spotless's messages and the
 # applied sources byte for byte.
+# ktfmt: ktrs formats as ktfmt 0.65, which this plugin can't run (it resolves `com.facebook:ktfmt:<version>` and calls
+# the `com.facebook.ktfmt` API; 0.65 is `org.jetbrains.kotlinx`). So the stock side runs KTFMT_STOCK (default 0.64) for
+# the exit codes and messages, and the applied sources are compared with the ktfmt 0.65 jar's (tools/sync-ktfmt.sh)
+# on the same sources and options; the scenario line also counts the files where stock 0.64 differs (the upgrade diff).
 #   tools/spotless-maven/parity.sh [scenario ...]   (default: all; needs `cargo build --bins`, network, a JDK 17+)
 # Env: CORPUS (default <repo>/corpus; the real-* scenarios are skipped without it), M2 (local Maven repository,
 # default target/spotless-maven/m2), KNOWN (accepted differences, default tools/parity/known-diffs/spotless-maven.tsv).
@@ -22,7 +26,33 @@ status=0
 [[ -x $exe ]] || { echo "no $exe: run cargo build --bins" >&2; exit 2; }
 mvn="$("$here/ensure-maven.sh")" || exit 2
 ktrs_version=0.0.0-parity
+ktfmt_stock=${KTFMT_STOCK:-0.64}
+ktfmt_jar=$(ls "$root"/tools/ktfmt-oracle/lib/ktfmt-*-with-dependencies.jar 2>/dev/null | head -1)
 export MAVEN_OPTS="-Dktrs.executable=$exe"
+
+# ktfmt_reference <scenario> <dir>: the scenario's sources formatted by the ktfmt jar's CLI with the options of its
+# <ktfmt> configuration (those without a flag through an .editorconfig).
+ktfmt_reference() {
+  local flags ec=""
+  case $1 in
+    ktfmt-meta|real-ktfmt) flags=--meta-style ;;
+    ktfmt-google) flags=--google-style ;;
+    ktfmt-kotlinlang) flags=--kotlinlang-style ec='max_line_length = 80' ;;
+    ktfmt-options) flags="--meta-style --do-not-remove-unused-imports"
+      ec=$'max_line_length = 120\nindent_size = 4\nij_continuation_indent_size = 4\nktfmt_trailing_comma_management_strategy = only_add' ;;
+    ktfmt-commas) flags=--kotlinlang-style ec='ktfmt_trailing_comma_management_strategy = none' ;;
+  esac
+  [[ -n $ktfmt_jar ]] || { echo "no ktfmt jar: run tools/sync-ktfmt.sh" >&2; exit 2; }
+  rm -rf "$2"; mkdir -p "$2"
+  sources "$1" "$2"
+  if [[ -n $ec ]]; then
+    printf 'root = true\n[*.kt]\n%s\n' "$ec" > "$2/.editorconfig"
+    flags+=" --enable-editorconfig"
+  fi
+  # shellcheck disable=SC2086
+  (cd "$2" && "$JAVA_HOME/bin/java" -Xss64m -jar "$ktfmt_jar" $flags --quiet src) > "$2/../ktfmt.txt" 2>&1
+  return 0
+}
 
 # The ktrs jar as built here (no bundled binary: -Dktrs.executable), installed without dependencies, as published.
 install_ktrs() {
@@ -36,8 +66,8 @@ install_ktrs() {
 kotlin() {
   local inc="<includes><include>src/**/*.kt</include></includes>"
   case $1 in
-    ktfmt-meta|real-ktfmt) echo "<kotlin>$inc<ktfmt><version>0.64</version></ktfmt></kotlin>" ;;
-    ktfmt-google) echo "<kotlin>$inc<ktfmt><version>0.64</version><style>GOOGLE</style></ktfmt></kotlin>" ;;
+    ktfmt-meta|real-ktfmt) echo "<kotlin>$inc<ktfmt><version>$ktfmt_stock</version></ktfmt></kotlin>" ;;
+    ktfmt-google) echo "<kotlin>$inc<ktfmt><version>$ktfmt_stock</version><style>GOOGLE</style></ktfmt></kotlin>" ;;
     ktfmt-kotlinlang) echo "<kotlin>$inc<ktfmt><style>KOTLINLANG</style><maxWidth>80</maxWidth></ktfmt></kotlin>" ;;
     ktfmt-options) echo "<kotlin>$inc<ktfmt><style>META</style><maxWidth>120</maxWidth><blockIndent>4</blockIndent>
       <continuationIndent>4</continuationIndent><removeUnusedImports>false</removeUnusedImports>
@@ -89,7 +119,9 @@ scenario() {
   pom="$(< "$here/pom.xml")"
   for side in stock ktrs; do
     config="$(kotlin "$name")"
-    [[ $side == ktrs ]] && config="${config//<ktfmt>/<ktfmt implementation=\"io.github.hexay.ktrs.spotless.maven.KtrsKtfmt\">}" &&
+    [[ $side == ktrs ]] && config="${config//<version>$ktfmt_stock<\/version><\/ktfmt>/</ktfmt>}" &&
+      config="${config//<version>$ktfmt_stock<\/version><style>/<style>}" &&
+      config="${config//<ktfmt>/<ktfmt implementation=\"io.github.hexay.ktrs.spotless.maven.KtrsKtfmt\">}" &&
       config="${config//<ktlint>/<ktlint implementation=\"io.github.hexay.ktrs.spotless.maven.KtrsKtlint\">}"
     dir="$out/$name/$side/project"
     rm -rf "$out/$name/$side"; mkdir -p "$dir"
@@ -102,15 +134,21 @@ scenario() {
       { echo "== exit $? : $run"; messages "$out/$name/$side/$run.txt" "$dir"; } >> "$out/$name/$side/console.txt"
     done
   done
+  local reference="$out/$name/stock/project/src" upgrade=""
+  if [[ $name == *ktfmt* ]]; then
+    ktfmt_reference "$name" "$out/$name/reference/project"
+    reference="$out/$name/reference/project/src"
+    upgrade=", $(diff -rq "$out/$name/stock/project/src" "$reference" | wc -l) files differ from stock ktfmt $ktfmt_stock"
+  fi
   { py_ "$root/tools/parity/known_diffs.py" "$known" "$name" console.txt "$out/$name/stock/console.txt" \
       "$out/$name/ktrs/console.txt"
-    diff -r "$out/$name/stock/project/src" "$out/$name/ktrs/project/src"; } > "$out/$name.diff"
+    diff -r "$reference" "$out/$name/ktrs/project/src"; } > "$out/$name.diff"
   local files changed
   files=$(find "$out/$name/stock/project/src" -name '*.kt' | wc -l)
   changed=$(grep -c '^diff ' "$out/$name.diff")
   [[ -s $out/$name.diff ]] && status=1
   echo "$name: $(grep '^== exit' "$out/$name/stock/console.txt" | cut -d' ' -f3 | tr '\n' ' ')(stock exits)," \
-    "$files files, $changed differing applied files, $(wc -l < "$out/$name.diff") diff lines"
+    "$files files, $changed differing applied files, $(wc -l < "$out/$name.diff") diff lines$upgrade"
 }
 
 all="ktfmt-meta ktfmt-google ktfmt-kotlinlang ktfmt-options ktfmt-commas ktlint-default ktlint-override

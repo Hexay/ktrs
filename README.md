@@ -19,7 +19,7 @@ it ships as small native binaries with no runtime.
 
 - ⚡ **Fast.** Under 10 ms per file in an editor or pre-commit hook, against roughly a second of JVM
   startup. On whole projects it uses every core and is still at least 13x faster.
-- 🎯 **Identical output.** Byte-identical to ktfmt 0.64 on 6,121 of 6,123 real-world files (both
+- 🎯 **Identical output.** Byte-identical to ktfmt 0.65 on 6,121 of 6,123 real-world files (both
   tools reject the other two). Lint violations and `--format` output match ktlint 2.0 in all three
   code styles, and ktlint 1.8 in a compatibility mode.
 - 🔌 **Drop-in.** The `ktfmt` and `ktlint` binaries accept the originals' flags, messages and exit
@@ -102,8 +102,15 @@ SHA-256; needs Java), so it works at JVM speed ([research/27](research/27-custom
 **Limits.**
 
 - kotlinter runs ktlint inside the JVM and doesn't use these binaries.
-- The `ktfmt` binary accepts Kotlin 2.4 syntax (e.g. `companion { }` blocks) that ktfmt 0.64, built
-  on Kotlin 2.3, rejects.
+- The `ktfmt` binary parses with Kotlin 2.4.20's grammar; ktfmt 0.65 is built on Kotlin 2.4.10, so
+  syntax newer than that is accepted here and rejected there.
+- ktfmt's undocumented `--experimental-engine` flag is rejected.
+
+**ktfmt version.** ktrs formats exactly like ktfmt 0.65, everywhere: the binaries, the Gradle and
+Maven integrations and the editor support. Tools that bundle an older ktfmt (ktfmt-gradle 0.27.0 and
+Spotless's default are on 0.64) therefore format slightly differently from ktrs: switching to ktrs
+shows the same one-time diff as upgrading ktfmt to 0.65 (for example, a trailing comma after a single
+argument that sits on its own line).
 
 ## Integrations
 
@@ -177,7 +184,8 @@ both: [docs/editors.md](docs/editors.md).
 **ktfmt-gradle drop-in.** The `io.github.hexay.ktrs` plugin replaces
 [ktfmt-gradle](https://github.com/cortinico/ktfmt-gradle) 0.27.0. Change only the plugin id. The
 `ktfmt { }` block, the `ktfmtCheck`/`ktfmtFormat*` tasks, `--include-only` and the
-`com.ncorti.ktfmt.gradle.*` imports keep working.
+`com.ncorti.ktfmt.gradle.*` imports keep working. Formatting is ktfmt 0.65's; ktfmt-gradle 0.27.0
+bundles ktfmt 0.64, so the first `ktfmtFormat` after the switch is the ktfmt 0.64 to 0.65 diff.
 
 ```kotlin
 plugins {
@@ -284,8 +292,9 @@ plugin dependency; the other options stay as they are (Maven 3.9+, Java 17+):
 </plugin>
 ```
 
-Output is identical to stock `<ktfmt>` 0.64 and `<ktlint>` 1.8.0 (`tools/spotless-maven/parity.sh`).
-`<version>` must be left out or match (ktfmt `0.64`; ktlint `1.8.0` or `2.0.0-ALPHA-4`).
+Output is that of ktfmt 0.65 and identical to stock `<ktlint>` 1.8.0 (`tools/spotless-maven/parity.sh`).
+`<version>` must be left out or match (ktfmt `0.65`; ktlint `1.8.0` or `2.0.0-ALPHA-4`). Stock
+`<ktfmt>` without a `<version>` runs Spotless's default, 0.64: the swap then also is the upgrade to 0.65.
 
 ### Bazel
 
@@ -476,7 +485,7 @@ files:
 
 ## Maintenance
 
-ktrs is maintained by [@Hexay](https://github.com/Hexay). It tracks ktfmt 0.64, ktlint
+ktrs is maintained by [@Hexay](https://github.com/Hexay). It tracks ktfmt 0.65, ktlint
 2.0.0-ALPHA-4 (plus 1.8.0 in compatibility mode), compose-rules 0.6.7 and the Kotlin 2.4.20 parser. New upstream releases are ported and re-checked against
 the parity gates before a ktrs release. If ktrs output ever differs from ktfmt or ktlint on your
 code, that's a bug: please [open an issue](https://github.com/Hexay/ktrs/issues) with the file, or

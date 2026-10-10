@@ -19,8 +19,8 @@ import java.util.Arrays;
  * into the most-derived field of a name (KtrsSpotlessMavenFieldsTest keeps the two sets equal).
  */
 public class KtrsKtfmt extends Ktfmt {
-    /** The only ktfmt release ktrs formats like. */
-    static final String KTFMT_VERSION = "0.64";
+    /** The only ktfmt release ktrs formats like; without {@code <version>} stock Spotless may run an older default. */
+    static final String KTFMT_VERSION = "0.65";
 
     private String version;
     private String style;

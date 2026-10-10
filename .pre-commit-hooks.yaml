@@ -2,7 +2,7 @@
 # for the pinned rev on first run, so no Rust toolchain is needed.
 - id: ktfmt
   name: ktfmt (ktrs)
-  description: Format Kotlin exactly like ktfmt 0.64. Pass ktfmt's own flags in `args`.
+  description: Format Kotlin exactly like ktfmt 0.65. Pass ktfmt's own flags in `args`.
   entry: ktfmt
   language: python
   files: \.kts?$
@@ -10,7 +10,7 @@
 
 - id: ktrs-fmt
   name: ktrs fmt
-  description: Format Kotlin exactly like ktfmt 0.64. Pass e.g. `--style kotlinlang` in `args`.
+  description: Format Kotlin exactly like ktfmt 0.65. Pass e.g. `--style kotlinlang` in `args`.
   entry: ktrs fmt
   language: python
   files: \.kts?$

@@ -17,7 +17,7 @@
           <kotlin>
             <!-- ktrs swap -->
             <ktfmt implementation="io.github.hexay.ktrs.spotless.maven.KtrsKtfmt">
-              <version>0.64</version>
+              <version>0.65</version>
               <style>KOTLINLANG</style>
               <maxWidth>100</maxWidth>
               <trailingCommaManagementStrategy>COMPLETE</trailingCommaManagementStrategy>

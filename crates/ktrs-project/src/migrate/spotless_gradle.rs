@@ -140,9 +140,9 @@ impl StepEdits {
 
 fn ktfmt(s: &Script, links: &[Link], resolve: Resolve) -> Result<StepEdits, String> {
     if let Some((_, v)) = version_arg(s, &links[0], resolve)?
-        && !(v == "0.64" || v.starts_with("0.64."))
+        && !(v == "0.65" || v.starts_with("0.65."))
     {
-        return Err(format!("ktfmt {v}: ktrs formats as ktfmt 0.64"));
+        return Err(format!("ktfmt {v}: ktrs formats as ktfmt 0.65"));
     }
     let mut style = "meta";
     let mut options = String::new();

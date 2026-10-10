@@ -263,7 +263,9 @@ The throwaway code lives in the session scratchpad and is not kept.
   - `customRuleSets` GAVs, resolved with `config.getProvisioner().provisionWithTransitives(false, ...)`.
 - Results matched stock Spotless:
   - `spotless:check` fails and lists the file. `spotless:apply` produces output byte-identical to stock `<ktfmt>`
-    0.64 KOTLINLANG (maxWidth 80) and to stock `<ktlint>` 1.8.0.
+    0.64 KOTLINLANG (maxWidth 80) and to stock `<ktlint>` 1.8.0. (Since 2026-10-10 ktrs formats as ktfmt 0.65, which
+    spotless-maven-plugin 3.10.3 can't run: `KtrsKtfmt` accepts only `<version>0.65</version>` or none, and
+    `parity.sh` compares its applied sources with the ktfmt 0.65 jar's.)
   - The up-to-date index skips the file on the next run.
   - An unfixable `no-wildcard-imports` violation gives the same lint text and failure as stock in both `check` and
     `apply`.

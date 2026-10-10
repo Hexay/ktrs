@@ -4,6 +4,6 @@ plugins {
 
 spotless {
     kotlin {
-        ktfmt("0.64").googleStyle()
+        ktfmt("0.65").googleStyle()
     }
 }
