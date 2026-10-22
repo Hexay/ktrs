@@ -129,7 +129,7 @@ Milestone 1: the parser's tree must be identical to the Kotlin compiler's PSI (`
 
 ## Rules
 
-- **Kotlin pin is `v2.4.20` everywhere** (psi-dump.sh, sync-kotlin.sh). Bump them together, then rerun
+- **Kotlin pin is `v2.4.21` everywhere** (psi-dump.sh, sync-kotlin.sh). Bump them together, then rerun
   `psi-dump.sh kinds > crates/ktrs-syntax/kinds.tsv` and `cargo xtask codegen`.
 - **Release version** lives in `Cargo.toml` (workspace version + every `workspace.dependencies` ktrs
   entry), `pyproject.toml` (the pre-commit launcher fetches `v<version>`) and `editors/vscode/package.json`

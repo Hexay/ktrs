@@ -2,7 +2,7 @@ import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "2.4.20"
+    id("org.jetbrains.kotlin.jvm") version "2.4.21"
     // No version: the settings plugin (settings.gradle.kts) already put it on the classpath.
     id("org.jetbrains.intellij.platform")
 }

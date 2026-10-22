@@ -101,7 +101,7 @@ SHA-256; needs Java), so it works at JVM speed ([research/27](research/27-custom
 
 **Limits.**
 
-- The `ktfmt` binary parses with Kotlin 2.4.20's grammar; ktfmt 0.65 is built on Kotlin 2.4.10, so
+- The `ktfmt` binary parses with Kotlin 2.4.21's grammar; ktfmt 0.65 is built on Kotlin 2.4.10, so
   syntax newer than that is accepted here and rejected there.
 - ktfmt's undocumented `--experimental-engine` flag is rejected.
 
@@ -538,7 +538,7 @@ files:
 ## Maintenance
 
 ktrs is maintained by [@Hexay](https://github.com/Hexay). It tracks ktfmt 0.65, ktlint
-2.0.0-ALPHA-4 (plus 1.8.0 in compatibility mode), compose-rules 0.6.7 and the Kotlin 2.4.20 parser. New upstream releases are ported and re-checked against
+2.0.0-ALPHA-4 (plus 1.8.0 in compatibility mode), compose-rules 0.6.7 and the Kotlin 2.4.21 parser. New upstream releases are ported and re-checked against
 the parity gates before a ktrs release. If ktrs output ever differs from ktfmt or ktlint on your
 code, that's a bug: please [open an issue](https://github.com/Hexay/ktrs/issues) with the file, or
 a snippet that reproduces it, and the command line you used.
