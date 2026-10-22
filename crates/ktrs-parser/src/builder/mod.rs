@@ -1,5 +1,5 @@
 //! Re-implementation of IntelliJ's `PsiBuilderImpl` (platform 251.27812.49, the one bundled with
-//! Kotlin 2.4.20) and the Kotlin builder wrappers on top of it.
+//! Kotlin 2.4.21) and the Kotlin builder wrappers on top of it.
 //!
 //! Semantics kept exactly:
 //! - Whitespace/comments (`WHITE_SPACE`, `EOL/BLOCK/SHEBANG_COMMENT`, `DOC_COMMENT`) are skipped

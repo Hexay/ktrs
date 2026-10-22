@@ -1,5 +1,5 @@
 //! A mutable Kotlin AST with the semantics of IntelliJ's `TreeElement`/`CompositeElement`/`LeafElement`
-//! (the platform classes inside kotlin-compiler-embeddable 2.4.20), for porting ktlint rules 1:1.
+//! (the platform classes inside kotlin-compiler-embeddable 2.4.21), for porting ktlint rules 1:1.
 //! Design and the divergences it has to reproduce: research/11-ktlint-engine.md §2-§4; which upstream
 //! symbol maps to which Rust name: research/16-ktlint-api-coverage.md.
 //!

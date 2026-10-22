@@ -27,4 +27,4 @@ pub use source_file::{SourceFile, parse, parse_script};
 
 /// The version of the Kotlin compiler whose parser this is a port of. The kinds and the shape of the tree
 /// for a given text are the ones this compiler version produces.
-pub const KOTLIN_VERSION: &str = "2.4.20";
+pub const KOTLIN_VERSION: &str = "2.4.21";
