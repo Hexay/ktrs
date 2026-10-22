@@ -1,0 +1,5 @@
+ktlint=1.8
+rules=compose:modifier-should-be-forwarded-to-every-branch
+ec.ktlint_experimental=enabled
+ec.ktlint_compose=enabled
+test=ModifierShouldBeForwardedToEveryBranchCheckTest.reports a modifier omitted from a root when branch[4]

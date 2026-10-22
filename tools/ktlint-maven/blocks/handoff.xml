@@ -1,5 +1,5 @@
         <dependencies>
-          <!-- Not the release ktrs runs natively (0.6.7): the run goes to the ktlint jar. -->
+          <!-- Not the release ktrs runs natively (0.6.8): the run goes to the ktlint jar. -->
           <dependency>
             <groupId>io.nlopez.compose.rules</groupId>
             <artifactId>ktlint</artifactId>

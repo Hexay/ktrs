@@ -1,0 +1,1 @@
+6:9	compose:modifier-should-be-forwarded-to-every-branch	manual	One branch forwards the modifier parameter, but this branch does not. Pass it to every branch whose composable accepts a modifier.

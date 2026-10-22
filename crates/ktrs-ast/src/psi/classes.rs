@@ -152,6 +152,7 @@ psi_classes! {
     KtIfExpression(ast, n) => composite_of(ast, n, &[IF]);
     KtLoopExpression(ast, n) => composite_of(ast, n, &[FOR, WHILE, DO_WHILE]);
     KtReturnExpression(ast, n) => composite_of(ast, n, &[RETURN]);
+    KtParenthesizedExpression(ast, n) => composite_of(ast, n, &[PARENTHESIZED]);
     KtTypeReference(ast, n) => composite_of(ast, n, &[TYPE_REFERENCE]);
     KtTypeElement(ast, n) => !ast.is_leaf_element(n) && TYPE_ELEMENT_TYPES.contains(ast.element_type(n));
     KtUserType(ast, n) => composite_of(ast, n, &[USER_TYPE]);

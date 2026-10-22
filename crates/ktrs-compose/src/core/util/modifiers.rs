@@ -2,7 +2,7 @@
 
 use ktrs_ast::psi::{
     KtBlockExpression, KtCallExpression, KtCallableDeclaration, KtDotQualifiedExpression, KtFunction, KtParameter,
-    KtProperty, KtReferenceExpression, KtValueArgument,
+    KtProperty, KtReferenceExpression, KtValueArgument, deparenthesize,
 };
 use ktrs_ast::{Ast, NodeId};
 use ktrs_syntax::SyntaxKind::{CALL_EXPRESSION, VALUE_ARGUMENT_NAME};
@@ -101,7 +101,7 @@ pub fn arguments_using_modifiers(
     call.value_arguments(ast)
         .into_iter()
         .filter(|argument| {
-            let Some(expression) = argument.argument_expression(ast) else { return false };
+            let Some(expression) = deparenthesize(ast, argument.argument_expression(ast)) else { return false };
             if KtReferenceExpression::is(ast, expression) {
                 return modifier_names.contains(&ast.text(expression));
             }
@@ -121,7 +121,7 @@ fn has_modifier_as_chain_argument(ast: &Ast, expression: KtDotQualifiedExpressio
         let selector = dot.selector_expression(ast).and_then(|s| KtCallExpression::cast(ast, s));
         if let Some(selector) = selector.filter(|s| s.callee_expression(ast).is_some_and(|c| ast.text(c) == "then")) {
             for arg in selector.value_arguments(ast) {
-                let Some(expr) = arg.argument_expression(ast) else { continue };
+                let Some(expr) = deparenthesize(ast, arg.argument_expression(ast)) else { continue };
                 if KtReferenceExpression::is(ast, expr) {
                     if modifier_names.contains(&ast.text(expr)) {
                         return true;

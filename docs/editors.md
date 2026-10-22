@@ -86,8 +86,8 @@ null_ls.setup({
 ```vim
 let g:ale_linters = {'kotlin': ['ktlint']}
 let g:ale_fixers = {'kotlin': ['ktlint']}
-" optional: custom rule sets (compose-rules 0.6.7 runs natively, other jars hand off to the ktlint jar; needs Java)
-let g:ale_kotlin_ktlint_rulesets = ['/path/to/ktlint-compose-0.6.7-all.jar']
+" optional: custom rule sets (compose-rules 0.6.8 runs natively, other jars hand off to the ktlint jar; needs Java)
+let g:ale_kotlin_ktlint_rulesets = ['/path/to/ktlint-compose-0.6.8-all.jar']
 ```
 
 ## Emacs

@@ -15,7 +15,7 @@ exe="$root/target/debug/ktrs$([[ $OSTYPE == msys* || $OSTYPE == cygwin* ]] && ec
 gradle="${GRADLE:-$root/java/gradlew}"
 [[ -n ${JAVA_HOME:-} ]] || export JAVA_HOME="$(ls -d "$root"/tools/jdk/* 2>/dev/null | head -1)"
 [[ -n $JAVA_HOME ]] || { echo "set JAVA_HOME (or run tools/ensure-jdk.sh)" >&2; exit 2; }
-compose_jar="$out/ktlint-compose-0.6.7-all.jar"
+compose_jar="$out/ktlint-compose-0.6.8-all.jar"
 known="${KNOWN:-$root/tools/parity/known-diffs/ktlint-gradle.tsv}"
 status=0
 
@@ -72,7 +72,7 @@ compose_template() {
   local t="$out/compose-template"
   rm -rf "$t"; mkdir -p "$t"; cp -r "$here/sample/." "$t/"; cp "$here/Ui.kt" "$t/src/main/kotlin/com/example/"
   [[ -f $compose_jar ]] || curl -sfL -o "$compose_jar" \
-    https://github.com/mrmans0n/compose-rules/releases/download/v0.6.7/ktlint-compose-0.6.7-all.jar
+    https://github.com/mrmans0n/compose-rules/releases/download/v0.6.8/ktlint-compose-0.6.8-all.jar
   echo "$t"
 }
 

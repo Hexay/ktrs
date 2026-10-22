@@ -2,7 +2,7 @@
 
 use ktrs_ast::psi::{
     KtCallExpression, KtCallableDeclaration, KtDeclarationWithInitializer, KtDestructuringDeclaration,
-    KtDotQualifiedExpression, KtReferenceExpression,
+    KtDotQualifiedExpression, KtReferenceExpression, deparenthesize,
 };
 use ktrs_ast::{Ast, NodeId};
 
@@ -30,7 +30,7 @@ pub fn parameters_being_used_from(
 ) -> Vec<String> {
     let mut used = Vec::new();
     for argument in call.value_arguments(ast) {
-        let Some(expression) = argument.argument_expression(ast) else { continue };
+        let Some(expression) = deparenthesize(ast, argument.argument_expression(ast)) else { continue };
         if KtReferenceExpression::is(ast, expression) {
             let text = ast.text(expression);
             if contains(parameter_names, &text) {
@@ -64,7 +64,7 @@ fn parameter_names_used_in(
             let selector = dot.selector_expression(ast).and_then(|s| KtCallExpression::cast(ast, s));
             if let Some(selector) = selector.filter(|s| callee_text(ast, *s).as_deref() == Some("then")) {
                 for arg in selector.value_arguments(ast) {
-                    let Some(expr) = arg.argument_expression(ast) else { continue };
+                    let Some(expr) = deparenthesize(ast, arg.argument_expression(ast)) else { continue };
                     if KtReferenceExpression::is(ast, expr) {
                         let text = ast.text(expr);
                         if contains(parameter_names, &text) {

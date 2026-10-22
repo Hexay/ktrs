@@ -3,7 +3,7 @@
 # port in crates/ktrs-compose, and fetches its ktlint CLI jar (`-R` jar) into tools/compose-rules/lib (gitignored).
 # A bump also needs the jar's fingerprint in crates/ktrs-compose (research/27-custom-rulesets-impl.md).
 set -euo pipefail
-COMPOSE_RULES_TAG=v0.6.7
+COMPOSE_RULES_TAG=v0.6.8
 root="$(cd "$(dirname "$0")/.." && pwd)"
 
 dir="$root/third_party/compose-rules"

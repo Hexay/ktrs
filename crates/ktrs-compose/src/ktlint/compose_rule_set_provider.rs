@@ -10,7 +10,7 @@ pub fn compose_rule_providers() -> Vec<RuleV2Provider> {
     CHECKS.iter().flatten().map(|&create| KtlintRule::provider(create)).collect()
 }
 
-const CHECKS: [Option<fn() -> KtlintRule>; 34] = [
+const CHECKS: [Option<fn() -> KtlintRule>; 35] = [
     composable_annotation_naming_check::CHECK,
     composable_nesting_depth_check::CHECK,
     composition_local_allowlist_check::CHECK,
@@ -28,6 +28,7 @@ const CHECKS: [Option<fn() -> KtlintRule>; 34] = [
     modifier_naming_check::CHECK,
     modifier_not_used_at_root_check::CHECK,
     modifier_reused_check::CHECK,
+    modifier_should_be_forwarded_to_every_branch_check::CHECK,
     modifier_without_default_check::CHECK,
     multiple_content_emitters_check::CHECK,
     mutable_parameters_check::CHECK,
