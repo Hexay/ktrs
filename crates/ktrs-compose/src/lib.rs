@@ -48,13 +48,13 @@ pub use core::compose_kt_visitor::ComposeKtVisitor;
 pub use ktlint::compose_rule_set_provider::compose_rule_providers;
 
 /// The ported release.
-pub const COMPOSE_RULES_VERSION: &str = "0.6.7";
+pub const COMPOSE_RULES_VERSION: &str = "0.6.8";
 
 /// (release, content fingerprint) of the ktlint JARs that run natively; the fingerprint is computed by
 /// `ktrs-cli`'s `compose_jar.rs`. Per release: the published `ktlint-compose-<release>-all.jar`, and the Maven
 /// artifacts `io.nlopez.compose.rules:ktlint` + `common-ktlint` merged (as the ktlint Gradle plugin passes them;
 /// same bytecode, the `-all` JAR only relocates kotlin-compiler `psiUtil` calls: research/29).
 pub const NATIVE_JARS: &[(&str, &str)] = &[
-    ("0.6.7", "00de57c180c50a3fb36c345558d15e078bfe056bc158d79cc5e5ecbe6ee3bfdf"),
-    ("0.6.7", "a9b34195dddeb441ab1eb2ef78e7080a6781d25654df05a9e1a569c88dc23878"),
+    ("0.6.8", "b8bd8d096c57c4ca4c9d89b1ad87f51717310c85e39f5c0b23fb3de0bf7829b9"),
+    ("0.6.8", "0f5e41c7f4a929ceb0065325063f8556f608a5bc9733ca078cb3a6ea8b671984"),
 ];

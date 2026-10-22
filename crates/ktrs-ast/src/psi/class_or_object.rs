@@ -68,6 +68,11 @@ impl KtFile {
         KtImportList::cast(ast, ast.find_child_by_type(self.0, IMPORT_LIST)?)
     }
 
+    /// `getImportDirectives()`: the imports of every import list child.
+    pub fn import_directives(self, ast: &Ast) -> Vec<KtImportDirective> {
+        ast.children(self.0).filter_map(|c| KtImportList::cast(ast, c)).flat_map(|l| l.imports(ast)).collect()
+    }
+
     pub fn package_directive(self, ast: &Ast) -> Option<KtPackageDirective> {
         KtPackageDirective::cast(ast, ast.find_child_by_type(self.0, PACKAGE_DIRECTIVE)?)
     }

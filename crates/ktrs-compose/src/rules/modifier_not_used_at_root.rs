@@ -1,6 +1,8 @@
 //! Port of `rules/ModifierNotUsedAtRoot.kt`.
 
-use ktrs_ast::psi::{KtCallExpression, KtDotQualifiedExpression, KtFunction, KtReferenceExpression, KtValueArgument};
+use ktrs_ast::psi::{
+    KtCallExpression, KtDotQualifiedExpression, KtFunction, KtReferenceExpression, KtValueArgument, deparenthesize,
+};
 use ktrs_ast::{Ast, NodeId};
 
 use crate::core::compose_kt_config::ComposeKtConfig;
@@ -37,7 +39,7 @@ impl ComposeKtVisitor for ModifierNotUsedAtRoot {
                     .iter()
                     .copied()
                     .find(|arg| {
-                        let Some(expr) = arg.argument_expression(ast) else { return true };
+                        let Some(expr) = deparenthesize(ast, arg.argument_expression(ast)) else { return true };
                         if KtReferenceExpression::is(ast, expr) {
                             !shadowed_names.contains(&ast.text(expr))
                         } else if let Some(dot) = KtDotQualifiedExpression::cast(ast, expr) {

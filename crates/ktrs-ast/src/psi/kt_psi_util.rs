@@ -1,5 +1,5 @@
 //! psiUtil `ktPsiUtil.kt` helpers over names and expressions: `isIdentifier`, `quoteIfNeeded`,
-//! `referenceExpression`, `isDotSelector`.
+//! `referenceExpression`, `isDotSelector`; and `KtPsiUtil.deparenthesize`.
 
 use ktrs_parser::kt_tokens::KEYWORDS;
 use ktrs_psi::single_value;
@@ -45,6 +45,27 @@ pub fn reference_expression(ast: &Ast, expression: NodeId) -> Option<KtReference
         None => expression,
     };
     KtReferenceExpression::cast(ast, target)
+}
+
+/// `KtPsiUtil.deparenthesize(expression)`: unwraps parentheses, labels and annotations until none is left.
+pub fn deparenthesize(ast: &Ast, expression: Option<NodeId>) -> Option<NodeId> {
+    let mut expression = expression;
+    loop {
+        let base_expression = deparenthesize_once(ast, expression);
+        if base_expression == expression {
+            return base_expression;
+        }
+        expression = base_expression;
+    }
+}
+
+/// `KtPsiUtil.deparenthesizeOnce(expression)` (`KtExpressionWrapper` has no implementers in the PSI).
+pub fn deparenthesize_once(ast: &Ast, expression: Option<NodeId>) -> Option<NodeId> {
+    let expression = expression?;
+    match ast.element_type(expression) {
+        ANNOTATED_EXPRESSION | LABELED_EXPRESSION | PARENTHESIZED => ast.children(expression).find(|&c| KtExpression::is(ast, c)),
+        _ => Some(expression),
+    }
 }
 
 /// psiUtil `KtExpression.isDotSelector()`: the selector of its parent `KtDotQualifiedExpression`.

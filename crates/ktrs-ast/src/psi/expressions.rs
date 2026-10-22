@@ -47,6 +47,17 @@ impl KtWhenExpression {
     pub fn entries(self, ast: &Ast) -> Vec<KtWhenEntry> {
         ast.children(self.0).filter_map(|c| KtWhenEntry::cast(ast, c)).collect()
     }
+
+    /// `getSubjectVariable()`: the `val` declared in `when (val x = ...)`.
+    pub fn subject_variable(self, ast: &Ast) -> Option<KtProperty> {
+        ast.children(self.0).find_map(|c| KtProperty::cast(ast, c))
+    }
+}
+
+impl KtParenthesizedExpression {
+    pub fn expression(self, ast: &Ast) -> Option<NodeId> {
+        first_expression_child(ast, self.0)
+    }
 }
 
 impl KtWhenEntry {

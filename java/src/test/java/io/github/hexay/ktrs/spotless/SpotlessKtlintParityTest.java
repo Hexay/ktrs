@@ -29,7 +29,7 @@ import org.junit.jupiter.api.io.TempDir;
  * {@code spotless.ktlint.classpath}; inputs: {@link KtlintSamples}.
  */
 class SpotlessKtlintParityTest {
-    private static final String COMPOSE_RULES = "io.nlopez.compose.rules:ktlint:0.6.7";
+    private static final String COMPOSE_RULES = "io.nlopez.compose.rules:ktlint:0.6.8";
 
     @TempDir
     Path dir;

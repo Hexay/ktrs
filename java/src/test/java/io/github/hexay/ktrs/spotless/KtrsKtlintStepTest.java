@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 class KtrsKtlintStepTest {
-    static final Path COMPOSE_JAR = Paths.get("../tools/compose-rules/lib/ktlint-compose-0.6.7-all.jar").toAbsolutePath();
+    static final Path COMPOSE_JAR = Paths.get("../tools/compose-rules/lib/ktlint-compose-0.6.8-all.jar").toAbsolutePath();
 
     @TempDir
     Path dir;

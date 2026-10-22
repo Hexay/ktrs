@@ -94,7 +94,7 @@ files it matches the 1.8.0 jar except for a few KDoc whitespace rows, where 1.8'
 splits trailing spaces differently ([research/26](research/26-ktlint-18-mode.md)).
 
 **Custom rule sets.** `-R` jars are supported, in `ktlint` and `ktrs lint`.
-[compose-rules](https://github.com/mrmans0n/compose-rules) 0.6.7, by far the most used rule set,
+[compose-rules](https://github.com/mrmans0n/compose-rules) 0.6.8, by far the most used rule set,
 runs natively with output identical to the jar (the `-all.jar` and the Maven artifacts). Any other
 rule set or reporter jar hands the whole run to the real ktlint jar (downloaded once and checked by
 SHA-256; needs Java), so it works at JVM speed ([research/27](research/27-custom-rulesets-impl.md)).
@@ -538,7 +538,7 @@ files:
 ## Maintenance
 
 ktrs is maintained by [@Hexay](https://github.com/Hexay). It tracks ktfmt 0.65, ktlint
-2.0.0-ALPHA-4 (plus 1.8.0 in compatibility mode), compose-rules 0.6.7 and the Kotlin 2.4.20 parser. New upstream releases are ported and re-checked against
+2.0.0-ALPHA-4 (plus 1.8.0 in compatibility mode), compose-rules 0.6.8 and the Kotlin 2.4.20 parser. New upstream releases are ported and re-checked against
 the parity gates before a ktrs release. If ktrs output ever differs from ktfmt or ktlint on your
 code, that's a bug: please [open an issue](https://github.com/Hexay/ktrs/issues) with the file, or
 a snippet that reproduces it, and the command line you used.

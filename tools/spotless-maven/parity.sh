@@ -89,7 +89,7 @@ kotlin() {
     ktlint-editorconfig) echo "<kotlin>$inc<ktlint><editorConfigPath>config/ktlint.editorconfig</editorConfigPath>
       </ktlint></kotlin>" ;;
     ktlint-compose|real-compose) echo "<kotlin>$inc<ktlint><customRuleSets>
-      <value>io.nlopez.compose.rules:ktlint:0.6.7</value></customRuleSets></ktlint></kotlin>" ;;
+      <value>io.nlopez.compose.rules:ktlint:0.6.8</value></customRuleSets></ktlint></kotlin>" ;;
     *) echo "unknown scenario $1" >&2; return 1 ;;
   esac
 }

@@ -18,6 +18,7 @@ pub mod modifier_missing;
 pub mod modifier_naming;
 pub mod modifier_not_used_at_root;
 pub mod modifier_reused;
+pub mod modifier_should_be_forwarded_to_every_branch;
 pub mod modifier_without_default;
 pub mod multiple_content_emitters;
 pub mod mutable_parameters;

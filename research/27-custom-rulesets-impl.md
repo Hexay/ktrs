@@ -55,19 +55,20 @@ the hand-off attempt for rule set and reporter JARs.
 
 ## B. Native compose-rules (`crates/ktrs-compose`)
 
-- Pin: compose-rules **v0.6.7** (latest; builds against ktlint 1.8.0), `tools/sync-compose-rules.sh`
-  (`third_party/compose-rules` + `tools/compose-rules/lib/ktlint-compose-0.6.7-all.jar`); `upstream.yml` opens an
-  issue when a newer release ships.
+- Pin: compose-rules **v0.6.8** (latest; builds against ktlint 1.8.0), `tools/sync-compose-rules.sh`
+  (`third_party/compose-rules` + `tools/compose-rules/lib/ktlint-compose-0.6.8-all.jar`); `upstream.yml` opens an
+  issue when a newer release ships. 0.6.7 -> 0.6.8 (2026-10-22): new rule `modifier-should-be-forwarded-to-every-branch`,
+  `KtPsiUtil.deparenthesize` on modifier arguments (Modifiers.kt, KtCallExpressions.kt, ModifierNotUsedAtRoot).
 - Detection (`ktrs-cli/src/ktlint/compose_jar.rs`, `zip_directory.rs`): SHA-256 of the sorted
   `name\tcrc32\tsize` lines of the JAR's `io/nlopez/compose/` file entries (directories excluded since
   2026-10-03), read from the zip central directory (no inflating), matched against `ktrs_compose::NATIVE_JARS`.
   That identifies rule set id and release by content; renamed files still match. Per release two fingerprints: the
   `-all.jar`, and the Maven `ktlint` + `common-ktlint` JARs merged (the Gradle plugin's `-R` JAR; same bytecode up
   to the `-all.jar`'s `shadow/` psiUtil relocation, research/29). The thin Maven JAR alone goes to the hand-off.
-- Loading mirrors the jar: standard rules then the 34 compose rules (provider order); in 2.0 mode the
+- Loading mirrors the jar: standard rules then the 35 compose rules (provider order); in 2.0 mode the
   `RuleSetProviderV3` deprecation WARN and debug lines of `LoadRuleProviders`.
 - Port layout mirrors upstream, one Rust file per Kotlin file (`core/`, `core/util/`, `rules/`, `ktlint/` with the
-  `KtlintRule` adapter, config, `.editorconfig` properties, the 34 `*Check`s); conventions in its `lib.rs`. PSI
+  `KtlintRule` adapter, config, `.editorconfig` properties, the 35 `*Check`s); conventions in its `lib.rs`. PSI
   added to `crates/ktrs-ast/src/psi/` (KtAnnotated, KtCallExpression, KtParameter, KtPsiFactory subset, `getChildren`
   semantics, visibility, …; tests `crates/ktrs-ast/tests/psi_accessors.rs`). Two Kotlin 2.2.21 (1.8 jar) vs 2.4.10
   (2.0 jar) PSI differences are switched on the run's version (`EmbeddedKotlin`): `isIdentifier` on Latin-1
@@ -82,8 +83,8 @@ the hand-off attempt for rule set and reporter JARs.
 
 Goldens: `tools/compose-rules-tests/extract-goldens.sh` records compose-rules' own ktlint tests on ktlint 1.8.0
 (1.8 `CaseRecorder`) and replays every case on 2.0.0-ALPHA-4 (`ReplayOn20.kt`; `.2_0.*` files where 2.0 differs —
-none at this pin). 238 cases in 33 rule dirs (LambdaParameterEventTrailing has no upstream ktlint test; covered by
-the corpus). `cargo test -p ktrs-compose --release --test golden`: **476/476** (238 × both modes).
+none at this pin). 261 cases in 34 rule dirs (LambdaParameterEventTrailing has no upstream ktlint test; covered by
+the corpus). `cargo test -p ktrs-compose --release --test golden`: **522/522** (261 × both modes).
 
 Real code, testbox, `tools/compose-rules/parity.sh` (ktlint-compare.sh, `-R ktlint-compose-0.6.7-all.jar` on both
 sides, style ktlint_official, lint rows + `-F` trees; branch at 6c76ea2's code):

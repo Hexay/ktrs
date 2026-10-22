@@ -100,7 +100,7 @@ dependencies {
     testRuntimeOnly("org.slf4j:slf4j-simple:2.0.17")
     spotlessKtlint("com.pinterest.ktlint:ktlint-cli:1.8.0")
     spotlessKtlintCompose("com.pinterest.ktlint:ktlint-cli:1.8.0")
-    spotlessKtlintCompose("io.nlopez.compose.rules:ktlint:0.6.7")
+    spotlessKtlintCompose("io.nlopez.compose.rules:ktlint:0.6.8")
     testImplementation(platform("org.junit:junit-bom:5.13.4"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

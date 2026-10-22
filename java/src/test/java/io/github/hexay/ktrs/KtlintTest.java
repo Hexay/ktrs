@@ -19,7 +19,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 class KtlintTest {
     /** Fetched by tools/sync-compose-rules.sh; the tests that need it are skipped without it. */
-    static final Path COMPOSE_JAR = Paths.get("../tools/compose-rules/lib/ktlint-compose-0.6.7-all.jar").toAbsolutePath();
+    static final Path COMPOSE_JAR = Paths.get("../tools/compose-rules/lib/ktlint-compose-0.6.8-all.jar").toAbsolutePath();
 
     private static Ktrs ktrs;
 

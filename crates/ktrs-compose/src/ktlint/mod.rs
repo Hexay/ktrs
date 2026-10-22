@@ -23,6 +23,7 @@ pub mod modifier_missing_check;
 pub mod modifier_naming_check;
 pub mod modifier_not_used_at_root_check;
 pub mod modifier_reused_check;
+pub mod modifier_should_be_forwarded_to_every_branch_check;
 pub mod modifier_without_default_check;
 pub mod multiple_content_emitters_check;
 pub mod mutable_parameters_check;

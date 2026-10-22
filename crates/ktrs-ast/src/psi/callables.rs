@@ -130,6 +130,10 @@ impl KtParameterList {
 }
 
 impl KtParameter {
+    pub fn is_var_arg(self, ast: &Ast) -> bool {
+        self.has_modifier(ast, VARARG_KEYWORD)
+    }
+
     pub fn equals_token(self, ast: &Ast) -> Option<NodeId> {
         ast.find_child_by_type(self.0, EQ)
     }

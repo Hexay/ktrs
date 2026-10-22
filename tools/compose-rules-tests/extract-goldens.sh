@@ -4,7 +4,7 @@
 # run it in the background (on testbox: see the testbox memory). Needs tools/sync-compose-rules.sh and tools/sync-ktlint.sh.
 #   extract-goldens.sh [--no-copy]    # --no-copy leaves the cases in target/compose-rules-extract/cases
 #
-# 1. ktlint 1.8.0 (what compose-rules v0.6.7 is built and tested against): the rule tests
+# 1. ktlint 1.8.0 (what compose-rules v0.6.8 is built and tested against): the rule tests
 #    (rules/ktlint/src/test/.../ktlint/*CheckTest.kt) are compiled against ktlint 1.8.0's ktlint-test sources (sparse clone in
 #    third_party/ktlint-1.8.0) patched with a recording hook (extract/CaseRecorder.kt, the 1.8 port of
 #    tools/ktlint-tests/extract/CaseRecorder.kt), and run with JUnit on one class path: ktlint-cli-1.8.0-all.jar first, the

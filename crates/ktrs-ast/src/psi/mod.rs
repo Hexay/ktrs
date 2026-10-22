@@ -48,7 +48,9 @@ pub use calls::unpack_function_literal;
 pub use class_or_object::containing_kt_file;
 pub use classes::*;
 pub use delete::{delete, raw_delete};
-pub use kt_psi_util::{is_dot_selector, is_identifier, quote_if_needed, reference_expression};
+pub use kt_psi_util::{
+    deparenthesize, deparenthesize_once, is_dot_selector, is_identifier, quote_if_needed, reference_expression,
+};
 pub use local::{get_enclosing_element_for_local_declaration, is_local};
 pub use named::{
     ANONYMOUS_STRING, NO_NAME_PROVIDED, is_name_identifier_owner, name, name_as_safe_name, name_identifier, set_name,
