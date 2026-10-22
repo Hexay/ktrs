@@ -3,7 +3,7 @@
 # vendor the parser fixtures into testdata/kotlin/. Keep KOTLIN_TAG in sync with tools/psi-dump/psi-dump.sh.
 set -euo pipefail
 export MSYS_NO_PATHCONV=1
-KOTLIN_TAG=v2.4.20
+KOTLIN_TAG=v2.4.21
 # pwd -W: native Windows path, since MSYS_NO_PATHCONV stops git.exe from translating /c/... paths.
 root="$(cd "$(dirname "$0")/.." && (pwd -W 2>/dev/null || pwd))"
 src="$root/third_party/kotlin"

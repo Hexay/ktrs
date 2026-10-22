@@ -5,7 +5,7 @@ set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
 lib="$here/../psi-dump/lib"
 classes="$here/build"
-[[ -f $lib/kotlin-compiler-embeddable-2.4.20.jar ]] || "$here/../psi-dump/psi-dump.sh" kinds >/dev/null
+[[ -f $lib/kotlin-compiler-embeddable-2.4.21.jar ]] || "$here/../psi-dump/psi-dump.sh" kinds >/dev/null
 
 mkdir -p "$classes"
 sep=:

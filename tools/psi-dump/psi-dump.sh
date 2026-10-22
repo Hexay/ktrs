@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Build-on-demand wrapper for the reference PSI dumper. Usage: tools/psi-dump/psi-dump.sh one|tree|kinds ...
 set -euo pipefail
-KOTLIN_VERSION=2.4.20
+KOTLIN_VERSION=2.4.21
 COROUTINES_VERSION=1.8.0
 here="$(cd "$(dirname "$0")" && pwd)"
 lib="$here/lib"

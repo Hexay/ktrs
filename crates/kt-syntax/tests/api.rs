@@ -45,7 +45,7 @@ fn source_file_is_send_and_sync() {
 
 #[test]
 fn kotlin_version_is_the_pin() {
-    assert_eq!(KOTLIN_VERSION, "2.4.20");
+    assert_eq!(KOTLIN_VERSION, "2.4.21");
 }
 
 #[test]
