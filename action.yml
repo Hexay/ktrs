@@ -1,5 +1,5 @@
-name: Setup ktrs
-description: Install ktrs and its drop-in `ktfmt` and `ktlint` binaries (Kotlin formatting and linting identical to ktfmt 0.65 and ktlint 2.0)
+name: ktrs Kotlin formatter and linter
+description: Kotlin formatting and linting identical to ktfmt and ktlint, 13-190x faster, no JVM
 branding:
   icon: check-square
   color: purple
