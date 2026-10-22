@@ -132,7 +132,7 @@ Check a pull request's Kotlin files, with each finding shown as an annotation on
 ```yaml
 - uses: actions/checkout@v4
   with: { fetch-depth: 0 }         # changed-only needs the history back to the base commit
-- uses: Hexay/ktrs@v0.5.2          # Linux, macOS and Windows
+- uses: Hexay/ktrs@v0.5.3          # Linux, macOS and Windows
   with:
     check: fmt lint                # ktrs fmt --check and ktrs lint (or just one of them)
     changed-only: true             # only the files the pull request changes
@@ -144,7 +144,7 @@ stay tracked across commits, without the annotation limit. The job needs `permis
 security-events: write }`, and private repositories need GitHub Code Security:
 
 ```yaml
-- uses: Hexay/ktrs@v0.5.2
+- uses: Hexay/ktrs@v0.5.3
   with:
     check: lint
     sarif: true                    # sarif-category: <name> keeps several uploads apart
@@ -155,7 +155,7 @@ before the push, or with the default branch for a new branch or a force push; `b
 this. Without `check`, the action only installs the binaries, and you run them yourself:
 
 ```yaml
-- uses: Hexay/ktrs@v0.5.2
+- uses: Hexay/ktrs@v0.5.3
 - run: ktrs fmt --check --style kotlinlang
 - run: ktrs lint --reporter github --changed-since origin/main
 ```
@@ -171,7 +171,7 @@ No Rust needed: on first run, the hook downloads the release binaries for its `r
 
 ```yaml
 - repo: https://github.com/Hexay/ktrs
-  rev: v0.5.2
+  rev: v0.5.3
   hooks:
     - id: ktrs-fmt          # also: ktrs-fmt-check, ktfmt (with ktfmt's flags in `args`)
       args: [--style, kotlinlang]
@@ -200,7 +200,7 @@ bundles ktfmt 0.64, so the first `ktfmtFormat` after the switch is the ktfmt 0.6
 
 ```kotlin
 plugins {
-    id("io.github.hexay.ktrs") version "0.5.2"   // was: id("com.ncorti.ktfmt.gradle") version "0.27.0"
+    id("io.github.hexay.ktrs") version "0.5.3"   // was: id("com.ncorti.ktfmt.gradle") version "0.27.0"
 }
 ```
 
@@ -213,7 +213,7 @@ reports and formatted files match the original with ktlint 1.8.0
 
 ```kotlin
 plugins {
-    id("io.github.hexay.ktrs.ktlint") version "0.5.2"   // was: id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
+    id("io.github.hexay.ktrs.ktlint") version "0.5.3"   // was: id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
 }
 ```
 
@@ -228,7 +228,7 @@ compose-rules runs natively; other rule sets run the task through the real ktlin
 
 ```kotlin
 plugins {
-    id("io.github.hexay.ktrs.kotlinter") version "0.5.2"   // was: id("org.jmailen.kotlinter") version "5.7.0"
+    id("io.github.hexay.ktrs.kotlinter") version "0.5.3"   // was: id("org.jmailen.kotlinter") version "5.7.0"
 }
 ```
 
@@ -240,7 +240,7 @@ ktlint-gradle drop-in.
 ```kotlin
 buildscript {
     repositories { mavenCentral() }
-    dependencies { classpath("io.github.hexay:ktrs:0.5.2") }
+    dependencies { classpath("io.github.hexay:ktrs:0.5.3") }
 }
 
 spotless {
@@ -292,7 +292,7 @@ console output, reports and formatted files match the original
 <plugin>
   <groupId>io.github.hexay</groupId>                   <!-- was: com.github.gantsign.maven -->
   <artifactId>ktrs-ktlint-maven-plugin</artifactId>    <!-- was: ktlint-maven-plugin -->
-  <version>0.5.2</version>
+  <version>0.5.3</version>
   <executions><execution><goals><goal>check</goal></goals></execution></executions>
 </plugin>
 ```
@@ -313,7 +313,7 @@ plugin dependency; the other options stay as they are (Maven 3.9+, Java 17+):
     </kotlin>
   </configuration>
   <dependencies>
-    <dependency><groupId>io.github.hexay</groupId><artifactId>ktrs</artifactId><version>0.5.2</version></dependency>
+    <dependency><groupId>io.github.hexay</groupId><artifactId>ktrs</artifactId><version>0.5.3</version></dependency>
   </dependencies>
 </plugin>
 ```
