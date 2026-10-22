@@ -5,14 +5,15 @@
 baseline	console.txt	ignore	^> Task :runKtlintCheckOver\w+( UP-TO-DATE)?$
 # Linux only (first seen on the 2026-10-07 testbox run; identical on Windows): the two sides list files in different
 # orders in the console and the plain/sarif reports (the same rows: rows.py). Unreviewed: whether ktrs should order
-# files like upstream on every filesystem is an open item; remove these once it does.
-compose-all	console.txt	order
-compose-all	build/reports/ktlint/*.txt	order
-compose-maven	console.txt	order
-compose-maven	build/reports/ktlint/*.txt	order
-realcode	console.txt	order
-realcode	build/reports/ktlint/*.txt	order
-realcode	build/reports/ktlint/*.sarif	order
+# files like upstream on every filesystem is an open item; remove these once it does. `unordered`: on CI the order
+# matches in some runs and not others (2026-10-22: compose-* matched in one attempt, realcode in the next).
+compose-all	console.txt	unordered
+compose-all	build/reports/ktlint/*.txt	unordered
+compose-maven	console.txt	unordered
+compose-maven	build/reports/ktlint/*.txt	unordered
+realcode	console.txt	unordered
+realcode	build/reports/ktlint/*.txt	unordered
+realcode	build/reports/ktlint/*.sarif	unordered
 # realcode: the html reporter orders files by a ConcurrentHashMap keyed by absolute path, which differs between the two
 # project dirs (.../upstream/... vs .../ktrs/...): same lines, an order that varies between runs (research/29).
 realcode	build/reports/ktlint/*.html	unordered
