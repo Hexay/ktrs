@@ -1,18 +1,18 @@
 {
-  "version": "0.5.2",
+  "version": "0.5.3",
   "description": "Fast Kotlin formatter and linter: drop-in ktfmt and ktlint binaries",
   "homepage": "https://github.com/Hexay/ktrs",
   "license": "MIT|Apache-2.0",
   "architecture": {
     "64bit": {
-      "url": "https://github.com/Hexay/ktrs/releases/download/v0.5.2/ktrs-v0.5.2-x86_64-pc-windows-msvc.zip",
-      "hash": "68cc259c490ab21d01fcaf7c7c24df05411521e291c3d24051d243a2f920a43d",
-      "extract_dir": "ktrs-v0.5.2-x86_64-pc-windows-msvc"
+      "url": "https://github.com/Hexay/ktrs/releases/download/v0.5.3/ktrs-v0.5.3-x86_64-pc-windows-msvc.zip",
+      "hash": "6a252504bb146dda688b10058ce64ce98931e3c23e79a1e87e58c9fb119ebbb9",
+      "extract_dir": "ktrs-v0.5.3-x86_64-pc-windows-msvc"
     },
     "arm64": {
-      "url": "https://github.com/Hexay/ktrs/releases/download/v0.5.2/ktrs-v0.5.2-aarch64-pc-windows-msvc.zip",
-      "hash": "320f6507c6a1f33fce43d048a27239ee40d3f6c2224528843d37ca764e20dbd5",
-      "extract_dir": "ktrs-v0.5.2-aarch64-pc-windows-msvc"
+      "url": "https://github.com/Hexay/ktrs/releases/download/v0.5.3/ktrs-v0.5.3-aarch64-pc-windows-msvc.zip",
+      "hash": "119c241e28215e06933b600d2da915aec40e8fed41f6a77b2d86b818db2cd1f2",
+      "extract_dir": "ktrs-v0.5.3-aarch64-pc-windows-msvc"
     }
   },
   "bin": ["ktrs.exe", "ktfmt.exe", "ktlint.exe"]
