@@ -9,4 +9,6 @@ pub struct KtrsLintOptions {
     pub changed_files: Option<ChangedFiles>,
     /// `--reporter` knows `github` (`reporter/github.rs`).
     pub github_reporter: bool,
+    /// The `sarif` reporter's URIs are relative to the working directory, not ktlint's `user.home`.
+    pub sarif_relative_to_working_dir: bool,
 }

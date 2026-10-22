@@ -1,5 +1,6 @@
 //! `ktrs lint`: maps its flags onto the `ktlint` drop-in's options and runs the same command, so output,
-//! reporters and exit codes are ktlint's. Paths are shown relative to the working directory.
+//! reporters and exit codes are ktlint's. Paths are shown relative to the working directory, SARIF's too (ktlint's
+//! are relative to the home directory, which GitHub code scanning reads as relative to the repository root).
 //!
 //! `-R` loads rule set JARs like the drop-in: a compose-rules release ktrs ports runs natively, any other JAR
 //! with a rule set (or an `artifact=` reporter JAR) hands the run to the ktlint jar, with the equivalent ktlint
@@ -93,7 +94,7 @@ fn print_rule_ids(cli: &KtlintCli, args: &KtlintArgs) -> i32 {
 
 /// The options without `--ktlint-version`, which [`resolve_ktlint_version`] reads.
 pub fn parse_lint_args(args: &[String]) -> Result<KtlintArgs, String> {
-    let ktrs_lint = KtrsLintOptions { github_reporter: true, ..KtrsLintOptions::default() };
+    let ktrs_lint = KtrsLintOptions { github_reporter: true, sarif_relative_to_working_dir: true, ..KtrsLintOptions::default() };
     let mut parsed = KtlintArgs { relative: true, ktrs_lint, ..KtlintArgs::default() };
     let mut args = args.iter();
     while let Some(arg) = args.next() {

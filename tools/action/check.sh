@@ -20,15 +20,23 @@ if [ "${KTRS_CHANGED_ONLY:-false}" = true ]; then
   set -- --changed-since "$base"
 fi
 
+[ -n "${KTRS_SARIF_FILE:-}" ] && rm -f "$KTRS_SARIF_FILE"
 status=0
 for check in $(printf '%s' "${KTRS_CHECK:-}" | tr ',' ' '); do
   case $check in
     fmt) "$ktrs" fmt --check --reporter github "$@" ${KTRS_FMT_ARGS:-} || status=$? ;;
-    lint) "$ktrs" lint --reporter github "$@" ${KTRS_LINT_ARGS:-} || status=$? ;;
+    lint)
+      "$ktrs" lint --reporter github ${KTRS_SARIF_FILE:+"--reporter=sarif,output=$KTRS_SARIF_FILE"} "$@" ${KTRS_LINT_ARGS:-} ||
+        status=$?
+      ;;
     *)
       echo "::error title=ktrs::unknown check '$check' (expected fmt, lint, or both)"
       status=2
       ;;
   esac
 done
+# The upload step runs only when lint wrote a report (not after a usage error, nor without `lint`).
+if [ -n "${KTRS_SARIF_FILE:-}" ] && [ -s "$KTRS_SARIF_FILE" ]; then
+  echo "sarif=$KTRS_SARIF_FILE" >>"$GITHUB_OUTPUT"
+fi
 exit $status

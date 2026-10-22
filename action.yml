@@ -35,6 +35,17 @@ inputs:
     description: More arguments for `ktrs lint`, e.g. `--ktlint-version 1.8 src`
     required: false
     default: ""
+  sarif:
+    description: >-
+      With `check: lint`: also upload the lint findings to GitHub code scanning (the Security tab and the pull
+      request's checks). The job needs `permissions: security-events: write`; private repositories need GitHub
+      Code Security. Needs ktrs v0.5.2 or later
+    required: false
+    default: "false"
+  sarif-category:
+    description: The code scanning category, to keep separate uploads apart (e.g. one per module)
+    required: false
+    default: ktrs
 
 runs:
   using: composite
@@ -49,9 +60,11 @@ runs:
         sh "$GITHUB_ACTION_PATH/install.sh"
         echo "$KTRS_INSTALL_DIR" >> "$GITHUB_PATH"
     - name: Check Kotlin files
+      id: check
       if: inputs.check != ''
       shell: bash
       env:
+        KTRS_SARIF_FILE: ${{ inputs.sarif == 'true' && format('{0}/ktrs.sarif', runner.temp) || '' }}
         KTRS_INSTALL_DIR: ${{ runner.tool_cache }}/ktrs/bin
         KTRS_CHECK: ${{ inputs.check }}
         KTRS_CHANGED_ONLY: ${{ inputs.changed-only }}
@@ -61,3 +74,9 @@ runs:
         KTRS_FMT_ARGS: ${{ inputs.fmt-args }}
         KTRS_LINT_ARGS: ${{ inputs.lint-args }}
       run: sh "$GITHUB_ACTION_PATH/tools/action/check.sh"
+    - name: Upload to code scanning
+      if: always() && steps.check.outputs.sarif != ''
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: ${{ steps.check.outputs.sarif }}
+        category: ${{ inputs.sarif-category }}

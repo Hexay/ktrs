@@ -109,6 +109,16 @@ fn pinned_compose_rules_jar_runs_natively() {
     assert_eq!(lint(&project, &["-R", &jar, "A.kt"]).exit_code, 0);
 }
 
+/// GitHub code scanning reads relative URIs as relative to the repository root.
+#[test]
+fn sarif_uris_are_relative_to_the_working_directory() {
+    let project = Project::new("ktrs-lint", &[("src/A.kt", "val a = 1;\n")]);
+    let run = lint(&project, &["--reporter=sarif", "src"]);
+    assert_eq!(run.exit_code, 1, "{run:?}");
+    assert!(run.out.contains(r#""uri": "src/A.kt""#), "{run:?}");
+    assert!(run.out.contains(r#""uriBaseId": "%SRCROOT%""#), "{run:?}");
+}
+
 #[test]
 fn hand_off_argv_is_the_equivalent_ktlint_command() {
     let parsed = KtlintArgs {

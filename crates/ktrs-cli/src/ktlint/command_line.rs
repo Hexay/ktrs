@@ -151,7 +151,11 @@ impl KtlintCli {
             load_baseline(&args.baseline_path, &self.working_dir.to_path_buf(), logger, &self.console, args.ktlint_version)
         };
         let env = ReporterEnvironment {
-            user_home: Some(self.user_home.clone().into()),
+            user_home: Some(if args.ktrs_lint.sarif_relative_to_working_dir {
+                self.working_dir.to_path_buf()
+            } else {
+                self.user_home.clone().into()
+            }),
             working_dir: self.working_dir.to_path_buf(),
             ktlint_release: release(args.ktlint_version),
         };
