@@ -137,7 +137,10 @@ say "run in debug mode"; the obsolete-property warning; four small rule fixes (X
 ## How to run
 
 - Tests: `cargo test -p ktrs-lint --release --test ktlint_1_8_mode` (one fixture per switch in
-  `crates/ktrs-lint/tests/data/ktlint_1_8_mode/`, expected rows from both jars), `--test ktlint_1_8_format` (rule order,
+  `crates/ktrs-lint/tests/data/ktlint_1_8_mode/`, expected rows from both jars; `X7KdocCodeSpanLexer.kt` stresses the
+  KDoc inline-code-span lexer surface — lone punctuation spans, interior commas, operator spans — the class issue #9
+  came from. KDoc *trailing-space* shapes are deliberately left out: they are the opposite, still-unfixed divergence
+  under "Remaining differences" / `known-diffs/ktlint-1.8.tsv`, so a fixture would fail), `--test ktlint_1_8_format` (rule order,
   `RunAfterRuleFilter`, when-entry-bracing in both modes), `cargo test -p ktrs-cli --test ktlint_cli_1_8`,
   `--test ktlint_baseline`, and `java_printf`'s unit test.
 - Lint rows and `-F` trees vs the jar (testbox, background, under the bench lock; `NO_FORMAT=1` for rows only):

@@ -36,6 +36,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4e7648175b45a9a48536d676f68d918270699102aa8dab5496df06904c914600"
 
 [[package]]
+name = "ec4rs"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3b31a881d38439026e3d5dd938ab20328d36e23caca8fd5981c42e4b677f5842"
+
+[[package]]
 name = "find-msvc-tools"
 version = "0.1.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -64,7 +70,7 @@ dependencies = [
 
 [[package]]
 name = "ktrs-ast"
-version = "0.4.0"
+version = "0.5.3"
 dependencies = [
  "ktrs-parser",
  "ktrs-psi",
@@ -73,15 +79,16 @@ dependencies = [
 
 [[package]]
 name = "ktrs-editorconfig"
-version = "0.4.0"
+version = "0.5.3"
 dependencies = [
  "regex",
 ]
 
 [[package]]
 name = "ktrs-fmt"
-version = "0.4.0"
+version = "0.5.3"
 dependencies = [
+ "ec4rs",
  "ktrs-lexer",
  "ktrs-parser",
  "ktrs-psi",
@@ -102,14 +109,14 @@ dependencies = [
 
 [[package]]
 name = "ktrs-lexer"
-version = "0.4.0"
+version = "0.5.3"
 dependencies = [
  "ktrs-syntax",
 ]
 
 [[package]]
 name = "ktrs-lint"
-version = "0.4.0"
+version = "0.5.3"
 dependencies = [
  "ktrs-ast",
  "ktrs-editorconfig",
@@ -121,7 +128,7 @@ dependencies = [
 
 [[package]]
 name = "ktrs-parser"
-version = "0.4.0"
+version = "0.5.3"
 dependencies = [
  "ktrs-lexer",
  "ktrs-syntax",
@@ -129,7 +136,7 @@ dependencies = [
 
 [[package]]
 name = "ktrs-psi"
-version = "0.4.0"
+version = "0.5.3"
 dependencies = [
  "ktrs-parser",
  "ktrs-syntax",
@@ -137,7 +144,7 @@ dependencies = [
 
 [[package]]
 name = "ktrs-syntax"
-version = "0.4.0"
+version = "0.5.3"
 dependencies = [
  "text-size",
 ]

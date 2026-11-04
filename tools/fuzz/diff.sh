@@ -9,15 +9,17 @@
 # (tool, style, pass, kind, file), OUT/repro/<file> the inputs involved. Linux.
 # Env: KTRS_BIN = dir with the ktfmt and ktlint binaries (default target/release); KTFMT_JAR (default
 # tools/ktfmt-oracle/lib/ktfmt-0.65-with-dependencies.jar); KTLINT2 = the ktlint-2.0.0-ALPHA-4 release asset
-# (needed for ktlint); TMO as in tools/parity/*-compare.sh; EC_EXTRA as in tools/parity/ktlint-compare.sh.
+# (needed for ktlint); KTLINT1 = the ktlint-1.8.0 jar command (default `java -jar
+# tools/ktlint-oracle/lib/ktlint-cli-1.8.0-all.jar` if present) for the extra `--ktlint-version=1.8` pass;
+# TMO as in tools/parity/*-compare.sh; EC_EXTRA as in tools/parity/ktlint-compare.sh.
 set -euo pipefail
-(($# >= 2)) || { sed -n 2,13p "$0"; exit 2; }
+(($# >= 2)) || { sed -n 2,14p "$0"; exit 2; }
 repo="$(cd "$(dirname "$0")/../.." && pwd)"
 inputs=$(cd "$1" && pwd) out=$2 tools=${3:-all}
 mkdir -p "$out"; out=$(cd "$out" && pwd)
 bin=${KTRS_BIN:-$repo/target/release}
 jar=${KTFMT_JAR:-$repo/tools/ktfmt-oracle/lib/ktfmt-0.65-with-dependencies.jar}
-rm -rf "$out/tree" "$out/repro" "$out/mismatches.tsv" "$out/ktfmt" "$out/ktlint"; mkdir -p "$out/tree" "$out/repro"
+rm -rf "$out/tree" "$out/repro" "$out/mismatches.tsv" "$out/ktfmt" "$out/ktlint" "$out/ktlint-1.8"; mkdir -p "$out/tree" "$out/repro"
 find "$inputs" -maxdepth 1 -type f \( -name '*.kt' -o -name '*.kts' \) -exec cp -t "$out/tree" {} +
 touch "$out/mismatches.tsv"
 
@@ -59,13 +61,14 @@ collect_ktfmt() { # style pass dir
   [[ $(cat "$3/a.exit") == "$(cat "$3/b.exit")" ]] || echo "(tree)" | record ktfmt "$1" "$2" "exit $(cat "$3/a.exit")/$(cat "$3/b.exit")"
 }
 
-collect_ktlint() { # style pass dir
-  cat "$3/only.a" "$3/only.b" | cut -d: -f1 | sort -u | record ktlint "$1" "$2" lint
-  record ktlint "$1" "$2" format < "$3/format-files.txt"
-  [[ $(cat "$3/lint.a.exit") == "$(cat "$3/lint.b.exit")" ]] ||
-    echo "(tree)" | record ktlint "$1" "$2" "lint exit $(cat "$3/lint.a.exit")/$(cat "$3/lint.b.exit")"
-  [[ $(cat "$3/format.a.exit") == "$(cat "$3/format.b.exit")" ]] ||
-    echo "(tree)" | record ktlint "$1" "$2" "format exit $(cat "$3/format.a.exit")/$(cat "$3/format.b.exit")"
+collect_ktlint() { # tool style pass dir
+  local tool=$1 style=$2 pass=$3 d=$4
+  cat "$d/only.a" "$d/only.b" | cut -d: -f1 | sort -u | record "$tool" "$style" "$pass" lint
+  record "$tool" "$style" "$pass" format < "$d/format-files.txt"
+  [[ $(cat "$d/lint.a.exit") == "$(cat "$d/lint.b.exit")" ]] ||
+    echo "(tree)" | record "$tool" "$style" "$pass" "lint exit $(cat "$d/lint.a.exit")/$(cat "$d/lint.b.exit")"
+  [[ $(cat "$d/format.a.exit") == "$(cat "$d/format.b.exit")" ]] ||
+    echo "(tree)" | record "$tool" "$style" "$pass" "format exit $(cat "$d/format.a.exit")/$(cat "$d/format.b.exit")"
 }
 
 if [[ $tools == all || $tools == ktfmt ]]; then
@@ -78,7 +81,20 @@ if [[ $tools == all || $tools == ktlint ]]; then
   styles=(ktlint_official intellij_idea android_studio)
   PREPARE=: run_tool ktlint-compare.sh ktlint "$bin/ktlint" "${KTLINT2:?set KTLINT2 to the ktlint-2.0.0-ALPHA-4 release asset}" \
     "$out/tree" "${styles[@]}"
-  for s in "${styles[@]}"; do collect_ktlint "$s" 1 "$out/ktlint/pass1/$s"; collect_ktlint "$s" 2 "$out/ktlint/pass2-$s/$s"; done
+  for s in "${styles[@]}"; do collect_ktlint ktlint "$s" 1 "$out/ktlint/pass1/$s"; collect_ktlint ktlint "$s" 2 "$out/ktlint/pass2-$s/$s"; done
+
+  # 1.8 mode (research/26): ktrs --ktlint-version=1.8 vs the ktlint-1.8.0 jar. The 2.0 pass above shares ktrs's
+  # Kotlin-2.4 KDoc lexer with the 2.0 jar, so it cannot see a lexer-mediated 1.8 divergence (issue #9, the
+  # KDoc code-span comma). Skip with a notice when the 1.8.0 jar isn't available rather than failing the run.
+  ktlint1=${KTLINT1:-}
+  [[ -z $ktlint1 && -f $repo/tools/ktlint-oracle/lib/ktlint-cli-1.8.0-all.jar ]] &&
+    ktlint1="java -jar $repo/tools/ktlint-oracle/lib/ktlint-cli-1.8.0-all.jar"
+  if [[ -n $ktlint1 ]]; then
+    PREPARE=: run_tool ktlint-compare.sh ktlint-1.8 "$bin/ktlint --ktlint-version=1.8" "$ktlint1" "$out/tree" "${styles[@]}"
+    for s in "${styles[@]}"; do collect_ktlint ktlint-1.8 "$s" 1 "$out/ktlint-1.8/pass1/$s"; collect_ktlint ktlint-1.8 "$s" 2 "$out/ktlint-1.8/pass2-$s/$s"; done
+  else
+    echo "note: ktlint 1.8 differential skipped (set KTLINT1 to the ktlint-1.8.0 jar command, or place ktlint-cli-1.8.0-all.jar under tools/ktlint-oracle/lib/)" >&2
+  fi
 fi
 
 # Pass 2 rows for a file that already differed in pass 1 (same tool and style) are consequences, not findings.

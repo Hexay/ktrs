@@ -21,6 +21,9 @@ const FRAGMENTS: &[&str] = &[
     "x[1, 2]", "(a)", "A::class", "::f", "this@A", "return@f", "l@ ", "label@ for (i in 0..1) break@label",
     "\"s\"", "\"$x\"", "\"${x + 1}\"", "\"\"\"\n  a\n  \"\"\".trimIndent()", "\"\"\"${'$'}\"\"\"", "'c'", "'\\n'",
     "1", "0x1F", "1L", "1.0f", "1_000", "// c\n", "/* c */", "/** Doc. */\n", "/**\n * Doc [a].\n *\n * @param a b\n */\n",
+    // KDoc inline code spans of punctuation: the 2.4 lexer isolates `,` etc. as a lone leaf (issue #9), the
+    // 2.2 lexer (ktlint 1.8) keeps it in KDOC_TEXT, so these only diverge in the 1.8 differential pass.
+    "/** `,` */\n", "/** sep `,` end */\n", "/** `.` `;` `:` */\n",
     "/*\n * c\n */\n", "// ktlint-disable\n", "// ktlint-enable\n", "@Suppress(\"ktlint\")\n", "// @formatter:off\n",
     "// @formatter:on\n", "#!/usr/bin/env kotlin\n", "init { }\n", "constructor() : this(1)\n", "by lazy { 1 }",
     "fun interface F { fun f() }\n", "expect ", "actual ", "external ", "tailrec ", "vararg ", "crossinline ",

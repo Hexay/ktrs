@@ -36,6 +36,12 @@ already differed in pass 1 are dropped as consequences. Files ktrs's ktfmt rejec
 (`differs.sh`): on a `FormattingError` the jar's CLI aborts the whole run (`Exception in thread "main"`) and leaves
 the rest of the tree unformatted.
 
+ktlint runs a second differential in **1.8 mode** (tool `ktlint-1.8`): `ktrs --ktlint-version=1.8` vs the ktlint-1.8.0
+jar (`KTLINT1`, default `tools/ktlint-oracle/lib/ktlint-cli-1.8.0-all.jar` if present, else skipped with a note). The
+2.0 pass shares ktrs's Kotlin-2.4 KDoc lexer with the 2.0 jar, so it is blind to a lexer-mediated 1.8-only divergence
+(issue #9, the KDoc code-span comma); the 1.8 pass is what would surface one. `splice.rs`'s dictionary seeds KDoc
+inline code spans of lone punctuation (`` `,` ``) so the mutator reaches that shape.
+
 ## How to run (Linux, nightly + cargo-fuzz; testbox etiquette: `flock ~/bench.lock taskset -c 0-4,6-10`, nohup)
 
 ```sh
@@ -43,7 +49,7 @@ tools/fuzz/fuzz.sh 1800                         # 30 min, parser:2 ktfmt:4 ktlin
 KTRS_FUZZ_KNOWN=input_output.rs:74 tools/fuzz/fuzz.sh 1800 ktfmt:6
 (cd fuzz && cargo +nightly build --release --bin kgen)
 fuzz/target/release/kgen mutate testdata /tmp/in 3000 1        # or: kgen filter fuzz/corpus/ktlint /tmp/in
-KTRS_BIN=target/dist KTLINT2=<ktlint-2.0.0-ALPHA-4> tools/fuzz/diff.sh /tmp/in /tmp/out    # report.md, mismatches.tsv, repro/
+KTRS_BIN=target/dist KTLINT2=<ktlint-2.0.0-ALPHA-4> tools/fuzz/diff.sh /tmp/in /tmp/out    # report.md, mismatches.tsv, repro/; adds a ktlint-1.8 pass when the 1.8.0 jar is present (KTLINT1=…)
 EC_EXTRA='ktlint_experimental = enabled\n' tools/fuzz/diff.sh /tmp/in /tmp/out-exp ktlint
 ```
 

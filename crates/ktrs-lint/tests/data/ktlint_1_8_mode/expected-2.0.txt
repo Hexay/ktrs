@@ -44,3 +44,5 @@ X5ParenSpacing.kt:3:12: Argument should be on a separate line (unless all argume
 X5ParenSpacing.kt:3:12: Missing newline after "(" (standard:wrapping)
 X5ParenSpacing.kt:3:13: Missing trailing comma before ")" (standard:trailing-comma-on-call-site)
 X6KdocCodeSpanComma.kt:1:20: Missing spacing after "," (standard:comma-spacing)
+X7KdocCodeSpanLexer.kt:1:36: Missing spacing after "," (standard:comma-spacing)
+X7KdocCodeSpanLexer.kt:4:17: Missing spacing after "," (standard:comma-spacing)
