@@ -312,7 +312,7 @@ pub fn standard_rule_providers() -> Vec<RuleV2Provider> {
         RuleV2Provider::new(|| Box::new(PropertyWrappingRule::new())),
         RuleV2Provider::new(|| Box::new(SpacingAroundAngleBracketsRule)),
         RuleV2Provider::new(|| Box::new(SpacingAroundColonRule)),
-        RuleV2Provider::new(|| Box::new(SpacingAroundCommaRule)),
+        RuleV2Provider::new(|| Box::new(SpacingAroundCommaRule::default())),
         RuleV2Provider::new(|| Box::new(SpacingAroundCurlyRule::new())),
         RuleV2Provider::new(|| Box::new(SpacingAroundDotRule)),
         RuleV2Provider::new(|| Box::new(SpacingAroundDoubleColonRule)),

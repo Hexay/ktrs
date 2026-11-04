@@ -2,16 +2,20 @@
 
 use ktrs_ast::{Ast, NodeId};
 use ktrs_parser::token_set::TokenSet;
-use ktrs_syntax::SyntaxKind::{GT, RBRACKET, RPAR};
+use ktrs_syntax::SyntaxKind::{GT, KDOC_CODE_SPAN_TEXT, RBRACKET, RPAR};
 
 use crate::ast_node_edit::AstNodeEdit;
 use crate::ast_node_extension::AstNodeExtension;
+use crate::editorconfig::{EditorConfig, KtlintVersion};
 use crate::rule::{About, Emit, RuleId, RuleV2};
 use crate::rules::STANDARD_RULE_ABOUT;
 
 const R_TOKEN_SET: TokenSet = TokenSet::create(&[RPAR, RBRACKET, GT]);
 
-pub struct SpacingAroundCommaRule;
+#[derive(Default)]
+pub struct SpacingAroundCommaRule {
+    ktlint_version: KtlintVersion,
+}
 
 impl RuleV2 for SpacingAroundCommaRule {
     fn rule_id(&self) -> RuleId {
@@ -22,7 +26,17 @@ impl RuleV2 for SpacingAroundCommaRule {
         STANDARD_RULE_ABOUT
     }
 
+    fn before_first_node(&mut self, editor_config: &EditorConfig) {
+        self.ktlint_version = KtlintVersion::of(editor_config);
+    }
+
     fn before_visit_child_nodes(&mut self, ast: &mut Ast, node: NodeId, emit: &mut Emit<'_>) {
+        // KDoc inline code spans (`` `,` ``) tokenize to a lone `,` leaf only with the newer KDoc lexer
+        // (Kotlin 2.4, ktlint 2.0); ktlint 1.8 (Kotlin 2.2) has no code-span state, so the comma stays
+        // inside KDOC_TEXT and is never flagged. ktrs shares the newer lexer, so skip it in 1.8 mode.
+        if self.ktlint_version.is_1_8() && ast.element_type(node) == KDOC_CODE_SPAN_TEXT {
+            return;
+        }
         if ast.is_leaf_element(node) && ast.text_matches(node, ",") && !ast.is_part_of_string(node) {
             if let Some(prev_leaf) = ast.prev_leaf(node).filter(|&it| ast.is_white_space(it)) {
                 let message = format!("Unexpected spacing before \"{}\"", ast.text(node));
