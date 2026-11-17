@@ -155,7 +155,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/parity-setup
         with: { tree: "true" }
-      - run: curl -sfL --create-dirs -o "$KTLINT_18_JAR" "$KTLINT_18_URL"
+      - run: curl -sfL --retry 5 --retry-all-errors --retry-delay 10 --create-dirs -o "$KTLINT_18_JAR" "$KTLINT_18_URL"
       - id: build
         run: cargo build --locked --release --bins
       - name: Compare (rows and trees to target/parity/ktlint-1.8-out)
@@ -179,7 +179,7 @@ jobs:
       - uses: ./.github/actions/parity-setup
         with: { tree: "true" }
       - run: |
-          curl -sfL --create-dirs -o "$KTLINT_18_JAR" "$KTLINT_18_URL"
+          curl -sfL --retry 5 --retry-all-errors --retry-delay 10 --create-dirs -o "$KTLINT_18_JAR" "$KTLINT_18_URL"
           tools/sync-ktlint.sh
           tools/sync-compose-rules.sh
       - id: build
