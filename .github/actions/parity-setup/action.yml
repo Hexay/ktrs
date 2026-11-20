@@ -7,6 +7,9 @@ inputs:
 runs:
   using: composite
   steps:
+    # Every tools/ download (jars, Maven, JDK) retries: Maven Central returns transient HTTP errors for minutes at a time.
+    - shell: bash
+      run: printf 'retry = 8\nretry-all-errors\nshow-error\n' > ~/.curlrc
     - uses: actions/setup-java@v4
       with: { distribution: temurin, java-version: 21 }
     - uses: actions/cache/restore@v4
