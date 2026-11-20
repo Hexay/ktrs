@@ -159,7 +159,7 @@ jobs:
         uses: actions/cache@v4
         with: { path: "${{ env.KTLINT_18_JAR }}", key: "${{ env.KTLINT_18_URL }}" }
       - if: steps.jar18.outputs.cache-hit != 'true'
-        run: curl -sSfL --retry 8 --retry-all-errors --create-dirs -o "$KTLINT_18_JAR" "$KTLINT_18_URL"
+        run: curl -sfL --create-dirs -o "$KTLINT_18_JAR" "$KTLINT_18_URL"
       - id: build
         run: cargo build --locked --release --bins
       # The jar's side of the compare (A_CACHE in ktlint-compare.sh) only changes with these inputs.
@@ -167,7 +167,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ${{ runner.temp }}/a-cache
-          key: ktlint-1.8-${{ matrix.style }}-${{ hashFiles('tools/corpus/REVISIONS', 'tools/parity/ktlint-compare.sh', '.github/actions/parity-setup/action.yml') }}-${{ env.KTLINT_18_URL }}
+          key: ktlint-1.8-${{ matrix.style }}-${{ hashFiles('tools/corpus/REVISIONS', 'tools/parity/ktlint-compare.sh') }}-${{ env.KTLINT_18_URL }}
       - name: Compare (rows and trees to target/parity/ktlint-1.8-out)
         run: |
           A_CACHE=$RUNNER_TEMP/a-cache tools/parity/ktlint-compare.sh "java -Xmx2g -jar $PWD/$KTLINT_18_JAR" \
@@ -201,7 +201,7 @@ jobs:
         uses: actions/cache@v4
         with: { path: "${{ env.KTLINT_18_JAR }}", key: "${{ env.KTLINT_18_URL }}" }
       - if: steps.jar18.outputs.cache-hit != 'true'
-        run: curl -sSfL --retry 8 --retry-all-errors --create-dirs -o "$KTLINT_18_JAR" "$KTLINT_18_URL"
+        run: curl -sfL --create-dirs -o "$KTLINT_18_JAR" "$KTLINT_18_URL"
       - run: |
           tools/sync-ktlint.sh
           tools/sync-compose-rules.sh
@@ -211,7 +211,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ${{ runner.temp }}/a-cache
-          key: compose-${{ matrix.version }}-${{ matrix.mode }}-${{ hashFiles('tools/corpus/REVISIONS', 'tools/parity/ktlint-compare.sh', 'tools/compose-rules/parity.sh', 'tools/sync-ktlint.sh', 'tools/sync-compose-rules.sh', '.github/actions/parity-setup/action.yml') }}-${{ env.KTLINT_18_URL }}
+          key: compose-${{ matrix.version }}-${{ matrix.mode }}-${{ hashFiles('tools/corpus/REVISIONS', 'tools/parity/ktlint-compare.sh', 'tools/compose-rules/parity.sh', 'tools/sync-ktlint.sh', 'tools/sync-compose-rules.sh') }}-${{ env.KTLINT_18_URL }}
       - run: |
           k20=$PWD/tools/ktlint-oracle/lib/ktlint-cli-$(sed -n 's/^KTLINT_TAG=//p' tools/sync-ktlint.sh)-all.jar
           A_CACHE=$RUNNER_TEMP/a-cache tools/parity/gate.sh "compose-rules-$VERSIONS-$MODES" '' tools/compose-rules/parity.sh \
@@ -265,15 +265,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/parity-setup
-      - uses: gradle/actions/setup-gradle@v4
-        with: { cache-read-only: false }
-      # Plugin and dependency downloads; our own artifacts (io/github/hexay) are republished every run.
-      - if: endsWith(matrix.tool, '-maven')
-        uses: actions/cache@v4
+      # Plugin and dependency downloads; our own artifacts (io/github/hexay) are republished every run. Not setup-gradle:
+      # its init script prints a line per build that differs between the two sides.
+      - uses: actions/cache@v4
         with:
           path: |
             ${{ env.M2 }}
             !${{ env.M2 }}/io/github/hexay
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            !~/.gradle/caches/modules-2/files-2.1/io.github.hexay*
           key: m2-${{ matrix.tool }}-${{ hashFiles(format('tools/{0}/**', matrix.tool), 'java/**/*.gradle.kts') }}
           restore-keys: m2-${{ matrix.tool }}-
       - id: build
