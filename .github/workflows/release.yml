@@ -53,8 +53,8 @@ jobs:
           - { target: x86_64-unknown-linux-musl, os: ubuntu-24.04, musl: true }
           - { target: aarch64-unknown-linux-musl, os: ubuntu-24.04-arm, musl: true }
           # Cross-compiled on Apple silicon: the Intel macOS runner images are retired.
-          - { target: x86_64-apple-darwin, os: macos-14 }
-          - { target: aarch64-apple-darwin, os: macos-14 }
+          - { target: x86_64-apple-darwin, os: macos-15 }
+          - { target: aarch64-apple-darwin, os: macos-15 }
           - { target: x86_64-pc-windows-msvc, os: windows-2022 }
           - { target: aarch64-pc-windows-msvc, os: windows-11-arm }
     runs-on: ${{ matrix.os }}
@@ -349,7 +349,7 @@ jobs:
   # release's checksums, installed and tested from a scratch tap, then committed to master.
   homebrew:
     needs: release
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
         with: { ref: master }
