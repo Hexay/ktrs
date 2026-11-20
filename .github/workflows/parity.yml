@@ -266,7 +266,7 @@ jobs:
       fail-fast: false
       matrix:
         tool: [ktlint-gradle, ktlint-maven, spotless-maven, kotlinter]
-    env: { M2: "${{ github.workspace }}/../m2" }
+    env: { M2: "${{ github.workspace }}-m2" }
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/parity-setup
