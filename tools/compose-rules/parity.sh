@@ -7,6 +7,8 @@
 # KTLINT_*: the ktlint release launchers; KTRS_KTLINT: target/release/ktlint. Per tree and ktlint version: `compose-only`
 # (ktlint_standard = disabled: the port alone) and `with-standard` (both rule sets, as users run them), style
 # ktlint_official. JAR = the -R jar (default: tools/compose-rules/lib/ktlint-compose-<pin>-all.jar). Slow (JVM): background.
+# VERSIONS / MODES (default "1.8 2.0" / "compose-only with-standard") pick a subset (CI runs one pair per job);
+# A_CACHE: ktlint-compare.sh's, per tree/version/mode below it.
 # Exit status: tools/parity/check-known.sh against KNOWN (default tools/parity/known-diffs/compose-rules.tsv).
 set -uo pipefail
 (($# >= 5)) || { sed -n 2,10p "$0"; exit 2; }
@@ -19,11 +21,11 @@ JAR=${JAR:-$here/lib/ktlint-compose-$pin-all.jar}
 mkdir -p "$OUT"
 for tree in "$@"; do
   name=$(basename "$tree")
-  for v in 1.8 2.0; do
+  for v in ${VERSIONS:-1.8 2.0}; do
     jvm=$K20; [[ $v == 1.8 ]] && jvm=$K18
-    for mode in compose-only with-standard; do
+    for mode in ${MODES:-compose-only with-standard}; do
       extra=; [[ $mode == compose-only ]] && extra='ktlint_standard = disabled'
-      EC_EXTRA=$extra "$repo/tools/parity/ktlint-compare.sh" "$jvm -R $JAR" "$OURS --ktlint-version=$v -R $JAR" \
+      A_CACHE=${A_CACHE:+$A_CACHE/$name/$v/$mode} EC_EXTRA=$extra "$repo/tools/parity/ktlint-compare.sh" "$jvm -R $JAR" "$OURS --ktlint-version=$v -R $JAR" \
         "$tree" "$OUT/$name/$v/$mode" ktlint_official > /dev/null
       echo "## $name ktlint $v $mode"; tail -n +4 "$OUT/$name/$v/$mode/summary.md"
     done

@@ -162,10 +162,19 @@ jobs:
         run: curl -sSfL --retry 8 --retry-all-errors --create-dirs -o "$KTLINT_18_JAR" "$KTLINT_18_URL"
       - id: build
         run: cargo build --locked --release --bins
+      # The jar's side of the compare (A_CACHE in ktlint-compare.sh) only changes with these inputs.
+      - id: oracle
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ runner.temp }}/a-cache
+          key: ktlint-1.8-${{ matrix.style }}-${{ hashFiles('tools/corpus/REVISIONS', 'tools/parity/ktlint-compare.sh', '.github/actions/parity-setup/action.yml') }}-${{ env.KTLINT_18_URL }}
       - name: Compare (rows and trees to target/parity/ktlint-1.8-out)
         run: |
-          tools/parity/ktlint-compare.sh "java -Xmx2g -jar $PWD/$KTLINT_18_JAR" "$PWD/target/release/ktlint --ktlint-version=1.8" \
-            "$RUNNER_TEMP/corpus" target/parity/ktlint-1.8-out ${{ matrix.style }}
+          A_CACHE=$RUNNER_TEMP/a-cache tools/parity/ktlint-compare.sh "java -Xmx2g -jar $PWD/$KTLINT_18_JAR" \
+            "$PWD/target/release/ktlint --ktlint-version=1.8" "$RUNNER_TEMP/corpus" target/parity/ktlint-1.8-out ${{ matrix.style }}
+      - if: steps.oracle.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with: { path: "${{ runner.temp }}/a-cache", key: "${{ steps.oracle.outputs.cache-primary-key }}" }
       - run: |
           tools/parity/gate.sh ktlint-1.8-${{ matrix.style }} '' \
             tools/parity/check-known.sh tools/parity/known-diffs/ktlint-1.8.tsv target/parity/ktlint-1.8-out
@@ -178,6 +187,12 @@ jobs:
     needs: corpus
     runs-on: ubuntu-24.04
     timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        version: ["1.8", "2.0"]
+        mode: [compose-only, with-standard]
+    env: { VERSIONS: "${{ matrix.version }}", MODES: "${{ matrix.mode }}" }
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/parity-setup
@@ -192,41 +207,49 @@ jobs:
           tools/sync-compose-rules.sh
       - id: build
         run: cargo build --locked --release --bins
+      - id: oracle
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ runner.temp }}/a-cache
+          key: compose-${{ matrix.version }}-${{ matrix.mode }}-${{ hashFiles('tools/corpus/REVISIONS', 'tools/parity/ktlint-compare.sh', 'tools/compose-rules/parity.sh', 'tools/sync-ktlint.sh', 'tools/sync-compose-rules.sh', '.github/actions/parity-setup/action.yml') }}-${{ env.KTLINT_18_URL }}
       - run: |
           k20=$PWD/tools/ktlint-oracle/lib/ktlint-cli-$(sed -n 's/^KTLINT_TAG=//p' tools/sync-ktlint.sh)-all.jar
-          tools/parity/gate.sh compose-rules '' tools/compose-rules/parity.sh "java -Xmx2g -jar $PWD/$KTLINT_18_JAR" \
-            "java -Xmx2g -jar $k20" "$PWD/target/release/ktlint" target/parity/compose-out "$RUNNER_TEMP/corpus"
+          A_CACHE=$RUNNER_TEMP/a-cache tools/parity/gate.sh "compose-rules-$VERSIONS-$MODES" '' tools/compose-rules/parity.sh \
+            "java -Xmx2g -jar $PWD/$KTLINT_18_JAR" "java -Xmx2g -jar $k20" "$PWD/target/release/ktlint" target/parity/compose-out \
+            "$RUNNER_TEMP/corpus"
+      - if: ${{ !cancelled() && steps.oracle.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@v4
+        with: { path: "${{ runner.temp }}/a-cache", key: "${{ steps.oracle.outputs.cache-primary-key }}" }
       - if: failure()
         uses: actions/upload-artifact@v4
-        with: { name: parity-compose, path: target/parity, if-no-files-found: ignore }
+        with: { name: "parity-compose-${{ matrix.version }}-${{ matrix.mode }}", path: target/parity, if-no-files-found: ignore }
 
   # The `ktfmt` and `ktlint` binaries vs the jars: stdout, stderr, exit code, files (ktlint: 2.0 and 1.8, with compose-rules).
   cli:
     needs: corpus
     runs-on: ubuntu-24.04
     timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        gate: [ktfmt-cli, ktlint-cli-2.0, ktlint-cli-1.8]
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/parity-setup
       - run: |
-          tools/sync-ktfmt.sh
-          tools/sync-ktlint.sh
-          tools/sync-compose-rules.sh
+          if [[ ${{ matrix.gate }} == ktfmt-cli ]]; then tools/sync-ktfmt.sh; else tools/sync-ktlint.sh; tools/sync-compose-rules.sh; fi
       - id: build
         run: cargo build --locked --release --bins
-      - if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+      - if: matrix.gate == 'ktfmt-cli'
         run: tools/parity/gate.sh ktfmt-cli '' tools/ktfmt-oracle/cli-diff.sh target/release/ktfmt
-      - if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+      - if: matrix.gate != 'ktfmt-cli'
         run: |
+          [[ ${{ matrix.gate }} == ktlint-cli-1.8 ]] && export KTLINT_VERSION=1.8
           RULESET_JAR=$(ls "$PWD"/tools/compose-rules/lib/ktlint-compose-*-all.jar) \
-            tools/parity/gate.sh ktlint-cli-2.0 '' tools/ktlint-oracle/cli-diff.sh target/release/ktlint
-      - if: ${{ !cancelled() && steps.build.outcome == 'success' }}
-        run: |
-          KTLINT_VERSION=1.8 RULESET_JAR=$(ls "$PWD"/tools/compose-rules/lib/ktlint-compose-*-all.jar) \
-            tools/parity/gate.sh ktlint-cli-1.8 '' tools/ktlint-oracle/cli-diff.sh target/release/ktlint
+            tools/parity/gate.sh ${{ matrix.gate }} '' tools/ktlint-oracle/cli-diff.sh target/release/ktlint
       - if: failure()
         uses: actions/upload-artifact@v4
-        with: { name: parity-cli, path: target/parity, if-no-files-found: ignore }
+        with: { name: "parity-${{ matrix.gate }}", path: target/parity, if-no-files-found: ignore }
 
   # The Gradle and Maven drop-ins vs the plugins they replace (research/29, 30, 31, 34), on target/debug/ktrs.
   # kotlinter: the sample scenarios; its Android and real-project runs are manual (research/34).
@@ -238,9 +261,21 @@ jobs:
       fail-fast: false
       matrix:
         tool: [ktlint-gradle, ktlint-maven, spotless-maven, kotlinter]
+    env: { M2: "${{ github.workspace }}/../m2" }
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/parity-setup
+      - uses: gradle/actions/setup-gradle@v4
+        with: { cache-read-only: false }
+      # Plugin and dependency downloads; our own artifacts (io/github/hexay) are republished every run.
+      - if: endsWith(matrix.tool, '-maven')
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.M2 }}
+            !${{ env.M2 }}/io/github/hexay
+          key: m2-${{ matrix.tool }}-${{ hashFiles(format('tools/{0}/**', matrix.tool), 'java/**/*.gradle.kts') }}
+          restore-keys: m2-${{ matrix.tool }}-
       - id: build
         run: cargo build --locked --bins
       - run: tools/parity/gate.sh ${{ matrix.tool }} 'target/${{ matrix.tool }}/*.diff' tools/${{ matrix.tool }}/parity.sh
