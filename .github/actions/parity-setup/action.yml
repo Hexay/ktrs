@@ -17,6 +17,14 @@ runs:
         path: corpus
         key: corpus-${{ hashFiles('tools/corpus/REVISIONS') }}
         fail-on-cache-miss: true
+    - uses: actions/cache/restore@v4
+      with:
+        path: |
+          tools/ktlint-oracle/lib
+          tools/ktfmt-oracle/lib
+          tools/compose-rules/lib
+        key: jars-${{ hashFiles('tools/sync-ktlint.sh', 'tools/sync-ktfmt.sh', 'tools/sync-compose-rules.sh') }}-${{ env.KTLINT_18_URL }}
+        fail-on-cache-miss: true
     - if: inputs.tree == 'true'
       shell: bash
       run: |
