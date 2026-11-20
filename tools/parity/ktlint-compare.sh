@@ -25,6 +25,21 @@ run() { # cmd cwd prefix args... -> prefix.out/.err/.exit
   local cmd=$1 cwd=$2 p=$3; shift 3
   (cd "$cwd" && timeout "$TMO" $cmd "$@" > "$p.out" 2> "$p.err"); echo $? > "$p.exit"
 }
+# A_CACHE=DIR: A's outputs (and the files its -F changed) replayed from DIR/<style>, recorded there on a miss. The caller
+# keys DIR on everything A's output depends on (A, the tree, EC_EXTRA).
+run_a() { # cwd prefix args...
+  local cwd=$1 p=$2; shift 2
+  local c=${A_CACHE:+$A_CACHE/$style/${p##*/}}
+  if [[ -n $c && -f $c.exit ]]; then
+    cp "$c".{out,err,exit} "${p%/*}/"
+    [[ -f $c.tar ]] && tar -xf "$c.tar" -C "$cwd"
+    return 0
+  fi
+  run "$A" "$cwd" "$p" "$@"
+  [[ -n $c && $(< "$p.exit") != 124 ]] || return 0  # never record a timeout
+  mkdir -p "${c%/*}"; cp "$p".{out,err,exit} "${c%/*}/"
+  [[ $cwd == "$TREE" ]] || diff -rq "$TREE" "$cwd" | awk '/^Files /{print $4}' | sed "s|^$cwd/||" | tar -cf "$c.tar" -C "$cwd" -T -
+}
 # A multi-line detail (compose-rules' "…\nSee https://…") continues on the next lines: joined with a literal \n.
 rows() {
   awk 'BEGIN { bs = sprintf("%c", 92) }
@@ -44,7 +59,7 @@ rule_counts() { sed -nE 's/.*\(([^()]+)\)$/\1/p' "$1" | sort | uniq -c | awk '{p
 for style in "${STYLES[@]}"; do
   d=$OUT/$style; mkdir -p "$d"
   printf 'root = true\n\n[*.{kt,kts}]\nktlint_code_style = %s\n%b' "$style" "${EC_EXTRA:+$EC_EXTRA\n}" > "$TREE/.editorconfig"
-  run "$A" "$TREE" "$d/lint.a" --relative; run "$B" "$TREE" "$d/lint.b" --relative
+  run_a "$TREE" "$d/lint.a" --relative; run "$B" "$TREE" "$d/lint.b" --relative
   rows "$d/lint.a.out" > "$d/rows.a"; rows "$d/lint.b.out" > "$d/rows.b"
   LC_ALL=C comm -23 "$d/rows.a" "$d/rows.b" > "$d/only.a"; LC_ALL=C comm -13 "$d/rows.a" "$d/rows.b" > "$d/only.b"
   join -a1 -a2 -e0 -o 0,1.2,2.2 <(rule_counts "$d/only.a") <(rule_counts "$d/only.b") |
@@ -59,7 +74,7 @@ for style in "${STYLES[@]}"; do
 
   [[ -n ${NO_FORMAT:-} ]] && continue
   for s in a b; do rm -rf "$W/$s"; cp -a "$TREE" "$W/$s"; done
-  run "$A" "$W/a" "$d/format.a" --relative -F; run "$B" "$W/b" "$d/format.b" --relative -F
+  run_a "$W/a" "$d/format.a" --relative -F; run "$B" "$W/b" "$d/format.b" --relative -F
   diff -r "$W/a" "$W/b" > "$d/format.diff"
   diff -rq "$W/a" "$W/b" | awk '{print $2}' | sed "s|^$W/a/||" > "$d/format-files.txt"
   [[ -n ${KEEP:-} ]] && { mkdir -p "$KEEP"; rm -rf "${KEEP:?}/$style"; cp -a "$W/b" "$KEEP/$style"; rm -f "$KEEP/$style/.editorconfig"; }

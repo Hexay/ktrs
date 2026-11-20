@@ -4,13 +4,15 @@
 #   tools/ktlint-maven/parity.sh [scenario ...]   (default: all; needs `cargo build --bins`, network, a JDK 17+)
 # Scenarios: clean violations format reporters options stdout unknown-reporter compose handoff parse-error report
 # multimodule. Output: target/ktlint-maven/<scenario>/{upstream,ktrs}/ and <scenario>.diff. Our plugin is published to
-# target/ktlint-maven/repo as $VERSION first (NO_PUBLISH=1 skips that); MVN=<mvn> skips the pinned Maven download.
+# target/ktlint-maven/repo as $VERSION first (NO_PUBLISH=1 skips that); MVN=<mvn> skips the pinned Maven download;
+# M2 = the local Maven repository (default target/ktlint-maven/m2).
 # Accepted differences: KNOWN (default tools/parity/known-diffs/ktlint-maven.tsv). Exit 1 when a scenario differs beyond them.
 set -uo pipefail
 # Windows-form paths under Git Bash: they end up in POMs and the JVM.
 root="$(cd "$(dirname "$0")/../.." && (pwd -W 2> /dev/null || pwd))"
 here="$root/tools/ktlint-maven"
 out="$root/target/ktlint-maven"
+m2="${M2:-$out/m2}"
 exe="$root/target/debug/ktrs$([[ $OSTYPE == msys* || $OSTYPE == cygwin* ]] && echo .exe)"
 version="${VERSION:-0.0.0-parity}"
 maven_version=3.9.16
@@ -36,7 +38,7 @@ if [[ -z ${NO_PUBLISH:-} ]]; then
     :publishAllPublicationsToGithubPagesRepository :ktrs-ktlint-maven-plugin:publishAllPublicationsToGithubPagesRepository \
     || exit 2
   # Maven never re-resolves a release version it has cached.
-  rm -rf "$out/m2/io/github/hexay"
+  rm -rf "$m2/io/github/hexay"
 fi
 
 repo_url="file:///${out#/}/repo"
@@ -91,7 +93,7 @@ scenario() {
     [[ $side == ktrs ]] && extra=("-Dktrs.executable=$exe")
     for args in "$@"; do
       # shellcheck disable=SC2086
-      (cd "$dir/project" && "$MVN" -B -ntp -Dmaven.repo.local="$out/m2" -Dmaven.plugin.validation=NONE "${extra[@]}" $args) \
+      (cd "$dir/project" && "$MVN" -B -ntp -Dmaven.repo.local="$m2" -Dmaven.plugin.validation=NONE "${extra[@]}" $args) \
         > "$dir/run.txt" 2>&1
       { echo "== exit $? : $args"; cat "$dir/run.txt"; } >> "$dir/console.txt"
     done
