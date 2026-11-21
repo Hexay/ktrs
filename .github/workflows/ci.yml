@@ -46,6 +46,7 @@ jobs:
       - run: cargo build --locked --bins
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: 21, cache: gradle }
+      - run: install -D -m 644 tools/ci/central-mirror.init.gradle ~/.gradle/init.d/central-mirror.gradle
       - name: Test the JVM wrapper and the Gradle plugin against target/debug/ktrs
         working-directory: java
         run: ./gradlew --console=plain test
@@ -85,6 +86,7 @@ jobs:
       # Not setup-java's `cache: gradle`: its key would equal the java job's, and only one of the two would be saved.
       # This one is keyed per job and also holds the IDEs the tests and the verifier download.
       - uses: gradle/actions/setup-gradle@v4
+      - run: install -D -m 644 tools/ci/central-mirror.init.gradle ~/.gradle/init.d/central-mirror.gradle
       - name: Test and verify the plugin
         working-directory: editors/intellij
         run: ./gradlew --console=plain test buildPlugin verifyPlugin -PverifyAndroidStudio
