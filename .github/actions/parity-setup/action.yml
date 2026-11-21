@@ -9,7 +9,9 @@ runs:
   steps:
     # Every tools/ download (jars, Maven, JDK) retries: Maven Central returns transient HTTP errors for minutes at a time.
     - shell: bash
-      run: printf 'retry = 8\nretry-all-errors\nshow-error\n' > ~/.curlrc
+      run: |
+        printf 'retry = 8\nretry-all-errors\nshow-error\n' > ~/.curlrc
+        install -D -m 644 tools/ci/central-mirror.init.gradle ~/.gradle/init.d/central-mirror.gradle
     - uses: actions/setup-java@v4
       with: { distribution: temurin, java-version: 21 }
     - uses: actions/cache/restore@v4
