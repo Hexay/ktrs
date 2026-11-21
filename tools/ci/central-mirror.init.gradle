@@ -1,0 +1,21 @@
+// CI only (installed into ~/.gradle/init.d): Maven Central throttles GitHub runners (HTTP 429), so its artifacts come
+// from Google's mirror of it. Silent, and the same for both sides of every parity scenario.
+def central = 'https://repo.maven.apache.org/maven2'
+def mirror = 'https://maven-central.storage-download.googleapis.com/maven2/'
+def redirect = { RepositoryHandler repos ->
+    repos.withType(MavenArtifactRepository).configureEach { if (it.url.toString().startsWith(central)) it.url = mirror }
+}
+beforeSettings { settings ->
+    // Ahead of the Plugin Portal, which serves most plugin jars as redirects to Central. Declaring any repository drops
+    // the implicit portal, so it is re-added.
+    settings.pluginManagement.repositories {
+        maven { url = mirror }
+        gradlePluginPortal()
+    }
+    redirect(settings.pluginManagement.repositories)
+    redirect(settings.dependencyResolutionManagement.repositories)
+}
+allprojects {
+    redirect(buildscript.repositories)
+    redirect(repositories)
+}
